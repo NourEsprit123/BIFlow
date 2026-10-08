@@ -1,0 +1,1399 @@
+{
+    "D:\\BIFlow\\data\\raw\\WA_Fn-UseC_-Telco-Customer-Churn-selected-columns.csv::1791475603.790692": {
+        "rows": 7043,
+        "columns": 10,
+        "quality": 100.0,
+        "status_text": "● Ready",
+        "status_type": "green",
+        "profile": {
+            "dataset": "D:\\BIFlow\\data\\raw\\WA_Fn-UseC_-Telco-Customer-Churn-selected-columns.csv",
+            "rows": 7043,
+            "columns": 10,
+            "date_columns": [],
+            "measures": [
+                "SeniorCitizen",
+                "tenure"
+            ],
+            "dimensions": [
+                "gender",
+                "Partner",
+                "Dependents",
+                "PhoneService",
+                "MultipleLines",
+                "InternetService",
+                "OnlineSecurity"
+            ],
+            "column_names": [
+                "customerID",
+                "gender",
+                "SeniorCitizen",
+                "Partner",
+                "Dependents",
+                "tenure",
+                "PhoneService",
+                "MultipleLines",
+                "InternetService",
+                "OnlineSecurity"
+            ],
+            "column_types": {
+                "customerID": "str",
+                "gender": "str",
+                "SeniorCitizen": "int64",
+                "Partner": "str",
+                "Dependents": "str",
+                "tenure": "int64",
+                "PhoneService": "str",
+                "MultipleLines": "str",
+                "InternetService": "str",
+                "OnlineSecurity": "str"
+            },
+            "preview": [
+                {
+                    "customerID": "7590-VHVEG",
+                    "gender": "Female",
+                    "SeniorCitizen": 0,
+                    "Partner": "Yes",
+                    "Dependents": "No",
+                    "tenure": 1,
+                    "PhoneService": "No",
+                    "MultipleLines": "No phone service",
+                    "InternetService": "DSL",
+                    "OnlineSecurity": "No"
+                },
+                {
+                    "customerID": "5575-GNVDE",
+                    "gender": "Male",
+                    "SeniorCitizen": 0,
+                    "Partner": "No",
+                    "Dependents": "No",
+                    "tenure": 34,
+                    "PhoneService": "Yes",
+                    "MultipleLines": "No",
+                    "InternetService": "DSL",
+                    "OnlineSecurity": "Yes"
+                },
+                {
+                    "customerID": "3668-QPYBK",
+                    "gender": "Male",
+                    "SeniorCitizen": 0,
+                    "Partner": "No",
+                    "Dependents": "No",
+                    "tenure": 2,
+                    "PhoneService": "Yes",
+                    "MultipleLines": "No",
+                    "InternetService": "DSL",
+                    "OnlineSecurity": "Yes"
+                },
+                {
+                    "customerID": "7795-CFOCW",
+                    "gender": "Male",
+                    "SeniorCitizen": 0,
+                    "Partner": "No",
+                    "Dependents": "No",
+                    "tenure": 45,
+                    "PhoneService": "No",
+                    "MultipleLines": "No phone service",
+                    "InternetService": "DSL",
+                    "OnlineSecurity": "Yes"
+                },
+                {
+                    "customerID": "9237-HQITU",
+                    "gender": "Female",
+                    "SeniorCitizen": 0,
+                    "Partner": "No",
+                    "Dependents": "No",
+                    "tenure": 2,
+                    "PhoneService": "Yes",
+                    "MultipleLines": "No",
+                    "InternetService": "Fiber optic",
+                    "OnlineSecurity": "No"
+                }
+            ],
+            "missing_values": {
+                "customerID": 0,
+                "gender": 0,
+                "SeniorCitizen": 0,
+                "Partner": 0,
+                "Dependents": 0,
+                "tenure": 0,
+                "PhoneService": 0,
+                "MultipleLines": 0,
+                "InternetService": 0,
+                "OnlineSecurity": 0
+            },
+            "total_missing": 0,
+            "unique_values": {
+                "customerID": 7043,
+                "gender": 2,
+                "SeniorCitizen": 2,
+                "Partner": 2,
+                "Dependents": 2,
+                "tenure": 73,
+                "PhoneService": 2,
+                "MultipleLines": 3,
+                "InternetService": 3,
+                "OnlineSecurity": 3
+            },
+            "duplicate_rows": 0,
+            "numerical_columns": [
+                "SeniorCitizen",
+                "tenure"
+            ],
+            "categorical_columns": [
+                "customerID",
+                "gender",
+                "Partner",
+                "Dependents",
+                "PhoneService",
+                "MultipleLines",
+                "InternetService",
+                "OnlineSecurity"
+            ],
+            "numerical_statistics": {
+                "SeniorCitizen": {
+                    "count": 7043.0,
+                    "mean": 0.16,
+                    "std": 0.37,
+                    "min": 0.0,
+                    "25%": 0.0,
+                    "50%": 0.0,
+                    "75%": 0.0,
+                    "max": 1.0
+                },
+                "tenure": {
+                    "count": 7043.0,
+                    "mean": 32.37,
+                    "std": 24.56,
+                    "min": 0.0,
+                    "25%": 9.0,
+                    "50%": 29.0,
+                    "75%": 55.0,
+                    "max": 72.0
+                }
+            },
+            "categorical_statistics": {
+                "customerID": {
+                    "7590-VHVEG": 1,
+                    "5575-GNVDE": 1,
+                    "3668-QPYBK": 1,
+                    "7795-CFOCW": 1,
+                    "9237-HQITU": 1
+                },
+                "gender": {
+                    "Male": 3555,
+                    "Female": 3488
+                },
+                "Partner": {
+                    "No": 3641,
+                    "Yes": 3402
+                },
+                "Dependents": {
+                    "No": 4933,
+                    "Yes": 2110
+                },
+                "PhoneService": {
+                    "Yes": 6361,
+                    "No": 682
+                },
+                "MultipleLines": {
+                    "No": 3390,
+                    "Yes": 2971,
+                    "No phone service": 682
+                },
+                "InternetService": {
+                    "Fiber optic": 3096,
+                    "DSL": 2421,
+                    "No": 1526
+                },
+                "OnlineSecurity": {
+                    "No": 3498,
+                    "Yes": 2019,
+                    "No internet service": 1526
+                }
+            },
+            "columns_profile": {
+                "customerID": {
+                    "name": "customerID",
+                    "type": "str",
+                    "role": "identifier",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 7043
+                },
+                "gender": {
+                    "name": "gender",
+                    "type": "str",
+                    "role": "potential_target",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "top_values": {
+                        "Male": 3555,
+                        "Female": 3488
+                    }
+                },
+                "SeniorCitizen": {
+                    "name": "SeniorCitizen",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "statistics": {
+                        "count": 7043,
+                        "mean": 0.16,
+                        "median": 0.0,
+                        "std": 0.37,
+                        "min": 0.0,
+                        "max": 1.0,
+                        "q25": 0.0,
+                        "q50": 0.0,
+                        "q75": 0.0
+                    }
+                },
+                "Partner": {
+                    "name": "Partner",
+                    "type": "str",
+                    "role": "potential_target",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "top_values": {
+                        "No": 3641,
+                        "Yes": 3402
+                    }
+                },
+                "Dependents": {
+                    "name": "Dependents",
+                    "type": "str",
+                    "role": "potential_target",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "top_values": {
+                        "No": 4933,
+                        "Yes": 2110
+                    }
+                },
+                "tenure": {
+                    "name": "tenure",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 73,
+                    "statistics": {
+                        "count": 7043,
+                        "mean": 32.37,
+                        "median": 29.0,
+                        "std": 24.56,
+                        "min": 0.0,
+                        "max": 72.0,
+                        "q25": 9.0,
+                        "q50": 29.0,
+                        "q75": 55.0
+                    }
+                },
+                "PhoneService": {
+                    "name": "PhoneService",
+                    "type": "str",
+                    "role": "potential_target",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "top_values": {
+                        "Yes": 6361,
+                        "No": 682
+                    }
+                },
+                "MultipleLines": {
+                    "name": "MultipleLines",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "No": 3390,
+                        "Yes": 2971,
+                        "No phone service": 682
+                    }
+                },
+                "InternetService": {
+                    "name": "InternetService",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "Fiber optic": 3096,
+                        "DSL": 2421,
+                        "No": 1526
+                    }
+                },
+                "OnlineSecurity": {
+                    "name": "OnlineSecurity",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "No": 3498,
+                        "Yes": 2019,
+                        "No internet service": 1526
+                    }
+                }
+            }
+        },
+        "quality_report": {
+            "dataset": "D:\\BIFlow\\data\\raw\\WA_Fn-UseC_-Telco-Customer-Churn-selected-columns.csv",
+            "rows": 7043,
+            "columns": 10,
+            "quality_score": 100.0,
+            "missing_values": {
+                "columns": {},
+                "total": 0
+            },
+            "duplicates": {
+                "count": 0,
+                "has_duplicates": false
+            },
+            "type_issues": {},
+            "inconsistencies": {},
+            "summary": {
+                "missing_issues": 0,
+                "duplicate_rows": 0,
+                "type_issues": 0,
+                "inconsistency_issues": 0
+            }
+        }
+    },
+    "D:\\BIFlow\\data\\raw\\heath 1995-2010.csv::1791475902.6562033": {
+        "rows": 1638,
+        "columns": 7,
+        "quality": 94.29,
+        "status_text": "● Ready",
+        "status_type": "green",
+        "profile": {
+            "dataset": "D:\\BIFlow\\data\\raw\\heath 1995-2010.csv",
+            "rows": 1638,
+            "columns": 7,
+            "date_columns": [],
+            "measures": [
+                "1995"
+            ],
+            "dimensions": [
+                "Health Care Access/Coverage",
+                "Do you have any kind of health care coverage?"
+            ],
+            "column_names": [
+                "1995",
+                "Idaho",
+                "85.7",
+                "14.3",
+                "Health Care Access/Coverage",
+                "Do you have any kind of health care coverage?",
+                "Idaho\n(43.682630005000476, -114.3637300419997)"
+            ],
+            "column_types": {
+                "1995": "int64",
+                "Idaho": "str",
+                "85.7": "str",
+                "14.3": "str",
+                "Health Care Access/Coverage": "str",
+                "Do you have any kind of health care coverage?": "str",
+                "Idaho\n(43.682630005000476, -114.3637300419997)": "str"
+            },
+            "preview": [
+                {
+                    "1995": 2006,
+                    "Idaho": "Idaho",
+                    "85.7": "81.2",
+                    "14.3": "18.8",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Do you have any kind of health care coverage?",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "Idaho\n(43.682630005000476, -114.3637300419997)"
+                },
+                {
+                    "1995": 1997,
+                    "Idaho": "North Dakota",
+                    "85.7": "88.3",
+                    "14.3": "11.7",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Do you have any kind of health care coverage?",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "North Dakota\n(47.47531977900047, -100.11842104899966)"
+                },
+                {
+                    "1995": 2001,
+                    "Idaho": "New York",
+                    "85.7": "83.7",
+                    "14.3": "16.3",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Do you have any kind of health care coverage?",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "New York\n(42.82700103200045, -75.54397042699964)"
+                },
+                {
+                    "1995": 2009,
+                    "Idaho": "Nationwide (States, DC, and Territories)",
+                    "85.7": "83",
+                    "14.3": "17",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Adults aged 18-64 who have any kind of health care coverage",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "Nationwide (States, DC, and Territories)"
+                },
+                {
+                    "1995": 2006,
+                    "Idaho": "Louisiana",
+                    "85.7": "77.099.999.999.999.900",
+                    "14.3": "22.9",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Do you have any kind of health care coverage?",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "Louisiana\n(31.31266064400046, -92.44568007099969)"
+                }
+            ],
+            "missing_values": {
+                "1995": 0,
+                "Idaho": 0,
+                "85.7": 0,
+                "14.3": 0,
+                "Health Care Access/Coverage": 0,
+                "Do you have any kind of health care coverage?": 0,
+                "Idaho\n(43.682630005000476, -114.3637300419997)": 0
+            },
+            "total_missing": 0,
+            "unique_values": {
+                "1995": 16,
+                "Idaho": 56,
+                "85.7": 235,
+                "14.3": 235,
+                "Health Care Access/Coverage": 1,
+                "Do you have any kind of health care coverage?": 2,
+                "Idaho\n(43.682630005000476, -114.3637300419997)": 56
+            },
+            "duplicate_rows": 0,
+            "numerical_columns": [
+                "1995"
+            ],
+            "categorical_columns": [
+                "Idaho",
+                "85.7",
+                "14.3",
+                "Health Care Access/Coverage",
+                "Do you have any kind of health care coverage?",
+                "Idaho\n(43.682630005000476, -114.3637300419997)"
+            ],
+            "numerical_statistics": {
+                "1995": {
+                    "count": 1638.0,
+                    "mean": 2002.67,
+                    "std": 4.73,
+                    "min": 1995.0,
+                    "25%": 1998.0,
+                    "50%": 2003.0,
+                    "75%": 2007.0,
+                    "max": 2010.0
+                }
+            },
+            "categorical_statistics": {
+                "Idaho": {
+                    "North Dakota": 30,
+                    "New York": 30,
+                    "Nationwide (States, DC, and Territories)": 30,
+                    "Louisiana": 30,
+                    "Connecticut": 30
+                },
+                "85.7": {
+                    "82.9": 24,
+                    "87": 23,
+                    "85": 21,
+                    "88.9": 20,
+                    "85.9": 20
+                },
+                "14.3": {
+                    "17.100.000.000.000.000": 24,
+                    "13": 23,
+                    "15": 21,
+                    "11.9": 21,
+                    "14.5": 21
+                },
+                "Health Care Access/Coverage": {
+                    "Health Care Access/Coverage": 1638
+                },
+                "Do you have any kind of health care coverage?": {
+                    "Do you have any kind of health care coverage?": 874,
+                    "Adults aged 18-64 who have any kind of health care coverage": 764
+                },
+                "Idaho\n(43.682630005000476, -114.3637300419997)": {
+                    "North Dakota\n(47.47531977900047, -100.11842104899966)": 30,
+                    "New York\n(42.82700103200045, -75.54397042699964)": 30,
+                    "Nationwide (States, DC, and Territories)": 30,
+                    "Louisiana\n(31.31266064400046, -92.44568007099969)": 30,
+                    "Connecticut\n(41.56266102000046, -72.64984095199964)": 30
+                }
+            },
+            "columns_profile": {
+                "1995": {
+                    "name": "1995",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 16,
+                    "statistics": {
+                        "count": 1638,
+                        "mean": 2002.67,
+                        "median": 2003.0,
+                        "std": 4.73,
+                        "min": 1995.0,
+                        "max": 2010.0,
+                        "q25": 1998.0,
+                        "q50": 2003.0,
+                        "q75": 2007.0
+                    }
+                },
+                "Idaho": {
+                    "name": "Idaho",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 56,
+                    "top_values": {
+                        "North Dakota": 30,
+                        "New York": 30,
+                        "Nationwide (States, DC, and Territories)": 30,
+                        "Louisiana": 30,
+                        "Connecticut": 30
+                    }
+                },
+                "85.7": {
+                    "name": "85.7",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 235,
+                    "top_values": {
+                        "82.9": 24,
+                        "87": 23,
+                        "85": 21,
+                        "88.9": 20,
+                        "85.9": 20
+                    }
+                },
+                "14.3": {
+                    "name": "14.3",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 235,
+                    "top_values": {
+                        "17.100.000.000.000.000": 24,
+                        "13": 23,
+                        "15": 21,
+                        "11.9": 21,
+                        "14.5": 21
+                    }
+                },
+                "Health Care Access/Coverage": {
+                    "name": "Health Care Access/Coverage",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 1,
+                    "top_values": {
+                        "Health Care Access/Coverage": 1638
+                    }
+                },
+                "Do you have any kind of health care coverage?": {
+                    "name": "Do you have any kind of health care coverage?",
+                    "type": "str",
+                    "role": "potential_target",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "top_values": {
+                        "Do you have any kind of health care coverage?": 874,
+                        "Adults aged 18-64 who have any kind of health care coverage": 764
+                    }
+                },
+                "Idaho\n(43.682630005000476, -114.3637300419997)": {
+                    "name": "Idaho\n(43.682630005000476, -114.3637300419997)",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 56,
+                    "top_values": {
+                        "North Dakota\n(47.47531977900047, -100.11842104899966)": 30,
+                        "New York\n(42.82700103200045, -75.54397042699964)": 30,
+                        "Nationwide (States, DC, and Territories)": 30,
+                        "Louisiana\n(31.31266064400046, -92.44568007099969)": 30,
+                        "Connecticut\n(41.56266102000046, -72.64984095199964)": 30
+                    }
+                }
+            }
+        },
+        "quality_report": {
+            "dataset": "D:\\BIFlow\\data\\raw\\heath 1995-2010.csv",
+            "rows": 1638,
+            "columns": 7,
+            "quality_score": 94.29,
+            "missing_values": {
+                "columns": {},
+                "total": 0
+            },
+            "duplicates": {
+                "count": 0,
+                "has_duplicates": false
+            },
+            "type_issues": {
+                "85.7": {
+                    "current_type": "str",
+                    "expected_type": "numeric",
+                    "numeric_values": 1468,
+                    "total_values": 1638,
+                    "numeric_ratio": 89.62,
+                    "message": "La colonne '85.7' est actuellement de type texte mais 89.62% de ses valeurs sont numériques."
+                },
+                "14.3": {
+                    "current_type": "str",
+                    "expected_type": "numeric",
+                    "numeric_values": 1378,
+                    "total_values": 1638,
+                    "numeric_ratio": 84.13,
+                    "message": "La colonne '14.3' est actuellement de type texte mais 84.13% de ses valeurs sont numériques."
+                }
+            },
+            "inconsistencies": {},
+            "summary": {
+                "missing_issues": 0,
+                "duplicate_rows": 0,
+                "type_issues": 2,
+                "inconsistency_issues": 0
+            }
+        }
+    },
+    "D:\\BIFlow\\data\\raw\\WA_Fn-UseC_-Telco-Customer-Churn.csv::1791476597.5361452": {
+        "rows": 7043,
+        "columns": 21,
+        "quality": 98.33,
+        "status_text": "● Ready",
+        "status_type": "green",
+        "profile": {
+            "dataset": "D:\\BIFlow\\data\\raw\\WA_Fn-UseC_-Telco-Customer-Churn.csv",
+            "rows": 7043,
+            "columns": 21,
+            "date_columns": [],
+            "measures": [
+                "SeniorCitizen",
+                "tenure",
+                "MonthlyCharges"
+            ],
+            "dimensions": [
+                "gender",
+                "Partner",
+                "Dependents",
+                "PhoneService",
+                "MultipleLines",
+                "InternetService",
+                "OnlineSecurity",
+                "OnlineBackup",
+                "DeviceProtection",
+                "TechSupport",
+                "StreamingTV",
+                "StreamingMovies",
+                "Contract",
+                "PaperlessBilling",
+                "PaymentMethod",
+                "Churn"
+            ],
+            "column_names": [
+                "customerID",
+                "gender",
+                "SeniorCitizen",
+                "Partner",
+                "Dependents",
+                "tenure",
+                "PhoneService",
+                "MultipleLines",
+                "InternetService",
+                "OnlineSecurity",
+                "OnlineBackup",
+                "DeviceProtection",
+                "TechSupport",
+                "StreamingTV",
+                "StreamingMovies",
+                "Contract",
+                "PaperlessBilling",
+                "PaymentMethod",
+                "MonthlyCharges",
+                "TotalCharges",
+                "Churn"
+            ],
+            "column_types": {
+                "customerID": "str",
+                "gender": "str",
+                "SeniorCitizen": "int64",
+                "Partner": "str",
+                "Dependents": "str",
+                "tenure": "int64",
+                "PhoneService": "str",
+                "MultipleLines": "str",
+                "InternetService": "str",
+                "OnlineSecurity": "str",
+                "OnlineBackup": "str",
+                "DeviceProtection": "str",
+                "TechSupport": "str",
+                "StreamingTV": "str",
+                "StreamingMovies": "str",
+                "Contract": "str",
+                "PaperlessBilling": "str",
+                "PaymentMethod": "str",
+                "MonthlyCharges": "float64",
+                "TotalCharges": "str",
+                "Churn": "str"
+            },
+            "preview": [
+                {
+                    "customerID": "7590-VHVEG",
+                    "gender": "Female",
+                    "SeniorCitizen": 0,
+                    "Partner": "Yes",
+                    "Dependents": "No",
+                    "tenure": 1,
+                    "PhoneService": "No",
+                    "MultipleLines": "No phone service",
+                    "InternetService": "DSL",
+                    "OnlineSecurity": "No",
+                    "OnlineBackup": "Yes",
+                    "DeviceProtection": "No",
+                    "TechSupport": "No",
+                    "StreamingTV": "No",
+                    "StreamingMovies": "No",
+                    "Contract": "Month-to-month",
+                    "PaperlessBilling": "Yes",
+                    "PaymentMethod": "Electronic check",
+                    "MonthlyCharges": 29.85,
+                    "TotalCharges": "29.85",
+                    "Churn": "No"
+                },
+                {
+                    "customerID": "5575-GNVDE",
+                    "gender": "Male",
+                    "SeniorCitizen": 0,
+                    "Partner": "No",
+                    "Dependents": "No",
+                    "tenure": 34,
+                    "PhoneService": "Yes",
+                    "MultipleLines": "No",
+                    "InternetService": "DSL",
+                    "OnlineSecurity": "Yes",
+                    "OnlineBackup": "No",
+                    "DeviceProtection": "Yes",
+                    "TechSupport": "No",
+                    "StreamingTV": "No",
+                    "StreamingMovies": "No",
+                    "Contract": "One year",
+                    "PaperlessBilling": "No",
+                    "PaymentMethod": "Mailed check",
+                    "MonthlyCharges": 56.95,
+                    "TotalCharges": "1889.5",
+                    "Churn": "No"
+                },
+                {
+                    "customerID": "3668-QPYBK",
+                    "gender": "Male",
+                    "SeniorCitizen": 0,
+                    "Partner": "No",
+                    "Dependents": "No",
+                    "tenure": 2,
+                    "PhoneService": "Yes",
+                    "MultipleLines": "No",
+                    "InternetService": "DSL",
+                    "OnlineSecurity": "Yes",
+                    "OnlineBackup": "Yes",
+                    "DeviceProtection": "No",
+                    "TechSupport": "No",
+                    "StreamingTV": "No",
+                    "StreamingMovies": "No",
+                    "Contract": "Month-to-month",
+                    "PaperlessBilling": "Yes",
+                    "PaymentMethod": "Mailed check",
+                    "MonthlyCharges": 53.85,
+                    "TotalCharges": "108.15",
+                    "Churn": "Yes"
+                },
+                {
+                    "customerID": "7795-CFOCW",
+                    "gender": "Male",
+                    "SeniorCitizen": 0,
+                    "Partner": "No",
+                    "Dependents": "No",
+                    "tenure": 45,
+                    "PhoneService": "No",
+                    "MultipleLines": "No phone service",
+                    "InternetService": "DSL",
+                    "OnlineSecurity": "Yes",
+                    "OnlineBackup": "No",
+                    "DeviceProtection": "Yes",
+                    "TechSupport": "Yes",
+                    "StreamingTV": "No",
+                    "StreamingMovies": "No",
+                    "Contract": "One year",
+                    "PaperlessBilling": "No",
+                    "PaymentMethod": "Bank transfer (automatic)",
+                    "MonthlyCharges": 42.3,
+                    "TotalCharges": "1840.75",
+                    "Churn": "No"
+                },
+                {
+                    "customerID": "9237-HQITU",
+                    "gender": "Female",
+                    "SeniorCitizen": 0,
+                    "Partner": "No",
+                    "Dependents": "No",
+                    "tenure": 2,
+                    "PhoneService": "Yes",
+                    "MultipleLines": "No",
+                    "InternetService": "Fiber optic",
+                    "OnlineSecurity": "No",
+                    "OnlineBackup": "No",
+                    "DeviceProtection": "No",
+                    "TechSupport": "No",
+                    "StreamingTV": "No",
+                    "StreamingMovies": "No",
+                    "Contract": "Month-to-month",
+                    "PaperlessBilling": "Yes",
+                    "PaymentMethod": "Electronic check",
+                    "MonthlyCharges": 70.7,
+                    "TotalCharges": "151.65",
+                    "Churn": "Yes"
+                }
+            ],
+            "missing_values": {
+                "customerID": 0,
+                "gender": 0,
+                "SeniorCitizen": 0,
+                "Partner": 0,
+                "Dependents": 0,
+                "tenure": 0,
+                "PhoneService": 0,
+                "MultipleLines": 0,
+                "InternetService": 0,
+                "OnlineSecurity": 0,
+                "OnlineBackup": 0,
+                "DeviceProtection": 0,
+                "TechSupport": 0,
+                "StreamingTV": 0,
+                "StreamingMovies": 0,
+                "Contract": 0,
+                "PaperlessBilling": 0,
+                "PaymentMethod": 0,
+                "MonthlyCharges": 0,
+                "TotalCharges": 11,
+                "Churn": 0
+            },
+            "total_missing": 11,
+            "unique_values": {
+                "customerID": 7043,
+                "gender": 2,
+                "SeniorCitizen": 2,
+                "Partner": 2,
+                "Dependents": 2,
+                "tenure": 73,
+                "PhoneService": 2,
+                "MultipleLines": 3,
+                "InternetService": 3,
+                "OnlineSecurity": 3,
+                "OnlineBackup": 3,
+                "DeviceProtection": 3,
+                "TechSupport": 3,
+                "StreamingTV": 3,
+                "StreamingMovies": 3,
+                "Contract": 3,
+                "PaperlessBilling": 2,
+                "PaymentMethod": 4,
+                "MonthlyCharges": 1585,
+                "TotalCharges": 6531,
+                "Churn": 2
+            },
+            "duplicate_rows": 0,
+            "numerical_columns": [
+                "SeniorCitizen",
+                "tenure",
+                "MonthlyCharges"
+            ],
+            "categorical_columns": [
+                "customerID",
+                "gender",
+                "Partner",
+                "Dependents",
+                "PhoneService",
+                "MultipleLines",
+                "InternetService",
+                "OnlineSecurity",
+                "OnlineBackup",
+                "DeviceProtection",
+                "TechSupport",
+                "StreamingTV",
+                "StreamingMovies",
+                "Contract",
+                "PaperlessBilling",
+                "PaymentMethod",
+                "TotalCharges",
+                "Churn"
+            ],
+            "numerical_statistics": {
+                "SeniorCitizen": {
+                    "count": 7043.0,
+                    "mean": 0.16,
+                    "std": 0.37,
+                    "min": 0.0,
+                    "25%": 0.0,
+                    "50%": 0.0,
+                    "75%": 0.0,
+                    "max": 1.0
+                },
+                "tenure": {
+                    "count": 7043.0,
+                    "mean": 32.37,
+                    "std": 24.56,
+                    "min": 0.0,
+                    "25%": 9.0,
+                    "50%": 29.0,
+                    "75%": 55.0,
+                    "max": 72.0
+                },
+                "MonthlyCharges": {
+                    "count": 7043.0,
+                    "mean": 64.76,
+                    "std": 30.09,
+                    "min": 18.25,
+                    "25%": 35.5,
+                    "50%": 70.35,
+                    "75%": 89.85,
+                    "max": 118.75
+                }
+            },
+            "categorical_statistics": {
+                "customerID": {
+                    "7590-VHVEG": 1,
+                    "5575-GNVDE": 1,
+                    "3668-QPYBK": 1,
+                    "7795-CFOCW": 1,
+                    "9237-HQITU": 1
+                },
+                "gender": {
+                    "Male": 3555,
+                    "Female": 3488
+                },
+                "Partner": {
+                    "No": 3641,
+                    "Yes": 3402
+                },
+                "Dependents": {
+                    "No": 4933,
+                    "Yes": 2110
+                },
+                "PhoneService": {
+                    "Yes": 6361,
+                    "No": 682
+                },
+                "MultipleLines": {
+                    "No": 3390,
+                    "Yes": 2971,
+                    "No phone service": 682
+                },
+                "InternetService": {
+                    "Fiber optic": 3096,
+                    "DSL": 2421,
+                    "No": 1526
+                },
+                "OnlineSecurity": {
+                    "No": 3498,
+                    "Yes": 2019,
+                    "No internet service": 1526
+                },
+                "OnlineBackup": {
+                    "No": 3088,
+                    "Yes": 2429,
+                    "No internet service": 1526
+                },
+                "DeviceProtection": {
+                    "No": 3095,
+                    "Yes": 2422,
+                    "No internet service": 1526
+                },
+                "TechSupport": {
+                    "No": 3473,
+                    "Yes": 2044,
+                    "No internet service": 1526
+                },
+                "StreamingTV": {
+                    "No": 2810,
+                    "Yes": 2707,
+                    "No internet service": 1526
+                },
+                "StreamingMovies": {
+                    "No": 2785,
+                    "Yes": 2732,
+                    "No internet service": 1526
+                },
+                "Contract": {
+                    "Month-to-month": 3875,
+                    "Two year": 1695,
+                    "One year": 1473
+                },
+                "PaperlessBilling": {
+                    "Yes": 4171,
+                    "No": 2872
+                },
+                "PaymentMethod": {
+                    "Electronic check": 2365,
+                    "Mailed check": 1612,
+                    "Bank transfer (automatic)": 1544,
+                    "Credit card (automatic)": 1522
+                },
+                "TotalCharges": {
+                    "20.2": 11,
+                    "19.75": 9,
+                    "19.9": 8,
+                    "20.05": 8,
+                    "19.65": 8
+                },
+                "Churn": {
+                    "No": 5174,
+                    "Yes": 1869
+                }
+            },
+            "columns_profile": {
+                "customerID": {
+                    "name": "customerID",
+                    "type": "str",
+                    "role": "identifier",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 7043
+                },
+                "gender": {
+                    "name": "gender",
+                    "type": "str",
+                    "role": "potential_target",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "top_values": {
+                        "Male": 3555,
+                        "Female": 3488
+                    }
+                },
+                "SeniorCitizen": {
+                    "name": "SeniorCitizen",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "statistics": {
+                        "count": 7043,
+                        "mean": 0.16,
+                        "median": 0.0,
+                        "std": 0.37,
+                        "min": 0.0,
+                        "max": 1.0,
+                        "q25": 0.0,
+                        "q50": 0.0,
+                        "q75": 0.0
+                    }
+                },
+                "Partner": {
+                    "name": "Partner",
+                    "type": "str",
+                    "role": "potential_target",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "top_values": {
+                        "No": 3641,
+                        "Yes": 3402
+                    }
+                },
+                "Dependents": {
+                    "name": "Dependents",
+                    "type": "str",
+                    "role": "potential_target",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "top_values": {
+                        "No": 4933,
+                        "Yes": 2110
+                    }
+                },
+                "tenure": {
+                    "name": "tenure",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 73,
+                    "statistics": {
+                        "count": 7043,
+                        "mean": 32.37,
+                        "median": 29.0,
+                        "std": 24.56,
+                        "min": 0.0,
+                        "max": 72.0,
+                        "q25": 9.0,
+                        "q50": 29.0,
+                        "q75": 55.0
+                    }
+                },
+                "PhoneService": {
+                    "name": "PhoneService",
+                    "type": "str",
+                    "role": "potential_target",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "top_values": {
+                        "Yes": 6361,
+                        "No": 682
+                    }
+                },
+                "MultipleLines": {
+                    "name": "MultipleLines",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "No": 3390,
+                        "Yes": 2971,
+                        "No phone service": 682
+                    }
+                },
+                "InternetService": {
+                    "name": "InternetService",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "Fiber optic": 3096,
+                        "DSL": 2421,
+                        "No": 1526
+                    }
+                },
+                "OnlineSecurity": {
+                    "name": "OnlineSecurity",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "No": 3498,
+                        "Yes": 2019,
+                        "No internet service": 1526
+                    }
+                },
+                "OnlineBackup": {
+                    "name": "OnlineBackup",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "No": 3088,
+                        "Yes": 2429,
+                        "No internet service": 1526
+                    }
+                },
+                "DeviceProtection": {
+                    "name": "DeviceProtection",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "No": 3095,
+                        "Yes": 2422,
+                        "No internet service": 1526
+                    }
+                },
+                "TechSupport": {
+                    "name": "TechSupport",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "No": 3473,
+                        "Yes": 2044,
+                        "No internet service": 1526
+                    }
+                },
+                "StreamingTV": {
+                    "name": "StreamingTV",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "No": 2810,
+                        "Yes": 2707,
+                        "No internet service": 1526
+                    }
+                },
+                "StreamingMovies": {
+                    "name": "StreamingMovies",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "No": 2785,
+                        "Yes": 2732,
+                        "No internet service": 1526
+                    }
+                },
+                "Contract": {
+                    "name": "Contract",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "Month-to-month": 3875,
+                        "Two year": 1695,
+                        "One year": 1473
+                    }
+                },
+                "PaperlessBilling": {
+                    "name": "PaperlessBilling",
+                    "type": "str",
+                    "role": "potential_target",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "top_values": {
+                        "Yes": 4171,
+                        "No": 2872
+                    }
+                },
+                "PaymentMethod": {
+                    "name": "PaymentMethod",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 4,
+                    "top_values": {
+                        "Electronic check": 2365,
+                        "Mailed check": 1612,
+                        "Bank transfer (automatic)": 1544,
+                        "Credit card (automatic)": 1522
+                    }
+                },
+                "MonthlyCharges": {
+                    "name": "MonthlyCharges",
+                    "type": "float64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 1585,
+                    "statistics": {
+                        "count": 7043,
+                        "mean": 64.76,
+                        "median": 70.35,
+                        "std": 30.09,
+                        "min": 18.25,
+                        "max": 118.75,
+                        "q25": 35.5,
+                        "q50": 70.35,
+                        "q75": 89.85
+                    }
+                },
+                "TotalCharges": {
+                    "name": "TotalCharges",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 11,
+                    "missing_percentage": 0.16,
+                    "unique": 6531,
+                    "top_values": {
+                        "20.2": 11,
+                        "19.75": 9,
+                        "19.9": 8,
+                        "20.05": 8,
+                        "19.65": 8
+                    }
+                },
+                "Churn": {
+                    "name": "Churn",
+                    "type": "str",
+                    "role": "potential_target",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "top_values": {
+                        "No": 5174,
+                        "Yes": 1869
+                    }
+                }
+            }
+        },
+        "quality_report": {
+            "dataset": "D:\\BIFlow\\data\\raw\\WA_Fn-UseC_-Telco-Customer-Churn.csv",
+            "rows": 7043,
+            "columns": 21,
+            "quality_score": 98.33,
+            "missing_values": {
+                "columns": {
+                    "TotalCharges": 11
+                },
+                "total": 11
+            },
+            "duplicates": {
+                "count": 0,
+                "has_duplicates": false
+            },
+            "type_issues": {
+                "TotalCharges": {
+                    "current_type": "str",
+                    "expected_type": "numeric",
+                    "numeric_values": 7032,
+                    "total_values": 7032,
+                    "numeric_ratio": 100.0,
+                    "message": "La colonne 'TotalCharges' est actuellement de type texte mais 100.00% de ses valeurs sont numériques."
+                }
+            },
+            "inconsistencies": {
+                "TotalCharges": {
+                    "whitespace_values": 11,
+                    "message": "11 valeur(s) contiennent des espaces inutiles."
+                }
+            },
+            "summary": {
+                "missing_issues": 1,
+                "duplicate_rows": 0,
+                "type_issues": 1,
+                "inconsistency_issues": 1
+            }
+        }
+    }
+}

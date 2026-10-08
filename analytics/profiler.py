@@ -579,47 +579,57 @@ def profile_dataset(
     }
 
 
-def detect_date_columns(
-    df: pd.DataFrame
-) -> list:
+def detect_date_columns(df, threshold=0.8):
     """
-    Détecte automatiquement les colonnes
-    contenant principalement des dates.
+    Détecte les colonnes contenant des dates.
+
+    Pour éviter de ralentir les gros datasets, on analyse
+    au maximum 2000 valeurs par colonne.
     """
 
     date_columns = []
 
     for column in df.columns:
 
-        if not is_string_dtype(df[column]):
+        series = df[column].dropna()
+
+        if series.empty:
             continue
 
-        series = (
-            df[column]
-            .dropna()
+        # Déjà reconnu comme datetime
+        if pd.api.types.is_datetime64_any_dtype(df[column]):
+            date_columns.append(column)
+            continue
+
+        # Les colonnes numériques ne sont pas des dates
+        if not pd.api.types.is_string_dtype(df[column]):
+            continue
+
+        # On ne traite qu'un échantillon
+        sample = (
+            series
             .astype(str)
             .str.strip()
         )
 
-        series = series[
-            series != ""
-        ]
+        if len(sample) > 2000:
+            sample = sample.head(2000)
 
-        if len(series) == 0:
+        try:
+
+            converted = pd.to_datetime(
+                sample,
+                errors="coerce",
+                format="mixed"
+            )
+
+            ratio = converted.notna().mean()
+
+            if ratio >= threshold:
+                date_columns.append(column)
+
+        except Exception:
             continue
-
-        converted = pd.to_datetime(
-            series,
-            errors="coerce"
-        )
-
-        valid_ratio = (
-            converted.notna().sum()
-            / len(series)
-        )
-
-        if valid_ratio >= 0.80:
-            date_columns.append(column)
 
     return date_columns
 
