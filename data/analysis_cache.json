@@ -1395,5 +1395,1553 @@
                 "inconsistency_issues": 1
             }
         }
+    },
+    "D:\\BIFlow\\data\\raw\\heath 1995-2010.csv::1791477475.1092427": {
+        "rows": 1638,
+        "columns": 7,
+        "quality": 94.29,
+        "status_text": "● Ready",
+        "status_type": "green",
+        "profile": {
+            "dataset": "D:\\BIFlow\\data\\raw\\heath 1995-2010.csv",
+            "rows": 1638,
+            "columns": 7,
+            "date_columns": [],
+            "measures": [
+                "1995"
+            ],
+            "dimensions": [
+                "Health Care Access/Coverage",
+                "Do you have any kind of health care coverage?"
+            ],
+            "column_names": [
+                "1995",
+                "Idaho",
+                "85.7",
+                "14.3",
+                "Health Care Access/Coverage",
+                "Do you have any kind of health care coverage?",
+                "Idaho\n(43.682630005000476, -114.3637300419997)"
+            ],
+            "column_types": {
+                "1995": "int64",
+                "Idaho": "str",
+                "85.7": "str",
+                "14.3": "str",
+                "Health Care Access/Coverage": "str",
+                "Do you have any kind of health care coverage?": "str",
+                "Idaho\n(43.682630005000476, -114.3637300419997)": "str"
+            },
+            "preview": [
+                {
+                    "1995": 2006,
+                    "Idaho": "Idaho",
+                    "85.7": "81.2",
+                    "14.3": "18.8",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Do you have any kind of health care coverage?",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "Idaho\n(43.682630005000476, -114.3637300419997)"
+                },
+                {
+                    "1995": 1997,
+                    "Idaho": "North Dakota",
+                    "85.7": "88.3",
+                    "14.3": "11.7",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Do you have any kind of health care coverage?",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "North Dakota\n(47.47531977900047, -100.11842104899966)"
+                },
+                {
+                    "1995": 2001,
+                    "Idaho": "New York",
+                    "85.7": "83.7",
+                    "14.3": "16.3",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Do you have any kind of health care coverage?",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "New York\n(42.82700103200045, -75.54397042699964)"
+                },
+                {
+                    "1995": 2009,
+                    "Idaho": "Nationwide (States, DC, and Territories)",
+                    "85.7": "83",
+                    "14.3": "17",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Adults aged 18-64 who have any kind of health care coverage",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "Nationwide (States, DC, and Territories)"
+                },
+                {
+                    "1995": 2006,
+                    "Idaho": "Louisiana",
+                    "85.7": "77.099.999.999.999.900",
+                    "14.3": "22.9",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Do you have any kind of health care coverage?",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "Louisiana\n(31.31266064400046, -92.44568007099969)"
+                }
+            ],
+            "missing_values": {
+                "1995": 0,
+                "Idaho": 0,
+                "85.7": 0,
+                "14.3": 0,
+                "Health Care Access/Coverage": 0,
+                "Do you have any kind of health care coverage?": 0,
+                "Idaho\n(43.682630005000476, -114.3637300419997)": 0
+            },
+            "total_missing": 0,
+            "unique_values": {
+                "1995": 16,
+                "Idaho": 56,
+                "85.7": 235,
+                "14.3": 235,
+                "Health Care Access/Coverage": 1,
+                "Do you have any kind of health care coverage?": 2,
+                "Idaho\n(43.682630005000476, -114.3637300419997)": 56
+            },
+            "duplicate_rows": 0,
+            "numerical_columns": [
+                "1995"
+            ],
+            "categorical_columns": [
+                "Idaho",
+                "85.7",
+                "14.3",
+                "Health Care Access/Coverage",
+                "Do you have any kind of health care coverage?",
+                "Idaho\n(43.682630005000476, -114.3637300419997)"
+            ],
+            "numerical_statistics": {
+                "1995": {
+                    "count": 1638.0,
+                    "mean": 2002.67,
+                    "std": 4.73,
+                    "min": 1995.0,
+                    "25%": 1998.0,
+                    "50%": 2003.0,
+                    "75%": 2007.0,
+                    "max": 2010.0
+                }
+            },
+            "categorical_statistics": {
+                "Idaho": {
+                    "North Dakota": 30,
+                    "New York": 30,
+                    "Nationwide (States, DC, and Territories)": 30,
+                    "Louisiana": 30,
+                    "Connecticut": 30
+                },
+                "85.7": {
+                    "82.9": 24,
+                    "87": 23,
+                    "85": 21,
+                    "88.9": 20,
+                    "85.9": 20
+                },
+                "14.3": {
+                    "17.100.000.000.000.000": 24,
+                    "13": 23,
+                    "15": 21,
+                    "11.9": 21,
+                    "14.5": 21
+                },
+                "Health Care Access/Coverage": {
+                    "Health Care Access/Coverage": 1638
+                },
+                "Do you have any kind of health care coverage?": {
+                    "Do you have any kind of health care coverage?": 874,
+                    "Adults aged 18-64 who have any kind of health care coverage": 764
+                },
+                "Idaho\n(43.682630005000476, -114.3637300419997)": {
+                    "North Dakota\n(47.47531977900047, -100.11842104899966)": 30,
+                    "New York\n(42.82700103200045, -75.54397042699964)": 30,
+                    "Nationwide (States, DC, and Territories)": 30,
+                    "Louisiana\n(31.31266064400046, -92.44568007099969)": 30,
+                    "Connecticut\n(41.56266102000046, -72.64984095199964)": 30
+                }
+            },
+            "columns_profile": {
+                "1995": {
+                    "name": "1995",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 16,
+                    "statistics": {
+                        "count": 1638,
+                        "mean": 2002.67,
+                        "median": 2003.0,
+                        "std": 4.73,
+                        "min": 1995.0,
+                        "max": 2010.0,
+                        "q25": 1998.0,
+                        "q50": 2003.0,
+                        "q75": 2007.0
+                    }
+                },
+                "Idaho": {
+                    "name": "Idaho",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 56,
+                    "top_values": {
+                        "North Dakota": 30,
+                        "New York": 30,
+                        "Nationwide (States, DC, and Territories)": 30,
+                        "Louisiana": 30,
+                        "Connecticut": 30
+                    }
+                },
+                "85.7": {
+                    "name": "85.7",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 235,
+                    "top_values": {
+                        "82.9": 24,
+                        "87": 23,
+                        "85": 21,
+                        "88.9": 20,
+                        "85.9": 20
+                    }
+                },
+                "14.3": {
+                    "name": "14.3",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 235,
+                    "top_values": {
+                        "17.100.000.000.000.000": 24,
+                        "13": 23,
+                        "15": 21,
+                        "11.9": 21,
+                        "14.5": 21
+                    }
+                },
+                "Health Care Access/Coverage": {
+                    "name": "Health Care Access/Coverage",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 1,
+                    "top_values": {
+                        "Health Care Access/Coverage": 1638
+                    }
+                },
+                "Do you have any kind of health care coverage?": {
+                    "name": "Do you have any kind of health care coverage?",
+                    "type": "str",
+                    "role": "potential_target",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "top_values": {
+                        "Do you have any kind of health care coverage?": 874,
+                        "Adults aged 18-64 who have any kind of health care coverage": 764
+                    }
+                },
+                "Idaho\n(43.682630005000476, -114.3637300419997)": {
+                    "name": "Idaho\n(43.682630005000476, -114.3637300419997)",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 56,
+                    "top_values": {
+                        "North Dakota\n(47.47531977900047, -100.11842104899966)": 30,
+                        "New York\n(42.82700103200045, -75.54397042699964)": 30,
+                        "Nationwide (States, DC, and Territories)": 30,
+                        "Louisiana\n(31.31266064400046, -92.44568007099969)": 30,
+                        "Connecticut\n(41.56266102000046, -72.64984095199964)": 30
+                    }
+                }
+            }
+        },
+        "quality_report": {
+            "dataset": "D:\\BIFlow\\data\\raw\\heath 1995-2010.csv",
+            "rows": 1638,
+            "columns": 7,
+            "quality_score": 94.29,
+            "missing_values": {
+                "columns": {},
+                "total": 0
+            },
+            "duplicates": {
+                "count": 0,
+                "has_duplicates": false
+            },
+            "type_issues": {
+                "85.7": {
+                    "current_type": "str",
+                    "expected_type": "numeric",
+                    "numeric_values": 1468,
+                    "total_values": 1638,
+                    "numeric_ratio": 89.62,
+                    "message": "La colonne '85.7' est actuellement de type texte mais 89.62% de ses valeurs sont numériques."
+                },
+                "14.3": {
+                    "current_type": "str",
+                    "expected_type": "numeric",
+                    "numeric_values": 1378,
+                    "total_values": 1638,
+                    "numeric_ratio": 84.13,
+                    "message": "La colonne '14.3' est actuellement de type texte mais 84.13% de ses valeurs sont numériques."
+                }
+            },
+            "inconsistencies": {},
+            "summary": {
+                "missing_issues": 0,
+                "duplicate_rows": 0,
+                "type_issues": 2,
+                "inconsistency_issues": 0
+            }
+        }
+    },
+    "D:\\BIFlow\\data\\raw\\heath 1995-2010.csv::1791478202.010444": {
+        "rows": 1638,
+        "columns": 7,
+        "quality": 94.29,
+        "status_text": "● Ready",
+        "status_type": "green",
+        "profile": {
+            "dataset": "D:\\BIFlow\\data\\raw\\heath 1995-2010.csv",
+            "rows": 1638,
+            "columns": 7,
+            "date_columns": [],
+            "measures": [
+                "1995"
+            ],
+            "dimensions": [
+                "Health Care Access/Coverage",
+                "Do you have any kind of health care coverage?"
+            ],
+            "column_names": [
+                "1995",
+                "Idaho",
+                "85.7",
+                "14.3",
+                "Health Care Access/Coverage",
+                "Do you have any kind of health care coverage?",
+                "Idaho\n(43.682630005000476, -114.3637300419997)"
+            ],
+            "column_types": {
+                "1995": "int64",
+                "Idaho": "str",
+                "85.7": "str",
+                "14.3": "str",
+                "Health Care Access/Coverage": "str",
+                "Do you have any kind of health care coverage?": "str",
+                "Idaho\n(43.682630005000476, -114.3637300419997)": "str"
+            },
+            "preview": [
+                {
+                    "1995": 2006,
+                    "Idaho": "Idaho",
+                    "85.7": "81.2",
+                    "14.3": "18.8",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Do you have any kind of health care coverage?",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "Idaho\n(43.682630005000476, -114.3637300419997)"
+                },
+                {
+                    "1995": 1997,
+                    "Idaho": "North Dakota",
+                    "85.7": "88.3",
+                    "14.3": "11.7",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Do you have any kind of health care coverage?",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "North Dakota\n(47.47531977900047, -100.11842104899966)"
+                },
+                {
+                    "1995": 2001,
+                    "Idaho": "New York",
+                    "85.7": "83.7",
+                    "14.3": "16.3",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Do you have any kind of health care coverage?",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "New York\n(42.82700103200045, -75.54397042699964)"
+                },
+                {
+                    "1995": 2009,
+                    "Idaho": "Nationwide (States, DC, and Territories)",
+                    "85.7": "83",
+                    "14.3": "17",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Adults aged 18-64 who have any kind of health care coverage",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "Nationwide (States, DC, and Territories)"
+                },
+                {
+                    "1995": 2006,
+                    "Idaho": "Louisiana",
+                    "85.7": "77.099.999.999.999.900",
+                    "14.3": "22.9",
+                    "Health Care Access/Coverage": "Health Care Access/Coverage",
+                    "Do you have any kind of health care coverage?": "Do you have any kind of health care coverage?",
+                    "Idaho\n(43.682630005000476, -114.3637300419997)": "Louisiana\n(31.31266064400046, -92.44568007099969)"
+                }
+            ],
+            "missing_values": {
+                "1995": 0,
+                "Idaho": 0,
+                "85.7": 0,
+                "14.3": 0,
+                "Health Care Access/Coverage": 0,
+                "Do you have any kind of health care coverage?": 0,
+                "Idaho\n(43.682630005000476, -114.3637300419997)": 0
+            },
+            "total_missing": 0,
+            "unique_values": {
+                "1995": 16,
+                "Idaho": 56,
+                "85.7": 235,
+                "14.3": 235,
+                "Health Care Access/Coverage": 1,
+                "Do you have any kind of health care coverage?": 2,
+                "Idaho\n(43.682630005000476, -114.3637300419997)": 56
+            },
+            "duplicate_rows": 0,
+            "numerical_columns": [
+                "1995"
+            ],
+            "categorical_columns": [
+                "Idaho",
+                "85.7",
+                "14.3",
+                "Health Care Access/Coverage",
+                "Do you have any kind of health care coverage?",
+                "Idaho\n(43.682630005000476, -114.3637300419997)"
+            ],
+            "numerical_statistics": {
+                "1995": {
+                    "count": 1638.0,
+                    "mean": 2002.67,
+                    "std": 4.73,
+                    "min": 1995.0,
+                    "25%": 1998.0,
+                    "50%": 2003.0,
+                    "75%": 2007.0,
+                    "max": 2010.0
+                }
+            },
+            "categorical_statistics": {
+                "Idaho": {
+                    "North Dakota": 30,
+                    "New York": 30,
+                    "Nationwide (States, DC, and Territories)": 30,
+                    "Louisiana": 30,
+                    "Connecticut": 30
+                },
+                "85.7": {
+                    "82.9": 24,
+                    "87": 23,
+                    "85": 21,
+                    "88.9": 20,
+                    "85.9": 20
+                },
+                "14.3": {
+                    "17.100.000.000.000.000": 24,
+                    "13": 23,
+                    "15": 21,
+                    "11.9": 21,
+                    "14.5": 21
+                },
+                "Health Care Access/Coverage": {
+                    "Health Care Access/Coverage": 1638
+                },
+                "Do you have any kind of health care coverage?": {
+                    "Do you have any kind of health care coverage?": 874,
+                    "Adults aged 18-64 who have any kind of health care coverage": 764
+                },
+                "Idaho\n(43.682630005000476, -114.3637300419997)": {
+                    "North Dakota\n(47.47531977900047, -100.11842104899966)": 30,
+                    "New York\n(42.82700103200045, -75.54397042699964)": 30,
+                    "Nationwide (States, DC, and Territories)": 30,
+                    "Louisiana\n(31.31266064400046, -92.44568007099969)": 30,
+                    "Connecticut\n(41.56266102000046, -72.64984095199964)": 30
+                }
+            },
+            "columns_profile": {
+                "1995": {
+                    "name": "1995",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 16,
+                    "statistics": {
+                        "count": 1638,
+                        "mean": 2002.67,
+                        "median": 2003.0,
+                        "std": 4.73,
+                        "min": 1995.0,
+                        "max": 2010.0,
+                        "q25": 1998.0,
+                        "q50": 2003.0,
+                        "q75": 2007.0
+                    }
+                },
+                "Idaho": {
+                    "name": "Idaho",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 56,
+                    "top_values": {
+                        "North Dakota": 30,
+                        "New York": 30,
+                        "Nationwide (States, DC, and Territories)": 30,
+                        "Louisiana": 30,
+                        "Connecticut": 30
+                    }
+                },
+                "85.7": {
+                    "name": "85.7",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 235,
+                    "top_values": {
+                        "82.9": 24,
+                        "87": 23,
+                        "85": 21,
+                        "88.9": 20,
+                        "85.9": 20
+                    }
+                },
+                "14.3": {
+                    "name": "14.3",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 235,
+                    "top_values": {
+                        "17.100.000.000.000.000": 24,
+                        "13": 23,
+                        "15": 21,
+                        "11.9": 21,
+                        "14.5": 21
+                    }
+                },
+                "Health Care Access/Coverage": {
+                    "name": "Health Care Access/Coverage",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 1,
+                    "top_values": {
+                        "Health Care Access/Coverage": 1638
+                    }
+                },
+                "Do you have any kind of health care coverage?": {
+                    "name": "Do you have any kind of health care coverage?",
+                    "type": "str",
+                    "role": "potential_target",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "top_values": {
+                        "Do you have any kind of health care coverage?": 874,
+                        "Adults aged 18-64 who have any kind of health care coverage": 764
+                    }
+                },
+                "Idaho\n(43.682630005000476, -114.3637300419997)": {
+                    "name": "Idaho\n(43.682630005000476, -114.3637300419997)",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 56,
+                    "top_values": {
+                        "North Dakota\n(47.47531977900047, -100.11842104899966)": 30,
+                        "New York\n(42.82700103200045, -75.54397042699964)": 30,
+                        "Nationwide (States, DC, and Territories)": 30,
+                        "Louisiana\n(31.31266064400046, -92.44568007099969)": 30,
+                        "Connecticut\n(41.56266102000046, -72.64984095199964)": 30
+                    }
+                }
+            }
+        },
+        "quality_report": {
+            "dataset": "D:\\BIFlow\\data\\raw\\heath 1995-2010.csv",
+            "rows": 1638,
+            "columns": 7,
+            "quality_score": 94.29,
+            "missing_values": {
+                "columns": {},
+                "total": 0
+            },
+            "duplicates": {
+                "count": 0,
+                "has_duplicates": false
+            },
+            "type_issues": {
+                "85.7": {
+                    "current_type": "str",
+                    "expected_type": "numeric",
+                    "numeric_values": 1468,
+                    "total_values": 1638,
+                    "numeric_ratio": 89.62,
+                    "message": "La colonne '85.7' est actuellement de type texte mais 89.62% de ses valeurs sont numériques."
+                },
+                "14.3": {
+                    "current_type": "str",
+                    "expected_type": "numeric",
+                    "numeric_values": 1378,
+                    "total_values": 1638,
+                    "numeric_ratio": 84.13,
+                    "message": "La colonne '14.3' est actuellement de type texte mais 84.13% de ses valeurs sont numériques."
+                }
+            },
+            "inconsistencies": {},
+            "summary": {
+                "missing_issues": 0,
+                "duplicate_rows": 0,
+                "type_issues": 2,
+                "inconsistency_issues": 0
+            }
+        }
+    },
+    "D:\\BIFlow\\data\\raw\\supply_chain_data.csv::1791478672.7689931": {
+        "rows": 100,
+        "columns": 24,
+        "quality": 100.0,
+        "status_text": "● Ready",
+        "status_type": "green",
+        "profile": {
+            "dataset": "D:\\BIFlow\\data\\raw\\supply_chain_data.csv",
+            "rows": 100,
+            "columns": 24,
+            "date_columns": [],
+            "measures": [
+                "Availability",
+                "Stock levels",
+                "Lead times",
+                "Order quantities",
+                "Shipping times",
+                "Lead time",
+                "Manufacturing lead time"
+            ],
+            "dimensions": [
+                "Product type",
+                "Customer demographics",
+                "Shipping carriers",
+                "Supplier name",
+                "Location",
+                "Inspection results",
+                "Transportation modes",
+                "Routes"
+            ],
+            "column_names": [
+                "Product type",
+                "SKU",
+                "Price",
+                "Availability",
+                "Number of products sold",
+                "Revenue generated",
+                "Customer demographics",
+                "Stock levels",
+                "Lead times",
+                "Order quantities",
+                "Shipping times",
+                "Shipping carriers",
+                "Shipping costs",
+                "Supplier name",
+                "Location",
+                "Lead time",
+                "Production volumes",
+                "Manufacturing lead time",
+                "Manufacturing costs",
+                "Inspection results",
+                "Defect rates",
+                "Transportation modes",
+                "Routes",
+                "Costs"
+            ],
+            "column_types": {
+                "Product type": "str",
+                "SKU": "str",
+                "Price": "float64",
+                "Availability": "int64",
+                "Number of products sold": "int64",
+                "Revenue generated": "float64",
+                "Customer demographics": "str",
+                "Stock levels": "int64",
+                "Lead times": "int64",
+                "Order quantities": "int64",
+                "Shipping times": "int64",
+                "Shipping carriers": "str",
+                "Shipping costs": "float64",
+                "Supplier name": "str",
+                "Location": "str",
+                "Lead time": "int64",
+                "Production volumes": "int64",
+                "Manufacturing lead time": "int64",
+                "Manufacturing costs": "float64",
+                "Inspection results": "str",
+                "Defect rates": "float64",
+                "Transportation modes": "str",
+                "Routes": "str",
+                "Costs": "float64"
+            },
+            "preview": [
+                {
+                    "Product type": "haircare",
+                    "SKU": "SKU0",
+                    "Price": 69.80800554211577,
+                    "Availability": 55,
+                    "Number of products sold": 802,
+                    "Revenue generated": 8661.996792392383,
+                    "Customer demographics": "Non-binary",
+                    "Stock levels": 58,
+                    "Lead times": 7,
+                    "Order quantities": 96,
+                    "Shipping times": 4,
+                    "Shipping carriers": "Carrier B",
+                    "Shipping costs": 2.956572139430807,
+                    "Supplier name": "Supplier 3",
+                    "Location": "Mumbai",
+                    "Lead time": 29,
+                    "Production volumes": 215,
+                    "Manufacturing lead time": 29,
+                    "Manufacturing costs": 46.27987924050832,
+                    "Inspection results": "Pending",
+                    "Defect rates": 0.2264103608499251,
+                    "Transportation modes": "Road",
+                    "Routes": "Route B",
+                    "Costs": 187.75207545920392
+                },
+                {
+                    "Product type": "skincare",
+                    "SKU": "SKU1",
+                    "Price": 14.84352327508434,
+                    "Availability": 95,
+                    "Number of products sold": 736,
+                    "Revenue generated": 7460.900065445849,
+                    "Customer demographics": "Female",
+                    "Stock levels": 53,
+                    "Lead times": 30,
+                    "Order quantities": 37,
+                    "Shipping times": 2,
+                    "Shipping carriers": "Carrier A",
+                    "Shipping costs": 9.71657477143131,
+                    "Supplier name": "Supplier 3",
+                    "Location": "Mumbai",
+                    "Lead time": 23,
+                    "Production volumes": 517,
+                    "Manufacturing lead time": 30,
+                    "Manufacturing costs": 33.61676895373,
+                    "Inspection results": "Pending",
+                    "Defect rates": 4.854068026388706,
+                    "Transportation modes": "Road",
+                    "Routes": "Route B",
+                    "Costs": 503.0655791496692
+                },
+                {
+                    "Product type": "haircare",
+                    "SKU": "SKU2",
+                    "Price": 11.319683293090566,
+                    "Availability": 34,
+                    "Number of products sold": 8,
+                    "Revenue generated": 9577.74962586873,
+                    "Customer demographics": "Unknown",
+                    "Stock levels": 1,
+                    "Lead times": 10,
+                    "Order quantities": 88,
+                    "Shipping times": 2,
+                    "Shipping carriers": "Carrier B",
+                    "Shipping costs": 8.054479261732155,
+                    "Supplier name": "Supplier 1",
+                    "Location": "Mumbai",
+                    "Lead time": 12,
+                    "Production volumes": 971,
+                    "Manufacturing lead time": 27,
+                    "Manufacturing costs": 30.688019348284204,
+                    "Inspection results": "Pending",
+                    "Defect rates": 4.580592619199229,
+                    "Transportation modes": "Air",
+                    "Routes": "Route C",
+                    "Costs": 141.92028177151906
+                },
+                {
+                    "Product type": "skincare",
+                    "SKU": "SKU3",
+                    "Price": 61.163343016437736,
+                    "Availability": 68,
+                    "Number of products sold": 83,
+                    "Revenue generated": 7766.836425685233,
+                    "Customer demographics": "Non-binary",
+                    "Stock levels": 23,
+                    "Lead times": 13,
+                    "Order quantities": 59,
+                    "Shipping times": 6,
+                    "Shipping carriers": "Carrier C",
+                    "Shipping costs": 1.7295685635434288,
+                    "Supplier name": "Supplier 5",
+                    "Location": "Kolkata",
+                    "Lead time": 24,
+                    "Production volumes": 937,
+                    "Manufacturing lead time": 18,
+                    "Manufacturing costs": 35.62474139712503,
+                    "Inspection results": "Fail",
+                    "Defect rates": 4.74664862064775,
+                    "Transportation modes": "Rail",
+                    "Routes": "Route A",
+                    "Costs": 254.77615921928663
+                },
+                {
+                    "Product type": "skincare",
+                    "SKU": "SKU4",
+                    "Price": 4.805496036345893,
+                    "Availability": 26,
+                    "Number of products sold": 871,
+                    "Revenue generated": 2686.505151567447,
+                    "Customer demographics": "Non-binary",
+                    "Stock levels": 5,
+                    "Lead times": 3,
+                    "Order quantities": 56,
+                    "Shipping times": 8,
+                    "Shipping carriers": "Carrier A",
+                    "Shipping costs": 3.890547915870672,
+                    "Supplier name": "Supplier 1",
+                    "Location": "Delhi",
+                    "Lead time": 5,
+                    "Production volumes": 414,
+                    "Manufacturing lead time": 3,
+                    "Manufacturing costs": 92.06516059871284,
+                    "Inspection results": "Fail",
+                    "Defect rates": 3.145579522833002,
+                    "Transportation modes": "Air",
+                    "Routes": "Route A",
+                    "Costs": 923.4406317119222
+                }
+            ],
+            "missing_values": {
+                "Product type": 0,
+                "SKU": 0,
+                "Price": 0,
+                "Availability": 0,
+                "Number of products sold": 0,
+                "Revenue generated": 0,
+                "Customer demographics": 0,
+                "Stock levels": 0,
+                "Lead times": 0,
+                "Order quantities": 0,
+                "Shipping times": 0,
+                "Shipping carriers": 0,
+                "Shipping costs": 0,
+                "Supplier name": 0,
+                "Location": 0,
+                "Lead time": 0,
+                "Production volumes": 0,
+                "Manufacturing lead time": 0,
+                "Manufacturing costs": 0,
+                "Inspection results": 0,
+                "Defect rates": 0,
+                "Transportation modes": 0,
+                "Routes": 0,
+                "Costs": 0
+            },
+            "total_missing": 0,
+            "unique_values": {
+                "Product type": 3,
+                "SKU": 100,
+                "Price": 100,
+                "Availability": 63,
+                "Number of products sold": 96,
+                "Revenue generated": 100,
+                "Customer demographics": 4,
+                "Stock levels": 65,
+                "Lead times": 29,
+                "Order quantities": 61,
+                "Shipping times": 10,
+                "Shipping carriers": 3,
+                "Shipping costs": 100,
+                "Supplier name": 5,
+                "Location": 5,
+                "Lead time": 29,
+                "Production volumes": 96,
+                "Manufacturing lead time": 30,
+                "Manufacturing costs": 100,
+                "Inspection results": 3,
+                "Defect rates": 100,
+                "Transportation modes": 4,
+                "Routes": 3,
+                "Costs": 100
+            },
+            "duplicate_rows": 0,
+            "numerical_columns": [
+                "Price",
+                "Availability",
+                "Number of products sold",
+                "Revenue generated",
+                "Stock levels",
+                "Lead times",
+                "Order quantities",
+                "Shipping times",
+                "Shipping costs",
+                "Lead time",
+                "Production volumes",
+                "Manufacturing lead time",
+                "Manufacturing costs",
+                "Defect rates",
+                "Costs"
+            ],
+            "categorical_columns": [
+                "Product type",
+                "SKU",
+                "Customer demographics",
+                "Shipping carriers",
+                "Supplier name",
+                "Location",
+                "Inspection results",
+                "Transportation modes",
+                "Routes"
+            ],
+            "numerical_statistics": {
+                "Price": {
+                    "count": 100.0,
+                    "mean": 49.46,
+                    "std": 31.17,
+                    "min": 1.7,
+                    "25%": 19.6,
+                    "50%": 51.24,
+                    "75%": 77.2,
+                    "max": 99.17
+                },
+                "Availability": {
+                    "count": 100.0,
+                    "mean": 48.4,
+                    "std": 30.74,
+                    "min": 1.0,
+                    "25%": 22.75,
+                    "50%": 43.5,
+                    "75%": 75.0,
+                    "max": 100.0
+                },
+                "Number of products sold": {
+                    "count": 100.0,
+                    "mean": 460.99,
+                    "std": 303.78,
+                    "min": 8.0,
+                    "25%": 184.25,
+                    "50%": 392.5,
+                    "75%": 704.25,
+                    "max": 996.0
+                },
+                "Revenue generated": {
+                    "count": 100.0,
+                    "mean": 5776.05,
+                    "std": 2732.84,
+                    "min": 1061.62,
+                    "25%": 2812.85,
+                    "50%": 6006.35,
+                    "75%": 8253.98,
+                    "max": 9866.47
+                },
+                "Stock levels": {
+                    "count": 100.0,
+                    "mean": 47.77,
+                    "std": 31.37,
+                    "min": 0.0,
+                    "25%": 16.75,
+                    "50%": 47.5,
+                    "75%": 73.0,
+                    "max": 100.0
+                },
+                "Lead times": {
+                    "count": 100.0,
+                    "mean": 15.96,
+                    "std": 8.79,
+                    "min": 1.0,
+                    "25%": 8.0,
+                    "50%": 17.0,
+                    "75%": 24.0,
+                    "max": 30.0
+                },
+                "Order quantities": {
+                    "count": 100.0,
+                    "mean": 49.22,
+                    "std": 26.78,
+                    "min": 1.0,
+                    "25%": 26.0,
+                    "50%": 52.0,
+                    "75%": 71.25,
+                    "max": 96.0
+                },
+                "Shipping times": {
+                    "count": 100.0,
+                    "mean": 5.75,
+                    "std": 2.72,
+                    "min": 1.0,
+                    "25%": 3.75,
+                    "50%": 6.0,
+                    "75%": 8.0,
+                    "max": 10.0
+                },
+                "Shipping costs": {
+                    "count": 100.0,
+                    "mean": 5.55,
+                    "std": 2.65,
+                    "min": 1.01,
+                    "25%": 3.54,
+                    "50%": 5.32,
+                    "75%": 7.6,
+                    "max": 9.93
+                },
+                "Lead time": {
+                    "count": 100.0,
+                    "mean": 17.08,
+                    "std": 8.85,
+                    "min": 1.0,
+                    "25%": 10.0,
+                    "50%": 18.0,
+                    "75%": 25.0,
+                    "max": 30.0
+                },
+                "Production volumes": {
+                    "count": 100.0,
+                    "mean": 567.84,
+                    "std": 263.05,
+                    "min": 104.0,
+                    "25%": 352.0,
+                    "50%": 568.5,
+                    "75%": 797.0,
+                    "max": 985.0
+                },
+                "Manufacturing lead time": {
+                    "count": 100.0,
+                    "mean": 14.77,
+                    "std": 8.91,
+                    "min": 1.0,
+                    "25%": 7.0,
+                    "50%": 14.0,
+                    "75%": 23.0,
+                    "max": 30.0
+                },
+                "Manufacturing costs": {
+                    "count": 100.0,
+                    "mean": 47.27,
+                    "std": 28.98,
+                    "min": 1.09,
+                    "25%": 22.98,
+                    "50%": 45.91,
+                    "75%": 68.62,
+                    "max": 99.47
+                },
+                "Defect rates": {
+                    "count": 100.0,
+                    "mean": 2.28,
+                    "std": 1.46,
+                    "min": 0.02,
+                    "25%": 1.01,
+                    "50%": 2.14,
+                    "75%": 3.56,
+                    "max": 4.94
+                },
+                "Costs": {
+                    "count": 100.0,
+                    "mean": 529.25,
+                    "std": 258.3,
+                    "min": 103.92,
+                    "25%": 318.78,
+                    "50%": 520.43,
+                    "75%": 763.08,
+                    "max": 997.41
+                }
+            },
+            "categorical_statistics": {
+                "Product type": {
+                    "skincare": 40,
+                    "haircare": 34,
+                    "cosmetics": 26
+                },
+                "SKU": {
+                    "SKU0": 1,
+                    "SKU1": 1,
+                    "SKU2": 1,
+                    "SKU3": 1,
+                    "SKU4": 1
+                },
+                "Customer demographics": {
+                    "Unknown": 31,
+                    "Female": 25,
+                    "Non-binary": 23,
+                    "Male": 21
+                },
+                "Shipping carriers": {
+                    "Carrier B": 43,
+                    "Carrier C": 29,
+                    "Carrier A": 28
+                },
+                "Supplier name": {
+                    "Supplier 1": 27,
+                    "Supplier 2": 22,
+                    "Supplier 5": 18,
+                    "Supplier 4": 18,
+                    "Supplier 3": 15
+                },
+                "Location": {
+                    "Kolkata": 25,
+                    "Mumbai": 22,
+                    "Chennai": 20,
+                    "Bangalore": 18,
+                    "Delhi": 15
+                },
+                "Inspection results": {
+                    "Pending": 41,
+                    "Fail": 36,
+                    "Pass": 23
+                },
+                "Transportation modes": {
+                    "Road": 29,
+                    "Rail": 28,
+                    "Air": 26,
+                    "Sea": 17
+                },
+                "Routes": {
+                    "Route A": 43,
+                    "Route B": 37,
+                    "Route C": 20
+                }
+            },
+            "columns_profile": {
+                "Product type": {
+                    "name": "Product type",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "skincare": 40,
+                        "haircare": 34,
+                        "cosmetics": 26
+                    }
+                },
+                "SKU": {
+                    "name": "SKU",
+                    "type": "str",
+                    "role": "identifier",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 100
+                },
+                "Price": {
+                    "name": "Price",
+                    "type": "float64",
+                    "role": "identifier",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 100,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 49.46,
+                        "median": 51.24,
+                        "std": 31.17,
+                        "min": 1.7,
+                        "max": 99.17,
+                        "q25": 19.6,
+                        "q50": 51.24,
+                        "q75": 77.2
+                    }
+                },
+                "Availability": {
+                    "name": "Availability",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 63,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 48.4,
+                        "median": 43.5,
+                        "std": 30.74,
+                        "min": 1.0,
+                        "max": 100.0,
+                        "q25": 22.75,
+                        "q50": 43.5,
+                        "q75": 75.0
+                    }
+                },
+                "Number of products sold": {
+                    "name": "Number of products sold",
+                    "type": "int64",
+                    "role": "identifier",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 96,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 460.99,
+                        "median": 392.5,
+                        "std": 303.78,
+                        "min": 8.0,
+                        "max": 996.0,
+                        "q25": 184.25,
+                        "q50": 392.5,
+                        "q75": 704.25
+                    }
+                },
+                "Revenue generated": {
+                    "name": "Revenue generated",
+                    "type": "float64",
+                    "role": "identifier",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 100,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 5776.05,
+                        "median": 6006.35,
+                        "std": 2732.84,
+                        "min": 1061.62,
+                        "max": 9866.47,
+                        "q25": 2812.85,
+                        "q50": 6006.35,
+                        "q75": 8253.98
+                    }
+                },
+                "Customer demographics": {
+                    "name": "Customer demographics",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 4,
+                    "top_values": {
+                        "Unknown": 31,
+                        "Female": 25,
+                        "Non-binary": 23,
+                        "Male": 21
+                    }
+                },
+                "Stock levels": {
+                    "name": "Stock levels",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 65,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 47.77,
+                        "median": 47.5,
+                        "std": 31.37,
+                        "min": 0.0,
+                        "max": 100.0,
+                        "q25": 16.75,
+                        "q50": 47.5,
+                        "q75": 73.0
+                    }
+                },
+                "Lead times": {
+                    "name": "Lead times",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 29,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 15.96,
+                        "median": 17.0,
+                        "std": 8.79,
+                        "min": 1.0,
+                        "max": 30.0,
+                        "q25": 8.0,
+                        "q50": 17.0,
+                        "q75": 24.0
+                    }
+                },
+                "Order quantities": {
+                    "name": "Order quantities",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 61,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 49.22,
+                        "median": 52.0,
+                        "std": 26.78,
+                        "min": 1.0,
+                        "max": 96.0,
+                        "q25": 26.0,
+                        "q50": 52.0,
+                        "q75": 71.25
+                    }
+                },
+                "Shipping times": {
+                    "name": "Shipping times",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 10,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 5.75,
+                        "median": 6.0,
+                        "std": 2.72,
+                        "min": 1.0,
+                        "max": 10.0,
+                        "q25": 3.75,
+                        "q50": 6.0,
+                        "q75": 8.0
+                    }
+                },
+                "Shipping carriers": {
+                    "name": "Shipping carriers",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "Carrier B": 43,
+                        "Carrier C": 29,
+                        "Carrier A": 28
+                    }
+                },
+                "Shipping costs": {
+                    "name": "Shipping costs",
+                    "type": "float64",
+                    "role": "identifier",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 100,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 5.55,
+                        "median": 5.32,
+                        "std": 2.65,
+                        "min": 1.01,
+                        "max": 9.93,
+                        "q25": 3.54,
+                        "q50": 5.32,
+                        "q75": 7.6
+                    }
+                },
+                "Supplier name": {
+                    "name": "Supplier name",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 5,
+                    "top_values": {
+                        "Supplier 1": 27,
+                        "Supplier 2": 22,
+                        "Supplier 5": 18,
+                        "Supplier 4": 18,
+                        "Supplier 3": 15
+                    }
+                },
+                "Location": {
+                    "name": "Location",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 5,
+                    "top_values": {
+                        "Kolkata": 25,
+                        "Mumbai": 22,
+                        "Chennai": 20,
+                        "Bangalore": 18,
+                        "Delhi": 15
+                    }
+                },
+                "Lead time": {
+                    "name": "Lead time",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 29,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 17.08,
+                        "median": 18.0,
+                        "std": 8.85,
+                        "min": 1.0,
+                        "max": 30.0,
+                        "q25": 10.0,
+                        "q50": 18.0,
+                        "q75": 25.0
+                    }
+                },
+                "Production volumes": {
+                    "name": "Production volumes",
+                    "type": "int64",
+                    "role": "identifier",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 96,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 567.84,
+                        "median": 568.5,
+                        "std": 263.05,
+                        "min": 104.0,
+                        "max": 985.0,
+                        "q25": 352.0,
+                        "q50": 568.5,
+                        "q75": 797.0
+                    }
+                },
+                "Manufacturing lead time": {
+                    "name": "Manufacturing lead time",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 30,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 14.77,
+                        "median": 14.0,
+                        "std": 8.91,
+                        "min": 1.0,
+                        "max": 30.0,
+                        "q25": 7.0,
+                        "q50": 14.0,
+                        "q75": 23.0
+                    }
+                },
+                "Manufacturing costs": {
+                    "name": "Manufacturing costs",
+                    "type": "float64",
+                    "role": "identifier",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 100,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 47.27,
+                        "median": 45.91,
+                        "std": 28.98,
+                        "min": 1.09,
+                        "max": 99.47,
+                        "q25": 22.98,
+                        "q50": 45.91,
+                        "q75": 68.62
+                    }
+                },
+                "Inspection results": {
+                    "name": "Inspection results",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "Pending": 41,
+                        "Fail": 36,
+                        "Pass": 23
+                    }
+                },
+                "Defect rates": {
+                    "name": "Defect rates",
+                    "type": "float64",
+                    "role": "identifier",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 100,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 2.28,
+                        "median": 2.14,
+                        "std": 1.46,
+                        "min": 0.02,
+                        "max": 4.94,
+                        "q25": 1.01,
+                        "q50": 2.14,
+                        "q75": 3.56
+                    }
+                },
+                "Transportation modes": {
+                    "name": "Transportation modes",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 4,
+                    "top_values": {
+                        "Road": 29,
+                        "Rail": 28,
+                        "Air": 26,
+                        "Sea": 17
+                    }
+                },
+                "Routes": {
+                    "name": "Routes",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 3,
+                    "top_values": {
+                        "Route A": 43,
+                        "Route B": 37,
+                        "Route C": 20
+                    }
+                },
+                "Costs": {
+                    "name": "Costs",
+                    "type": "float64",
+                    "role": "identifier",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 100,
+                    "statistics": {
+                        "count": 100,
+                        "mean": 529.25,
+                        "median": 520.43,
+                        "std": 258.3,
+                        "min": 103.92,
+                        "max": 997.41,
+                        "q25": 318.78,
+                        "q50": 520.43,
+                        "q75": 763.08
+                    }
+                }
+            }
+        },
+        "quality_report": {
+            "dataset": "D:\\BIFlow\\data\\raw\\supply_chain_data.csv",
+            "rows": 100,
+            "columns": 24,
+            "quality_score": 100.0,
+            "missing_values": {
+                "columns": {},
+                "total": 0
+            },
+            "duplicates": {
+                "count": 0,
+                "has_duplicates": false
+            },
+            "type_issues": {},
+            "inconsistencies": {},
+            "summary": {
+                "missing_issues": 0,
+                "duplicate_rows": 0,
+                "type_issues": 0,
+                "inconsistency_issues": 0
+            }
+        }
     }
 }

@@ -22,6 +22,7 @@ def badge(text, tone="indigo"):
 
 def btn(label, primary=False):
     return f'<span class="bf-btn{" primary" if primary else ""}">{label}</span>'
+   
 
 def kpi(label, value, sub="", icon="📊", tone="indigo", sub_tone=""):  # Remplacé "▦" par un emoji valide
     return (f'<div class="bf-card bf-kpi"><div class="row"><span>{label}</span><i class="ico {tone}">{icon}</i></div>'

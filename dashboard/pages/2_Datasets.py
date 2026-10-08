@@ -1,9 +1,9 @@
 from pathlib import Path
 import sys
-
+import json
 
 import streamlit as st
-import json
+
 
 # ============================================================
 # PATH
@@ -13,6 +13,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
+
 
 # ============================================================
 # UI COMPONENTS
@@ -29,6 +30,7 @@ from components import (
     bar,
 )
 
+
 # ============================================================
 # ANALYTICS
 # ============================================================
@@ -38,15 +40,22 @@ from analytics.profiler import profile_dataset
 from analytics.data_quality import generate_quality_report
 
 
+# ============================================================
+# PERSISTENT ANALYSIS CACHE
+# ============================================================
 
-
-ANALYSIS_CACHE_FILE = ROOT_DIR / "data" / "analysis_cache.json"
+ANALYSIS_CACHE_FILE = (
+    ROOT_DIR
+    / "data"
+    / "analysis_cache.json"
+)
 
 
 def load_analysis_cache():
     """
-    Charge les analyses précédemment sauvegardées.
+    Charge les analyses sauvegardées sur disque.
     """
+
     if not ANALYSIS_CACHE_FILE.exists():
         return {}
 
@@ -56,10 +65,60 @@ def load_analysis_cache():
             "r",
             encoding="utf-8"
         ) as file:
-            return json.load(file)
+
+            data = json.load(file)
+
+        if isinstance(data, dict):
+            return data
+
+        return {}
 
     except Exception:
         return {}
+
+
+def save_analysis_cache(cache):
+    """
+    Sauvegarde les analyses sur disque.
+    """
+
+    ANALYSIS_CACHE_FILE.parent.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    with open(
+        ANALYSIS_CACHE_FILE,
+        "w",
+        encoding="utf-8"
+    ) as file:
+
+        json.dump(
+            cache,
+            file,
+            indent=4,
+            ensure_ascii=False
+        )
+
+
+def get_persistent_key(file_path):
+    """
+    Génère une clé basée sur le chemin et la date
+    de modification du fichier.
+
+    Si le dataset est modifié, sa clé change et
+    BIFlow considérera qu'une nouvelle analyse
+    est nécessaire.
+    """
+
+    file_path = Path(file_path)
+
+    try:
+        modified = file_path.stat().st_mtime
+    except FileNotFoundError:
+        modified = 0
+
+    return f"{file_path.resolve()}::{modified}"
 
 
 # ============================================================
@@ -73,15 +132,16 @@ setup("Datasets")
 # SESSION STATE
 # ============================================================
 
-# ============================================================
-# SESSION STATE
-# ============================================================
-
 if "dataset_analysis" not in st.session_state:
     st.session_state.dataset_analysis = load_analysis_cache()
 
+
 if "last_uploaded_dataset" not in st.session_state:
     st.session_state.last_uploaded_dataset = None
+
+
+if "last_upload_signature" not in st.session_state:
+    st.session_state.last_upload_signature = None
 
 
 # ============================================================
@@ -91,13 +151,17 @@ if "last_uploaded_dataset" not in st.session_state:
 def fmt(value):
     return (
         f'<span class="mono" '
-        f'style="color:#166534;background:#dcfce7;'
-        f'padding:.1rem .4rem;border-radius:6px">'
-        f'{value}</span>'
+        f'style="color:#166534;'
+        f'background:#dcfce7;'
+        f'padding:.1rem .4rem;'
+        f'border-radius:6px">'
+        f'{value}'
+        f'</span>'
     )
 
 
 def format_size(size_bytes):
+
     if size_bytes < 1024:
         return f"{size_bytes} B"
 
@@ -110,68 +174,8 @@ def format_size(size_bytes):
     return f"{size_bytes / (1024 * 1024 * 1024):.1f}GB"
 
 
-def get_file_key(file_path):
-    """
-    Clé unique permettant de détecter si le fichier
-    a changé depuis la dernière analyse.
-    """
-    file_path = Path(file_path)
-
-    try:
-        modified = file_path.stat().st_mtime
-    except FileNotFoundError:
-        modified = 0
-
-    return f"{file_path.resolve()}::{modified}"
-
-
-# ============================================================
-# PERSISTENT ANALYSIS CACHE
-# ============================================================
-
-
-
-
-def save_analysis_cache(cache):
-    """
-    Sauvegarde les analyses sur disque.
-    """
-    ANALYSIS_CACHE_FILE.parent.mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
-    with open(
-        ANALYSIS_CACHE_FILE,
-        "w",
-        encoding="utf-8"
-    ) as file:
-        json.dump(
-            cache,
-            file,
-            indent=4,
-            ensure_ascii=False
-        )
-
-
-def get_persistent_key(file_path):
-    """
-    Clé basée sur le chemin + date de modification.
-    
-    Si le fichier est modifié, la clé change et le dataset
-    sera automatiquement réanalysé.
-    """
-    file_path = Path(file_path)
-
-    try:
-        modified = file_path.stat().st_mtime
-    except FileNotFoundError:
-        modified = 0
-
-    return f"{file_path.resolve()}::{modified}"
-
-
 def get_status(quality_score):
+
     if quality_score >= 90:
         return "● Ready", "green"
 
@@ -181,23 +185,55 @@ def get_status(quality_score):
     return "● Critical", "red"
 
 
+def get_quality_color(quality_score):
+
+    if quality_score >= 90:
+        return "#10b981"
+
+    if quality_score >= 70:
+        return "#f59e0b"
+
+    return "#ef4444"
+
+
+def filter_chip(label, active=False):
+
+    active_class = " on" if active else ""
+
+    return (
+        f'<span class="bf-chip{active_class}">'
+        f'{label}'
+        f'</span>'
+    )
+
+
 # ============================================================
 # DATASET ANALYSIS
 # ============================================================
 
 def analyze_dataset(file_path):
-    """
-    Analyse complète d'un dataset.
-    """
+
     file_path = str(file_path)
+
+    # --------------------------------------------------------
+    # PROFILING
+    # --------------------------------------------------------
 
     profile = profile_dataset(file_path)
 
+    # --------------------------------------------------------
+    # DATA QUALITY
+    # --------------------------------------------------------
+
     quality = generate_quality_report(file_path)
 
-    quality_score = float(quality["quality_score"])
+    quality_score = float(
+        quality["quality_score"]
+    )
 
-    status_text, status_type = get_status(quality_score)
+    status_text, status_type = get_status(
+        quality_score
+    )
 
     return {
         "rows": profile["rows"],
@@ -211,27 +247,21 @@ def analyze_dataset(file_path):
 
 
 def get_or_analyze_dataset(file_path):
-    """
-    Retourne l'analyse depuis le cache persistant.
-
-    Si elle n'existe pas encore :
-    → analyse le dataset
-    → sauvegarde immédiatement le résultat.
-    """
 
     file_path = Path(file_path)
 
     key = get_persistent_key(file_path)
 
     # --------------------------------------------------------
-    # CACHE EXISTANT
+    # EXISTING ANALYSIS
     # --------------------------------------------------------
 
     if key in st.session_state.dataset_analysis:
+
         return st.session_state.dataset_analysis[key]
 
     # --------------------------------------------------------
-    # NOUVELLE ANALYSE
+    # NEW ANALYSIS
     # --------------------------------------------------------
 
     with st.spinner(
@@ -241,13 +271,13 @@ def get_or_analyze_dataset(file_path):
         result = analyze_dataset(file_path)
 
     # --------------------------------------------------------
-    # SAVE IN SESSION
+    # SESSION
     # --------------------------------------------------------
 
     st.session_state.dataset_analysis[key] = result
 
     # --------------------------------------------------------
-    # SAVE ON DISK
+    # PERSISTENCE
     # --------------------------------------------------------
 
     save_analysis_cache(
@@ -258,25 +288,122 @@ def get_or_analyze_dataset(file_path):
 
 
 # ============================================================
+# ============================================================
 # HEADER
 # ============================================================
 
 page_header(
     "Datasets",
     "Manage, inspect, and streamline your business intelligence assets and data ingest pipelines.",
-    btn("⟳ Refresh") + btn("☁ + Upload dataset", True),
+    btn("⟳ Refresh"),
     "Workspace › <b>Datasets</b>",
 )
 
 
 # ============================================================
-# UPLOAD
+# REAL STREAMLIT UPLOADER
 # ============================================================
 
+st.markdown(
+    """
+    <style>
+
+    /* ======================================================
+       POSITION DU FILE UPLOADER
+       ====================================================== */
+
+    div[data-testid="stFileUploader"] {
+        width: 220px !important;
+
+        margin-left: auto !important;
+        margin-right: 0 !important;
+
+        margin-top: 0.5rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+
+
+    /* ======================================================
+       ZONE DU FILE UPLOADER
+       ====================================================== */
+
+    div[data-testid="stFileUploaderDropzone"] {
+        width: 220px !important;
+
+        min-height: 42px !important;
+
+        padding: 0.35rem !important;
+
+        border: 1px solid #c7d2fe !important;
+
+        border-radius: 8px !important;
+
+        background: #eef2ff !important;
+    }
+
+
+    /* ======================================================
+       CACHER LA ZONE DRAG & DROP
+       ====================================================== */
+
+    div[data-testid="stFileUploaderDropzone"] > div:first-child {
+        display: none !important;
+    }
+
+
+    /* ======================================================
+       BOUTON NATIF STREAMLIT
+       ====================================================== */
+
+    div[data-testid="stFileUploader"] button {
+        width: 100% !important;
+
+        height: 42px !important;
+
+        border-radius: 8px !important;
+
+        border: none !important;
+
+        background: #4f46e5 !important;
+
+        color: white !important;
+
+        font-weight: 600 !important;
+
+        font-size: 0.9rem !important;
+
+        cursor: pointer !important;
+    }
+
+
+    /* ======================================================
+       HOVER
+       ====================================================== */
+
+    div[data-testid="stFileUploader"] button:hover {
+        background: #4338ca !important;
+    }
+
+
+    /* ======================================================
+       TEXTE NATIF DU BOUTON
+       ====================================================== */
+
+    div[data-testid="stFileUploader"] button span {
+        color: white !important;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
 uploaded_file = st.file_uploader(
-    "☁ + Upload dataset",
+    "Upload dataset",
     type=["csv", "xlsx", "xls"],
     label_visibility="collapsed",
+    key="dataset_file_uploader",
 )
 
 
@@ -286,36 +413,78 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is not None:
 
-    raw_dir = ROOT_DIR / "data" / "raw"
-    raw_dir.mkdir(parents=True, exist_ok=True)
+    # --------------------------------------------------------
+    # CREATE SIGNATURE
+    # --------------------------------------------------------
 
-    file_name = uploaded_file.name
-
-    # Protection contre les noms du type fichier.csv.csv
-    while file_name.lower().endswith(".csv.csv"):
-        file_name = file_name[:-4]
-
-    destination = raw_dir / file_name
-
-    # Sauvegarde
-    with open(destination, "wb") as file:
-        file.write(uploaded_file.getbuffer())
-
-    st.session_state.last_uploaded_dataset = str(destination)
-
-    st.success(
-        f"Dataset '{file_name}' uploaded successfully."
+    upload_signature = (
+        f"{uploaded_file.name}:"
+        f"{uploaded_file.size}"
     )
 
-    # ========================================================
-    # AUTOMATIC ANALYSIS
-    # ========================================================
+    # --------------------------------------------------------
+    # PROCESS ONLY NEW UPLOAD
+    # --------------------------------------------------------
 
-    st.markdown("### 🔎 Dataset Analysis")
+    if (
+        st.session_state.last_upload_signature
+        != upload_signature
+    ):
 
-    analysis_placeholder = st.empty()
+        raw_dir = (
+            ROOT_DIR
+            / "data"
+            / "raw"
+        )
 
-    with analysis_placeholder.container():
+        raw_dir.mkdir(
+            parents=True,
+            exist_ok=True
+        )
+
+        file_name = uploaded_file.name
+
+        # ----------------------------------------------------
+        # Protection contre .csv.csv
+        # ----------------------------------------------------
+
+        while file_name.lower().endswith(".csv.csv"):
+            file_name = file_name[:-4]
+
+        destination = raw_dir / file_name
+
+        # ----------------------------------------------------
+        # SAVE FILE
+        # ----------------------------------------------------
+
+        with open(
+            destination,
+            "wb"
+        ) as file:
+
+            file.write(
+                uploaded_file.getbuffer()
+            )
+
+        st.session_state.last_uploaded_dataset = (
+            str(destination)
+        )
+
+        st.session_state.last_upload_signature = (
+            upload_signature
+        )
+
+        st.success(
+            f"Dataset '{file_name}' uploaded successfully."
+        )
+
+        # ====================================================
+        # AUTOMATIC ANALYSIS
+        # ====================================================
+
+        st.markdown(
+            "### 🔎 Dataset Analysis"
+        )
 
         try:
 
@@ -323,17 +492,29 @@ if uploaded_file is not None:
                 f"Analyzing {file_name}..."
             ):
 
-                result = analyze_dataset(destination)
+                result = analyze_dataset(
+                    destination
+                )
 
-                key = get_persistent_key(destination)
+                key = get_persistent_key(
+                    destination
+                )
 
-                st.session_state.dataset_analysis[key] = result
-                # Persistance permanente
+                st.session_state.dataset_analysis[key] = (
+                    result
+                )
+
+                # --------------------------------------------
+                # PERSISTENT STORAGE
+                # --------------------------------------------
+
                 save_analysis_cache(
-                   st.session_state.dataset_analysis
-)
+                    st.session_state.dataset_analysis
+                )
 
-            st.success("Analysis completed successfully.")
+            st.success(
+                "Analysis completed successfully."
+            )
 
             # ------------------------------------------------
             # METRICS
@@ -342,60 +523,112 @@ if uploaded_file is not None:
             col1, col2, col3 = st.columns(3)
 
             with col1:
+
                 st.metric(
                     "Rows",
                     f"{result['rows']:,}"
                 )
 
             with col2:
+
                 st.metric(
                     "Columns",
                     f"{result['columns']:,}"
                 )
 
             with col3:
+
                 st.metric(
                     "Quality Score",
                     f"{result['quality']:.1f}%"
                 )
 
-            status_text = result["status_text"]
-
             st.markdown(
                 f"""
-                **Dataset:** `{file_name}`
-                
-                **Status:** **{status_text}**
-                """
+**Dataset:** `{file_name}`
+
+**Status:** **{result['status_text']}**
+"""
             )
 
         except Exception as error:
 
             st.error(
-                f"Analysis failed for '{file_name}': {error}"
+                f"Analysis failed for "
+                f"'{file_name}': {error}"
             )
 
 
 # ============================================================
-# GET ALL DATASETS
+# GET DATASETS
 # ============================================================
 
 datasets = list_datasets()
 
+total_datasets = len(datasets)
+
 
 # ============================================================
-# SEARCH
+# CALCULATE DATASET STATISTICS
 # ============================================================
 
-search_col, filter_col = st.columns([1.3, 1])
+ready_count = 0
+attention_count = 0
+critical_count = 0
+not_analyzed_count = 0
+
+
+for dataset_path in datasets:
+
+    key = get_persistent_key(dataset_path)
+
+    result = (
+        st.session_state
+        .dataset_analysis
+        .get(key)
+    )
+
+    if result is None:
+
+        not_analyzed_count += 1
+
+    else:
+
+        status_type = result["status_type"]
+
+        if status_type == "green":
+
+            ready_count += 1
+
+        elif status_type == "amber":
+
+            attention_count += 1
+
+        elif status_type == "red":
+
+            critical_count += 1
+
+
+# ============================================================
+# SEARCH + FILTER
+# ============================================================
+
+search_col, filter_col = st.columns(
+    [1.3, 1]
+)
+
 
 with search_col:
 
     search = st.text_input(
         "Search",
-        placeholder="🔍 Search datasets by title, tag, or owner",
+        placeholder=(
+            "🔍 Search datasets by title, "
+            "tag, or owner"
+        ),
         label_visibility="collapsed",
     )
+
 
 with filter_col:
 
@@ -413,28 +646,111 @@ with filter_col:
 
 
 # ============================================================
-# BUILD DATASET TABLE
+# FILTER CHIPS
 # ============================================================
 
-dataset_rows = []
+filters = "".join(
+    [
+        filter_chip(
+            f"All {total_datasets}",
+            filter_status == "All"
+        ),
 
-ready_count = 0
-attention_count = 0
-processing_count = 0
+        filter_chip(
+            f"● Ready {ready_count}",
+            filter_status == "Ready"
+        ),
+
+        filter_chip(
+            f"● Needs attention {attention_count}",
+            filter_status == "Needs attention"
+        ),
+
+        filter_chip(
+            f"● Critical {critical_count}",
+            filter_status == "Critical"
+        ),
+
+        filter_chip(
+            f"● Processing {not_analyzed_count}",
+            filter_status == "Not analyzed"
+        ),
+    ]
+)
+
+
+# ============================================================
+# SEARCH / FILTER CARD
+# ============================================================
+
+search_card_html = f"""
+<div style="
+    display:flex;
+    gap:1rem;
+    align-items:center;
+">
+
+    <div
+        class="bf-search"
+        style="flex:.7"
+    >
+
+        🔍 Search datasets by title,
+        tag, or owner
+
+        <span>⌘ F</span>
+
+    </div>
+
+    <div>
+        {filters}
+    </div>
+
+</div>
+"""
+
+
+html(
+    card(
+        search_card_html
+    )
+)
+
+
+html("<br>")
+
+
+# ============================================================
+# BUILD TABLE
+# ============================================================
+
+trs = []
 
 
 for dataset_path in datasets:
 
     dataset_name = dataset_path.name
 
-    # Search
+    # --------------------------------------------------------
+    # SEARCH
+    # --------------------------------------------------------
+
     if search:
+
         if search.lower() not in dataset_name.lower():
             continue
 
+    # --------------------------------------------------------
+    # GET ANALYSIS
+    # --------------------------------------------------------
+
     key = get_persistent_key(dataset_path)
 
-    result = st.session_state.dataset_analysis.get(key)
+    result = (
+        st.session_state
+        .dataset_analysis
+        .get(key)
+    )
 
     # --------------------------------------------------------
     # NOT ANALYZED
@@ -443,222 +759,246 @@ for dataset_path in datasets:
     if result is None:
 
         status_text = "● Not analyzed"
+
         status_type = "blue"
 
         rows_value = "—"
+
         columns_value = "—"
-        quality_value = "<i>Not analyzed</i>"
+
+        quality_value = "<i>— Auditing</i>"
+
         last_analysis = "Not analyzed"
+
+        description = (
+            "Dataset available · "
+            "Analysis pending"
+        )
+
+    # --------------------------------------------------------
+    # ANALYZED
+    # --------------------------------------------------------
 
     else:
 
         rows_value = f"{result['rows']:,}"
+
         columns_value = f"{result['columns']:,}"
 
-        quality_score = result["quality"]
+        quality_score = float(
+            result["quality"]
+        )
 
         status_text = result["status_text"]
+
         status_type = result["status_type"]
+
+        # ----------------------------------------------------
+        # QUALITY COLOR
+        # ----------------------------------------------------
+
+        quality_color = get_quality_color(
+            quality_score
+        )
+
+        # ----------------------------------------------------
+        # QUALITY BAR
+        # ----------------------------------------------------
+
+        quality_bar = bar(
+            quality_score,
+            quality_color
+        )
 
         quality_value = (
             f"<b>{quality_score:.1f}%</b> "
-            f"{bar(quality_score, '#10b981')}"
+            f"{quality_bar}"
         )
 
         last_analysis = "Recently analyzed"
 
         if status_type == "green":
-            ready_count += 1
+
+            description = (
+                "Analysis completed · "
+                "Dataset ready"
+            )
 
         elif status_type == "amber":
-            attention_count += 1
+
+            description = (
+                "Data quality issues detected"
+            )
+
+        else:
+
+            description = (
+                "Critical quality issues detected"
+            )
 
     # --------------------------------------------------------
-    # FILTER STATUS
+    # FILTER
     # --------------------------------------------------------
 
-    if filter_status == "Ready" and status_type != "green":
+    if (
+        filter_status == "Ready"
+        and status_type != "green"
+    ):
         continue
 
-    if filter_status == "Needs attention" and status_type != "amber":
+    if (
+        filter_status == "Needs attention"
+        and status_type != "amber"
+    ):
         continue
 
-    if filter_status == "Critical" and status_type != "red":
+    if (
+        filter_status == "Critical"
+        and status_type != "red"
+    ):
         continue
 
-    if filter_status == "Not analyzed" and result is not None:
+    if (
+        filter_status == "Not analyzed"
+        and result is not None
+    ):
         continue
 
     # --------------------------------------------------------
     # FORMAT
     # --------------------------------------------------------
 
-    extension = dataset_path.suffix.upper().replace(".", "")
+    extension = (
+        dataset_path
+        .suffix
+        .upper()
+        .replace(".", "")
+    )
 
-    if extension == "XLS":
-        extension = "XLS"
+    # --------------------------------------------------------
+    # TABLE ROW
+    # --------------------------------------------------------
 
-    if extension == "XLSX":
-        extension = "XLSX"
+    dataset_cell = (
+        f"<b>{dataset_name}</b>"
+        f"<small>{description}</small>"
+    )
 
-    if extension == "CSV":
-        extension = "CSV"
+    status_cell = badge(
+        status_text,
+        status_type
+    )
 
-    dataset_rows.append(
+    trs.append(
         [
-            f"""
-            <b>{dataset_name}</b>
-            <small>
-                Local dataset · data/raw
-            </small>
-            """,
-
+            dataset_cell,
             fmt(extension),
-
             rows_value,
-
             columns_value,
-
             quality_value,
-
             last_analysis,
-
-            badge(status_text, status_type),
+            status_cell,
         ]
     )
-
-
-# ============================================================
-# FILTER COUNTS
-# ============================================================
-
-total_datasets = len(datasets)
-
-# ============================================================
-# FILTER CHIPS
-# ============================================================
-
-filters = "".join(
-    [
-        f'<span class="bf-chip{" on" if filter_status == "All" else ""}">'
-        f'All {total_datasets}</span>',
-
-        f'<span class="bf-chip{" on" if filter_status == "Ready" else ""}">'
-        f'● Ready {ready_count}</span>',
-
-        f'<span class="bf-chip{" on" if filter_status == "Needs attention" else ""}">'
-        f'● Needs attention {attention_count}</span>',
-
-        f'<span class="bf-chip{" on" if filter_status == "Not analyzed" else ""}">'
-        f'● Not analyzed</span>',
-    ]
-)
-
-
-# ============================================================
-# SEARCH + FILTER CARD
-# ============================================================
-
-html(
-    card(
-        f"""
-        <div style="
-            display:flex;
-            gap:1rem;
-            align-items:center;
-        ">
-
-            <div style="flex:1">
-                <b style="color:#0f172a">
-                    Dataset workspace
-                </b>
-
-                <div style="
-                    color:#64748b;
-                    font-size:.85rem;
-                    margin-top:.2rem;
-                ">
-                    {total_datasets} dataset(s) detected in data/raw
-                </div>
-            </div>
-
-            <div>
-                {filters}
-            </div>
-
-        </div>
-        """
-    )
-)
-
-html("<br>")
 
 
 # ============================================================
 # DATASET TABLE
 # ============================================================
 
-if dataset_rows:
+if trs:
+
+    table_html = table(
+        [
+            "DATASET",
+            "FORMAT",
+            "ROWS",
+            "COLUMNS",
+            "QUALITY SCORE",
+            "LAST ANALYSIS",
+            "STATUS",
+        ],
+        trs
+    )
+
+    pagination_html = f"""
+<div style="
+    display:flex;
+    justify-content:space-between;
+    margin-top:1rem;
+    color:#475569
+">
+
+    <span>
+        Showing
+        <b>{len(trs)}</b>
+        of
+        <b>{total_datasets}</b>
+        datasets
+    </span>
+
+    <span>
+
+        <span class="bf-chip">
+            Previous
+        </span>
+
+        <span class="bf-chip on">
+            1
+        </span>
+
+        <span class="bf-chip">
+            Next
+        </span>
+
+    </span>
+
+</div>
+"""
+
+    full_table_html = (
+        table_html
+        + pagination_html
+    )
 
     html(
         card(
-            table(
-                [
-                    "DATASET",
-                    "FORMAT",
-                    "ROWS",
-                    "COLUMNS",
-                    "QUALITY SCORE",
-                    "LAST ANALYSIS",
-                    "STATUS",
-                ],
-                dataset_rows,
-            )
-            +
-            f"""
-            <div style="
-                display:flex;
-                justify-content:space-between;
-                margin-top:1rem;
-                color:#475569;
-            ">
-                <span>
-                    Showing <b>{len(dataset_rows)}</b>
-                    of <b>{total_datasets}</b> datasets
-                </span>
-
-                <span>
-                    <span class="bf-chip">Previous</span>
-                    <span class="bf-chip on">1</span>
-                    <span class="bf-chip">Next</span>
-                </span>
-            </div>
-            """
+            full_table_html
         )
     )
 
 else:
 
+    empty_state_html = """
+<div style="
+    text-align:center;
+    padding:2rem;
+    color:#64748b;
+">
+
+    <div style="
+        font-size:2rem
+    ">
+        📂
+    </div>
+
+    <h3 style="
+        color:#0f172a
+    ">
+        No datasets found
+    </h3>
+
+    <p>
+        No dataset matches
+        your current filters.
+    </p>
+
+</div>
+"""
+
     html(
         card(
-            """
-            <div style="
-                text-align:center;
-                padding:2rem;
-                color:#64748b;
-            ">
-                <div style="font-size:2rem">📂</div>
-
-                <h3 style="color:#0f172a">
-                    No datasets found
-                </h3>
-
-                <p>
-                    Upload a CSV, XLSX or XLS dataset
-                    to start the analysis.
-                </p>
-            </div>
-            """
+            empty_state_html
         )
     )
 
@@ -672,40 +1012,72 @@ html("<br>")
 
 total_size = 0
 
+
 for dataset_path in datasets:
 
     try:
+
         total_size += dataset_path.stat().st_size
+
     except FileNotFoundError:
+
         pass
 
 
 total_size_gb = total_size / (1024 ** 3)
 
-# On garde une capacité virtuelle de 20 GB
+
 storage_percentage = min(
     100,
     (total_size_gb / 20) * 100
 )
 
+
+remaining_gb = max(
+    0,
+    20 - total_size_gb
+)
+
+
+# ------------------------------------------------------------
+# PRE-CALCULATE COMPONENTS
+# ------------------------------------------------------------
+
+storage_status = badge(
+    "Healthy",
+    "green"
+)
+
+storage_bar = bar(
+    storage_percentage,
+    "#4f46e5"
+)
+
+
 storage = f"""
 <div class="ch">
 
     <div>
-        <h3>Workspace storage</h3>
+
+        <h3>
+            Workspace storage
+        </h3>
 
         <div class="subt">
-            Real-time analytical cache & blob storage limit
+            Real-time analytical cache
+            & blob storage limit
         </div>
+
     </div>
 
-    {badge("Healthy", "green")}
+    {storage_status}
 
 </div>
 
+
 <div style="
     font-size:2.2rem;
-    font-weight:700;
+    font-weight:700
 ">
 
     {total_size_gb:.2f} GB
@@ -722,19 +1094,22 @@ storage = f"""
         font-size:.9rem;
         color:#4338ca
     ">
-        {storage_percentage:.1f}% capacity used
+        {storage_percentage:.1f}%
+        capacity used
     </span>
 
 </div>
 
-{bar(storage_percentage, "#4f46e5")}
+
+{storage_bar}
+
 
 <p style="
     color:#64748b;
     font-size:.85rem
 ">
 
-    {max(0, 20 - total_size_gb):.2f} GB remaining
+    {remaining_gb:.2f} GB remaining
 
     <b style="
         float:right;
@@ -751,35 +1126,56 @@ storage = f"""
 # CONNECTED SOURCES
 # ============================================================
 
+connected_status = badge(
+    "● All connectors synced",
+    "blue"
+)
+
+add_source_button = btn(
+    "+ Add source"
+)
+
+
 sources = f"""
 <div class="ch">
 
     <div>
-        <h3>Connected sources</h3>
+
+        <h3>
+            Connected sources
+        </h3>
 
         <div class="subt">
-            Active connections & streaming endpoints
+            Active connections &
+            streaming endpoints
         </div>
+
     </div>
 
-    {btn("+ Add source")}
+    {add_source_button}
 
 </div>
+
 
 <div style="
     font-size:2.2rem;
     font-weight:700
 ">
 
-    {len(datasets)} active
+    {total_datasets} active
 
-    {badge("● All connectors synced", "blue")}
+    {connected_status}
 
 </div>
 
-<div class="bf-box" style="margin-top:.8rem">
 
-    📄 CSV uploads · Excel files · Local datasets
+<div
+    class="bf-box"
+    style="margin-top:.8rem"
+>
+
+    📄 CSV uploads · Excel files ·
+    Local datasets
 
 </div>
 """
@@ -789,14 +1185,17 @@ sources = f"""
 # BOTTOM CARDS
 # ============================================================
 
+bottom_cards_html = f"""
+<div class="bf-grid g2">
+
+    {card(storage)}
+
+    {card(sources)}
+
+</div>
+"""
+
+
 html(
-    f"""
-    <div class="bf-grid g2">
-
-        {card(storage)}
-
-        {card(sources)}
-
-    </div>
-    """
+    bottom_cards_html
 )
