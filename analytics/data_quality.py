@@ -1,40 +1,36 @@
 import pandas as pd
 
-from pandas.api.types import is_string_dtype
+from pandas.api.types import (
+    is_numeric_dtype,
+    is_string_dtype,
+)
 
 from analytics.dataset_loader import load_dataset
 
 
+# ============================================================
+# MISSING VALUES
+# ============================================================
+
 def detect_missing(df: pd.DataFrame) -> dict:
     """
-    Détecte les valeurs manquantes :
-    - NaN
-    - cellules vides
-    - cellules contenant uniquement des espaces
+    Détecte les valeurs manquantes et les chaînes vides.
     """
 
     missing = {}
 
     for column in df.columns:
+        series = df[column]
 
-        # -----------------------------------------
-        # Valeurs NaN
-        # -----------------------------------------
+        # Valeurs NaN / None
+        nan_count = int(series.isna().sum())
 
-        nan_count = int(
-            df[column].isna().sum()
-        )
-
-        # -----------------------------------------
-        # Cellules vides / espaces
-        # -----------------------------------------
-
+        # Chaînes vides ou contenant uniquement des espaces
         empty_count = 0
 
-        if is_string_dtype(df[column]):
-
+        if is_string_dtype(series):
             empty_count = int(
-                df[column]
+                series
                 .fillna("")
                 .astype(str)
                 .str.strip()
@@ -42,90 +38,115 @@ def detect_missing(df: pd.DataFrame) -> dict:
                 .sum()
             )
 
-        # -----------------------------------------
-        # Total des valeurs manquantes
-        # -----------------------------------------
-        # max() évite de compter deux fois
-        # une même cellule vide représentée
-        # à la fois comme NaN et comme vide.
-
-        total = max(
-            nan_count,
-            empty_count
-        )
+        total = max(nan_count, empty_count)
 
         if total > 0:
-
-            missing[column] = total
+            missing[column] = {
+                "count": total,
+                "percentage": round(
+                    (total / len(df)) * 100,
+                    2
+                ) if len(df) > 0 else 0
+            }
 
     return {
         "columns": missing,
-        "total": sum(missing.values())
+        "total": sum(
+            item["count"]
+            for item in missing.values()
+        )
     }
 
 
+# ============================================================
+# DUPLICATES
+# ============================================================
+
 def detect_duplicates(df: pd.DataFrame) -> dict:
     """
-    Détecte les lignes dupliquées.
+    Détecte les lignes complètement dupliquées.
     """
 
     duplicate_rows = int(
         df.duplicated().sum()
     )
 
+    percentage = (
+        duplicate_rows / len(df) * 100
+        if len(df) > 0
+        else 0
+    )
+
     return {
         "count": duplicate_rows,
+        "percentage": round(
+            percentage,
+            2
+        ),
         "has_duplicates": duplicate_rows > 0
     }
 
 
+# ============================================================
+# TYPE ISSUES
+# ============================================================
+
 def detect_type_issues(df: pd.DataFrame) -> dict:
     """
-    Détecte les colonnes texte qui semblent
-    en réalité contenir des données numériques.
+    Détecte les colonnes texte contenant majoritairement
+    des valeurs numériques.
 
     Exemple :
-    TotalCharges peut être chargée comme texte
-    alors que la majorité de ses valeurs sont numériques.
+        "120"
+        "250"
+        "450"
+
+    stockées comme texte.
+
+    Les colonnes déjà numériques (int, float, etc.)
+    sont ignorées.
     """
 
     issues = {}
 
     for column in df.columns:
 
-        # -----------------------------------------
-        # On s'intéresse uniquement aux colonnes
-        # de type texte
-        # -----------------------------------------
+        series = df[column]
 
-        if not is_string_dtype(df[column]):
+        # ----------------------------------------------------
+        # Ignorer les colonnes déjà numériques
+        # ----------------------------------------------------
+
+        if is_numeric_dtype(series):
             continue
 
-        # -----------------------------------------
-        # Nettoyage des valeurs
-        # -----------------------------------------
+        # ----------------------------------------------------
+        # Analyser uniquement les colonnes texte
+        # ----------------------------------------------------
 
-        series = (
-            df[column]
+        if not is_string_dtype(series):
+            continue
+
+        cleaned = (
+            series
             .dropna()
             .astype(str)
             .str.strip()
         )
 
-        # Retirer les cellules complètement vides
-        series = series[
-            series != ""
+        cleaned = cleaned[
+            cleaned != ""
         ]
 
-        if len(series) == 0:
+        if len(cleaned) == 0:
             continue
 
-        # -----------------------------------------
+        # ----------------------------------------------------
         # Conversion en numérique
-        # -----------------------------------------
+        # ----------------------------------------------------
 
         converted = pd.to_numeric(
-            series,
+            cleaned,
             errors="coerce"
         )
 
@@ -133,26 +154,24 @@ def detect_type_issues(df: pd.DataFrame) -> dict:
             converted.notna().sum()
         )
 
-        total_count = len(series)
+        total_count = len(cleaned)
 
         numeric_ratio = (
             numeric_count / total_count
+            if total_count > 0
+            else 0
         )
 
-        # -----------------------------------------
-        # Si au moins 80 % des valeurs sont
-        # numériques, on considère qu'il y a
-        # probablement un problème de type.
-        # -----------------------------------------
+        # ----------------------------------------------------
+        # Détection du problème
+        # ----------------------------------------------------
 
         if numeric_ratio >= 0.80:
 
             issues[column] = {
-
                 "current_type": str(
-                    df[column].dtype
+                    series.dtype
                 ),
-
                 "expected_type": "numeric",
 
                 "numeric_values": numeric_count,
@@ -164,58 +183,62 @@ def detect_type_issues(df: pd.DataFrame) -> dict:
                     2
                 ),
 
-                "message": (
-                    f"La colonne '{column}' est actuellement "
-                    f"de type texte mais "
-                    f"{numeric_ratio * 100:.2f}% "
-                    "de ses valeurs sont numériques."
-                )
+                 "message": (
+                    f"La colonne '{column}' est stockée comme texte "
+                    f"alors que {numeric_ratio * 100:.2f}% de ses valeurs "
+                    f"sont numériques."
+)
+
             }
 
     return issues
 
 
-def detect_inconsistencies(df: pd.DataFrame) -> dict:
+# ============================================================
+# INCONSISTENCIES
+# ============================================================
+
+def detect_inconsistencies(
+    df: pd.DataFrame
+) -> dict:
     """
-    Détecte certaines incohérences textuelles :
-    - espaces inutiles au début ou à la fin
+    Détecte les espaces inutiles dans les colonnes texte.
+
+    Exemple :
+        "France"
+        " France"
+        "France "
     """
 
     inconsistencies = {}
 
     for column in df.columns:
 
-        # -----------------------------------------
-        # Vérifier si la colonne est textuelle
-        # -----------------------------------------
+        series = df[column]
 
-        if not is_string_dtype(df[column]):
+        if not (
+               pd.api.types.is_object_dtype(series)
+               or pd.api.types.is_string_dtype(series)
+):
+    
             continue
 
-        series = (
-            df[column]
+        values = (
+            series
             .dropna()
             .astype(str)
         )
 
-        # -----------------------------------------
-        # Détecter les espaces inutiles
-        # -----------------------------------------
-
         whitespace_count = int(
             (
-                series
-                != series.str.strip()
+                values != values.str.strip()
             ).sum()
         )
 
         if whitespace_count > 0:
 
             inconsistencies[column] = {
-
-                "whitespace_values":
-                    whitespace_count,
-
+                "whitespace_values": whitespace_count,
                 "message": (
                     f"{whitespace_count} valeur(s) "
                     "contiennent des espaces inutiles."
@@ -225,50 +248,276 @@ def detect_inconsistencies(df: pd.DataFrame) -> dict:
     return inconsistencies
 
 
+# ============================================================
+# OUTLIERS
+# ============================================================
+
+def detect_outliers(
+    df: pd.DataFrame
+) -> dict:
+    """
+    Détecte les valeurs potentiellement aberrantes
+    dans les colonnes numériques avec la méthode IQR.
+
+    Une valeur est considérée comme potentiellement
+    aberrante si elle se trouve en dehors de :
+
+        Q1 - 1.5 * IQR
+
+    ou
+
+        Q3 + 1.5 * IQR
+    """
+
+    outliers = {}
+
+    for column in df.columns:
+
+        if not is_numeric_dtype(df[column]):
+            continue
+
+        series = df[column].dropna()
+
+        # Trop peu de valeurs pour une analyse fiable
+        if len(series) < 5:
+            continue
+
+        q1 = series.quantile(0.25)
+        q3 = series.quantile(0.75)
+
+        iqr = q3 - q1
+
+        # Distribution constante
+        if iqr == 0:
+            continue
+
+        lower_bound = q1 - 1.5 * iqr
+        upper_bound = q3 + 1.5 * iqr
+
+        mask = (
+            (series < lower_bound)
+            |
+            (series > upper_bound)
+        )
+
+        count = int(
+            mask.sum()
+        )
+
+        if count > 0:
+
+            percentage = (
+                count / len(series) * 100
+            )
+
+            outliers[column] = {
+                "count": count,
+                "percentage": round(
+                    percentage,
+                    2
+                ),
+                "lower_bound": round(
+                    float(lower_bound),
+                    2
+                ),
+                "upper_bound": round(
+                    float(upper_bound),
+                    2
+                ),
+                "message": (
+                    f"{count} valeur(s) "
+                    "potentiellement aberrante(s) "
+                    "détectée(s)."
+                )
+            }
+
+    return outliers
+
+
+# ============================================================
+# DATE ISSUES
+# ============================================================
+
+def detect_date_issues(
+    df: pd.DataFrame
+) -> dict:
+    """
+    Détecte les colonnes texte qui semblent contenir
+    des dates mais avec certaines valeurs invalides.
+    """
+
+    issues = {}
+
+    for column in df.columns:
+
+        series = df[column]
+
+        if not is_string_dtype(series):
+            continue
+
+        values = (
+            series
+            .dropna()
+            .astype(str)
+            .str.strip()
+        )
+
+        values = values[
+            values != ""
+        ]
+
+        if len(values) == 0:
+            continue
+
+        # Échantillon pour éviter les ralentissements
+        # sur les gros datasets.
+        sample = values
+
+        if len(sample) > 2000:
+            sample = sample.head(2000)
+
+        try:
+
+            converted = pd.to_datetime(
+                sample,
+                errors="coerce",
+                format="mixed"
+            )
+
+            valid_ratio = (
+                converted.notna().mean()
+            )
+
+            # La colonne ressemble suffisamment
+            # à une colonne de dates.
+            if valid_ratio >= 0.80:
+
+                invalid_count = int(
+                    converted.isna().sum()
+                )
+
+                if invalid_count > 0:
+
+                    issues[column] = {
+                        "invalid_values": invalid_count,
+                        "checked_values": len(sample),
+                        "message": (
+                            f"{invalid_count} valeur(s) "
+                            "ne peuvent pas être "
+                            "interprétées comme des dates."
+                        )
+                    }
+
+        except Exception:
+            continue
+
+    return issues
+
+
+# ============================================================
+# CONSTANT COLUMNS
+# ============================================================
+
+def detect_constant_columns(
+    df: pd.DataFrame
+) -> dict:
+    """
+    Détecte les colonnes qui contiennent une seule
+    valeur distincte.
+
+    IMPORTANT :
+    Une colonne constante n'est PAS considérée comme
+    une erreur de qualité.
+
+    Elle est seulement informative.
+    """
+
+    constants = {}
+
+    for column in df.columns:
+
+        unique_count = df[column].nunique(
+            dropna=True
+        )
+
+        if unique_count <= 1:
+
+            value = None
+
+            if len(df) > 0:
+                value = df[column].iloc[0]
+
+            constants[column] = {
+                "unique_values": unique_count,
+                "value": str(value),
+                "message": (
+                    f"La colonne '{column}' contient "
+                    "une seule valeur."
+                )
+            }
+
+    return constants
+
+
+# ============================================================
+# QUALITY SCORE
+# ============================================================
+
 def calculate_quality_score(
     df: pd.DataFrame,
     missing_result: dict,
     duplicate_result: dict,
     type_issues: dict,
-    inconsistencies: dict
+    inconsistencies: dict,
+    outliers: dict,
+    date_issues: dict
 ) -> float:
     """
-    Calcule un score de qualité entre 0 et 100.
+    Calcule un score global de qualité entre 0 et 100.
 
-    Pondération :
-    - Valeurs manquantes : 40 %
-    - Doublons : 25 %
-    - Problèmes de types : 20 %
-    - Incohérences : 15 %
+    Les colonnes constantes ne pénalisent PAS le score,
+    car elles peuvent être parfaitement normales.
+
+    Pondérations :
+
+        Missing values       : 35%
+        Duplicates           : 20%
+        Type issues          : 20%
+        Inconsistencies      : 10%
+        Outliers             : 10%
+        Date issues          : 5%
     """
 
-    total_cells = (
-        df.shape[0] * df.shape[1]
-    )
-
-    if total_cells == 0:
+    if df.empty:
         return 0.0
 
     score = 100.0
 
-    # =========================================
-    # 1. VALEURS MANQUANTES
-    # =========================================
-
-    missing_ratio = (
-        missing_result["total"]
-        / total_cells
+    total_cells = (
+        df.shape[0] *
+        df.shape[1]
     )
 
-    score -= (
-        missing_ratio
-        * 100
-        * 0.40
-    )
+    # --------------------------------------------------------
+    # Missing values
+    # --------------------------------------------------------
 
-    # =========================================
-    # 2. DOUBLONS
-    # =========================================
+    if total_cells > 0:
+
+        missing_ratio = (
+            missing_result["total"]
+            / total_cells
+        )
+
+        score -= (
+            missing_ratio *
+            100 *
+            0.35
+        )
+
+    # --------------------------------------------------------
+    # Duplicates
+    # --------------------------------------------------------
 
     duplicate_ratio = (
         duplicate_result["count"]
@@ -278,14 +527,14 @@ def calculate_quality_score(
     )
 
     score -= (
-        duplicate_ratio
-        * 100
-        * 0.25
+        duplicate_ratio *
+        100 *
+        0.20
     )
 
-    # =========================================
-    # 3. PROBLÈMES DE TYPES
-    # =========================================
+    # --------------------------------------------------------
+    # Type issues
+    # --------------------------------------------------------
 
     if len(df.columns) > 0:
 
@@ -295,14 +544,14 @@ def calculate_quality_score(
         )
 
         score -= (
-            type_ratio
-            * 100
-            * 0.20
+            type_ratio *
+            100 *
+            0.20
         )
 
-    # =========================================
-    # 4. INCOHÉRENCES
-    # =========================================
+    # --------------------------------------------------------
+    # Inconsistencies
+    # --------------------------------------------------------
 
     if len(df.columns) > 0:
 
@@ -312,92 +561,253 @@ def calculate_quality_score(
         )
 
         score -= (
-            inconsistency_ratio
-            * 100
-            * 0.15
+            inconsistency_ratio *
+            100 *
+            0.10
         )
 
-    # =========================================
-    # LIMITER LE SCORE ENTRE 0 ET 100
-    # =========================================
+    # --------------------------------------------------------
+    # Outliers
+    # --------------------------------------------------------
 
-    score = max(
-        0.0,
-        min(100.0, score)
-    )
+    if len(df.columns) > 0:
+
+        outlier_ratio = (
+            len(outliers)
+            / len(df.columns)
+        )
+
+        score -= (
+            outlier_ratio *
+            100 *
+            0.10
+        )
+
+    # --------------------------------------------------------
+    # Date issues
+    # --------------------------------------------------------
+
+    if len(df.columns) > 0:
+
+        date_ratio = (
+            len(date_issues)
+            / len(df.columns)
+        )
+
+        score -= (
+            date_ratio *
+            100 *
+            0.05
+        )
 
     return round(
-        score,
+        max(0.0, min(100.0, score)),
         2
     )
 
+
+# ============================================================
+# ISSUE LEVELS
+# ============================================================
+
+def build_issue_levels(
+    missing: dict,
+    duplicates: dict,
+    type_issues: dict,
+    inconsistencies: dict,
+    outliers: dict,
+    date_issues: dict,
+    constant_columns: dict
+) -> dict:
+    """
+    Classe les résultats en trois niveaux :
+
+        errors
+        warnings
+        information
+
+    Cette classification est descriptive.
+    Elle ne modifie jamais les données.
+    """
+
+    errors = {}
+    warnings = {}
+    information = {}
+
+    # --------------------------------------------------------
+    # ERRORS
+    # --------------------------------------------------------
+
+    if missing["total"] > 0:
+        errors["missing_values"] = missing
+
+    if type_issues:
+        errors["type_issues"] = type_issues
+
+    if date_issues:
+        errors["date_issues"] = date_issues
+
+    # --------------------------------------------------------
+    # WARNINGS
+    # --------------------------------------------------------
+
+    if duplicates["count"] > 0:
+        warnings["duplicates"] = duplicates
+
+    if inconsistencies:
+        warnings["inconsistencies"] = inconsistencies
+
+    if outliers:
+        warnings["outliers"] = outliers
+
+    # --------------------------------------------------------
+    # INFORMATION
+    # --------------------------------------------------------
+
+    if constant_columns:
+        information["constant_columns"] = (
+            constant_columns
+        )
+
+    return {
+        "errors": errors,
+        "warnings": warnings,
+        "information": information
+    }
+
+
+# ============================================================
+# MAIN QUALITY REPORT
+# ============================================================
 
 def generate_quality_report(
     file_path: str
 ) -> dict:
     """
-    Génère le rapport complet de qualité
-    du dataset.
+    Génère automatiquement un rapport complet
+    de Data Quality.
+
+    Fonctionne avec :
+
+        CSV
+        XLSX
+        XLS
+
+    Aucun nom de colonne spécifique n'est utilisé.
     """
 
-    # =========================================
-    # CHARGEMENT DU DATASET
-    # =========================================
+    # --------------------------------------------------------
+    # Load dataset
+    # --------------------------------------------------------
 
-    df = load_dataset(
-        file_path
-    )
+    df = load_dataset(file_path)
 
-    # =========================================
-    # ANALYSES
-    # =========================================
+    # --------------------------------------------------------
+    # Quality checks
+    # --------------------------------------------------------
 
-    missing = detect_missing(
-        df
-    )
+    missing = detect_missing(df)
 
-    duplicates = detect_duplicates(
-        df
-    )
+    duplicates = detect_duplicates(df)
 
-    type_issues = detect_type_issues(
-        df
-    )
+    type_issues = detect_type_issues(df)
 
-    inconsistencies = detect_inconsistencies(
-        df
-    )
+    inconsistencies = detect_inconsistencies(df)
 
-    # =========================================
-    # CALCUL DU SCORE
-    # =========================================
+    outliers = detect_outliers(df)
+
+    date_issues = detect_date_issues(df)
+
+    constant_columns = detect_constant_columns(df)
+
+    # --------------------------------------------------------
+    # Quality score
+    # --------------------------------------------------------
 
     score = calculate_quality_score(
         df,
         missing,
         duplicates,
         type_issues,
-        inconsistencies
+        inconsistencies,
+        outliers,
+        date_issues
     )
 
-    # =========================================
-    # RAPPORT FINAL
-    # =========================================
+    # --------------------------------------------------------
+    # Issue classification
+    # --------------------------------------------------------
+
+    issue_levels = build_issue_levels(
+        missing,
+        duplicates,
+        type_issues,
+        inconsistencies,
+        outliers,
+        date_issues,
+        constant_columns
+    )
+
+    # --------------------------------------------------------
+    # Summary
+    # --------------------------------------------------------
+
+    summary = {
+        "missing_issues": len(
+            missing["columns"]
+        ),
+
+        "missing_values": missing["total"],
+
+        "duplicate_rows": duplicates["count"],
+
+        "type_issues": len(
+            type_issues
+        ),
+
+        "inconsistency_issues": len(
+            inconsistencies
+        ),
+
+        "outlier_issues": len(
+            outliers
+        ),
+
+        "date_issues": len(
+            date_issues
+        ),
+
+        "constant_columns": len(
+            constant_columns
+        ),
+
+        "errors": len(
+            issue_levels["errors"]
+        ),
+
+        "warnings": len(
+            issue_levels["warnings"]
+        ),
+
+        "information": len(
+            issue_levels["information"]
+        )
+    }
+
+    # --------------------------------------------------------
+    # Final report
+    # --------------------------------------------------------
 
     return {
-
-        "dataset": str(
-            file_path
-        ),
+        "dataset": str(file_path),
 
         "rows": len(df),
 
-        "columns": len(
-            df.columns
-        ),
+        "columns": len(df.columns),
 
         "quality_score": score,
 
+        # Existing structure kept for compatibility
         "missing_values": missing,
 
         "duplicates": duplicates,
@@ -406,19 +816,14 @@ def generate_quality_report(
 
         "inconsistencies": inconsistencies,
 
-        "summary": {
+        "outliers": outliers,
 
-            "missing_issues": len(
-                missing["columns"]
-            ),
+        "date_issues": date_issues,
 
-            "duplicate_rows":
-                duplicates["count"],
+        "constant_columns": constant_columns,
 
-            "type_issues":
-                len(type_issues),
+        # New professional classification
+        "issue_levels": issue_levels,
 
-            "inconsistency_issues":
-                len(inconsistencies)
-        }
+        "summary": summary
     }

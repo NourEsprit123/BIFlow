@@ -2943,5 +2943,415 @@
                 "inconsistency_issues": 0
             }
         }
+    },
+    "D:\\BIFlow\\data\\raw\\Europe Sales Records-selected-columns.csv::1791479085.1764371": {
+        "rows": 1330,
+        "columns": 10,
+        "quality": 98.5,
+        "status_text": "● Ready",
+        "status_type": "green",
+        "profile": {
+            "dataset": "D:\\BIFlow\\data\\raw\\Europe Sales Records-selected-columns.csv",
+            "rows": 1330,
+            "columns": 10,
+            "date_columns": [
+                "Order Date",
+                "Ship Date"
+            ],
+            "measures": [
+                "Units Sold",
+                "Unit Price"
+            ],
+            "dimensions": [
+                "Region",
+                "Item Type",
+                "Sales Channel",
+                "Order Priority"
+            ],
+            "column_names": [
+                "Region",
+                "Country",
+                "Item Type",
+                "Sales Channel",
+                "Order Priority",
+                "Order Date",
+                "Order ID",
+                "Ship Date",
+                "Units Sold",
+                "Unit Price"
+            ],
+            "column_types": {
+                "Region": "str",
+                "Country": "str",
+                "Item Type": "str",
+                "Sales Channel": "str",
+                "Order Priority": "str",
+                "Order Date": "str",
+                "Order ID": "int64",
+                "Ship Date": "str",
+                "Units Sold": "int64",
+                "Unit Price": "float64"
+            },
+            "preview": [
+                {
+                    "Region": "Europe",
+                    "Country": "Czech Republic",
+                    "Item Type": "Beverages",
+                    "Sales Channel": "Offline",
+                    "Order Priority": "C",
+                    "Order Date": "9/12/2011",
+                    "Order ID": 478051030,
+                    "Ship Date": "9/29/2011",
+                    "Units Sold": 4778,
+                    "Unit Price": 47.45
+                },
+                {
+                    "Region": "Europe",
+                    "Country": "Bosnia and Herzegovina",
+                    "Item Type": "Clothes",
+                    "Sales Channel": "Online",
+                    "Order Priority": "M",
+                    "Order Date": "10/14/2013",
+                    "Order ID": 919133651,
+                    "Ship Date": "11/4/2013",
+                    "Units Sold": 927,
+                    "Unit Price": 109.28
+                },
+                {
+                    "Region": "Europe",
+                    "Country": "Austria",
+                    "Item Type": "Cereal",
+                    "Sales Channel": "Offline",
+                    "Order Priority": "C",
+                    "Order Date": "8/13/2014",
+                    "Order ID": 987410676,
+                    "Ship Date": "9/6/2014",
+                    "Units Sold": 5616,
+                    "Unit Price": 205.7
+                },
+                {
+                    "Region": "Europe",
+                    "Country": "Bulgaria",
+                    "Item Type": "Office Supplies",
+                    "Sales Channel": "Online",
+                    "Order Priority": "L",
+                    "Order Date": "10/31/2010",
+                    "Order ID": 672330081,
+                    "Ship Date": "11/29/2010",
+                    "Units Sold": 6266,
+                    "Unit Price": 651.21
+                },
+                {
+                    "Region": "Europe",
+                    "Country": "Estonia",
+                    "Item Type": "Fruits",
+                    "Sales Channel": "Online",
+                    "Order Priority": "L",
+                    "Order Date": "9/28/2016",
+                    "Order ID": 579463422,
+                    "Ship Date": "11/1/2016",
+                    "Units Sold": 4958,
+                    "Unit Price": 9.33
+                }
+            ],
+            "missing_values": {
+                "Region": 0,
+                "Country": 0,
+                "Item Type": 0,
+                "Sales Channel": 0,
+                "Order Priority": 0,
+                "Order Date": 0,
+                "Order ID": 0,
+                "Ship Date": 0,
+                "Units Sold": 0,
+                "Unit Price": 0
+            },
+            "total_missing": 0,
+            "unique_values": {
+                "Region": 1,
+                "Country": 48,
+                "Item Type": 12,
+                "Sales Channel": 2,
+                "Order Priority": 4,
+                "Order Date": 1049,
+                "Order ID": 1330,
+                "Ship Date": 1070,
+                "Units Sold": 1240,
+                "Unit Price": 12
+            },
+            "duplicate_rows": 0,
+            "numerical_columns": [
+                "Order ID",
+                "Units Sold",
+                "Unit Price"
+            ],
+            "categorical_columns": [
+                "Region",
+                "Country",
+                "Item Type",
+                "Sales Channel",
+                "Order Priority",
+                "Order Date",
+                "Ship Date"
+            ],
+            "numerical_statistics": {
+                "Order ID": {
+                    "count": 1330.0,
+                    "mean": 541204760.24,
+                    "std": 257388211.82,
+                    "min": 100640618.0,
+                    "25%": 319000434.75,
+                    "50%": 538716375.5,
+                    "75%": 754462754.0,
+                    "max": 999879729.0
+                },
+                "Units Sold": {
+                    "count": 1330.0,
+                    "mean": 4949.11,
+                    "std": 2904.11,
+                    "min": 2.0,
+                    "25%": 2360.75,
+                    "50%": 4958.0,
+                    "75%": 7458.75,
+                    "max": 9999.0
+                },
+                "Unit Price": {
+                    "count": 1330.0,
+                    "mean": 264.89,
+                    "std": 217.32,
+                    "min": 9.33,
+                    "25%": 81.73,
+                    "50%": 154.06,
+                    "75%": 437.2,
+                    "max": 668.27
+                }
+            },
+            "categorical_statistics": {
+                "Region": {
+                    "Europe": 1330
+                },
+                "Country": {
+                    "San Marino": 40,
+                    "Andorra": 40,
+                    "Kosovo": 35,
+                    "Romania": 34,
+                    "Bosnia and Herzegovina": 33
+                },
+                "Item Type": {
+                    "Office Supplies": 123,
+                    "Beverages": 121,
+                    "Personal Care": 115,
+                    "Vegetables": 114,
+                    "Cosmetics": 114
+                },
+                "Sales Channel": {
+                    "Offline": 667,
+                    "Online": 663
+                },
+                "Order Priority": {
+                    "M": 354,
+                    "H": 335,
+                    "L": 334,
+                    "C": 307
+                },
+                "Order Date": {
+                    "1/16/2016": 4,
+                    "6/10/2011": 4,
+                    "3/23/2012": 4,
+                    "7/10/2017": 3,
+                    "7/24/2012": 3
+                },
+                "Ship Date": {
+                    "4/7/2015": 3,
+                    "3/27/2017": 3,
+                    "3/21/2013": 3,
+                    "11/3/2012": 3,
+                    "5/30/2014": 3
+                }
+            },
+            "columns_profile": {
+                "Region": {
+                    "name": "Region",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 1,
+                    "top_values": {
+                        "Europe": 1330
+                    }
+                },
+                "Country": {
+                    "name": "Country",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 48,
+                    "top_values": {
+                        "San Marino": 40,
+                        "Andorra": 40,
+                        "Kosovo": 35,
+                        "Romania": 34,
+                        "Bosnia and Herzegovina": 33
+                    }
+                },
+                "Item Type": {
+                    "name": "Item Type",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 12,
+                    "top_values": {
+                        "Office Supplies": 123,
+                        "Beverages": 121,
+                        "Personal Care": 115,
+                        "Vegetables": 114,
+                        "Cosmetics": 114
+                    }
+                },
+                "Sales Channel": {
+                    "name": "Sales Channel",
+                    "type": "str",
+                    "role": "potential_target",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 2,
+                    "top_values": {
+                        "Offline": 667,
+                        "Online": 663
+                    }
+                },
+                "Order Priority": {
+                    "name": "Order Priority",
+                    "type": "str",
+                    "role": "categorical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 4,
+                    "top_values": {
+                        "M": 354,
+                        "H": 335,
+                        "L": 334,
+                        "C": 307
+                    }
+                },
+                "Order Date": {
+                    "name": "Order Date",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 1049,
+                    "top_values": {
+                        "1/16/2016": 4,
+                        "6/10/2011": 4,
+                        "3/23/2012": 4,
+                        "7/10/2017": 3,
+                        "7/24/2012": 3
+                    }
+                },
+                "Order ID": {
+                    "name": "Order ID",
+                    "type": "int64",
+                    "role": "identifier",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 1330,
+                    "statistics": {
+                        "count": 1330,
+                        "mean": 541204760.24,
+                        "median": 538716375.5,
+                        "std": 257388211.82,
+                        "min": 100640618.0,
+                        "max": 999879729.0,
+                        "q25": 319000434.75,
+                        "q50": 538716375.5,
+                        "q75": 754462754.0
+                    }
+                },
+                "Ship Date": {
+                    "name": "Ship Date",
+                    "type": "str",
+                    "role": "text",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 1070,
+                    "top_values": {
+                        "4/7/2015": 3,
+                        "3/27/2017": 3,
+                        "3/21/2013": 3,
+                        "11/3/2012": 3,
+                        "5/30/2014": 3
+                    }
+                },
+                "Units Sold": {
+                    "name": "Units Sold",
+                    "type": "int64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 1240,
+                    "statistics": {
+                        "count": 1330,
+                        "mean": 4949.11,
+                        "median": 4958.0,
+                        "std": 2904.11,
+                        "min": 2.0,
+                        "max": 9999.0,
+                        "q25": 2360.75,
+                        "q50": 4958.0,
+                        "q75": 7458.75
+                    }
+                },
+                "Unit Price": {
+                    "name": "Unit Price",
+                    "type": "float64",
+                    "role": "numerical",
+                    "missing": 0,
+                    "missing_percentage": 0.0,
+                    "unique": 12,
+                    "statistics": {
+                        "count": 1330,
+                        "mean": 264.89,
+                        "median": 154.06,
+                        "std": 217.32,
+                        "min": 9.33,
+                        "max": 668.27,
+                        "q25": 81.73,
+                        "q50": 154.06,
+                        "q75": 437.2
+                    }
+                }
+            }
+        },
+        "quality_report": {
+            "dataset": "D:\\BIFlow\\data\\raw\\Europe Sales Records-selected-columns.csv",
+            "rows": 1330,
+            "columns": 10,
+            "quality_score": 98.5,
+            "missing_values": {
+                "columns": {},
+                "total": 0
+            },
+            "duplicates": {
+                "count": 0,
+                "has_duplicates": false
+            },
+            "type_issues": {},
+            "inconsistencies": {
+                "Country": {
+                    "whitespace_values": 24,
+                    "message": "24 valeur(s) contiennent des espaces inutiles."
+                }
+            },
+            "summary": {
+                "missing_issues": 0,
+                "duplicate_rows": 0,
+                "type_issues": 0,
+                "inconsistency_issues": 1
+            }
+        }
     }
 }

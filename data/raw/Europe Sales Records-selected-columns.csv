@@ -1,0 +1,1331 @@
+Region,Country,Item Type,Sales Channel,Order Priority,Order Date,Order ID,Ship Date,Units Sold,Unit Price
+Europe,Czech Republic,Beverages,Offline,C,9/12/2011,478051030,9/29/2011,4778,47.45
+Europe,Bosnia and Herzegovina,Clothes,Online,M,10/14/2013,919133651,11/4/2013,927,109.28
+Europe,Austria,Cereal,Offline,C,8/13/2014,987410676,9/6/2014,5616,205.7
+Europe,Bulgaria,Office Supplies,Online,L,10/31/2010,672330081,11/29/2010,6266,651.21
+Europe,Estonia,Fruits,Online,L,9/28/2016,579463422,11/1/2016,4958,9.33
+Europe,Montenegro,Fruits,Offline,L,5/29/2016,313705861,7/10/2016,1390,9.33
+Europe,Czech Republic,Cereal,Online,M,7/8/2011,552037513,8/5/2011,9022,205.7
+Europe,Luxembourg,Vegetables,Offline,L,2/13/2010,744683635,4/1/2010,7291,154.06
+Europe,Switzerland,Meat,Online,L,3/21/2014,169378983,4/10/2014,1860,421.89
+Europe,Finland,Beverages,Online,H,3/16/2012,566428315,3/23/2012,7581,47.45
+Europe,Belgium,Snacks,Online,M,1/12/2015,519380223,1/17/2015,5005,152.58
+Europe,San Marino,Office Supplies,Online,H,4/13/2014,904589211,5/4/2014,6905,651.21
+Europe,Bosnia and Herzegovina,Baby Food,Online,C,4/4/2015,184412229,4/7/2015,531,255.28
+Europe,Netherlands,Meat,Offline,M,3/8/2017,747774398,4/3/2017,1916,421.89
+Europe,Russia,Household,Online,M,7/10/2017,194176757,8/20/2017,72,668.27
+Europe,Ukraine,Cosmetics,Online,H,1/22/2011,773645913,1/28/2011,7873,437.2
+Europe,Bosnia and Herzegovina,Meat,Online,H,7/24/2012,410740888,9/1/2012,6211,421.89
+Europe,Latvia,Meat,Offline,M,12/15/2011,847317397,12/18/2011,8902,421.89
+Europe,Serbia,Beverages,Online,L,9/3/2012,599624192,9/21/2012,978,47.45
+Europe,Portugal,Office Supplies,Online,M,1/21/2014,734318292,3/4/2014,9956,651.21
+Europe,Poland,Household,Offline,L,7/7/2017,232196319,8/4/2017,905,668.27
+Europe,Liechtenstein,Cosmetics,Online,L,7/15/2012,229693067,7/15/2012,138,437.2
+Europe,United Kingdom,Beverages,Online,C,4/8/2017,121945512,4/12/2017,5242,47.45
+Europe,Slovenia,Fruits,Online,H,10/22/2012,169799983,11/20/2012,6443,9.33
+Europe,Malta,Vegetables,Online,M,3/11/2014,894589078,4/10/2014,7643,154.06
+Europe,Ukraine,Personal Care,Online,M,7/16/2010,987459170,8/27/2010,9967,81.73
+Europe,Cyprus,Fruits,Offline,M,7/12/2015,600515115,8/30/2015,4622,9.33
+Europe,Poland,Office Supplies,Offline,M,11/27/2015,208365428,12/29/2015,8815,651.21
+Europe,Monaco,Personal Care,Online,L,6/8/2014,263098371,7/4/2014,5509,81.73
+Europe,Estonia,Cosmetics,Online,C,5/23/2011,790149009,5/29/2011,1505,437.2
+Europe,Norway,Cereal,Online,M,10/8/2014,100640618,10/18/2014,650,205.7
+Europe,Luxembourg,Snacks,Online,H,2/1/2011,977324712,3/10/2011,955,152.58
+Europe,Luxembourg,Snacks,Online,H,9/7/2010,510956799,9/23/2010,2326,152.58
+Europe,Armenia,Fruits,Online,M,3/23/2011,120977771,5/2/2011,8866,9.33
+Europe,Bulgaria,Snacks,Offline,L,3/11/2017,476991450,3/27/2017,1225,152.58
+Europe,Denmark,Beverages,Online,H,6/5/2016,973268353,6/26/2016,589,47.45
+Europe,Finland,Vegetables,Offline,L,2/14/2013,771674382,3/21/2013,4453,154.06
+Europe,Kosovo,Fruits,Online,L,5/2/2010,291995418,6/6/2010,6788,9.33
+Europe,Hungary,Baby Food,Online,M,1/25/2011,128686225,3/13/2011,9968,255.28
+Europe,Lithuania,Cosmetics,Offline,L,1/6/2012,420875346,2/18/2012,5223,437.2
+Europe,Albania,Vegetables,Online,C,10/5/2012,476633536,11/3/2012,5310,154.06
+Europe,Cyprus,Vegetables,Offline,C,7/2/2014,727997720,7/19/2014,9558,154.06
+Europe,Moldova ,Personal Care,Online,M,3/11/2013,467045819,4/12/2013,8092,81.73
+Europe,Kosovo,Cosmetics,Offline,C,11/1/2012,813973891,11/13/2012,1818,437.2
+Europe,Albania,Cosmetics,Offline,L,9/30/2016,576944720,10/9/2016,9619,437.2
+Europe,Portugal,Baby Food,Online,L,8/3/2015,404789817,9/8/2015,5157,255.28
+Europe,Bosnia and Herzegovina,Baby Food,Online,C,4/30/2014,871923768,5/30/2014,474,255.28
+Europe,Kosovo,Vegetables,Offline,C,12/18/2012,818976962,12/21/2012,2337,154.06
+Europe,Switzerland,Cosmetics,Online,C,7/20/2017,233811223,7/20/2017,8792,437.2
+Europe,Lithuania,Office Supplies,Offline,C,12/15/2016,112330758,1/11/2017,22,651.21
+Europe,Montenegro,Office Supplies,Offline,H,7/2/2014,256095016,8/21/2014,3061,651.21
+Europe,France,Meat,Online,L,11/28/2015,245440852,12/17/2015,257,421.89
+Europe,Spain,Fruits,Online,H,10/22/2011,817006289,11/14/2011,9172,9.33
+Europe,Sweden,Vegetables,Online,H,9/20/2010,298228013,10/25/2010,1151,154.06
+Europe,Latvia,Snacks,Online,C,3/15/2017,972981679,4/9/2017,5755,152.58
+Europe,Norway,Personal Care,Offline,M,6/8/2012,594813811,6/17/2012,7480,81.73
+Europe,Estonia,Clothes,Online,H,9/8/2012,176722657,9/16/2012,5016,109.28
+Europe,Malta,Personal Care,Offline,M,8/16/2011,466988742,8/16/2011,1201,81.73
+Europe,Portugal,Cereal,Online,C,8/11/2015,615080583,9/19/2015,4868,205.7
+Europe,Macedonia,Cosmetics,Online,C,12/26/2010,350977408,1/22/2011,869,437.2
+Europe,Greece,Personal Care,Offline,M,12/8/2011,701298367,1/6/2012,8626,81.73
+Europe,Italy,Personal Care,Online,C,2/25/2011,309342658,3/28/2011,222,81.73
+Europe,Norway,Household,Offline,M,3/20/2010,384128224,4/26/2010,933,668.27
+Europe,Netherlands,Household,Offline,C,1/17/2014,990774810,2/18/2014,1138,668.27
+Europe,Belgium,Vegetables,Offline,C,12/26/2011,394110763,12/29/2011,4988,154.06
+Europe,Kosovo,Fruits,Online,C,3/2/2012,899868094,3/26/2012,9821,9.33
+Europe,Germany,Baby Food,Offline,L,1/6/2017,361311852,2/15/2017,9061,255.28
+Europe,Hungary,Beverages,Online,L,5/20/2014,930136287,6/21/2014,6852,47.45
+Europe,Bulgaria,Cosmetics,Online,C,5/5/2012,179819428,6/2/2012,1420,437.2
+Europe,Bosnia and Herzegovina,Fruits,Online,H,1/5/2013,291305768,1/6/2013,2705,9.33
+Europe,Russia,Personal Care,Online,L,4/24/2015,602357041,5/5/2015,9689,81.73
+Europe,Albania,Snacks,Online,H,12/2/2010,653087270,12/7/2010,1891,152.58
+Europe,Slovenia,Fruits,Offline,M,12/15/2013,812637078,1/5/2014,6225,9.33
+Europe,Macedonia,Personal Care,Online,L,7/19/2014,456192958,8/18/2014,6489,81.73
+Europe,Albania,Meat,Offline,H,1/31/2013,986449801,3/13/2013,1272,421.89
+Europe,Sweden,Cosmetics,Online,L,7/3/2017,910610234,7/31/2017,8659,437.2
+Europe,Norway,Meat,Online,M,3/3/2017,696844613,3/22/2017,661,421.89
+Europe,Czech Republic,Personal Care,Online,M,12/4/2010,353415429,12/8/2010,2334,81.73
+Europe,Andorra,Cereal,Online,H,3/19/2010,696197879,3/26/2010,9278,205.7
+Europe,Iceland,Cosmetics,Online,C,4/5/2012,907349526,5/16/2012,3743,437.2
+Europe,Poland,Personal Care,Offline,C,4/5/2014,386440074,4/25/2014,5060,81.73
+Europe,Finland,Vegetables,Online,H,9/28/2012,800352561,10/21/2012,963,154.06
+Europe,Poland,Beverages,Offline,C,1/8/2014,714165675,2/2/2014,6348,47.45
+Europe,Croatia,Beverages,Offline,L,2/22/2013,189924275,3/21/2013,1668,47.45
+Europe,Poland,Meat,Online,H,4/30/2013,546081721,5/22/2013,6571,421.89
+Europe,Switzerland,Baby Food,Online,C,6/26/2010,979073941,7/18/2010,8591,255.28
+Europe,Bosnia and Herzegovina,Personal Care,Offline,L,2/7/2010,396718728,3/18/2010,6742,81.73
+Europe,Hungary,Beverages,Offline,M,12/3/2010,948075759,1/4/2011,5540,47.45
+Europe,Sweden,Cereal,Offline,L,10/19/2012,737736070,11/3/2012,1352,205.7
+Europe,Slovakia,Household,Offline,L,2/20/2010,585362994,4/11/2010,773,668.27
+Europe,Czech Republic,Baby Food,Offline,H,7/18/2015,850872075,8/1/2015,810,255.28
+Europe,Bosnia and Herzegovina,Office Supplies,Offline,C,11/8/2012,575583016,11/24/2012,6660,651.21
+Europe,Kosovo,Meat,Offline,H,2/1/2011,515773189,2/17/2011,7603,421.89
+Europe,Monaco,Personal Care,Online,H,3/29/2016,351247346,5/8/2016,750,81.73
+Europe,Portugal,Beverages,Offline,H,1/20/2016,554721438,1/28/2016,3256,47.45
+Europe,Germany,Cereal,Offline,C,2/19/2010,398333632,3/2/2010,4629,205.7
+Europe,Vatican City,Beverages,Online,C,12/27/2015,370484149,1/19/2016,3348,47.45
+Europe,Denmark,Baby Food,Offline,H,9/29/2013,306839406,10/1/2013,9454,255.28
+Europe,Estonia,Beverages,Offline,C,2/9/2017,653548610,2/21/2017,8412,47.45
+Europe,Belarus,Vegetables,Online,L,12/31/2012,413078916,1/11/2013,8086,154.06
+Europe,Italy,Snacks,Online,M,12/14/2010,307721745,1/1/2011,558,152.58
+Europe,Kosovo,Office Supplies,Online,C,11/9/2011,374663245,11/26/2011,35,651.21
+Europe,Ireland,Vegetables,Offline,C,11/16/2010,901670968,12/11/2010,3331,154.06
+Europe,Montenegro,Cosmetics,Offline,L,8/19/2012,353320157,8/22/2012,4141,437.2
+Europe,Norway,Cereal,Offline,L,6/20/2013,645701968,7/21/2013,6416,205.7
+Europe,Poland,Office Supplies,Online,H,9/19/2013,148894631,9/25/2013,85,651.21
+Europe,Sweden,Baby Food,Online,L,4/3/2013,443551385,5/9/2013,5566,255.28
+Europe,Vatican City,Clothes,Offline,H,3/11/2014,508014523,3/20/2014,1642,109.28
+Europe,Lithuania,Office Supplies,Online,C,7/8/2012,987767302,8/1/2012,1150,651.21
+Europe,Croatia,Baby Food,Offline,H,9/19/2012,103832662,10/20/2012,5247,255.28
+Europe,Malta,Personal Care,Online,H,2/19/2014,445708739,2/27/2014,3975,81.73
+Europe,Macedonia,Beverages,Offline,M,7/24/2012,354655683,7/31/2012,9353,47.45
+Europe,Belarus,Office Supplies,Offline,C,6/30/2017,624398362,7/24/2017,2206,651.21
+Europe,Liechtenstein,Beverages,Online,C,9/5/2016,264163959,9/22/2016,840,47.45
+Europe,Russia,Office Supplies,Offline,H,10/16/2011,520915305,11/7/2011,9270,651.21
+Europe,Armenia,Cereal,Online,H,2/5/2013,424181544,3/4/2013,3600,205.7
+Europe,United Kingdom,Office Supplies,Online,H,7/3/2015,560762631,7/16/2015,979,651.21
+Europe,Moldova ,Office Supplies,Offline,L,4/4/2015,458816373,4/16/2015,2815,651.21
+Europe,Netherlands,Household,Offline,L,8/18/2013,142987763,9/1/2013,2112,668.27
+Europe,Andorra,Snacks,Offline,C,1/23/2010,480904042,2/5/2010,9048,152.58
+Europe,Armenia,Vegetables,Online,M,12/7/2016,571323239,1/1/2017,6097,154.06
+Europe,Italy,Snacks,Online,H,9/16/2012,281100928,11/3/2012,2866,152.58
+Europe,Croatia,Household,Online,L,4/26/2013,659196269,6/1/2013,9680,668.27
+Europe,Bulgaria,Personal Care,Offline,H,10/24/2012,595496594,11/4/2012,9530,81.73
+Europe,Ireland,Personal Care,Offline,H,5/30/2010,354931628,6/8/2010,1011,81.73
+Europe,Spain,Meat,Offline,C,11/29/2011,436969029,12/17/2011,7701,421.89
+Europe,Moldova ,Vegetables,Online,L,3/28/2016,810752236,5/4/2016,8458,154.06
+Europe,Italy,Office Supplies,Offline,C,7/8/2011,886620128,7/25/2011,9453,651.21
+Europe,Finland,Cereal,Offline,M,4/10/2010,889093768,5/20/2010,1458,205.7
+Europe,Poland,Cereal,Online,C,8/6/2011,454550588,9/6/2011,475,205.7
+Europe,Austria,Office Supplies,Online,L,2/18/2017,926064479,3/10/2017,1913,651.21
+Europe,Andorra,Fruits,Offline,C,6/29/2016,413245427,7/2/2016,7360,9.33
+Europe,Finland,Beverages,Online,H,9/18/2011,884147775,10/19/2011,7829,47.45
+Europe,Andorra,Cosmetics,Online,C,6/30/2012,328322827,7/19/2012,6876,437.2
+Europe,Germany,Snacks,Online,H,3/22/2014,158673751,5/10/2014,3944,152.58
+Europe,Italy,Snacks,Offline,L,1/7/2014,464911210,2/10/2014,6413,152.58
+Europe,Serbia,Beverages,Online,C,10/12/2010,395562589,12/1/2010,4615,47.45
+Europe,Italy,Baby Food,Offline,H,3/1/2012,459372985,3/22/2012,7529,255.28
+Europe,Armenia,Meat,Online,L,6/25/2012,693210542,8/13/2012,5259,421.89
+Europe,Sweden,Fruits,Offline,L,8/22/2011,153974950,9/20/2011,3464,9.33
+Europe,Romania,Snacks,Online,H,8/18/2014,747327220,9/15/2014,9587,152.58
+Europe,Bosnia and Herzegovina,Clothes,Online,M,10/10/2011,166810500,11/21/2011,1789,109.28
+Europe,Lithuania,Personal Care,Offline,M,3/31/2013,386009633,4/5/2013,7683,81.73
+Europe,Germany,Personal Care,Offline,H,2/8/2016,993368613,2/16/2016,8702,81.73
+Europe,Germany,Baby Food,Online,L,12/9/2014,405986297,1/2/2015,9222,255.28
+Europe,Bulgaria,Beverages,Online,H,2/4/2016,476794040,3/7/2016,2807,47.45
+Europe,Serbia,Meat,Offline,C,12/21/2011,380610454,12/29/2011,9946,421.89
+Europe,France,Vegetables,Offline,L,2/1/2012,455040681,2/2/2012,5504,154.06
+Europe,Iceland,Clothes,Online,M,9/10/2013,917792117,10/7/2013,3938,109.28
+Europe,Albania,Cosmetics,Offline,L,6/27/2011,728793370,8/12/2011,5009,437.2
+Europe,Austria,Fruits,Offline,M,4/20/2011,185960614,5/28/2011,8733,9.33
+Europe,Finland,Office Supplies,Offline,H,11/29/2011,445273578,1/9/2012,5201,651.21
+Europe,Georgia,Baby Food,Online,L,1/26/2014,359197413,3/8/2014,3352,255.28
+Europe,Romania,Personal Care,Offline,L,5/14/2013,853036296,6/1/2013,1251,81.73
+Europe,Switzerland,Fruits,Offline,M,3/21/2012,567412793,3/27/2012,8910,9.33
+Europe,Ireland,Cosmetics,Offline,H,8/27/2016,139201343,9/6/2016,1625,437.2
+Europe,Ukraine,Cosmetics,Online,C,6/9/2014,183910119,6/11/2014,1946,437.2
+Europe,Luxembourg,Clothes,Online,H,11/7/2013,922363460,11/23/2013,6700,109.28
+Europe,Austria,Beverages,Offline,C,4/2/2012,192922341,5/1/2012,8863,47.45
+Europe,Monaco,Cereal,Online,L,6/3/2017,792178905,7/21/2017,2197,205.7
+Europe,Serbia,Beverages,Online,M,12/20/2011,424297845,1/8/2012,8016,47.45
+Europe,Ireland,Baby Food,Online,H,5/23/2017,243684327,5/30/2017,462,255.28
+Europe,San Marino,Clothes,Offline,M,5/7/2012,152505099,5/19/2012,8503,109.28
+Europe,Georgia,Baby Food,Online,L,6/24/2015,203036630,7/28/2015,1905,255.28
+Europe,Ukraine,Snacks,Offline,C,1/25/2016,611791121,3/3/2016,1443,152.58
+Europe,San Marino,Cereal,Offline,C,7/22/2012,554554927,8/6/2012,3981,205.7
+Europe,Bosnia and Herzegovina,Office Supplies,Offline,H,7/11/2012,434275662,8/13/2012,674,651.21
+Europe,Germany,Personal Care,Offline,H,7/27/2014,835093390,7/29/2014,1547,81.73
+Europe,Croatia,Beverages,Online,M,2/6/2017,976323497,2/10/2017,4674,47.45
+Europe,Lithuania,Beverages,Online,H,1/9/2014,732703387,1/28/2014,2069,47.45
+Europe,Slovenia,Household,Online,C,9/10/2014,873432672,9/17/2014,6992,668.27
+Europe,Serbia,Clothes,Online,C,6/25/2011,523580348,8/4/2011,7915,109.28
+Europe,Greece,Personal Care,Online,M,4/16/2017,800045716,5/14/2017,161,81.73
+Europe,Malta,Vegetables,Online,M,5/10/2016,743769109,5/11/2016,6662,154.06
+Europe,San Marino,Snacks,Offline,L,1/9/2013,201294267,2/9/2013,6302,152.58
+Europe,Portugal,Meat,Online,L,2/11/2013,668280589,3/28/2013,7932,421.89
+Europe,Albania,Household,Online,C,7/14/2017,380379998,7/16/2017,1749,668.27
+Europe,Netherlands,Clothes,Online,H,1/16/2016,767490565,2/23/2016,6368,109.28
+Europe,Iceland,Snacks,Offline,L,10/30/2012,720931279,11/18/2012,8441,152.58
+Europe,United Kingdom,Snacks,Online,L,7/13/2013,138025033,8/3/2013,3529,152.58
+Europe,Andorra,Meat,Offline,H,8/16/2016,552931869,9/9/2016,3682,421.89
+Europe,Liechtenstein,Fruits,Online,L,2/8/2014,142375361,2/19/2014,888,9.33
+Europe,Belgium,Cosmetics,Offline,C,6/27/2014,916089236,7/28/2014,17,437.2
+Europe,Luxembourg,Fruits,Offline,L,12/6/2011,242265546,1/7/2012,614,9.33
+Europe,Malta,Cosmetics,Online,M,1/12/2015,265914475,2/21/2015,8857,437.2
+Europe,Slovakia,Snacks,Online,L,7/26/2015,637040793,8/4/2015,3382,152.58
+Europe,Andorra,Personal Care,Offline,L,12/12/2014,754541289,12/19/2014,4390,81.73
+Europe,Serbia,Vegetables,Offline,L,3/16/2015,697638976,3/26/2015,5731,154.06
+Europe,Czech Republic,Baby Food,Online,C,3/10/2016,467312324,4/8/2016,6956,255.28
+Europe,Slovenia,Clothes,Online,L,5/26/2012,622441852,5/28/2012,3231,109.28
+Europe,Bulgaria,Meat,Online,C,7/27/2016,349212729,9/11/2016,8662,421.89
+Europe,Hungary,Cosmetics,Online,H,10/6/2010,332353007,11/22/2010,9495,437.2
+Europe,Slovakia,Meat,Offline,H,8/8/2013,876856458,8/29/2013,166,421.89
+Europe,Bulgaria,Beverages,Offline,C,10/19/2013,313178002,12/6/2013,5185,47.45
+Europe,Kosovo,Personal Care,Online,L,2/17/2016,461445796,3/22/2016,920,81.73
+Europe,Spain,Cosmetics,Offline,C,1/3/2017,391026866,1/8/2017,2394,437.2
+Europe,Germany,Vegetables,Offline,C,8/7/2015,204418504,9/3/2015,833,154.06
+Europe,Romania,Meat,Offline,L,12/22/2012,524972951,1/17/2013,17,421.89
+Europe,Latvia,Beverages,Online,C,11/27/2013,469197165,12/11/2013,4723,47.45
+Europe,Sweden,Household,Offline,H,6/23/2010,688650786,8/7/2010,5926,668.27
+Europe,Macedonia,Office Supplies,Online,M,6/17/2016,823236739,8/1/2016,2900,651.21
+Europe,Armenia,Fruits,Offline,L,3/17/2015,439725911,4/7/2015,3524,9.33
+Europe,Cyprus,Snacks,Online,H,10/1/2012,255047452,10/30/2012,3064,152.58
+Europe,Malta,Meat,Offline,C,6/26/2014,662623488,7/11/2014,3870,421.89
+Europe,San Marino,Vegetables,Offline,M,1/22/2016,560389268,2/22/2016,492,154.06
+Europe,France,Office Supplies,Offline,C,7/12/2011,867138278,8/4/2011,4341,651.21
+Europe,Montenegro,Household,Online,H,12/25/2014,525321424,12/31/2014,3138,668.27
+Europe,Cyprus,Clothes,Online,H,6/10/2014,497554337,7/28/2014,6240,109.28
+Europe,Vatican City,Personal Care,Offline,M,4/15/2016,626322257,5/5/2016,1529,81.73
+Europe,Netherlands,Baby Food,Offline,C,1/21/2011,611766231,2/26/2011,4077,255.28
+Europe,Montenegro,Baby Food,Offline,H,3/3/2013,630931794,4/1/2013,5593,255.28
+Europe,San Marino,Office Supplies,Offline,L,3/4/2017,239386355,4/20/2017,8597,651.21
+Europe,Germany,Household,Offline,M,8/21/2016,874172532,10/2/2016,5933,668.27
+Europe,Iceland,Personal Care,Offline,C,9/19/2010,570703542,11/3/2010,2715,81.73
+Europe,Hungary,Cosmetics,Online,M,9/20/2012,132603538,11/6/2012,9188,437.2
+Europe,Czech Republic,Meat,Offline,L,8/6/2011,552276551,9/24/2011,9759,421.89
+Europe,Macedonia,Snacks,Offline,M,3/22/2016,163587558,4/19/2016,8048,152.58
+Europe,Andorra,Baby Food,Offline,M,1/10/2012,415837943,2/23/2012,4543,255.28
+Europe,Hungary,Baby Food,Offline,H,5/17/2014,398645198,5/26/2014,6828,255.28
+Europe,Latvia,Personal Care,Offline,H,11/2/2013,913074433,12/17/2013,7870,81.73
+Europe,Andorra,Fruits,Offline,H,5/27/2014,889125955,6/15/2014,983,9.33
+Europe,Austria,Fruits,Offline,H,8/6/2011,263427960,9/20/2011,3042,9.33
+Europe,Liechtenstein,Meat,Online,H,7/12/2010,730490243,7/14/2010,7151,421.89
+Europe,Poland,Cereal,Online,L,11/1/2016,905036389,11/20/2016,9234,205.7
+Europe,Montenegro,Clothes,Online,C,3/4/2012,381759297,3/25/2012,9914,109.28
+Europe,Belarus,Cosmetics,Offline,M,9/2/2011,613166129,10/21/2011,8338,437.2
+Europe,Ukraine,Office Supplies,Offline,M,5/3/2017,181260526,6/3/2017,7872,651.21
+Europe,Georgia,Snacks,Online,C,9/1/2013,264959609,10/18/2013,6291,152.58
+Europe,Malta,Fruits,Online,L,7/31/2010,475176560,9/4/2010,4159,9.33
+Europe,Armenia,Baby Food,Offline,H,1/23/2012,194922626,2/7/2012,791,255.28
+Europe,France,Snacks,Offline,M,7/3/2016,447684133,8/14/2016,8538,152.58
+Europe,Liechtenstein,Personal Care,Online,H,1/4/2012,527259910,1/11/2012,6779,81.73
+Europe,Hungary,Baby Food,Online,M,8/10/2014,879923617,9/15/2014,7807,255.28
+Europe,Portugal,Snacks,Offline,H,3/9/2014,279816472,4/14/2014,2767,152.58
+Europe,Cyprus,Snacks,Online,M,11/5/2012,593018233,12/11/2012,6128,152.58
+Europe,Macedonia,Baby Food,Online,H,9/16/2016,349060380,9/28/2016,3578,255.28
+Europe,Latvia,Household,Offline,C,12/18/2010,863890445,12/25/2010,3235,668.27
+Europe,Armenia,Personal Care,Online,C,1/16/2010,667420995,1/18/2010,3559,81.73
+Europe,Montenegro,Vegetables,Offline,H,4/10/2011,842687690,5/26/2011,8869,154.06
+Europe,San Marino,Beverages,Offline,L,1/2/2012,772893178,1/2/2012,5122,47.45
+Europe,Czech Republic,Snacks,Online,M,7/5/2011,789484250,7/30/2011,4789,152.58
+Europe,Vatican City,Personal Care,Offline,M,5/24/2012,336111962,6/16/2012,1854,81.73
+Europe,San Marino,Household,Offline,H,12/9/2015,821131742,12/9/2015,9985,668.27
+Europe,Liechtenstein,Household,Online,M,4/27/2014,679108560,6/11/2014,2169,668.27
+Europe,Lithuania,Personal Care,Offline,L,4/19/2011,129875409,4/26/2011,1875,81.73
+Europe,Ireland,Fruits,Offline,H,3/12/2015,155914723,3/29/2015,7486,9.33
+Europe,Spain,Fruits,Online,H,10/9/2011,753166282,11/25/2011,7495,9.33
+Europe,Andorra,Cereal,Offline,M,3/20/2015,443347108,4/9/2015,5116,205.7
+Europe,Iceland,Office Supplies,Online,C,6/19/2013,527509677,7/10/2013,691,651.21
+Europe,Ireland,Beverages,Offline,H,9/20/2016,416953313,10/29/2016,4606,47.45
+Europe,Bosnia and Herzegovina,Cereal,Online,C,3/30/2011,639126908,5/10/2011,710,205.7
+Europe,Belarus,Beverages,Online,L,6/3/2014,879405200,7/20/2014,4396,47.45
+Europe,Slovenia,Beverages,Offline,H,3/17/2010,844105184,4/20/2010,8337,47.45
+Europe,Netherlands,Fruits,Offline,C,9/20/2013,127838218,10/29/2013,9024,9.33
+Europe,Belgium,Snacks,Online,M,11/22/2010,881717050,12/23/2010,8524,152.58
+Europe,Macedonia,Household,Offline,L,10/13/2015,905509746,10/20/2015,9311,668.27
+Europe,Liechtenstein,Baby Food,Online,H,6/22/2012,720878922,8/1/2012,2948,255.28
+Europe,Italy,Personal Care,Offline,L,11/14/2012,306256616,11/18/2012,6993,81.73
+Europe,Spain,Cereal,Offline,M,1/4/2015,392252957,2/22/2015,5222,205.7
+Europe,Norway,Cosmetics,Offline,C,3/14/2014,746563756,4/12/2014,3661,437.2
+Europe,Bulgaria,Household,Online,C,3/21/2014,129902875,4/24/2014,2,668.27
+Europe,San Marino,Beverages,Offline,M,5/10/2014,595395314,5/30/2014,9559,47.45
+Europe,Denmark,Fruits,Online,L,3/4/2011,272425591,3/21/2011,5641,9.33
+Europe,Germany,Baby Food,Offline,H,11/27/2013,596166074,1/13/2014,7644,255.28
+Europe,Netherlands,Beverages,Offline,C,10/18/2012,906345736,11/21/2012,6699,47.45
+Europe,Germany,Cosmetics,Offline,M,2/26/2012,385340154,3/18/2012,9569,437.2
+Europe,Sweden,Cosmetics,Offline,H,6/3/2012,679039466,7/5/2012,1723,437.2
+Europe,San Marino,Baby Food,Offline,L,2/15/2011,587799727,3/27/2011,1856,255.28
+Europe,Georgia,Snacks,Offline,L,1/22/2017,341398274,3/7/2017,6191,152.58
+Europe,Greece,Fruits,Offline,H,6/14/2015,516994559,6/20/2015,9034,9.33
+Europe,Slovenia,Office Supplies,Online,H,4/9/2010,483981502,5/4/2010,9736,651.21
+Europe,Slovakia,Cosmetics,Online,H,5/30/2015,549187934,7/17/2015,5769,437.2
+Europe,Macedonia,Clothes,Online,M,4/22/2015,989403665,5/25/2015,5386,109.28
+Europe,Lithuania,Household,Online,H,1/25/2012,516635358,2/26/2012,2738,668.27
+Europe,Belarus,Clothes,Offline,M,6/8/2015,173122918,7/25/2015,9773,109.28
+Europe,Ireland,Beverages,Online,C,7/14/2014,357482516,7/28/2014,5875,47.45
+Europe,Slovenia,Fruits,Online,L,1/18/2010,756252324,2/9/2010,723,9.33
+Europe,Monaco,Clothes,Offline,H,11/16/2016,926763570,11/25/2016,8790,109.28
+Europe,Croatia,Household,Online,M,10/28/2013,107651269,11/11/2013,5258,668.27
+Europe,Andorra,Beverages,Online,H,8/19/2010,425547969,9/11/2010,7955,47.45
+Europe,Estonia,Clothes,Offline,L,1/24/2016,264928710,1/27/2016,7147,109.28
+Europe,Andorra,Beverages,Offline,L,1/13/2010,861180341,2/20/2010,1255,47.45
+Europe,Ireland,Beverages,Offline,M,6/10/2011,580569350,7/3/2011,2227,47.45
+Europe,Serbia,Vegetables,Offline,M,2/25/2013,559417665,2/28/2013,2973,154.06
+Europe,Liechtenstein,Household,Online,C,8/21/2015,184976994,9/21/2015,7658,668.27
+Europe,Cyprus,Beverages,Online,M,12/8/2013,874349772,1/4/2014,8383,47.45
+Europe,Andorra,Household,Online,H,11/15/2016,713009965,12/16/2016,4348,668.27
+Europe,Andorra,Baby Food,Online,M,10/24/2016,569941365,11/26/2016,7170,255.28
+Europe,Malta,Household,Online,H,9/9/2010,845067346,9/13/2010,3062,668.27
+Europe,Czech Republic,Fruits,Offline,M,11/24/2014,774926936,11/27/2014,6956,9.33
+Europe,Hungary,Baby Food,Online,H,5/6/2011,217920958,6/25/2011,6509,255.28
+Europe,Lithuania,Clothes,Online,C,2/6/2013,523836123,3/22/2013,3605,109.28
+Europe,Ukraine,Vegetables,Online,C,11/6/2011,446019017,11/25/2011,5794,154.06
+Europe,Luxembourg,Clothes,Online,H,5/14/2011,475992381,5/26/2011,5578,109.28
+Europe,Serbia,Office Supplies,Offline,C,3/1/2017,410514724,4/10/2017,9284,651.21
+Europe,Germany,Personal Care,Offline,C,3/14/2010,938209950,3/16/2010,6028,81.73
+Europe,Ukraine,Clothes,Offline,H,9/27/2016,747955071,10/25/2016,5382,109.28
+Europe,Andorra,Clothes,Offline,L,5/14/2017,923160398,6/15/2017,2531,109.28
+Europe,Monaco,Office Supplies,Online,H,10/20/2012,754227149,11/24/2012,1429,651.21
+Europe,Norway,Baby Food,Offline,L,2/24/2013,357943856,3/17/2013,2396,255.28
+Europe,Ireland,Cosmetics,Online,M,1/28/2011,815917098,2/13/2011,6856,437.2
+Europe,Monaco,Clothes,Offline,L,1/2/2011,626011979,1/11/2011,9711,109.28
+Europe,Bosnia and Herzegovina,Baby Food,Online,M,4/1/2015,640295922,4/3/2015,6647,255.28
+Europe,Romania,Snacks,Online,C,1/11/2010,653920686,1/18/2010,8517,152.58
+Europe,Sweden,Fruits,Online,M,1/10/2017,994504153,1/13/2017,4734,9.33
+Europe,Czech Republic,Meat,Offline,M,5/9/2017,920011270,6/12/2017,634,421.89
+Europe,Bosnia and Herzegovina,Vegetables,Online,M,11/25/2013,523707807,12/16/2013,5633,154.06
+Europe,Belgium,Fruits,Online,L,10/17/2013,791692674,11/24/2013,8310,9.33
+Europe,Sweden,Vegetables,Online,C,1/7/2012,715863835,1/26/2012,8872,154.06
+Europe,Albania,Cosmetics,Offline,C,8/23/2010,694914710,9/25/2010,9560,437.2
+Europe,Macedonia,Baby Food,Online,M,11/21/2015,525472486,11/23/2015,7840,255.28
+Europe,Georgia,Fruits,Online,L,10/28/2012,496826493,12/11/2012,855,9.33
+Europe,Liechtenstein,Cereal,Online,L,1/1/2010,940682303,2/9/2010,7652,205.7
+Europe,Norway,Fruits,Offline,C,10/6/2014,381774747,10/23/2014,4486,9.33
+Europe,Ireland,Vegetables,Online,H,12/2/2015,934718358,12/16/2015,2789,154.06
+Europe,Romania,Meat,Offline,C,3/23/2012,741690289,5/10/2012,1494,421.89
+Europe,Serbia,Clothes,Offline,L,1/12/2010,393842971,1/31/2010,5742,109.28
+Europe,Ireland,Household,Offline,H,5/21/2012,143414771,6/3/2012,8473,668.27
+Europe,Portugal,Snacks,Offline,C,6/26/2010,272361218,7/3/2010,6592,152.58
+Europe,Lithuania,Vegetables,Online,M,5/1/2017,146349751,6/13/2017,6999,154.06
+Europe,Georgia,Meat,Offline,C,2/22/2017,104190576,3/12/2017,1162,421.89
+Europe,Poland,Cereal,Online,C,11/6/2013,332268464,12/14/2013,4477,205.7
+Europe,Spain,Meat,Online,M,11/15/2013,459277713,12/4/2013,9336,421.89
+Europe,Romania,Fruits,Offline,L,7/24/2010,665786778,8/15/2010,9958,9.33
+Europe,Latvia,Baby Food,Online,L,9/1/2010,917485272,10/3/2010,3136,255.28
+Europe,Ireland,Personal Care,Offline,L,4/28/2012,547225844,5/30/2012,5143,81.73
+Europe,Switzerland,Household,Offline,L,7/19/2015,869291770,8/21/2015,1607,668.27
+Europe,Romania,Clothes,Offline,L,1/12/2017,709276759,3/1/2017,9610,109.28
+Europe,Albania,Beverages,Online,C,10/9/2012,877062451,10/29/2012,1124,47.45
+Europe,Slovenia,Baby Food,Online,L,10/28/2016,111893022,12/2/2016,486,255.28
+Europe,Slovakia,Beverages,Online,M,10/29/2014,397874438,12/1/2014,8743,47.45
+Europe,Bulgaria,Clothes,Offline,C,3/2/2010,520777547,4/15/2010,8504,109.28
+Europe,Vatican City,Household,Online,C,6/27/2014,672856652,8/3/2014,2091,668.27
+Europe,Kosovo,Office Supplies,Online,L,5/15/2014,353383243,6/9/2014,2809,651.21
+Europe,Croatia,Office Supplies,Offline,L,11/21/2012,354667699,12/29/2012,2908,651.21
+Europe,Switzerland,Snacks,Online,L,3/20/2012,214292466,4/13/2012,2758,152.58
+Europe,Portugal,Household,Offline,H,2/18/2015,655287110,2/22/2015,2873,668.27
+Europe,Liechtenstein,Baby Food,Online,H,1/18/2015,295787847,2/16/2015,9052,255.28
+Europe,Kosovo,Baby Food,Offline,L,6/10/2012,263852393,6/29/2012,8641,255.28
+Europe,Russia,Fruits,Offline,H,3/24/2013,578666484,4/11/2013,9127,9.33
+Europe,Denmark,Personal Care,Offline,C,6/18/2014,597839343,7/26/2014,2802,81.73
+Europe,Romania,Cosmetics,Offline,M,12/12/2011,299335229,12/24/2011,8801,437.2
+Europe,Vatican City,Vegetables,Offline,L,1/10/2016,700069701,1/21/2016,5037,154.06
+Europe,Ukraine,Household,Online,H,7/28/2010,741866242,9/13/2010,3562,668.27
+Europe,Bulgaria,Snacks,Offline,L,3/1/2010,211344611,3/23/2010,422,152.58
+Europe,San Marino,Personal Care,Offline,H,9/29/2015,625751483,10/1/2015,2624,81.73
+Europe,Serbia,Fruits,Online,C,9/26/2015,665817677,10/10/2015,9102,9.33
+Europe,Russia,Baby Food,Offline,L,9/20/2010,996754205,9/22/2010,574,255.28
+Europe,Germany,Cereal,Online,H,11/10/2014,734189975,11/29/2014,1984,205.7
+Europe,Belarus,Beverages,Online,L,10/3/2010,935789954,11/18/2010,9898,47.45
+Europe,Germany,Cereal,Online,M,1/23/2011,104008615,2/22/2011,7315,205.7
+Europe,Belarus,Beverages,Online,H,3/24/2017,122967326,4/25/2017,7619,47.45
+Europe,Montenegro,Cereal,Offline,M,6/6/2010,305616748,7/1/2010,7642,205.7
+Europe,Malta,Office Supplies,Offline,M,5/5/2011,243070638,5/22/2011,8858,651.21
+Europe,Bulgaria,Clothes,Offline,L,5/4/2010,505867040,6/12/2010,6153,109.28
+Europe,France,Cosmetics,Online,C,3/20/2014,637188422,4/29/2014,7069,437.2
+Europe,San Marino,Cereal,Online,H,10/22/2016,518421494,10/22/2016,1296,205.7
+Europe,United Kingdom,Fruits,Offline,M,3/27/2013,104245078,4/21/2013,7290,9.33
+Europe,Spain,Vegetables,Online,C,12/16/2010,386319911,1/2/2011,9501,154.06
+Europe,Cyprus,Baby Food,Online,M,3/17/2016,740300261,4/23/2016,153,255.28
+Europe,Macedonia,Office Supplies,Offline,C,7/17/2017,747826755,7/22/2017,7410,651.21
+Europe,Romania,Personal Care,Offline,M,12/21/2012,215540015,12/24/2012,1935,81.73
+Europe,Kosovo,Vegetables,Offline,C,7/23/2017,975080668,8/20/2017,6893,154.06
+Europe,Bosnia and Herzegovina,Baby Food,Online,L,10/9/2012,638041150,11/28/2012,9410,255.28
+Europe,Greece,Cosmetics,Online,C,5/22/2010,583089339,6/26/2010,7948,437.2
+Europe,Norway,Snacks,Online,M,2/19/2016,118086564,3/13/2016,3293,152.58
+Europe,Malta,Baby Food,Offline,C,4/27/2015,296073234,6/4/2015,3504,255.28
+Europe,Poland,Snacks,Online,M,1/9/2013,968185460,2/3/2013,6448,152.58
+Europe,Kosovo,Baby Food,Offline,M,9/13/2012,364854514,10/3/2012,7413,255.28
+Europe,Luxembourg,Cosmetics,Online,C,9/6/2013,980961358,10/8/2013,7120,437.2
+Europe,France,Fruits,Offline,C,4/9/2014,601886260,5/27/2014,374,9.33
+Europe,Poland,Household,Online,L,4/27/2011,321628463,5/14/2011,5864,668.27
+Europe,Portugal,Meat,Online,L,1/30/2014,944609057,3/16/2014,9666,421.89
+Europe,Malta,Cosmetics,Offline,H,12/14/2012,310588920,1/6/2013,9018,437.2
+Europe,Armenia,Meat,Offline,M,6/2/2015,251208674,7/19/2015,7084,421.89
+Europe,Greece,Fruits,Online,L,10/31/2015,488316380,11/18/2015,2523,9.33
+Europe,Vatican City,Clothes,Online,M,3/23/2012,263647687,3/30/2012,8064,109.28
+Europe,Switzerland,Personal Care,Offline,H,4/19/2014,653800523,4/23/2014,2958,81.73
+Europe,Sweden,Cosmetics,Online,L,8/24/2013,684239947,8/31/2013,661,437.2
+Europe,Vatican City,Personal Care,Online,H,1/27/2016,133276450,3/15/2016,8318,81.73
+Europe,Moldova ,Personal Care,Offline,L,2/17/2014,838895261,2/19/2014,6605,81.73
+Europe,Denmark,Meat,Online,C,11/26/2011,198537814,12/19/2011,606,421.89
+Europe,Slovenia,Meat,Online,M,10/10/2015,885397469,11/18/2015,7642,421.89
+Europe,Hungary,Personal Care,Offline,H,10/16/2014,302744853,11/2/2014,7785,81.73
+Europe,Greece,Office Supplies,Online,L,3/11/2014,975823962,4/8/2014,6850,651.21
+Europe,Denmark,Cosmetics,Offline,M,12/27/2013,860104024,12/30/2013,2749,437.2
+Europe,Montenegro,Cosmetics,Offline,M,11/16/2012,378714883,12/16/2012,9005,437.2
+Europe,France,Personal Care,Offline,C,3/13/2017,131585586,4/13/2017,7954,81.73
+Europe,Greece,Personal Care,Online,L,9/11/2011,588528859,10/12/2011,7623,81.73
+Europe,Macedonia,Meat,Online,L,2/12/2017,796418511,3/23/2017,6791,421.89
+Europe,Kosovo,Cosmetics,Online,M,6/3/2011,526018369,6/21/2011,9379,437.2
+Europe,Montenegro,Beverages,Offline,C,4/27/2017,122144210,5/24/2017,4041,47.45
+Europe,Belarus,Office Supplies,Offline,H,7/6/2016,644592607,7/31/2016,8131,651.21
+Europe,Moldova ,Fruits,Online,H,11/3/2014,598404109,11/18/2014,9929,9.33
+Europe,Czech Republic,Personal Care,Online,C,4/22/2012,577530944,5/15/2012,3095,81.73
+Europe,Finland,Fruits,Offline,H,1/12/2016,182078921,2/14/2016,54,9.33
+Europe,Serbia,Baby Food,Online,H,3/22/2014,302015721,4/17/2014,2018,255.28
+Europe,Latvia,Clothes,Offline,M,9/28/2014,233709084,10/16/2014,8566,109.28
+Europe,Estonia,Meat,Offline,M,8/25/2010,966800153,9/10/2010,6505,421.89
+Europe,Bulgaria,Clothes,Online,H,4/24/2014,380498874,5/13/2014,6927,109.28
+Europe,Luxembourg,Personal Care,Offline,M,12/7/2011,595385873,12/21/2011,6765,81.73
+Europe,Luxembourg,Cereal,Online,L,6/30/2012,361659038,8/3/2012,1801,205.7
+Europe,Kosovo,Baby Food,Online,L,12/14/2016,328721082,12/18/2016,4728,255.28
+Europe,Denmark,Clothes,Offline,H,10/27/2014,184120833,10/31/2014,4301,109.28
+Europe,Liechtenstein,Vegetables,Offline,H,8/14/2016,933720576,10/1/2016,7523,154.06
+Europe,Latvia,Cosmetics,Online,H,3/14/2014,765101468,4/6/2014,9382,437.2
+Europe,Armenia,Household,Offline,M,9/3/2012,516460692,9/24/2012,1051,668.27
+Europe,Ukraine,Meat,Offline,H,4/25/2017,783594977,5/1/2017,2022,421.89
+Europe,Romania,Snacks,Online,L,4/3/2016,406270396,5/19/2016,3293,152.58
+Europe,Kosovo,Vegetables,Online,L,1/13/2010,805095136,1/20/2010,4396,154.06
+Europe,United Kingdom,Cereal,Online,M,10/1/2011,985417258,10/21/2011,5720,205.7
+Europe,Serbia,Cereal,Offline,M,6/15/2013,443125665,7/9/2013,9586,205.7
+Europe,Belgium,Beverages,Online,L,6/23/2014,931477820,7/19/2014,3841,47.45
+Europe,United Kingdom,Personal Care,Offline,H,12/23/2013,387098824,1/4/2014,9999,81.73
+Europe,Denmark,Meat,Offline,M,8/12/2012,595922315,9/4/2012,5510,421.89
+Europe,Slovakia,Office Supplies,Online,M,3/23/2016,653909957,4/6/2016,5342,651.21
+Europe,Serbia,Beverages,Offline,H,8/11/2012,103435266,9/18/2012,7648,47.45
+Europe,Sweden,Meat,Offline,L,12/12/2016,863202941,12/13/2016,9787,421.89
+Europe,Cyprus,Clothes,Offline,M,3/8/2014,396552217,4/24/2014,7468,109.28
+Europe,United Kingdom,Cosmetics,Offline,M,5/6/2015,801352488,5/23/2015,6864,437.2
+Europe,Luxembourg,Fruits,Online,H,10/7/2011,479234206,11/14/2011,4906,9.33
+Europe,Romania,Meat,Offline,M,2/19/2010,627003753,3/26/2010,3199,421.89
+Europe,France,Fruits,Offline,C,3/12/2017,393709933,4/25/2017,6373,9.33
+Europe,Latvia,Beverages,Offline,L,2/20/2016,136624276,3/8/2016,9014,47.45
+Europe,United Kingdom,Clothes,Online,L,9/3/2010,251823222,10/1/2010,8942,109.28
+Europe,Macedonia,Baby Food,Offline,H,4/1/2014,200354850,5/4/2014,8307,255.28
+Europe,Germany,Meat,Offline,H,5/2/2017,692757356,5/12/2017,1151,421.89
+Europe,Liechtenstein,Baby Food,Offline,L,10/12/2012,651895511,11/1/2012,9223,255.28
+Europe,Lithuania,Clothes,Offline,C,6/26/2016,156158483,8/5/2016,9620,109.28
+Europe,Serbia,Snacks,Offline,C,11/18/2013,703966844,11/30/2013,8288,152.58
+Europe,Slovenia,Household,Offline,L,2/11/2017,736240041,2/20/2017,8644,668.27
+Europe,Montenegro,Cosmetics,Online,C,5/22/2015,357434880,6/29/2015,1779,437.2
+Europe,Russia,Clothes,Offline,H,8/15/2015,358624064,10/3/2015,3685,109.28
+Europe,Spain,Vegetables,Online,M,11/12/2011,103762280,12/14/2011,4419,154.06
+Europe,Slovenia,Baby Food,Offline,M,3/12/2013,144743001,4/21/2013,1525,255.28
+Europe,Iceland,Beverages,Online,L,2/11/2017,439204919,2/19/2017,9350,47.45
+Europe,Malta,Fruits,Offline,C,2/3/2010,114954173,2/11/2010,6349,9.33
+Europe,Norway,Beverages,Offline,L,12/22/2012,238170993,2/7/2013,8944,47.45
+Europe,Italy,Clothes,Online,M,4/2/2012,134790503,4/26/2012,6360,109.28
+Europe,Montenegro,Vegetables,Online,H,3/30/2013,409112679,5/18/2013,4388,154.06
+Europe,Italy,Meat,Offline,H,7/19/2013,727175891,9/7/2013,6360,421.89
+Europe,Sweden,Cosmetics,Online,L,10/26/2012,638593900,12/12/2012,2981,437.2
+Europe,Albania,Beverages,Offline,H,4/28/2013,833473765,5/25/2013,2264,47.45
+Europe,Denmark,Cosmetics,Offline,M,7/8/2014,606224572,7/15/2014,4177,437.2
+Europe,Cyprus,Clothes,Online,H,1/6/2012,325314033,1/30/2012,6506,109.28
+Europe,Kosovo,Meat,Offline,M,11/19/2012,159805858,12/17/2012,8959,421.89
+Europe,Switzerland,Snacks,Online,H,4/6/2012,722248780,4/8/2012,8319,152.58
+Europe,Spain,Vegetables,Online,H,6/1/2015,399115979,6/24/2015,6142,154.06
+Europe,Kosovo,Household,Offline,M,11/25/2015,792792594,1/2/2016,3801,668.27
+Europe,Portugal,Cosmetics,Offline,C,5/24/2013,626453149,6/10/2013,263,437.2
+Europe,Armenia,Snacks,Offline,L,7/31/2013,737095344,9/13/2013,1747,152.58
+Europe,San Marino,Fruits,Offline,L,9/18/2016,708320605,10/5/2016,6662,9.33
+Europe,Lithuania,Office Supplies,Offline,M,3/5/2013,433079183,4/19/2013,6609,651.21
+Europe,Georgia,Personal Care,Offline,L,5/22/2012,604494225,6/25/2012,2129,81.73
+Europe,Macedonia,Fruits,Online,M,12/30/2010,707718932,1/6/2011,8614,9.33
+Europe,Sweden,Household,Offline,C,6/24/2011,656689155,8/9/2011,7769,668.27
+Europe,Macedonia,Beverages,Offline,M,2/25/2016,935907542,3/21/2016,4695,47.45
+Europe,Ireland,Household,Offline,C,3/14/2015,421660268,4/11/2015,7498,668.27
+Europe,San Marino,Cosmetics,Offline,C,8/22/2014,447183310,9/19/2014,334,437.2
+Europe,Estonia,Vegetables,Offline,L,12/7/2011,127694451,12/27/2011,6481,154.06
+Europe,Vatican City,Meat,Offline,M,6/13/2012,697617518,7/7/2012,9381,421.89
+Europe,United Kingdom,Personal Care,Offline,L,1/22/2015,311688840,2/14/2015,4509,81.73
+Europe,Cyprus,Cosmetics,Offline,M,11/6/2015,385080945,11/7/2015,2864,437.2
+Europe,Spain,Household,Offline,M,4/23/2012,309148681,5/5/2012,2819,668.27
+Europe,Serbia,Baby Food,Offline,L,2/21/2014,630219399,3/14/2014,4780,255.28
+Europe,Denmark,Snacks,Online,H,4/13/2012,585677134,5/4/2012,3734,152.58
+Europe,Italy,Household,Online,C,12/23/2016,692704999,1/24/2017,5657,668.27
+Europe,Iceland,Cosmetics,Online,M,2/9/2011,942454278,3/29/2011,2019,437.2
+Europe,Kosovo,Office Supplies,Offline,H,5/19/2015,150293242,6/21/2015,3965,651.21
+Europe,Germany,Office Supplies,Offline,H,12/19/2013,236042392,1/26/2014,9044,651.21
+Europe,Italy,Baby Food,Offline,L,6/15/2012,314782178,7/12/2012,9896,255.28
+Europe,Belgium,Cosmetics,Offline,M,7/27/2016,193472945,9/13/2016,1799,437.2
+Europe,Monaco,Cosmetics,Offline,H,9/27/2010,434013879,11/5/2010,3206,437.2
+Europe,Greece,Cereal,Online,L,8/26/2015,431240689,10/13/2015,2558,205.7
+Europe,Switzerland,Meat,Offline,L,4/26/2012,643259227,4/26/2012,3555,421.89
+Europe,Czech Republic,Cosmetics,Online,H,6/6/2017,151312482,7/12/2017,5581,437.2
+Europe,Austria,Fruits,Online,M,7/31/2012,750047194,9/18/2012,4487,9.33
+Europe,Switzerland,Fruits,Offline,L,11/29/2015,721318805,12/9/2015,3118,9.33
+Europe,Vatican City,Beverages,Offline,H,2/13/2012,599997556,2/14/2012,1465,47.45
+Europe,Estonia,Beverages,Online,M,11/28/2016,826677262,1/9/2017,1027,47.45
+Europe,Poland,Beverages,Offline,H,7/5/2011,735445678,7/22/2011,3574,47.45
+Europe,San Marino,Vegetables,Offline,L,10/14/2012,354270303,11/27/2012,5310,154.06
+Europe,Spain,Cereal,Offline,H,12/4/2010,806662404,12/7/2010,8186,205.7
+Europe,Netherlands,Personal Care,Offline,C,11/13/2013,933699119,11/24/2013,1173,81.73
+Europe,Switzerland,Baby Food,Offline,C,6/27/2015,726223170,7/31/2015,4429,255.28
+Europe,Czech Republic,Meat,Online,M,1/9/2015,692555224,2/1/2015,1336,421.89
+Europe,Estonia,Vegetables,Online,L,2/28/2011,134121024,4/8/2011,8246,154.06
+Europe,Estonia,Clothes,Offline,C,12/18/2016,660312926,1/5/2017,123,109.28
+Europe,Ukraine,Cosmetics,Online,C,7/8/2014,140461766,7/20/2014,4613,437.2
+Europe,Ukraine,Cereal,Offline,C,2/13/2011,741964948,2/26/2011,2771,205.7
+Europe,San Marino,Snacks,Offline,C,7/22/2017,476453721,8/10/2017,2099,152.58
+Europe,Belgium,Fruits,Online,M,4/28/2011,111496055,6/4/2011,3015,9.33
+Europe,Slovakia,Vegetables,Online,L,12/25/2015,628515231,2/1/2016,479,154.06
+Europe,Slovakia,Office Supplies,Offline,M,3/2/2010,601894414,3/19/2010,2787,651.21
+Europe,Bosnia and Herzegovina,Snacks,Offline,L,7/14/2011,954040992,8/27/2011,785,152.58
+Europe,Czech Republic,Office Supplies,Online,M,5/9/2014,865824210,5/14/2014,5479,651.21
+Europe,Belgium,Clothes,Offline,M,9/20/2016,761887109,10/14/2016,8181,109.28
+Europe,Romania,Office Supplies,Online,L,9/27/2015,160578763,10/30/2015,7679,651.21
+Europe,Serbia,Vegetables,Offline,M,3/8/2011,992992675,3/9/2011,7454,154.06
+Europe,Slovakia,Clothes,Online,M,5/9/2015,231369769,5/16/2015,6311,109.28
+Europe,Lithuania,Cosmetics,Online,M,3/28/2016,852392995,4/19/2016,884,437.2
+Europe,Macedonia,Snacks,Offline,M,9/6/2012,597105491,10/20/2012,5639,152.58
+Europe,Andorra,Fruits,Offline,L,3/4/2016,716054379,3/26/2016,5258,9.33
+Europe,Austria,Office Supplies,Offline,C,3/21/2015,511712110,5/7/2015,5839,651.21
+Europe,Finland,Baby Food,Offline,C,9/7/2014,481308305,10/16/2014,8678,255.28
+Europe,Andorra,Household,Online,C,5/22/2014,266638886,6/19/2014,3227,668.27
+Europe,Moldova ,Meat,Online,H,9/17/2012,638314521,10/15/2012,306,421.89
+Europe,Switzerland,Cosmetics,Online,M,4/15/2015,811977040,5/28/2015,905,437.2
+Europe,Netherlands,Meat,Online,M,10/9/2010,344160735,11/20/2010,3664,421.89
+Europe,Russia,Household,Online,H,4/3/2017,549058330,5/11/2017,7416,668.27
+Europe,Greece,Meat,Online,H,11/12/2013,969199979,12/7/2013,6666,421.89
+Europe,Spain,Baby Food,Offline,L,5/22/2011,956594026,6/17/2011,6285,255.28
+Europe,Ukraine,Beverages,Online,H,3/24/2015,712595832,3/28/2015,1797,47.45
+Europe,Italy,Baby Food,Offline,C,6/26/2010,748357188,7/20/2010,4377,255.28
+Europe,Estonia,Fruits,Offline,L,2/25/2013,898211562,3/12/2013,9616,9.33
+Europe,Ireland,Office Supplies,Offline,C,6/15/2014,729373586,7/5/2014,6707,651.21
+Europe,Norway,Fruits,Offline,M,12/20/2011,991761863,12/24/2011,3229,9.33
+Europe,Latvia,Personal Care,Offline,C,10/29/2011,160751283,11/13/2011,8732,81.73
+Europe,Macedonia,Household,Online,H,2/22/2017,241392648,3/16/2017,2304,668.27
+Europe,Malta,Meat,Online,H,3/24/2015,901789844,5/5/2015,8509,421.89
+Europe,Portugal,Office Supplies,Online,M,11/21/2016,410229337,12/22/2016,4832,651.21
+Europe,Switzerland,Beverages,Online,L,4/4/2017,837906920,5/16/2017,4133,47.45
+Europe,Slovakia,Household,Online,C,1/30/2016,704361665,3/1/2016,5124,668.27
+Europe,Austria,Snacks,Offline,M,7/11/2013,400267398,7/20/2013,6873,152.58
+Europe,France,Meat,Online,C,5/19/2014,531281936,6/3/2014,6986,421.89
+Europe,Greece,Cosmetics,Online,C,6/20/2017,900808799,6/28/2017,8196,437.2
+Europe,Czech Republic,Meat,Online,H,1/22/2015,756395232,3/13/2015,3013,421.89
+Europe,Ireland,Clothes,Online,C,10/2/2012,261187350,10/3/2012,9996,109.28
+Europe,Slovenia,Clothes,Offline,L,5/16/2014,188866841,5/20/2014,8750,109.28
+Europe,Cyprus,Household,Online,C,6/18/2012,709071195,8/2/2012,8778,668.27
+Europe,Belarus,Cereal,Online,L,12/15/2012,674060428,12/17/2012,8315,205.7
+Europe,San Marino,Cosmetics,Offline,C,10/27/2016,284595954,10/29/2016,7122,437.2
+Europe,Iceland,Baby Food,Offline,C,5/6/2016,580314862,5/12/2016,6918,255.28
+Europe,Luxembourg,Snacks,Online,L,2/21/2013,437604176,4/7/2013,5655,152.58
+Europe,Italy,Beverages,Offline,H,12/5/2014,994978797,1/2/2015,5192,47.45
+Europe,Greece,Beverages,Offline,H,4/30/2017,317006051,6/5/2017,7990,47.45
+Europe,Montenegro,Personal Care,Online,H,4/19/2012,933642041,5/19/2012,4282,81.73
+Europe,Italy,Office Supplies,Offline,M,6/9/2016,764592492,7/19/2016,8764,651.21
+Europe,Hungary,Clothes,Offline,C,6/25/2013,931559789,7/5/2013,8098,109.28
+Europe,Germany,Beverages,Offline,L,11/26/2015,682314765,12/20/2015,956,47.45
+Europe,Spain,Snacks,Online,C,11/11/2016,485165965,12/14/2016,245,152.58
+Europe,Netherlands,Beverages,Online,C,3/4/2010,601422345,3/20/2010,3092,47.45
+Europe,Albania,Household,Offline,M,3/31/2012,999879729,5/6/2012,5486,668.27
+Europe,Latvia,Cosmetics,Offline,H,3/5/2012,246603858,4/15/2012,4417,437.2
+Europe,Slovakia,Beverages,Online,L,10/23/2013,291531503,10/26/2013,9505,47.45
+Europe,Kosovo,Cereal,Offline,H,7/18/2017,483655774,8/5/2017,3346,205.7
+Europe,Armenia,Personal Care,Online,C,12/10/2010,840747058,12/26/2010,4593,81.73
+Europe,Bosnia and Herzegovina,Cosmetics,Offline,H,2/12/2012,205354487,2/20/2012,7811,437.2
+Europe,Finland,Cereal,Online,H,7/16/2011,280192410,8/28/2011,4016,205.7
+Europe,Germany,Vegetables,Offline,C,3/14/2011,465753209,3/14/2011,5579,154.06
+Europe,Sweden,Personal Care,Online,C,4/26/2011,587846076,5/24/2011,5572,81.73
+Europe,Armenia,Cereal,Offline,H,9/10/2011,580342328,10/14/2011,5046,205.7
+Europe,Switzerland,Meat,Online,C,4/21/2012,877084767,6/9/2012,7728,421.89
+Europe,Norway,Clothes,Online,C,4/29/2012,709105527,5/1/2012,8938,109.28
+Europe,San Marino,Meat,Online,H,5/23/2016,614321839,7/5/2016,339,421.89
+Europe,Ukraine,Cosmetics,Online,L,1/18/2011,329529607,1/23/2011,3988,437.2
+Europe,Ireland,Fruits,Online,L,5/30/2010,223869454,6/27/2010,6801,9.33
+Europe,Czech Republic,Office Supplies,Offline,H,5/11/2012,189108455,6/30/2012,249,651.21
+Europe,Sweden,Fruits,Offline,L,1/14/2015,452471768,2/10/2015,5306,9.33
+Europe,Germany,Cereal,Offline,M,4/30/2016,174218118,6/13/2016,3867,205.7
+Europe,Germany,Meat,Online,H,5/28/2017,820437371,6/11/2017,4505,421.89
+Europe,Slovenia,Personal Care,Offline,L,2/6/2012,410291135,2/22/2012,3119,81.73
+Europe,Andorra,Baby Food,Offline,C,6/24/2017,174614226,8/13/2017,1085,255.28
+Europe,Vatican City,Snacks,Offline,L,6/2/2011,118859469,7/1/2011,2013,152.58
+Europe,Belarus,Cosmetics,Offline,H,7/30/2015,669550883,9/16/2015,3840,437.2
+Europe,United Kingdom,Personal Care,Online,M,6/17/2012,439114367,6/26/2012,2554,81.73
+Europe,Moldova ,Household,Online,M,1/31/2011,582563626,2/19/2011,2378,668.27
+Europe,Latvia,Snacks,Online,M,2/8/2013,943274819,3/8/2013,4836,152.58
+Europe,Hungary,Office Supplies,Online,H,12/5/2010,313821303,1/17/2011,5552,651.21
+Europe,Slovakia,Beverages,Online,M,9/2/2015,431753098,10/19/2015,4191,47.45
+Europe,Bosnia and Herzegovina,Household,Online,C,12/28/2011,969289243,2/2/2012,3082,668.27
+Europe,Norway,Snacks,Offline,M,7/17/2011,861982858,9/4/2011,8738,152.58
+Europe,Italy,Meat,Online,M,2/21/2016,290317428,4/2/2016,233,421.89
+Europe,Slovenia,Clothes,Offline,C,6/2/2016,105030000,6/13/2016,9566,109.28
+Europe,Belgium,Beverages,Online,H,8/31/2015,960213077,10/16/2015,7242,47.45
+Europe,Hungary,Cosmetics,Offline,L,5/27/2014,743619334,7/9/2014,2341,437.2
+Europe,Ireland,Office Supplies,Offline,H,12/15/2016,263977277,1/10/2017,5597,651.21
+Europe,Montenegro,Office Supplies,Offline,H,4/23/2011,819152915,4/24/2011,4406,651.21
+Europe,France,Personal Care,Offline,C,8/13/2015,980598723,9/24/2015,9808,81.73
+Europe,Andorra,Clothes,Offline,L,5/18/2011,974147260,6/8/2011,677,109.28
+Europe,Finland,Office Supplies,Online,H,12/21/2011,719404351,1/10/2012,6589,651.21
+Europe,Georgia,Personal Care,Offline,L,7/24/2015,643770778,7/31/2015,4934,81.73
+Europe,Armenia,Meat,Offline,C,10/1/2016,645309722,11/6/2016,342,421.89
+Europe,Malta,Cereal,Offline,M,7/20/2013,469144809,8/24/2013,9229,205.7
+Europe,Norway,Cosmetics,Online,L,7/20/2011,821916663,8/26/2011,2260,437.2
+Europe,Austria,Household,Offline,M,8/27/2010,835265910,10/1/2010,2599,668.27
+Europe,Greece,Household,Online,L,9/26/2013,195259082,10/11/2013,356,668.27
+Europe,Cyprus,Clothes,Online,C,5/17/2012,593158566,6/25/2012,7656,109.28
+Europe,Serbia,Vegetables,Offline,C,3/22/2014,717833220,4/3/2014,1657,154.06
+Europe,Belgium,Vegetables,Online,H,5/26/2013,682066285,7/13/2013,7426,154.06
+Europe,Greece,Cereal,Online,H,1/24/2013,412215459,1/31/2013,2569,205.7
+Europe,Bosnia and Herzegovina,Office Supplies,Offline,C,5/2/2010,152746713,5/8/2010,2,651.21
+Europe,Italy,Cereal,Online,M,1/6/2013,715309798,2/10/2013,4920,205.7
+Europe,Belarus,Fruits,Online,L,8/1/2010,466517961,9/7/2010,1886,9.33
+Europe,Latvia,Meat,Offline,C,7/24/2011,825065791,8/28/2011,4157,421.89
+Europe,Iceland,Office Supplies,Online,L,2/18/2015,384976232,4/3/2015,1877,651.21
+Europe,Hungary,Office Supplies,Offline,C,9/18/2015,467924726,10/20/2015,8179,651.21
+Europe,Greece,Cereal,Offline,L,10/23/2011,280477797,10/24/2011,8468,205.7
+Europe,Bulgaria,Fruits,Online,L,3/12/2016,774698626,4/7/2016,9394,9.33
+Europe,Slovenia,Cereal,Online,M,2/21/2012,652501904,3/25/2012,8668,205.7
+Europe,Bulgaria,Household,Online,M,5/31/2017,688903129,7/2/2017,600,668.27
+Europe,Finland,Personal Care,Online,M,7/25/2014,195171105,9/4/2014,4322,81.73
+Europe,Vatican City,Household,Offline,C,2/13/2011,128766906,3/28/2011,3844,668.27
+Europe,San Marino,Vegetables,Offline,L,6/27/2016,361725556,7/18/2016,1485,154.06
+Europe,Armenia,Personal Care,Online,C,12/6/2016,789760196,1/2/2017,6447,81.73
+Europe,Slovakia,Cosmetics,Online,C,11/1/2013,327072703,11/16/2013,6936,437.2
+Europe,Switzerland,Vegetables,Online,H,9/18/2013,130356919,10/1/2013,4364,154.06
+Europe,Portugal,Cereal,Offline,H,2/5/2013,636360585,3/8/2013,2093,205.7
+Europe,Belarus,Beverages,Online,M,7/24/2012,123938930,8/2/2012,5138,47.45
+Europe,Kosovo,Office Supplies,Offline,C,7/26/2014,770821654,8/19/2014,2112,651.21
+Europe,United Kingdom,Cosmetics,Online,M,12/14/2012,692952191,1/4/2013,8807,437.2
+Europe,Ukraine,Beverages,Offline,L,9/7/2013,947507131,10/20/2013,7271,47.45
+Europe,Ireland,Personal Care,Offline,L,1/21/2016,396462953,2/26/2016,1053,81.73
+Europe,Russia,Beverages,Offline,M,8/30/2011,162791907,10/19/2011,2598,47.45
+Europe,Luxembourg,Cosmetics,Online,M,1/26/2017,835341870,2/24/2017,5077,437.2
+Europe,Norway,Household,Offline,C,4/29/2013,149274003,5/29/2013,2350,668.27
+Europe,Estonia,Cosmetics,Offline,C,1/4/2017,311956632,1/10/2017,3755,437.2
+Europe,Ukraine,Baby Food,Offline,L,5/5/2014,920688903,6/12/2014,1161,255.28
+Europe,San Marino,Personal Care,Online,L,9/25/2010,434485948,11/3/2010,2902,81.73
+Europe,Estonia,Baby Food,Offline,H,5/22/2014,316466176,6/2/2014,8229,255.28
+Europe,Kosovo,Household,Online,M,7/18/2014,101025998,8/11/2014,4693,668.27
+Europe,Luxembourg,Personal Care,Offline,H,9/25/2015,547625386,9/29/2015,3376,81.73
+Europe,Montenegro,Fruits,Online,H,1/31/2016,394456660,2/9/2016,7346,9.33
+Europe,Kosovo,Baby Food,Online,M,1/1/2014,104548490,1/5/2014,7076,255.28
+Europe,Greece,Cereal,Online,M,1/10/2010,687374913,2/26/2010,8367,205.7
+Europe,Greece,Vegetables,Online,M,10/4/2012,921693980,11/4/2012,8586,154.06
+Europe,Montenegro,Household,Online,L,8/29/2012,829356467,9/16/2012,3864,668.27
+Europe,Czech Republic,Cereal,Offline,C,5/20/2015,322524106,5/20/2015,905,205.7
+Europe,Portugal,Cereal,Offline,M,9/14/2014,897638213,10/8/2014,9950,205.7
+Europe,Italy,Baby Food,Offline,L,3/23/2017,480652987,4/5/2017,4755,255.28
+Europe,France,Office Supplies,Online,C,6/20/2010,340213811,7/26/2010,5682,651.21
+Europe,Iceland,Baby Food,Online,H,3/20/2013,826936471,3/30/2013,7733,255.28
+Europe,Norway,Cosmetics,Online,H,5/14/2015,477633464,6/7/2015,1211,437.2
+Europe,Latvia,Meat,Online,L,11/25/2014,849431836,11/28/2014,4611,421.89
+Europe,United Kingdom,Baby Food,Online,H,7/8/2012,844307315,7/29/2012,8152,255.28
+Europe,Finland,Snacks,Online,H,6/20/2017,414579665,7/10/2017,2191,152.58
+Europe,Switzerland,Cereal,Offline,M,10/18/2015,569864976,11/30/2015,4565,205.7
+Europe,United Kingdom,Clothes,Online,L,2/26/2017,783116900,3/14/2017,548,109.28
+Europe,Andorra,Cosmetics,Online,L,2/26/2016,727821767,3/16/2016,7489,437.2
+Europe,Georgia,Meat,Offline,C,3/15/2012,631172120,4/20/2012,6711,421.89
+Europe,San Marino,Office Supplies,Offline,M,5/11/2016,859914767,6/18/2016,6744,651.21
+Europe,Andorra,Snacks,Online,L,2/4/2011,575479590,3/22/2011,6054,152.58
+Europe,Spain,Snacks,Offline,M,2/19/2017,352342545,3/27/2017,4844,152.58
+Europe,Slovenia,Cereal,Online,H,7/22/2012,972419059,8/17/2012,9264,205.7
+Europe,Spain,Meat,Offline,M,5/20/2014,217165648,6/8/2014,2996,421.89
+Europe,Denmark,Baby Food,Online,L,9/6/2016,764837539,9/6/2016,1279,255.28
+Europe,Latvia,Fruits,Offline,H,3/19/2017,870218312,3/27/2017,5792,9.33
+Europe,Spain,Office Supplies,Online,L,7/2/2017,513802516,8/7/2017,4437,651.21
+Europe,Slovakia,Beverages,Online,M,5/31/2017,638957822,6/24/2017,673,47.45
+Europe,Bulgaria,Baby Food,Online,H,12/19/2014,944247710,1/31/2015,2736,255.28
+Europe,Netherlands,Baby Food,Offline,H,3/16/2013,694771802,3/21/2013,7270,255.28
+Europe,Bosnia and Herzegovina,Snacks,Offline,C,3/31/2012,388728320,5/10/2012,2203,152.58
+Europe,Vatican City,Vegetables,Offline,L,3/18/2014,452559745,3/19/2014,1340,154.06
+Europe,Portugal,Baby Food,Offline,M,3/27/2016,921230065,5/16/2016,1303,255.28
+Europe,Malta,Fruits,Online,M,5/9/2016,831143891,6/1/2016,2802,9.33
+Europe,Estonia,Cereal,Online,M,10/7/2015,318523538,11/5/2015,7048,205.7
+Europe,Armenia,Meat,Offline,H,10/26/2010,970427358,10/31/2010,9875,421.89
+Europe,Estonia,Cereal,Offline,H,7/18/2013,195212733,8/14/2013,6641,205.7
+Europe,Poland,Household,Online,C,3/13/2011,141875827,4/16/2011,3065,668.27
+Europe,Vatican City,Beverages,Offline,L,11/4/2011,510762822,12/22/2011,4924,47.45
+Europe,Russia,Snacks,Offline,H,7/28/2012,189667212,9/3/2012,5598,152.58
+Europe,Germany,Clothes,Online,C,3/21/2015,276784074,4/15/2015,5413,109.28
+Europe,Spain,Clothes,Online,H,8/14/2010,744583642,9/26/2010,7701,109.28
+Europe,Moldova ,Beverages,Online,H,6/26/2015,761724030,8/13/2015,9923,47.45
+Europe,Slovakia,Office Supplies,Online,C,5/5/2012,217248904,6/15/2012,7633,651.21
+Europe,Montenegro,Clothes,Online,L,4/29/2016,685596930,6/16/2016,2222,109.28
+Europe,Greece,Clothes,Online,H,1/31/2015,355534589,2/6/2015,9440,109.28
+Europe,Belgium,Office Supplies,Offline,L,12/1/2012,456527268,12/2/2012,5419,651.21
+Europe,Montenegro,Baby Food,Offline,C,2/15/2016,461917865,3/21/2016,616,255.28
+Europe,Montenegro,Personal Care,Offline,C,6/29/2013,284435451,6/29/2013,9625,81.73
+Europe,Finland,Meat,Online,H,6/21/2014,844575107,6/26/2014,7397,421.89
+Europe,Russia,Baby Food,Offline,L,5/19/2015,158479773,6/18/2015,6542,255.28
+Europe,Monaco,Household,Online,L,6/9/2014,175723588,6/14/2014,9370,668.27
+Europe,Netherlands,Household,Online,C,11/4/2016,690220630,11/19/2016,477,668.27
+Europe,Macedonia,Beverages,Offline,M,7/17/2017,704139363,8/31/2017,9340,47.45
+Europe,Italy,Fruits,Online,H,2/2/2014,636278617,3/22/2014,7837,9.33
+Europe,Belarus,Snacks,Online,L,9/9/2012,525749719,10/22/2012,9880,152.58
+Europe,Romania,Fruits,Online,H,10/27/2016,481976497,12/3/2016,6411,9.33
+Europe,San Marino,Meat,Online,H,10/22/2010,168979442,12/10/2010,3627,421.89
+Europe,Albania,Household,Online,L,12/20/2010,570476520,12/24/2010,5534,668.27
+Europe,Finland,Cereal,Online,H,7/13/2013,144282948,8/1/2013,5386,205.7
+Europe,Russia,Beverages,Online,M,10/10/2013,797202146,11/17/2013,8685,47.45
+Europe,Hungary,Fruits,Offline,C,4/17/2016,353492677,5/23/2016,5193,9.33
+Europe,Slovenia,Cosmetics,Offline,M,1/28/2014,155086886,2/5/2014,2511,437.2
+Europe,Russia,Cosmetics,Online,L,10/29/2010,113524663,12/9/2010,3325,437.2
+Europe,Andorra,Beverages,Offline,L,10/9/2013,932475602,11/21/2013,9107,47.45
+Europe,Russia,Office Supplies,Offline,L,1/20/2015,282917964,1/27/2015,567,651.21
+Europe,Croatia,Baby Food,Offline,C,6/27/2013,775347936,7/8/2013,1539,255.28
+Europe,Bulgaria,Baby Food,Offline,C,9/18/2010,980381143,9/26/2010,5421,255.28
+Europe,Belarus,Cosmetics,Offline,M,1/6/2010,521874034,2/3/2010,2979,437.2
+Europe,Iceland,Cosmetics,Online,M,4/16/2017,186847674,4/23/2017,1234,437.2
+Europe,Vatican City,Fruits,Offline,H,1/24/2015,117929494,3/2/2015,6813,9.33
+Europe,Netherlands,Beverages,Offline,M,7/11/2017,786318385,8/23/2017,7939,47.45
+Europe,Austria,Household,Online,C,9/20/2015,178604066,10/18/2015,1767,668.27
+Europe,Bulgaria,Vegetables,Offline,C,6/11/2014,651247489,7/2/2014,7459,154.06
+Europe,Cyprus,Household,Online,L,3/20/2013,492353856,4/11/2013,7302,668.27
+Europe,Ireland,Personal Care,Offline,M,2/16/2013,382581126,3/27/2013,3112,81.73
+Europe,Andorra,Household,Online,C,9/29/2010,533314406,10/29/2010,8439,668.27
+Europe,Russia,Snacks,Online,M,9/18/2016,949388539,9/30/2016,4021,152.58
+Europe,Portugal,Beverages,Offline,L,1/10/2016,122372519,1/13/2016,1603,47.45
+Europe,France,Clothes,Offline,M,1/16/2014,298978602,1/28/2014,3267,109.28
+Europe,Belarus,Clothes,Offline,C,12/27/2016,691760861,1/28/2017,6266,109.28
+Europe,Serbia,Meat,Offline,H,4/14/2010,447536504,4/25/2010,4852,421.89
+Europe,Poland,Vegetables,Offline,H,1/13/2011,469840466,1/22/2011,5090,154.06
+Europe,Armenia,Snacks,Offline,M,3/2/2011,418404281,4/15/2011,3979,152.58
+Europe,Austria,Snacks,Online,M,1/18/2012,516122949,2/21/2012,1105,152.58
+Europe,Albania,Cosmetics,Offline,L,8/29/2015,208238399,10/15/2015,1224,437.2
+Europe,Georgia,Fruits,Online,M,12/2/2016,526533353,1/12/2017,1775,9.33
+Europe,Iceland,Meat,Online,H,5/11/2011,643027484,5/18/2011,4977,421.89
+Europe,Hungary,Beverages,Online,L,4/21/2013,327604424,5/13/2013,4284,47.45
+Europe,Ukraine,Meat,Offline,M,6/18/2014,219451320,7/2/2014,9377,421.89
+Europe,France,Personal Care,Online,H,3/15/2011,575758969,3/29/2011,8729,81.73
+Europe,Malta,Office Supplies,Offline,H,12/4/2014,602264344,1/7/2015,2258,651.21
+Europe,Belgium,Cereal,Offline,H,11/22/2014,791890084,12/15/2014,6728,205.7
+Europe,Liechtenstein,Fruits,Offline,C,6/29/2012,249606645,8/14/2012,3008,9.33
+Europe,Belgium,Household,Offline,C,4/8/2015,497466361,5/1/2015,206,668.27
+Europe,Belarus,Clothes,Offline,L,12/23/2014,839437711,12/24/2014,7128,109.28
+Europe,Luxembourg,Office Supplies,Online,H,10/31/2014,549048888,12/2/2014,4622,651.21
+Europe,Finland,Snacks,Online,H,12/3/2015,427432811,12/11/2015,5722,152.58
+Europe,Andorra,Office Supplies,Online,H,3/31/2014,582836139,4/5/2014,3020,651.21
+Europe,Netherlands,Clothes,Offline,H,4/8/2012,719730079,5/6/2012,2979,109.28
+Europe,Bulgaria,Household,Online,H,4/21/2012,837608659,5/2/2012,5871,668.27
+Europe,Norway,Meat,Online,L,2/26/2017,930670154,3/15/2017,4835,421.89
+Europe,Portugal,Clothes,Offline,H,2/15/2012,684853637,4/3/2012,2265,109.28
+Europe,Montenegro,Cereal,Offline,H,6/20/2013,930457293,7/26/2013,1845,205.7
+Europe,Estonia,Office Supplies,Offline,H,3/7/2013,343185698,4/25/2013,5129,651.21
+Europe,France,Cosmetics,Online,M,7/26/2016,174935233,7/29/2016,6078,437.2
+Europe,Romania,Fruits,Offline,M,10/9/2011,904812800,11/24/2011,3069,9.33
+Europe,Romania,Personal Care,Online,L,6/13/2011,438683927,7/29/2011,5177,81.73
+Europe,Iceland,Fruits,Offline,H,8/13/2011,303534495,8/18/2011,1457,9.33
+Europe,Liechtenstein,Baby Food,Online,M,11/26/2013,775008904,1/2/2014,1212,255.28
+Europe,Greece,Fruits,Online,M,8/16/2014,471348512,10/1/2014,1354,9.33
+Europe,Malta,Baby Food,Offline,C,12/23/2012,302442729,1/17/2013,8379,255.28
+Europe,Macedonia,Vegetables,Online,C,4/12/2012,987050187,4/25/2012,8940,154.06
+Europe,Bulgaria,Office Supplies,Online,H,11/2/2015,641537463,12/14/2015,4047,651.21
+Europe,Czech Republic,Household,Offline,L,5/15/2015,512662255,6/22/2015,7009,668.27
+Europe,Germany,Clothes,Offline,L,11/7/2010,379900634,12/2/2010,9895,109.28
+Europe,Georgia,Cereal,Online,H,6/14/2014,243144452,7/16/2014,701,205.7
+Europe,Malta,Cosmetics,Online,H,6/15/2010,998043382,7/3/2010,2070,437.2
+Europe,Spain,Fruits,Offline,L,10/24/2015,446045196,11/1/2015,3540,9.33
+Europe,Lithuania,Household,Offline,M,10/14/2014,544284856,10/25/2014,4839,668.27
+Europe,Romania,Vegetables,Offline,H,11/6/2014,606118571,11/18/2014,2809,154.06
+Europe,Portugal,Snacks,Online,C,10/7/2010,583654105,10/19/2010,5075,152.58
+Europe,Moldova ,Baby Food,Online,C,1/27/2014,608451879,3/1/2014,3287,255.28
+Europe,Romania,Beverages,Online,M,5/10/2015,910886180,6/10/2015,317,47.45
+Europe,Vatican City,Snacks,Offline,L,11/5/2011,820195758,11/24/2011,3006,152.58
+Europe,Lithuania,Clothes,Online,H,6/28/2016,378216636,8/8/2016,1562,109.28
+Europe,Denmark,Clothes,Online,C,7/21/2014,539002406,7/23/2014,1645,109.28
+Europe,Serbia,Office Supplies,Online,M,5/31/2015,659193694,6/11/2015,8918,651.21
+Europe,Andorra,Beverages,Online,H,3/11/2015,320431125,4/17/2015,1545,47.45
+Europe,Liechtenstein,Vegetables,Offline,L,11/28/2011,229355323,12/10/2011,192,154.06
+Europe,Macedonia,Beverages,Offline,L,7/5/2017,949732291,8/14/2017,5745,47.45
+Europe,San Marino,Household,Online,C,8/12/2014,871147000,8/25/2014,611,668.27
+Europe,Cyprus,Baby Food,Online,M,1/18/2010,806197631,2/18/2010,649,255.28
+Europe,Lithuania,Beverages,Offline,H,7/5/2015,926280772,7/21/2015,5919,47.45
+Europe,Greece,Vegetables,Offline,L,1/8/2011,936547410,1/12/2011,4046,154.06
+Europe,Slovenia,Cosmetics,Online,H,10/29/2013,498201072,11/7/2013,7623,437.2
+Europe,Cyprus,Snacks,Offline,H,7/27/2015,842725884,8/11/2015,171,152.58
+Europe,Latvia,Office Supplies,Online,L,5/1/2017,343730294,5/28/2017,6287,651.21
+Europe,Georgia,Vegetables,Online,C,2/26/2015,636907756,4/1/2015,4013,154.06
+Europe,Czech Republic,Cereal,Online,H,2/16/2013,444806230,4/1/2013,6903,205.7
+Europe,Latvia,Snacks,Online,M,3/18/2017,517097985,4/14/2017,9640,152.58
+Europe,Netherlands,Beverages,Offline,M,10/27/2015,642953670,12/9/2015,3134,47.45
+Europe,Serbia,Snacks,Offline,M,8/18/2014,265191352,9/26/2014,4869,152.58
+Europe,Latvia,Office Supplies,Online,L,6/16/2013,129127395,6/20/2013,520,651.21
+Europe,Serbia,Vegetables,Offline,M,6/25/2011,392518174,7/3/2011,3705,154.06
+Europe,Malta,Fruits,Online,C,11/21/2016,121380746,12/18/2016,8115,9.33
+Europe,Russia,Clothes,Offline,M,5/8/2014,745467269,6/23/2014,9186,109.28
+Europe,Bulgaria,Meat,Offline,H,4/7/2012,948518216,5/4/2012,6473,421.89
+Europe,Finland,Office Supplies,Offline,L,4/17/2017,163744628,5/1/2017,4529,651.21
+Europe,Greece,Household,Offline,M,1/23/2012,706301438,2/11/2012,9146,668.27
+Europe,Montenegro,Clothes,Online,C,3/9/2014,234082448,3/9/2014,9053,109.28
+Europe,Romania,Meat,Offline,L,8/22/2012,161607444,10/3/2012,2089,421.89
+Europe,Lithuania,Meat,Offline,C,7/6/2014,764483058,8/5/2014,6380,421.89
+Europe,Iceland,Baby Food,Offline,M,8/5/2014,828993833,9/2/2014,6552,255.28
+Europe,Bosnia and Herzegovina,Meat,Offline,C,12/9/2015,498946940,1/11/2016,8342,421.89
+Europe,Switzerland,Personal Care,Offline,M,8/2/2014,287151563,8/11/2014,3383,81.73
+Europe,Croatia,Office Supplies,Online,C,5/22/2013,259006392,6/6/2013,4602,651.21
+Europe,United Kingdom,Vegetables,Online,C,9/30/2012,556647908,10/29/2012,3341,154.06
+Europe,Ireland,Vegetables,Offline,M,4/9/2011,923922574,5/23/2011,8076,154.06
+Europe,San Marino,Snacks,Offline,C,1/4/2017,742100560,1/17/2017,2902,152.58
+Europe,France,Fruits,Offline,H,2/12/2014,605029380,2/18/2014,493,9.33
+Europe,Cyprus,Meat,Online,L,6/11/2017,333304440,7/5/2017,1046,421.89
+Europe,Russia,Cosmetics,Offline,H,9/3/2014,486345708,10/11/2014,9357,437.2
+Europe,Malta,Beverages,Online,M,4/30/2016,180358016,5/16/2016,800,47.45
+Europe,Georgia,Clothes,Online,H,7/18/2012,141846215,8/16/2012,4302,109.28
+Europe,Moldova ,Baby Food,Offline,C,6/9/2017,252541625,7/5/2017,1534,255.28
+Europe,Montenegro,Cosmetics,Offline,C,3/29/2014,614597785,5/14/2014,1997,437.2
+Europe,Sweden,Personal Care,Offline,H,5/17/2011,861976850,5/25/2011,6960,81.73
+Europe,Czech Republic,Clothes,Offline,L,8/21/2012,631463515,9/25/2012,2942,109.28
+Europe,Moldova ,Fruits,Online,M,7/29/2013,307305467,8/10/2013,7371,9.33
+Europe,Cyprus,Cereal,Offline,H,7/5/2011,392676532,8/6/2011,567,205.7
+Europe,Luxembourg,Baby Food,Online,L,5/26/2012,111063039,7/13/2012,4876,255.28
+Europe,Spain,Beverages,Online,M,12/5/2011,556263816,12/7/2011,9679,47.45
+Europe,Greece,Beverages,Online,M,5/25/2011,642123687,5/30/2011,7523,47.45
+Europe,Czech Republic,Beverages,Online,M,5/2/2010,242168128,5/3/2010,1785,47.45
+Europe,Croatia,Beverages,Offline,H,3/11/2017,192236125,3/22/2017,5796,47.45
+Europe,Greece,Snacks,Online,L,8/18/2016,957926118,9/1/2016,480,152.58
+Europe,Austria,Beverages,Online,H,11/14/2016,646691596,12/13/2016,9269,47.45
+Europe,Ukraine,Office Supplies,Offline,H,12/4/2015,115363156,1/10/2016,7376,651.21
+Europe,Vatican City,Household,Offline,L,3/17/2017,922564303,4/2/2017,6134,668.27
+Europe,Bulgaria,Cereal,Offline,H,2/17/2011,928168189,3/15/2011,4448,205.7
+Europe,Monaco,Vegetables,Online,L,3/18/2011,346498763,4/2/2011,5539,154.06
+Europe,Serbia,Beverages,Offline,H,11/29/2016,797316300,11/29/2016,2466,47.45
+Europe,Ireland,Baby Food,Online,H,4/18/2015,497506701,5/10/2015,2144,255.28
+Europe,Andorra,Personal Care,Online,C,6/5/2010,245556294,6/25/2010,4419,81.73
+Europe,Latvia,Personal Care,Online,L,1/27/2014,716411006,2/17/2014,792,81.73
+Europe,Liechtenstein,Office Supplies,Online,M,11/1/2015,186597907,12/15/2015,7322,651.21
+Europe,Armenia,Vegetables,Online,L,5/15/2016,848737466,5/31/2016,9132,154.06
+Europe,France,Office Supplies,Online,H,10/27/2013,130754315,11/2/2013,1962,651.21
+Europe,Netherlands,Office Supplies,Offline,M,2/2/2011,719293630,2/25/2011,3824,651.21
+Europe,Kosovo,Office Supplies,Offline,C,5/7/2011,616775310,5/24/2011,6375,651.21
+Europe,Finland,Fruits,Offline,L,9/20/2010,591287887,10/2/2010,4080,9.33
+Europe,Italy,Clothes,Online,M,4/18/2010,334539973,5/11/2010,6667,109.28
+Europe,Belarus,Snacks,Offline,C,1/16/2016,403665006,2/19/2016,2300,152.58
+Europe,Poland,Cosmetics,Offline,H,4/13/2011,892042911,5/12/2011,4175,437.2
+Europe,United Kingdom,Household,Online,C,7/30/2016,394356667,8/4/2016,7756,668.27
+Europe,Norway,Fruits,Offline,M,4/29/2012,752792918,5/12/2012,7008,9.33
+Europe,Bosnia and Herzegovina,Vegetables,Online,C,3/2/2012,760619390,4/16/2012,3035,154.06
+Europe,Ukraine,Beverages,Online,M,2/19/2014,343889510,4/2/2014,3403,47.45
+Europe,Malta,Baby Food,Offline,L,6/25/2012,398104035,8/12/2012,6686,255.28
+Europe,Slovenia,Meat,Offline,M,9/25/2014,631460940,10/5/2014,2180,421.89
+Europe,Moldova ,Snacks,Offline,M,5/1/2010,489848029,5/20/2010,5772,152.58
+Europe,Vatican City,Office Supplies,Online,L,11/27/2016,797788369,11/28/2016,2162,651.21
+Europe,United Kingdom,Personal Care,Online,C,6/5/2013,430687510,6/10/2013,8860,81.73
+Europe,Portugal,Personal Care,Online,H,2/11/2015,667054498,2/12/2015,5104,81.73
+Europe,Denmark,Cereal,Online,H,9/14/2014,666921460,10/10/2014,5735,205.7
+Europe,Austria,Office Supplies,Online,L,3/12/2014,861252868,3/28/2014,2717,651.21
+Europe,Vatican City,Baby Food,Online,C,5/24/2017,126948583,7/9/2017,5762,255.28
+Europe,Estonia,Clothes,Offline,H,6/8/2013,353191840,7/9/2013,6169,109.28
+Europe,Belgium,Vegetables,Online,L,5/9/2017,259032571,5/13/2017,2349,154.06
+Europe,Georgia,Meat,Offline,L,8/3/2014,517514264,9/4/2014,2826,421.89
+Europe,United Kingdom,Cosmetics,Offline,H,3/2/2016,624940383,3/30/2016,2602,437.2
+Europe,Malta,Cosmetics,Online,C,10/21/2011,567751824,11/21/2011,9236,437.2
+Europe,Spain,Fruits,Offline,H,12/6/2012,262177836,1/16/2013,3103,9.33
+Europe,Croatia,Household,Online,L,5/25/2016,582560193,5/28/2016,1362,668.27
+Europe,Kosovo,Vegetables,Online,H,7/1/2014,139949357,7/14/2014,2980,154.06
+Europe,Albania,Clothes,Offline,H,3/9/2015,470503079,3/21/2015,1172,109.28
+Europe,Austria,Beverages,Offline,C,5/10/2015,413951814,5/31/2015,6395,47.45
+Europe,Germany,Office Supplies,Offline,L,8/19/2010,433734500,9/8/2010,532,651.21
+Europe,Ukraine,Office Supplies,Online,C,11/14/2012,624348151,12/8/2012,7347,651.21
+Europe,Poland,Clothes,Offline,M,3/12/2012,109914195,4/16/2012,4908,109.28
+Europe,Georgia,Snacks,Online,C,5/31/2010,947073256,6/12/2010,8878,152.58
+Europe,Bosnia and Herzegovina,Personal Care,Online,L,7/24/2014,409514796,9/7/2014,3383,81.73
+Europe,Latvia,Office Supplies,Online,L,5/31/2010,182228696,7/12/2010,4375,651.21
+Europe,Bosnia and Herzegovina,Household,Online,C,2/13/2013,723893725,3/11/2013,5095,668.27
+Europe,Norway,Snacks,Offline,L,3/12/2016,392217338,3/15/2016,4681,152.58
+Europe,Romania,Baby Food,Offline,C,2/19/2015,108407437,3/27/2015,9025,255.28
+Europe,Iceland,Snacks,Offline,L,12/20/2016,358594453,2/2/2017,4922,152.58
+Europe,Denmark,Snacks,Offline,C,6/3/2013,784397923,6/15/2013,9631,152.58
+Europe,Cyprus,Meat,Offline,M,6/9/2017,111246287,7/2/2017,9103,421.89
+Europe,Poland,Vegetables,Online,L,2/19/2016,777018630,3/19/2016,5935,154.06
+Europe,Moldova ,Clothes,Offline,H,9/1/2013,601588857,9/10/2013,2366,109.28
+Europe,Russia,Vegetables,Offline,L,3/17/2014,249039304,5/1/2014,5119,154.06
+Europe,Denmark,Cereal,Online,C,11/30/2015,905947482,1/18/2016,8847,205.7
+Europe,Italy,Vegetables,Online,H,7/22/2011,359893071,8/6/2011,9212,154.06
+Europe,Poland,Cosmetics,Offline,M,7/20/2016,284310567,9/2/2016,2670,437.2
+Europe,Bosnia and Herzegovina,Vegetables,Offline,M,2/6/2012,942372310,2/19/2012,7763,154.06
+Europe,Macedonia,Meat,Online,C,3/16/2015,604124295,4/2/2015,2659,421.89
+Europe,Kosovo,Fruits,Online,C,3/7/2015,720229613,3/11/2015,803,9.33
+Europe,Austria,Personal Care,Online,M,7/31/2014,967258059,8/8/2014,2009,81.73
+Europe,Poland,Cereal,Offline,M,6/10/2011,520390880,7/24/2011,4080,205.7
+Europe,Bosnia and Herzegovina,Fruits,Offline,L,10/15/2016,623821580,10/31/2016,1523,9.33
+Europe,Bulgaria,Meat,Online,C,7/20/2010,273662412,7/23/2010,1644,421.89
+Europe,Kosovo,Vegetables,Offline,M,3/8/2017,941061675,3/20/2017,9917,154.06
+Europe,Moldova ,Meat,Online,M,12/7/2013,421456849,12/10/2013,7302,421.89
+Europe,Andorra,Cosmetics,Online,H,4/10/2012,291160714,5/26/2012,9780,437.2
+Europe,Georgia,Fruits,Offline,M,1/21/2014,724085128,2/10/2014,1735,9.33
+Europe,Luxembourg,Vegetables,Online,M,9/30/2014,742569196,11/17/2014,1581,154.06
+Europe,Poland,Household,Online,M,7/29/2016,760346877,8/6/2016,2392,668.27
+Europe,Moldova ,Cosmetics,Online,M,11/5/2015,260630738,12/19/2015,5282,437.2
+Europe,Spain,Meat,Online,H,4/2/2013,462561166,5/2/2013,983,421.89
+Europe,Netherlands,Personal Care,Offline,H,10/2/2014,353475940,10/4/2014,240,81.73
+Europe,Armenia,Beverages,Online,H,6/5/2011,432031619,6/29/2011,6612,47.45
+Europe,Armenia,Household,Online,L,2/19/2012,104165685,3/6/2012,3796,668.27
+Europe,Ukraine,Personal Care,Online,M,2/26/2011,762117564,3/28/2011,6378,81.73
+Europe,Finland,Snacks,Offline,H,3/10/2013,918364179,4/11/2013,3223,152.58
+Europe,Georgia,Meat,Online,M,4/18/2011,913729751,5/9/2011,1793,421.89
+Europe,Armenia,Snacks,Online,H,2/28/2011,196346127,4/12/2011,2037,152.58
+Europe,Cyprus,Personal Care,Online,M,12/21/2014,553107821,1/13/2015,5751,81.73
+Europe,San Marino,Cereal,Online,M,5/8/2014,591774117,5/30/2014,7967,205.7
+Europe,Cyprus,Personal Care,Online,C,6/2/2015,627432048,6/23/2015,9941,81.73
+Europe,Germany,Meat,Offline,M,1/14/2017,615290009,1/18/2017,6842,421.89
+Europe,Italy,Beverages,Online,H,8/13/2015,897317206,9/1/2015,4957,47.45
+Europe,Montenegro,Personal Care,Offline,L,11/14/2016,594699656,12/30/2016,3699,81.73
+Europe,Ukraine,Cosmetics,Offline,M,6/28/2017,574925124,7/13/2017,1975,437.2
+Europe,Ukraine,Beverages,Offline,M,3/19/2015,946421372,3/21/2015,5971,47.45
+Europe,Armenia,Clothes,Offline,C,2/21/2017,885998284,2/28/2017,5436,109.28
+Europe,Hungary,Household,Offline,L,7/17/2016,954065883,9/1/2016,8151,668.27
+Europe,Malta,Beverages,Online,M,6/7/2015,994406735,6/30/2015,5906,47.45
+Europe,Austria,Personal Care,Online,M,7/9/2017,132069671,7/20/2017,1205,81.73
+Europe,Belarus,Household,Online,M,11/30/2013,990455090,12/14/2013,6526,668.27
+Europe,Norway,Cereal,Offline,C,6/6/2015,445952498,7/7/2015,6109,205.7
+Europe,Estonia,Office Supplies,Offline,M,4/26/2016,628055179,5/13/2016,4339,651.21
+Europe,Slovenia,Personal Care,Online,C,6/6/2010,243391644,6/27/2010,3851,81.73
+Europe,Ukraine,Clothes,Online,H,3/11/2015,823505389,3/30/2015,2400,109.28
+Europe,Ireland,Snacks,Online,L,12/30/2011,846413600,12/31/2011,1448,152.58
+Europe,Cyprus,Fruits,Offline,C,3/31/2012,850279843,4/10/2012,5556,9.33
+Europe,Austria,Office Supplies,Online,H,2/25/2010,268373954,2/28/2010,6672,651.21
+Europe,Serbia,Cosmetics,Online,H,3/25/2012,350550401,4/22/2012,4508,437.2
+Europe,San Marino,Personal Care,Online,C,5/27/2010,293178594,6/1/2010,6916,81.73
+Europe,Georgia,Baby Food,Online,H,7/14/2013,168960559,8/19/2013,8039,255.28
+Europe,Albania,Beverages,Offline,M,12/11/2014,270358788,1/24/2015,4028,47.45
+Europe,Italy,Personal Care,Offline,M,6/9/2016,589842927,7/28/2016,6485,81.73
+Europe,Poland,Cereal,Offline,C,2/10/2014,655328738,3/22/2014,5191,205.7
+Europe,Albania,Vegetables,Online,M,8/7/2014,406564366,8/25/2014,286,154.06
+Europe,Spain,Clothes,Online,H,8/16/2012,374848639,9/6/2012,4897,109.28
+Europe,Slovakia,Fruits,Offline,L,8/14/2012,393858420,8/29/2012,314,9.33
+Europe,Malta,Beverages,Online,C,10/21/2013,435463559,10/27/2013,2199,47.45
+Europe,Sweden,Vegetables,Offline,C,12/7/2016,284403264,12/27/2016,101,154.06
+Europe,Romania,Personal Care,Online,L,4/21/2010,917904984,4/24/2010,7338,81.73
+Europe,Switzerland,Vegetables,Online,C,10/4/2012,670274865,11/13/2012,8082,154.06
+Europe,Luxembourg,Cosmetics,Offline,M,1/30/2015,380684268,2/23/2015,1789,437.2
+Europe,Romania,Personal Care,Offline,H,9/30/2014,264526593,10/7/2014,8152,81.73
+Europe,Ukraine,Personal Care,Offline,C,4/17/2017,485929429,5/19/2017,6171,81.73
+Europe,Serbia,Office Supplies,Offline,C,8/24/2014,209736573,9/24/2014,4568,651.21
+Europe,Belgium,Office Supplies,Offline,M,1/5/2016,233440434,2/17/2016,9067,651.21
+Europe,Austria,Vegetables,Offline,L,5/5/2011,384483993,6/19/2011,6212,154.06
+Europe,Belarus,Beverages,Online,H,8/15/2010,311921012,8/26/2010,3214,47.45
+Europe,Switzerland,Baby Food,Online,L,9/9/2010,128003442,10/23/2010,7918,255.28
+Europe,Italy,Beverages,Offline,C,7/27/2013,981154048,8/9/2013,4141,47.45
+Europe,Germany,Personal Care,Online,L,12/3/2012,287917602,1/5/2013,71,81.73
+Europe,Cyprus,Snacks,Offline,L,12/4/2014,548343789,12/6/2014,5967,152.58
+Europe,Cyprus,Meat,Online,L,3/2/2016,498089492,3/22/2016,4604,421.89
+Europe,Moldova ,Snacks,Offline,C,3/1/2015,251907765,4/7/2015,3961,152.58
+Europe,Malta,Snacks,Online,L,5/26/2015,339999663,6/13/2015,2311,152.58
+Europe,Russia,Cereal,Offline,M,6/29/2012,958366000,8/3/2012,651,205.7
+Europe,Norway,Cereal,Online,M,11/4/2015,481114327,11/24/2015,1276,205.7
+Europe,Liechtenstein,Cereal,Offline,L,10/16/2014,194785726,11/13/2014,280,205.7
+Europe,Andorra,Beverages,Online,C,4/24/2016,443544518,4/28/2016,3534,47.45
+Europe,San Marino,Clothes,Online,H,7/30/2013,467138516,8/8/2013,5523,109.28
+Europe,Bosnia and Herzegovina,Vegetables,Online,H,11/27/2016,184708344,12/2/2016,8159,154.06
+Europe,Bosnia and Herzegovina,Office Supplies,Offline,H,10/19/2015,640394628,11/7/2015,5856,651.21
+Europe,Andorra,Vegetables,Offline,L,10/15/2016,403337991,11/24/2016,5529,154.06
+Europe,Andorra,Vegetables,Online,C,3/3/2013,967679059,3/19/2013,6592,154.06
+Europe,Macedonia,Snacks,Online,L,7/11/2017,125339686,7/24/2017,9653,152.58
+Europe,Croatia,Personal Care,Offline,M,3/29/2013,396832883,3/31/2013,523,81.73
+Europe,Switzerland,Cosmetics,Offline,M,3/18/2014,209445178,4/20/2014,8337,437.2
+Europe,Switzerland,Clothes,Offline,M,5/21/2011,933963048,6/24/2011,9275,109.28
+Europe,Greece,Cereal,Online,H,5/5/2015,587598884,6/13/2015,2422,205.7
+Europe,Ireland,Personal Care,Online,C,10/3/2014,941524302,10/9/2014,6819,81.73
+Europe,Denmark,Cosmetics,Offline,M,7/22/2012,805974042,7/28/2012,4484,437.2
+Europe,Estonia,Beverages,Offline,L,2/19/2016,217859160,3/5/2016,8222,47.45
+Europe,Andorra,Vegetables,Offline,L,12/15/2013,727426946,2/3/2014,653,154.06
+Europe,Belgium,Fruits,Offline,M,5/4/2011,187103450,5/14/2011,6924,9.33
+Europe,Romania,Cereal,Online,H,3/14/2016,572634732,4/1/2016,4197,205.7
+Europe,Serbia,Vegetables,Online,C,8/31/2014,285343968,9/5/2014,8476,154.06
+Europe,Slovenia,Vegetables,Offline,M,4/21/2013,886763894,5/27/2013,1997,154.06
+Europe,Moldova ,Beverages,Offline,C,11/4/2013,436606395,12/3/2013,389,47.45
+Europe,Kosovo,Cosmetics,Online,L,9/26/2010,845738112,10/23/2010,1557,437.2
+Europe,Belarus,Fruits,Online,C,6/24/2014,669353473,7/7/2014,5422,9.33
+Europe,Belgium,Cosmetics,Online,M,9/29/2015,147826898,11/5/2015,4119,437.2
+Europe,Spain,Cosmetics,Online,C,3/2/2011,832057130,4/2/2011,3050,437.2
+Europe,Lithuania,Office Supplies,Online,H,8/23/2011,212106788,9/26/2011,5967,651.21
+Europe,Russia,Personal Care,Online,M,9/14/2014,371814954,10/8/2014,7162,81.73
+Europe,Ireland,Fruits,Online,L,9/19/2016,548015487,10/9/2016,8815,9.33
+Europe,Spain,Vegetables,Offline,M,4/14/2011,305569112,6/3/2011,3545,154.06
+Europe,Slovakia,Snacks,Offline,C,11/16/2016,536095750,12/26/2016,1500,152.58
+Europe,Armenia,Household,Offline,L,9/9/2015,621577537,9/16/2015,7461,668.27
+Europe,Bulgaria,Cosmetics,Offline,H,5/6/2017,826968657,6/15/2017,7258,437.2
+Europe,Montenegro,Household,Offline,L,11/25/2010,546544349,12/12/2010,3473,668.27
+Europe,Luxembourg,Household,Offline,C,9/5/2016,463591134,10/1/2016,5773,668.27
+Europe,Macedonia,Office Supplies,Offline,C,12/17/2015,696839892,1/2/2016,9264,651.21
+Europe,United Kingdom,Personal Care,Offline,M,9/22/2011,509380948,9/27/2011,5997,81.73
+Europe,Russia,Clothes,Offline,M,7/28/2011,221628844,9/1/2011,3755,109.28
+Europe,Estonia,Beverages,Online,H,2/29/2016,650208079,3/19/2016,9875,47.45
+Europe,Moldova ,Meat,Offline,L,6/14/2010,229105556,8/3/2010,6280,421.89
+Europe,Ukraine,Office Supplies,Offline,M,3/11/2016,660481584,4/20/2016,33,651.21
+Europe,Kosovo,Office Supplies,Offline,H,8/3/2014,168487203,9/21/2014,7962,651.21
+Europe,Russia,Meat,Online,M,12/20/2010,609952628,1/31/2011,7392,421.89
+Europe,Slovakia,Baby Food,Offline,H,5/30/2012,891808593,6/11/2012,4835,255.28
+Europe,San Marino,Fruits,Online,L,7/10/2017,765734040,8/4/2017,6574,9.33
+Europe,San Marino,Cereal,Offline,L,5/18/2012,125349128,6/6/2012,2447,205.7
+Europe,Netherlands,Vegetables,Offline,H,3/12/2017,688698422,4/1/2017,22,154.06
+Europe,France,Household,Online,L,6/16/2011,367328155,7/30/2011,9419,668.27
+Europe,Belgium,Cereal,Offline,L,11/14/2012,495450627,12/26/2012,3705,205.7
+Europe,Belarus,Personal Care,Online,M,7/24/2013,638856971,8/21/2013,829,81.73
+Europe,Slovakia,Vegetables,Offline,M,6/1/2016,936664998,7/5/2016,8843,154.06
+Europe,Belgium,Cosmetics,Offline,C,5/21/2011,695059764,6/29/2011,2485,437.2
+Europe,Belarus,Beverages,Online,H,3/8/2010,681713092,3/22/2010,2908,47.45
+Europe,Denmark,Beverages,Offline,H,9/26/2010,511155498,11/4/2010,1126,47.45
+Europe,France,Personal Care,Online,H,10/16/2010,762655293,11/11/2010,5504,81.73
+Europe,Romania,Personal Care,Offline,L,1/14/2015,119935786,1/27/2015,519,81.73
+Europe,Czech Republic,Snacks,Online,M,8/31/2010,755605590,9/11/2010,9340,152.58
+Europe,Moldova ,Meat,Online,M,6/13/2010,907047402,8/1/2010,4338,421.89
+Europe,Norway,Fruits,Offline,L,8/12/2013,638937652,9/6/2013,4705,9.33
+Europe,France,Cereal,Offline,H,2/26/2016,449206340,4/3/2016,8993,205.7
+Europe,Romania,Beverages,Online,L,7/10/2010,864071118,7/18/2010,6700,47.45
+Europe,Russia,Office Supplies,Online,C,12/16/2010,253211104,12/27/2010,9648,651.21
+Europe,Belgium,Fruits,Online,M,11/10/2013,609939754,11/30/2013,3582,9.33
+Europe,Lithuania,Cereal,Offline,M,2/6/2014,907691991,3/9/2014,5086,205.7
+Europe,Georgia,Fruits,Offline,C,1/28/2017,460693061,2/25/2017,8169,9.33
+Europe,Switzerland,Office Supplies,Offline,H,4/5/2013,424541604,5/17/2013,150,651.21
+Europe,Czech Republic,Household,Online,L,8/25/2014,571161448,9/30/2014,8220,668.27
+Europe,Netherlands,Beverages,Online,H,2/4/2011,985039174,3/10/2011,3836,47.45
+Europe,Romania,Clothes,Online,H,11/16/2015,522323358,11/20/2015,5944,109.28
+Europe,Latvia,Vegetables,Offline,M,10/5/2016,486461150,11/13/2016,3519,154.06
+Europe,Slovenia,Cosmetics,Online,M,1/24/2017,949912965,3/6/2017,9210,437.2
+Europe,France,Fruits,Online,L,4/20/2013,103499639,6/6/2013,6698,9.33
+Europe,Slovakia,Personal Care,Offline,C,12/23/2016,877687728,2/7/2017,6158,81.73
+Europe,Greece,Baby Food,Offline,H,1/15/2015,288073384,2/16/2015,6171,255.28
+Europe,Latvia,Household,Online,H,8/3/2016,607756221,8/11/2016,7426,668.27
+Europe,Liechtenstein,Household,Online,H,2/13/2017,291179597,2/20/2017,5368,668.27
+Europe,San Marino,Fruits,Online,L,10/25/2010,875220096,11/6/2010,5930,9.33
+Europe,Greece,Household,Offline,C,3/11/2016,799848306,4/23/2016,1743,668.27
+Europe,Czech Republic,Meat,Offline,M,12/5/2011,693583905,1/6/2012,5745,421.89
+Europe,Sweden,Meat,Online,C,1/18/2015,437083184,2/19/2015,1482,421.89
+Europe,Macedonia,Vegetables,Offline,C,7/10/2017,759594142,7/12/2017,9641,154.06
+Europe,Denmark,Household,Online,L,5/16/2010,702815854,6/6/2010,7684,668.27
+Europe,Sweden,Snacks,Online,C,6/1/2013,971899354,6/1/2013,5471,152.58
+Europe,Czech Republic,Office Supplies,Online,M,2/16/2010,521681344,4/3/2010,5957,651.21
+Europe,Iceland,Office Supplies,Offline,L,1/18/2012,239554154,2/13/2012,8253,651.21
+Europe,Lithuania,Office Supplies,Online,M,4/17/2011,982566821,6/5/2011,2212,651.21
+Europe,United Kingdom,Cosmetics,Online,C,5/5/2017,887501180,6/20/2017,176,437.2
+Europe,Macedonia,Fruits,Online,H,10/25/2010,278513133,11/5/2010,7080,9.33
+Europe,Albania,Baby Food,Offline,L,5/18/2012,152191388,6/22/2012,5669,255.28
+Europe,Croatia,Personal Care,Offline,C,5/5/2014,309655511,5/21/2014,2802,81.73
+Europe,Luxembourg,Meat,Offline,M,12/18/2010,469129359,1/26/2011,4657,421.89
+Europe,Armenia,Snacks,Online,L,6/16/2017,951698243,7/3/2017,7514,152.58
+Europe,Malta,Snacks,Online,L,1/27/2012,981808078,1/28/2012,7683,152.58
+Europe,Cyprus,Cereal,Online,M,3/27/2013,833706796,4/3/2013,1223,205.7
+Europe,Croatia,Office Supplies,Online,H,6/9/2010,650078475,6/18/2010,1522,651.21
+Europe,Sweden,Snacks,Offline,H,10/27/2012,507531726,11/11/2012,8771,152.58
+Europe,Netherlands,Personal Care,Online,C,3/10/2012,544741475,3/25/2012,9963,81.73
+Europe,Italy,Baby Food,Online,H,1/15/2011,926826655,2/16/2011,7458,255.28
+Europe,Czech Republic,Household,Online,L,2/21/2011,759086453,2/27/2011,9405,668.27
+Europe,Germany,Baby Food,Offline,C,11/1/2014,523899209,11/16/2014,2273,255.28
+Europe,Albania,Clothes,Online,M,4/7/2011,647943866,4/18/2011,9843,109.28
+Europe,Romania,Cereal,Offline,C,9/29/2012,812632358,10/17/2012,4828,205.7
+Europe,Belarus,Cosmetics,Online,L,10/17/2014,231861150,11/1/2014,1722,437.2
+Europe,Andorra,Snacks,Online,M,5/3/2010,348080623,5/19/2010,3646,152.58
+Europe,Germany,Office Supplies,Online,L,9/11/2013,368865811,10/16/2013,4445,651.21
+Europe,Denmark,Personal Care,Online,L,2/4/2016,478840672,2/9/2016,8451,81.73
+Europe,Sweden,Cereal,Online,L,7/19/2010,772643411,8/25/2010,1210,205.7
+Europe,Poland,Beverages,Online,M,8/22/2013,742843854,9/4/2013,2859,47.45
+Europe,Serbia,Beverages,Offline,C,12/23/2012,308582627,2/9/2013,5312,47.45
+Europe,Latvia,Personal Care,Online,L,3/29/2011,140499961,4/30/2011,5915,81.73
+Europe,Liechtenstein,Cereal,Online,M,12/13/2010,856648051,12/23/2010,50,205.7
+Europe,Slovakia,Cosmetics,Offline,H,6/13/2012,780899035,7/30/2012,4233,437.2
+Europe,Monaco,Meat,Offline,L,7/15/2013,177147090,8/17/2013,615,421.89
+Europe,Portugal,Office Supplies,Offline,C,2/17/2012,775849616,3/5/2012,9997,651.21
+Europe,Macedonia,Meat,Online,C,12/14/2013,979200112,12/30/2013,5928,421.89
+Europe,Vatican City,Snacks,Offline,M,10/18/2014,429123675,11/11/2014,6086,152.58
+Europe,San Marino,Vegetables,Offline,L,2/19/2012,515771901,3/19/2012,7222,154.06
+Europe,Ukraine,Cereal,Online,C,8/7/2012,626109397,9/15/2012,8539,205.7
+Europe,Czech Republic,Household,Offline,H,12/5/2012,574247491,12/17/2012,1448,668.27
+Europe,Russia,Snacks,Online,M,1/5/2013,941933286,2/8/2013,7846,152.58
+Europe,France,Cereal,Offline,L,8/28/2010,797718417,10/15/2010,1462,205.7
+Europe,Estonia,Cereal,Online,C,10/14/2013,220607459,10/17/2013,1504,205.7
+Europe,Ireland,Baby Food,Offline,L,7/19/2010,629301440,7/29/2010,3135,255.28
+Europe,Macedonia,Clothes,Offline,H,8/1/2016,431432092,9/13/2016,9198,109.28
+Europe,Andorra,Baby Food,Online,H,9/27/2010,442318427,10/8/2010,707,255.28
+Europe,Austria,Cosmetics,Offline,L,7/24/2010,540982520,9/1/2010,7604,437.2
+Europe,Iceland,Clothes,Offline,C,11/11/2010,563939225,12/19/2010,1004,109.28
+Europe,Austria,Cereal,Online,H,12/24/2015,323293578,2/2/2016,8609,205.7
+Europe,Estonia,Snacks,Online,L,7/22/2015,507040774,7/25/2015,3488,152.58
+Europe,Greece,Office Supplies,Offline,M,4/2/2013,516599738,5/9/2013,2197,651.21
+Europe,Belarus,Clothes,Online,H,7/22/2016,383611094,8/26/2016,7902,109.28
+Europe,San Marino,Baby Food,Offline,M,6/3/2016,412416303,6/11/2016,2004,255.28
+Europe,Croatia,Cosmetics,Offline,M,2/15/2012,364715468,2/19/2012,6267,437.2
+Europe,Netherlands,Personal Care,Offline,H,5/8/2010,392752492,6/3/2010,3045,81.73
+Europe,Hungary,Fruits,Offline,H,1/4/2014,633992946,1/6/2014,1456,9.33
+Europe,San Marino,Clothes,Online,C,10/30/2011,937875640,11/30/2011,7098,109.28
+Europe,Belarus,Vegetables,Online,C,8/12/2016,614054477,8/16/2016,1220,154.06
+Europe,Sweden,Baby Food,Offline,H,3/29/2011,369170081,4/3/2011,4486,255.28
+Europe,Albania,Clothes,Offline,C,1/16/2016,357930982,3/5/2016,8586,109.28
+Europe,Russia,Office Supplies,Offline,M,3/15/2013,586812674,3/31/2013,9766,651.21
+Europe,Sweden,Fruits,Online,L,4/11/2016,311221492,5/7/2016,6210,9.33
+Europe,Sweden,Snacks,Online,M,5/28/2012,274989354,7/10/2012,4316,152.58
+Europe,Cyprus,Office Supplies,Offline,L,5/8/2013,897785842,5/12/2013,3636,651.21
+Europe,Romania,Meat,Online,H,5/22/2017,929812705,5/25/2017,1097,421.89
+Europe,Ukraine,Cosmetics,Online,H,1/29/2012,202047002,3/6/2012,9053,437.2
+Europe,Kosovo,Fruits,Online,L,8/27/2011,919922006,9/18/2011,4219,9.33
+Europe,Moldova ,Beverages,Offline,H,6/17/2013,243226420,7/3/2013,4958,47.45
+Europe,United Kingdom,Clothes,Online,M,11/13/2016,249765861,11/24/2016,123,109.28
+Europe,Romania,Beverages,Online,H,5/31/2016,253055322,6/12/2016,3548,47.45
+Europe,Montenegro,Beverages,Offline,C,8/6/2016,243340575,9/4/2016,8739,47.45
+Europe,Czech Republic,Household,Offline,H,11/6/2014,988599860,12/11/2014,7522,668.27
+Europe,Cyprus,Snacks,Online,M,4/18/2011,581193768,4/24/2011,7006,152.58
+Europe,Serbia,Cereal,Offline,C,8/11/2016,100983083,8/11/2016,1993,205.7
+Europe,Latvia,Personal Care,Offline,L,9/13/2012,936411798,9/17/2012,3915,81.73
+Europe,Bosnia and Herzegovina,Household,Offline,M,6/22/2015,261640536,8/1/2015,4104,668.27
+Europe,Finland,Baby Food,Offline,L,4/21/2017,564173543,4/26/2017,343,255.28
+Europe,Ukraine,Cereal,Offline,C,10/10/2011,580463349,11/8/2011,859,205.7
+Europe,France,Office Supplies,Offline,M,11/4/2013,428419864,12/5/2013,7813,651.21
+Europe,Portugal,Baby Food,Offline,C,1/11/2010,479171121,1/27/2010,6238,255.28
+Europe,Lithuania,Personal Care,Online,H,5/13/2015,120419871,6/26/2015,3771,81.73
+Europe,Italy,Clothes,Offline,M,9/11/2012,602301251,9/27/2012,3180,109.28
+Europe,Denmark,Baby Food,Online,M,12/9/2012,471484124,1/24/2013,1485,255.28
+Europe,Hungary,Snacks,Offline,M,2/1/2017,291611325,2/10/2017,3126,152.58
+Europe,Slovenia,Vegetables,Offline,M,2/10/2013,691383635,3/19/2013,4637,154.06
+Europe,Kosovo,Snacks,Online,H,2/5/2013,783913838,3/9/2013,6380,152.58
+Europe,Macedonia,Clothes,Online,C,3/14/2013,799109733,4/29/2013,3183,109.28
+Europe,Denmark,Beverages,Online,L,11/21/2016,223199975,1/4/2017,8687,47.45
+Europe,Georgia,Cereal,Offline,H,11/30/2016,391849982,12/11/2016,5972,205.7
+Europe,Croatia,Clothes,Online,H,1/13/2014,906508815,1/23/2014,4958,109.28
+Europe,Greece,Cereal,Offline,M,10/10/2013,524844634,10/13/2013,2045,205.7
+Europe,Iceland,Fruits,Online,H,10/21/2014,640476596,10/24/2014,112,9.33
+Europe,Ukraine,Meat,Online,M,8/20/2012,733636796,9/15/2012,8286,421.89
+Europe,Bosnia and Herzegovina,Snacks,Online,L,12/24/2012,183778369,1/7/2013,2958,152.58
+Europe,Luxembourg,Snacks,Offline,M,4/22/2017,594991052,6/6/2017,9929,152.58
+Europe,Albania,Office Supplies,Online,H,7/13/2015,246922719,7/29/2015,8775,651.21
+Europe,Slovakia,Snacks,Offline,L,10/10/2013,315066277,11/28/2013,3968,152.58
+Europe,Sweden,Household,Offline,C,10/9/2010,766118133,10/10/2010,235,668.27
+Europe,Russia,Clothes,Offline,L,7/9/2010,138820683,7/9/2010,8980,109.28
+Europe,Luxembourg,Cereal,Online,M,12/18/2012,733648812,12/24/2012,1842,205.7
+Europe,Kosovo,Office Supplies,Online,C,2/16/2015,580782210,2/20/2015,5217,651.21
+Europe,Hungary,Baby Food,Offline,C,1/1/2010,279703605,1/10/2010,9367,255.28
+Europe,Poland,Baby Food,Offline,H,2/20/2016,645956456,4/8/2016,1725,255.28
+Europe,Montenegro,Clothes,Offline,M,11/19/2011,526350104,12/4/2011,7547,109.28
+Europe,Andorra,Meat,Online,L,2/26/2015,212903726,2/26/2015,1798,421.89
+Europe,Finland,Vegetables,Online,C,6/21/2017,680325210,7/23/2017,2203,154.06
+Europe,Slovenia,Beverages,Online,M,2/3/2011,263882005,2/27/2011,7404,47.45
+Europe,Slovenia,Fruits,Offline,L,5/28/2016,295168149,7/16/2016,5669,9.33
+Europe,Greece,Meat,Offline,C,9/12/2016,645111024,9/26/2016,1543,421.89
+Europe,Switzerland,Baby Food,Offline,M,8/11/2014,850562655,9/25/2014,9246,255.28
+Europe,Ireland,Personal Care,Offline,L,1/5/2014,702357947,2/4/2014,2179,81.73
+Europe,Montenegro,Clothes,Online,L,5/13/2017,102230632,6/13/2017,1171,109.28
+Europe,Armenia,Clothes,Online,L,1/3/2010,231450879,2/22/2010,313,109.28
+Europe,Poland,Clothes,Online,M,10/1/2010,880176818,10/15/2010,2735,109.28
+Europe,Italy,Clothes,Online,H,6/10/2011,755318915,6/25/2011,4507,109.28
+Europe,Andorra,Beverages,Online,H,11/25/2012,378873240,11/28/2012,5866,47.45
+Europe,Cyprus,Fruits,Online,L,11/27/2011,264856183,12/23/2011,5685,9.33
+Europe,Czech Republic,Cereal,Online,C,8/2/2014,118659913,8/17/2014,2960,205.7
+Europe,San Marino,Baby Food,Online,L,10/18/2012,667324435,10/31/2012,4985,255.28
+Europe,Poland,Baby Food,Online,C,9/26/2011,685233008,10/17/2011,4529,255.28
+Europe,Monaco,Beverages,Online,H,3/14/2013,757468974,3/23/2013,757,47.45
+Europe,Belgium,Meat,Online,H,9/23/2015,512714612,10/9/2015,2502,421.89
+Europe,Georgia,Meat,Offline,M,2/11/2010,516485583,3/6/2010,8416,421.89
+Europe,Kosovo,Vegetables,Online,H,11/7/2014,491547477,11/7/2014,8676,154.06
+Europe,Bulgaria,Fruits,Offline,C,10/8/2013,911891257,11/1/2013,7742,9.33
+Europe,Russia,Snacks,Offline,L,11/29/2015,214033257,12/3/2015,6052,152.58
+Europe,Ukraine,Cereal,Online,H,12/14/2015,504024684,1/14/2016,959,205.7
+Europe,Lithuania,Vegetables,Online,L,7/17/2016,386601865,7/26/2016,2938,154.06
+Europe,Sweden,Cosmetics,Offline,C,1/16/2010,336813628,2/23/2010,9492,437.2
+Europe,Belgium,Fruits,Online,C,7/24/2015,309188163,8/12/2015,4503,9.33
+Europe,Kosovo,Office Supplies,Offline,M,8/1/2012,760280358,8/21/2012,2708,651.21
+Europe,Slovakia,Beverages,Offline,M,9/15/2015,495593106,10/8/2015,5868,47.45
+Europe,Cyprus,Clothes,Offline,L,1/9/2013,209598815,1/11/2013,3802,109.28
+Europe,Georgia,Meat,Online,H,8/23/2012,483438193,9/26/2012,8959,421.89
+Europe,Switzerland,Vegetables,Online,L,10/15/2016,819037473,10/15/2016,244,154.06
+Europe,Liechtenstein,Fruits,Offline,H,4/26/2011,974420630,6/15/2011,1573,9.33
+Europe,Russia,Beverages,Offline,L,8/7/2012,534641349,8/27/2012,1111,47.45
+Europe,Belgium,Snacks,Online,L,8/5/2013,921133935,8/11/2013,2856,152.58
+Europe,San Marino,Meat,Offline,L,3/23/2012,456934964,5/5/2012,6065,421.89
+Europe,Bulgaria,Fruits,Online,L,8/31/2010,468803632,10/2/2010,8267,9.33
+Europe,Finland,Baby Food,Online,M,10/13/2010,646981704,11/23/2010,5118,255.28
+Europe,Finland,Vegetables,Online,L,8/22/2015,972452533,10/4/2015,9169,154.06
+Europe,Austria,Personal Care,Offline,M,5/10/2010,535740411,6/7/2010,6348,81.73
+Europe,Ireland,Personal Care,Offline,H,2/26/2017,309285581,4/17/2017,3331,81.73
+Europe,Andorra,Baby Food,Offline,C,3/7/2013,380733191,4/13/2013,6267,255.28
+Europe,Kosovo,Fruits,Online,L,6/11/2012,989102828,7/8/2012,6362,9.33
+Europe,Latvia,Beverages,Online,M,5/2/2012,862326610,5/28/2012,461,47.45
+Europe,Sweden,Meat,Online,H,1/4/2013,152411115,2/21/2013,691,421.89
+Europe,Ukraine,Office Supplies,Offline,C,9/16/2016,862485826,10/27/2016,7577,651.21
+Europe,Vatican City,Fruits,Offline,M,7/25/2016,299739491,9/1/2016,8431,9.33
+Europe,France,Meat,Offline,L,7/17/2011,633312737,8/11/2011,167,421.89
+Europe,Norway,Office Supplies,Offline,C,12/14/2012,884192836,1/15/2013,1164,651.21
+Europe,Iceland,Meat,Online,M,7/9/2015,578356206,7/15/2015,7309,421.89
+Europe,Luxembourg,Personal Care,Online,L,5/17/2011,194858253,5/22/2011,1742,81.73
+Europe,Macedonia,Cereal,Offline,L,11/28/2010,988614022,1/11/2011,1713,205.7
+Europe,Russia,Cereal,Online,L,1/10/2014,279338395,2/24/2014,1293,205.7
+Europe,Estonia,Baby Food,Offline,M,1/2/2014,123086202,2/20/2014,2797,255.28
+Europe,Luxembourg,Meat,Online,M,12/19/2015,216278588,12/19/2015,495,421.89
+Europe,Romania,Baby Food,Offline,H,6/23/2015,693831098,7/14/2015,8895,255.28
+Europe,Macedonia,Cereal,Online,C,9/1/2010,963219296,9/18/2010,6850,205.7
+Europe,Austria,Vegetables,Offline,M,11/12/2016,468320834,12/21/2016,5397,154.06
+Europe,Iceland,Cereal,Online,M,6/15/2010,203955876,7/18/2010,3931,205.7
+Europe,Moldova ,Snacks,Offline,H,1/11/2016,583451974,2/5/2016,5260,152.58
+Europe,Luxembourg,Clothes,Online,M,1/30/2013,250848186,3/7/2013,407,109.28
+Europe,Albania,Meat,Online,C,11/12/2010,863138997,12/21/2010,865,421.89
+Europe,Serbia,Household,Online,M,9/23/2013,266614854,10/10/2013,6115,668.27
+Europe,Andorra,Household,Offline,L,8/14/2016,834065997,9/14/2016,7518,668.27
+Europe,Lithuania,Fruits,Offline,M,4/14/2010,879845082,5/1/2010,4567,9.33
+Europe,Slovakia,Cosmetics,Offline,M,11/27/2011,146545875,1/7/2012,5036,437.2
+Europe,Romania,Baby Food,Offline,C,8/30/2014,414359509,9/11/2014,7042,255.28
+Europe,Malta,Baby Food,Offline,L,8/21/2011,276850593,9/3/2011,5097,255.28
+Europe,Andorra,Cereal,Online,L,4/5/2011,556947886,5/17/2011,2111,205.7
+Europe,United Kingdom,Household,Online,C,3/23/2012,548403012,4/4/2012,3493,668.27
+Europe,United Kingdom,Vegetables,Online,L,9/7/2010,652252137,9/26/2010,4757,154.06
+Europe,Malta,Cosmetics,Online,M,3/29/2014,284108436,4/3/2014,2854,437.2
+Europe,Norway,Vegetables,Offline,H,7/5/2012,416682088,8/14/2012,4344,154.06
+Europe,Cyprus,Vegetables,Offline,M,12/8/2010,579094779,12/11/2010,5869,154.06
+Europe,Czech Republic,Fruits,Online,M,11/1/2012,192589318,12/16/2012,314,9.33
+Europe,Belarus,Household,Offline,M,2/12/2015,785364806,3/21/2015,5754,668.27
+Europe,Russia,Baby Food,Offline,M,12/24/2011,450550019,1/2/2012,6618,255.28
+Europe,Bulgaria,Vegetables,Offline,C,1/26/2010,817061221,2/21/2010,5427,154.06
+Europe,Slovakia,Office Supplies,Online,H,2/20/2012,168319404,3/10/2012,8307,651.21
+Europe,Croatia,Clothes,Online,C,6/9/2016,781083571,6/18/2016,8841,109.28
+Europe,Ukraine,Cereal,Offline,M,3/21/2011,401993882,4/11/2011,7778,205.7
+Europe,France,Office Supplies,Online,L,1/19/2012,391200673,2/13/2012,3827,651.21
+Europe,San Marino,Vegetables,Offline,M,9/30/2013,408540618,11/13/2013,5102,154.06
+Europe,San Marino,Personal Care,Online,L,7/17/2016,239048612,7/26/2016,8651,81.73
+Europe,Vatican City,Cosmetics,Offline,C,5/24/2012,292424571,6/5/2012,3784,437.2
+Europe,Bosnia and Herzegovina,Beverages,Online,M,8/28/2015,231341445,10/7/2015,7929,47.45
+Europe,Portugal,Office Supplies,Online,M,2/9/2013,533597218,2/24/2013,2130,651.21
+Europe,Romania,Meat,Offline,C,1/16/2016,682162415,2/26/2016,5873,421.89
+Europe,Iceland,Vegetables,Offline,C,2/13/2015,706176555,2/26/2015,2190,154.06
+Europe,Luxembourg,Office Supplies,Offline,H,9/17/2011,339786803,10/25/2011,9321,651.21
+Europe,Malta,Personal Care,Offline,C,4/13/2017,274694526,5/11/2017,7069,81.73
+Europe,France,Clothes,Online,M,4/15/2014,633806264,4/26/2014,6213,109.28
+Europe,Spain,Personal Care,Online,C,12/8/2013,955466639,1/27/2014,2666,81.73
+Europe,Norway,Office Supplies,Online,L,1/30/2012,330590474,3/14/2012,7923,651.21
+Europe,Malta,Cosmetics,Offline,C,11/26/2015,819516837,12/25/2015,2098,437.2
+Europe,Kosovo,Snacks,Offline,C,7/13/2011,499101436,8/28/2011,4061,152.58
+Europe,Andorra,Clothes,Online,C,6/20/2017,190002810,8/5/2017,4909,109.28
+Europe,Macedonia,Beverages,Offline,M,12/17/2015,653152501,12/22/2015,1194,47.45
+Europe,Austria,Vegetables,Offline,C,5/9/2014,489600837,6/9/2014,2622,154.06
+Europe,Montenegro,Baby Food,Online,M,1/5/2016,750959146,1/25/2016,4354,255.28
+Europe,Bosnia and Herzegovina,Personal Care,Offline,L,1/12/2010,356413495,1/18/2010,9528,81.73
+Europe,Bosnia and Herzegovina,Office Supplies,Offline,L,11/30/2015,288656175,12/30/2015,8632,651.21
+Europe,Russia,Cosmetics,Offline,C,7/28/2015,659671771,7/29/2015,391,437.2
+Europe,Netherlands,Clothes,Offline,H,7/26/2016,513611114,9/5/2016,7797,109.28
+Europe,Russia,Beverages,Offline,M,4/21/2014,543322694,6/1/2014,114,47.45
+Europe,Monaco,Vegetables,Offline,C,11/6/2012,671616399,12/10/2012,5072,154.06
+Europe,Macedonia,Beverages,Offline,L,4/30/2015,212319648,5/15/2015,8957,47.45
+Europe,Monaco,Household,Online,L,4/30/2014,971578347,6/16/2014,478,668.27
+Europe,Italy,Fruits,Offline,L,11/17/2016,704233348,11/26/2016,7152,9.33
+Europe,Bulgaria,Snacks,Online,C,5/31/2010,768230426,6/22/2010,5310,152.58
+Europe,Luxembourg,Fruits,Offline,M,12/31/2016,707661855,1/26/2017,1723,9.33
+Europe,Hungary,Fruits,Offline,M,9/8/2011,628595054,10/21/2011,4100,9.33
+Europe,Greece,Beverages,Offline,H,2/20/2010,795141351,2/24/2010,8850,47.45
+Europe,Belgium,Meat,Offline,M,3/22/2015,164259612,4/29/2015,6924,421.89
+Europe,Norway,Snacks,Online,H,11/15/2016,750439441,12/29/2016,562,152.58
+Europe,Armenia,Fruits,Offline,C,11/29/2014,362258565,12/14/2014,9214,9.33
+Europe,Slovakia,Cereal,Online,H,1/14/2015,209357202,1/22/2015,2303,205.7
+Europe,Portugal,Cosmetics,Offline,L,3/20/2014,450041043,4/16/2014,6000,437.2
+Europe,Slovakia,Office Supplies,Online,H,3/15/2015,103450715,4/18/2015,2220,651.21
+Europe,Luxembourg,Fruits,Online,M,9/25/2016,384601581,10/19/2016,1009,9.33
+Europe,Denmark,Vegetables,Online,L,8/25/2015,186079490,8/29/2015,3911,154.06
+Europe,Bulgaria,Office Supplies,Online,M,5/22/2012,513026177,6/5/2012,4701,651.21
+Europe,Malta,Baby Food,Offline,L,3/16/2010,222720611,4/1/2010,6833,255.28
+Europe,Bosnia and Herzegovina,Household,Offline,M,3/1/2012,891681563,3/27/2012,7245,668.27
+Europe,Kosovo,Beverages,Offline,M,6/8/2012,129169023,7/18/2012,2839,47.45
+Europe,France,Cereal,Online,C,9/19/2012,764811360,9/30/2012,3532,205.7
+Europe,Liechtenstein,Vegetables,Offline,C,10/17/2013,801925837,10/26/2013,6531,154.06
+Europe,San Marino,Office Supplies,Offline,C,11/5/2013,881194770,12/5/2013,3969,651.21
+Europe,Austria,Vegetables,Offline,C,8/17/2011,917835032,10/6/2011,6637,154.06
+Europe,Switzerland,Fruits,Online,H,6/8/2014,159232509,7/14/2014,9293,9.33
+Europe,Serbia,Vegetables,Online,L,10/31/2013,917639768,12/14/2013,8854,154.06
+Europe,Lithuania,Fruits,Online,M,3/9/2011,965796363,3/19/2011,9461,9.33
+Europe,Bosnia and Herzegovina,Baby Food,Online,L,7/16/2016,551118266,8/15/2016,6997,255.28
+Europe,Albania,Office Supplies,Online,M,8/10/2016,849454581,9/6/2016,1342,651.21
+Europe,Georgia,Cereal,Offline,M,12/14/2010,962560546,1/8/2011,1911,205.7
+Europe,Liechtenstein,Vegetables,Offline,H,5/23/2011,927351081,6/2/2011,2647,154.06
+Europe,Luxembourg,Household,Online,H,10/20/2010,840781390,11/13/2010,4752,668.27
+Europe,Spain,Vegetables,Online,H,3/31/2017,722233331,4/6/2017,3747,154.06
+Europe,Portugal,Meat,Online,H,11/21/2011,663080108,12/10/2011,8994,421.89
+Europe,Poland,Cereal,Online,L,10/7/2011,439640080,11/2/2011,8124,205.7
+Europe,Romania,Household,Offline,H,6/19/2014,765858924,7/21/2014,3530,668.27
+Europe,Austria,Cereal,Online,M,5/13/2010,123544108,6/22/2010,8302,205.7
+Europe,Latvia,Snacks,Offline,M,4/7/2017,569170606,4/13/2017,9085,152.58
+Europe,San Marino,Personal Care,Online,L,1/6/2012,185947310,1/27/2012,4796,81.73
+Europe,Poland,Vegetables,Online,H,7/19/2015,534709155,9/2/2015,1176,154.06
+Europe,Netherlands,Office Supplies,Online,C,8/9/2014,138182103,8/16/2014,10,651.21
+Europe,Bulgaria,Meat,Offline,H,9/10/2013,780590045,10/3/2013,2796,421.89
+Europe,Greece,Fruits,Online,L,7/9/2017,643448483,7/25/2017,9560,9.33
+Europe,Ireland,Office Supplies,Online,C,1/6/2011,144978606,2/19/2011,1246,651.21
+Europe,Portugal,Household,Online,M,1/4/2014,444798934,1/20/2014,4744,668.27
+Europe,Liechtenstein,Meat,Online,C,5/31/2017,543396508,6/5/2017,1957,421.89
+Europe,Austria,Meat,Online,H,11/6/2013,866396272,11/16/2013,4765,421.89
+Europe,Ireland,Cereal,Online,H,7/12/2016,946823489,8/30/2016,4966,205.7
+Europe,San Marino,Cosmetics,Online,H,11/30/2012,228211200,12/3/2012,1620,437.2
+Europe,Vatican City,Cereal,Online,M,6/9/2011,547587192,7/14/2011,2073,205.7
+Europe,Italy,Clothes,Online,H,1/10/2010,689421546,1/31/2010,4011,109.28
+Europe,Croatia,Meat,Online,M,12/21/2010,530882394,2/2/2011,8753,421.89
+Europe,Slovakia,Snacks,Offline,M,6/10/2011,765552079,7/17/2011,2727,152.58
+Europe,Sweden,Baby Food,Offline,M,5/26/2010,469974792,6/17/2010,4840,255.28
+Europe,Slovenia,Personal Care,Offline,M,11/23/2014,700304019,12/21/2014,4376,81.73
+Europe,Norway,Clothes,Online,H,4/14/2014,509356057,4/17/2014,8631,109.28
+Europe,Armenia,Baby Food,Offline,M,2/10/2010,838788402,2/26/2010,4983,255.28
+Europe,Bulgaria,Office Supplies,Offline,C,2/9/2014,200507199,2/25/2014,3391,651.21
+Europe,Andorra,Meat,Online,M,10/3/2011,504973971,11/2/2011,1875,421.89
+Europe,Armenia,Cereal,Offline,H,1/20/2010,477282845,2/4/2010,7455,205.7
+Europe,Slovakia,Cosmetics,Online,L,3/1/2010,161399304,3/15/2010,496,437.2
+Europe,Hungary,Office Supplies,Online,H,8/20/2011,204392325,9/26/2011,3086,651.21
+Europe,Latvia,Cereal,Offline,M,6/28/2010,400904691,7/12/2010,5462,205.7
+Europe,Belgium,Beverages,Offline,L,12/21/2016,244023358,1/22/2017,789,47.45
+Europe,Moldova ,Cosmetics,Online,H,6/13/2013,830172288,7/29/2013,5283,437.2
+Europe,Moldova ,Meat,Offline,L,5/13/2016,815755307,6/9/2016,8978,421.89
+Europe,Austria,Clothes,Online,M,12/23/2015,870173251,12/30/2015,2457,109.28
+Europe,Greece,Baby Food,Online,M,8/19/2013,444234168,9/27/2013,7617,255.28
+Europe,Liechtenstein,Clothes,Offline,H,8/4/2016,545059049,8/8/2016,3940,109.28
+Europe,United Kingdom,Baby Food,Offline,M,10/7/2015,530702579,11/9/2015,5541,255.28
+Europe,Iceland,Personal Care,Offline,L,11/7/2013,546140086,12/19/2013,3843,81.73
+Europe,Belarus,Vegetables,Offline,M,6/7/2017,215584218,6/21/2017,5016,154.06
+Europe,Sweden,Cereal,Online,L,5/29/2016,407220542,7/4/2016,4463,205.7
+Europe,Ireland,Vegetables,Online,L,4/24/2016,956969964,5/27/2016,7533,154.06
+Europe,Slovenia,Fruits,Online,L,12/11/2014,399256312,1/5/2015,7670,9.33
+Europe,Croatia,Snacks,Offline,M,3/3/2011,488815915,4/17/2011,347,152.58
+Europe,Lithuania,Clothes,Offline,C,4/29/2012,530262696,5/11/2012,5370,109.28
+Europe,Switzerland,Cosmetics,Online,L,2/26/2016,243521249,3/28/2016,2204,437.2
+Europe,Iceland,Cosmetics,Online,M,1/27/2011,878614270,2/17/2011,342,437.2
+Europe,Denmark,Vegetables,Offline,H,5/23/2014,954341828,7/11/2014,9809,154.06
+Europe,Moldova ,Beverages,Online,H,9/12/2010,607620608,9/20/2010,7296,47.45
+Europe,Cyprus,Personal Care,Online,L,1/2/2014,561534678,1/29/2014,9445,81.73
+Europe,Hungary,Vegetables,Offline,L,1/6/2014,768676316,2/8/2014,7259,154.06
+Europe,Norway,Cosmetics,Offline,L,12/9/2011,337354791,1/28/2012,9634,437.2
+Europe,Norway,Meat,Offline,M,9/12/2012,917874085,9/23/2012,8194,421.89
+Europe,Poland,Cereal,Online,C,9/8/2013,176050603,10/28/2013,6140,205.7
+Europe,Lithuania,Meat,Offline,C,2/20/2010,930296790,3/26/2010,4348,421.89
+Europe,Romania,Cereal,Online,L,9/14/2011,273940503,10/19/2011,3937,205.7
+Europe,Greece,Fruits,Offline,C,5/28/2014,656244552,6/19/2014,6201,9.33
+Europe,Macedonia,Household,Online,C,7/28/2014,666483724,8/31/2014,6199,668.27
+Europe,Malta,Meat,Online,H,5/15/2016,422568786,6/17/2016,6349,421.89
+Europe,Denmark,Vegetables,Online,L,8/26/2012,969195258,9/17/2012,5269,154.06
+Europe,Netherlands,Office Supplies,Online,C,7/29/2011,857457864,9/16/2011,9691,651.21
+Europe,Hungary,Vegetables,Online,M,6/5/2012,495631301,7/18/2012,7171,154.06
+Europe,Slovakia,Office Supplies,Offline,H,6/23/2014,224647080,7/30/2014,6918,651.21
+Europe,Armenia,Office Supplies,Offline,H,8/3/2014,883504474,9/8/2014,7462,651.21
+Europe,Austria,Office Supplies,Offline,C,4/3/2015,575552117,4/26/2015,7516,651.21
+Europe,Andorra,Baby Food,Offline,H,7/15/2013,141764247,8/29/2013,46,255.28
+Europe,Italy,Vegetables,Offline,M,4/11/2016,608374631,4/12/2016,428,154.06
+Europe,Portugal,Household,Online,L,1/17/2012,200432097,1/31/2012,1167,668.27
+Europe,Romania,Snacks,Offline,M,8/21/2010,884462773,10/5/2010,1044,152.58
+Europe,Czech Republic,Office Supplies,Offline,M,6/19/2010,885046851,7/19/2010,3886,651.21
+Europe,Czech Republic,Vegetables,Online,M,6/14/2012,527079236,6/20/2012,3314,154.06
+Europe,Denmark,Clothes,Online,C,11/9/2012,161812150,11/12/2012,2666,109.28
+Europe,Hungary,Cosmetics,Offline,H,6/10/2013,689349019,7/23/2013,2548,437.2
+Europe,Italy,Household,Offline,M,2/22/2011,677851569,3/2/2011,198,668.27
+Europe,Hungary,Clothes,Offline,H,1/21/2015,538430345,3/10/2015,2359,109.28
+Europe,Switzerland,Beverages,Online,H,1/30/2010,797461354,2/5/2010,5391,47.45
+Europe,Switzerland,Cosmetics,Offline,C,9/10/2014,347609412,9/17/2014,4205,437.2
+Europe,Russia,Personal Care,Offline,H,11/12/2011,473845756,12/16/2011,344,81.73
+Europe,Belarus,Vegetables,Online,C,1/5/2011,180479466,1/12/2011,6740,154.06
+Europe,Norway,Personal Care,Offline,M,1/14/2014,634033286,1/15/2014,3394,81.73
+Europe,Ukraine,Cereal,Offline,L,4/14/2014,559183347,5/21/2014,3633,205.7
+Europe,Armenia,Meat,Offline,M,11/9/2015,781416594,12/23/2015,7390,421.89
+Europe,Denmark,Clothes,Offline,H,5/9/2012,713357150,6/3/2012,7088,109.28
+Europe,Finland,Clothes,Online,L,4/22/2014,906794202,5/11/2014,9410,109.28

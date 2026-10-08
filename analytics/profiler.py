@@ -8,63 +8,75 @@ from pandas.api.types import (
 from analytics.dataset_loader import load_dataset
 
 
+# ============================================================
+# COLUMN ROLE DETECTION
+# ============================================================
+
 def detect_column_role(
     df: pd.DataFrame,
     column: str
 ) -> str:
     """
-    Détermine automatiquement le rôle potentiel
-    d'une colonne.
+    Détermine le rôle potentiel d'une colonne.
 
-    Les rôles possibles sont :
+    Rôles possibles :
     - identifier
     - numerical
     - categorical
     - potential_target
     - text
+    - other
+
+    Cette fonction décrit la structure de la colonne.
+    Elle ne réalise aucun contrôle de qualité.
     """
 
     series = df[column]
 
-    # =========================================
-    # IDENTIFIANT
-    # =========================================
+    # --------------------------------------------------------
+    # EMPTY DATASET
+    # --------------------------------------------------------
 
-    unique_count = series.nunique(
-        dropna=True
-    )
+    if len(series) == 0:
+        return "other"
 
-    total_count = len(series)
-
-    if total_count > 0:
-
-        uniqueness_ratio = (
-            unique_count / total_count
-        )
-
-        # Une colonne presque entièrement unique
-        # peut être un identifiant.
-        if uniqueness_ratio >= 0.95:
-
-            return "identifier"
-
-    # =========================================
-    # NUMÉRIQUE
-    # =========================================
+    # --------------------------------------------------------
+    # NUMERICAL
+    # --------------------------------------------------------
 
     if is_numeric_dtype(series):
 
+        unique_count = series.nunique(
+            dropna=True
+        )
+
+        total_count = len(series)
+
+        if total_count > 0:
+
+            uniqueness_ratio = (
+                unique_count / total_count
+            )
+
+            # Une colonne numérique presque entièrement
+            # unique peut correspondre à un identifiant.
+            #
+            # Attention : cette règle reste heuristique.
+            if uniqueness_ratio >= 0.95:
+
+                return "identifier"
+
         return "numerical"
 
-    # =========================================
-    # TEXTE / CATÉGORIEL
-    # =========================================
+    # --------------------------------------------------------
+    # TEXT / CATEGORICAL
+    # --------------------------------------------------------
 
     if is_string_dtype(series):
 
         non_empty = (
             series
-            .fillna("")
+            .dropna()
             .astype(str)
             .str.strip()
         )
@@ -78,26 +90,32 @@ def detect_column_role(
 
         unique_count = non_empty.nunique()
 
-        # Nombre de catégories relativement faible
-        # => probablement catégoriel
+        # Peu de catégories
         if unique_count <= 20:
 
-            # Si seulement 2 modalités,
-            # cela peut être une cible potentielle.
+            # Une variable binaire peut être une
+            # cible potentielle, mais ce n'est qu'une
+            # suggestion et non une certitude.
             if unique_count == 2:
 
                 return "potential_target"
 
             return "categorical"
 
+        # Beaucoup de valeurs différentes :
+        # probablement du texte libre.
         return "text"
 
-    # =========================================
-    # AUTRES TYPES
-    # =========================================
+    # --------------------------------------------------------
+    # OTHER
+    # --------------------------------------------------------
 
     return "other"
 
+
+# ============================================================
+# TOP VALUES
+# ============================================================
 
 def get_top_values(
     df: pd.DataFrame,
@@ -106,16 +124,27 @@ def get_top_values(
 ) -> dict:
     """
     Retourne les valeurs les plus fréquentes
-    d'une colonne catégorielle.
+    d'une colonne.
+
+    Utilisé uniquement pour décrire les données.
     """
 
+    series = df[column]
+
+    if series.empty:
+        return {}
+
+    # On transforme en texte uniquement pour
+    # obtenir une représentation homogène.
     series = (
-        df[column]
-        .fillna("")
+        series
+        .dropna()
         .astype(str)
         .str.strip()
     )
 
+    # Les valeurs vides ne sont pas intéressantes
+    # pour le résumé des valeurs fréquentes.
     series = series[
         series != ""
     ]
@@ -136,41 +165,28 @@ def get_top_values(
     }
 
 
+# ============================================================
+# DETAILED COLUMN PROFILE
+# ============================================================
+
 def profile_column(
     df: pd.DataFrame,
     column: str
 ) -> dict:
     """
-    Génère un profil détaillé pour une colonne.
+    Génère un profil descriptif détaillé
+    pour une colonne.
+
+    IMPORTANT :
+    Cette fonction ne détecte pas les problèmes
+    de qualité des données.
     """
 
     series = df[column]
 
-    # =========================================
-    # INFORMATIONS GÉNÉRALES
-    # =========================================
-
-    missing_count = int(
-        series.isna().sum()
-    )
-
-    empty_count = 0
-
-    if is_string_dtype(series):
-
-        empty_count = int(
-            series
-            .fillna("")
-            .astype(str)
-            .str.strip()
-            .eq("")
-            .sum()
-        )
-
-    missing_count = max(
-        missing_count,
-        empty_count
-    )
+    # --------------------------------------------------------
+    # GENERAL INFORMATION
+    # --------------------------------------------------------
 
     unique_count = int(
         series.nunique(
@@ -193,23 +209,12 @@ def profile_column(
 
         "role": role,
 
-        "missing": missing_count,
-
-        "missing_percentage": round(
-            (
-                missing_count
-                / len(df)
-                * 100
-            ),
-            2
-        ) if len(df) > 0 else 0,
-
         "unique": unique_count
     }
 
-    # =========================================
-    # COLONNE NUMÉRIQUE
-    # =========================================
+    # --------------------------------------------------------
+    # NUMERICAL COLUMN
+    # --------------------------------------------------------
 
     if is_numeric_dtype(series):
 
@@ -280,9 +285,9 @@ def profile_column(
                 )
             }
 
-    # =========================================
-    # COLONNE CATÉGORIELLE
-    # =========================================
+    # --------------------------------------------------------
+    # CATEGORICAL COLUMN
+    # --------------------------------------------------------
 
     if role in [
         "categorical",
@@ -295,9 +300,9 @@ def profile_column(
             top_n=5
         )
 
-    # =========================================
-    # TEXTE
-    # =========================================
+    # --------------------------------------------------------
+    # TEXT COLUMN
+    # --------------------------------------------------------
 
     if role == "text":
 
@@ -310,281 +315,23 @@ def profile_column(
     return result
 
 
-def profile_dataset(
-    file_path: str
-) -> dict:
+# ============================================================
+# DATE DETECTION
+# ============================================================
+
+def detect_date_columns(
+    df: pd.DataFrame,
+    threshold: float = 0.8
+) -> list:
     """
-    Analyse automatiquement un dataset.
+    Détecte les colonnes contenant probablement des dates.
 
-    Le profiling contient :
+    Pour éviter de ralentir les gros datasets,
+    un maximum de 2000 valeurs est analysé par colonne.
 
-    - informations générales
-    - aperçu des données
-    - types
-    - valeurs manquantes
-    - valeurs uniques
-    - doublons
-    - colonnes numériques
-    - colonnes catégorielles
-    - statistiques numériques
-    - statistiques catégorielles
-    - profil détaillé de chaque colonne
-    - rôle potentiel des colonnes
-    """
-
-    # =========================================
-    # CHARGEMENT
-    # =========================================
-
-    df = load_dataset(
-        file_path
-    )
-
-
-    date_columns = detect_date_columns(df)
-
-
-    measures = detect_measures(df)
-
-    dimensions = detect_dimensions(
-       df,
-       date_columns
-)
-
-    rows = len(df)
-
-    columns = len(
-        df.columns
-    )
-
-    # =========================================
-    # APERÇU DES DONNÉES
-    # =========================================
-
-    preview = (
-        df
-        .head(5)
-        .to_dict(
-            orient="records"
-        )
-    )
-
-    # =========================================
-    # TYPES
-    # =========================================
-
-    column_types = {
-        column: str(dtype)
-        for column, dtype
-        in df.dtypes.items()
-    }
-
-    # =========================================
-    # VALEURS MANQUANTES
-    # =========================================
-
-    missing_values = {}
-
-    for column in df.columns:
-
-        nan_count = int(
-            df[column]
-            .isna()
-            .sum()
-        )
-
-        empty_count = 0
-
-        if is_string_dtype(
-            df[column]
-        ):
-
-            empty_count = int(
-                df[column]
-                .fillna("")
-                .astype(str)
-                .str.strip()
-                .eq("")
-                .sum()
-            )
-
-        missing_count = max(
-            nan_count,
-            empty_count
-        )
-
-        missing_values[column] = (
-            missing_count
-        )
-
-    total_missing = sum(
-        missing_values.values()
-    )
-
-    # =========================================
-    # VALEURS UNIQUES
-    # =========================================
-
-    unique_values = {
-
-        column: int(
-            df[column]
-            .nunique(
-                dropna=True
-            )
-        )
-
-        for column in df.columns
-    }
-
-    # =========================================
-    # DOUBLONS
-    # =========================================
-
-    duplicate_rows = int(
-        df.duplicated().sum()
-    )
-
-    # =========================================
-    # COLONNES NUMÉRIQUES
-    # =========================================
-
-    numerical_columns = (
-        df
-        .select_dtypes(
-            include="number"
-        )
-        .columns
-        .tolist()
-    )
-
-    # =========================================
-    # COLONNES CATÉGORIELLES
-    # =========================================
-
-    categorical_columns = (
-        df
-        .select_dtypes(
-            include=[
-                "object",
-                "string",
-                "category",
-                "bool"
-            ]
-        )
-        .columns
-        .tolist()
-    )
-
-    # =========================================
-    # STATISTIQUES NUMÉRIQUES
-    # =========================================
-
-    numerical_statistics = {}
-
-    if numerical_columns:
-
-        numerical_statistics = (
-            df[numerical_columns]
-            .describe()
-            .round(2)
-            .to_dict()
-        )
-
-    # =========================================
-    # STATISTIQUES CATÉGORIELLES
-    # =========================================
-
-    categorical_statistics = {}
-
-    for column in categorical_columns:
-
-        categorical_statistics[column] = (
-            get_top_values(
-                df,
-                column,
-                top_n=5
-            )
-        )
-
-    # =========================================
-    # PROFIL DÉTAILLÉ DES COLONNES
-    # =========================================
-
-    columns_profile = {}
-
-    for column in df.columns:
-
-        columns_profile[column] = (
-            profile_column(
-                df,
-                column
-            )
-        )
-
-    # =========================================
-    # RÉSULTAT FINAL
-    # =========================================
-
-    return {
-
-        "dataset": str(
-            file_path
-        ),
-
-        "rows": rows,
-
-        "columns": columns,
-
-
-        "date_columns": date_columns,
-        "measures": measures,
-        "dimensions": dimensions,
-
-        "column_names":
-            df.columns.tolist(),
-
-        "column_types":
-            column_types,
-
-        "preview":
-            preview,
-
-        "missing_values":
-            missing_values,
-
-        "total_missing":
-            total_missing,
-
-        "unique_values":
-            unique_values,
-
-        "duplicate_rows":
-            duplicate_rows,
-
-        "numerical_columns":
-            numerical_columns,
-
-        "categorical_columns":
-            categorical_columns,
-
-        "numerical_statistics":
-            numerical_statistics,
-
-        "categorical_statistics":
-            categorical_statistics,
-
-        "columns_profile":
-            columns_profile
-    }
-
-
-def detect_date_columns(df, threshold=0.8):
-    """
-    Détecte les colonnes contenant des dates.
-
-    Pour éviter de ralentir les gros datasets, on analyse
-    au maximum 2000 valeurs par colonne.
+    Cette fonction fait partie du profiling :
+    elle cherche à comprendre la structure temporelle
+    du dataset.
     """
 
     date_columns = []
@@ -596,16 +343,33 @@ def detect_date_columns(df, threshold=0.8):
         if series.empty:
             continue
 
-        # Déjà reconnu comme datetime
-        if pd.api.types.is_datetime64_any_dtype(df[column]):
+        # ----------------------------------------------------
+        # Déjà au format datetime
+        # ----------------------------------------------------
+
+        if pd.api.types.is_datetime64_any_dtype(
+            df[column]
+        ):
+
             date_columns.append(column)
+
             continue
 
-        # Les colonnes numériques ne sont pas des dates
-        if not pd.api.types.is_string_dtype(df[column]):
+        # ----------------------------------------------------
+        # Les colonnes numériques ne sont pas analysées
+        # comme dates.
+        # ----------------------------------------------------
+
+        if not pd.api.types.is_string_dtype(
+            df[column]
+        ):
+
             continue
 
-        # On ne traite qu'un échantillon
+        # ----------------------------------------------------
+        # ECHANTILLON
+        # ----------------------------------------------------
+
         sample = (
             series
             .astype(str)
@@ -613,7 +377,12 @@ def detect_date_columns(df, threshold=0.8):
         )
 
         if len(sample) > 2000:
+
             sample = sample.head(2000)
+
+        # ----------------------------------------------------
+        # CONVERSION
+        # ----------------------------------------------------
 
         try:
 
@@ -626,13 +395,19 @@ def detect_date_columns(df, threshold=0.8):
             ratio = converted.notna().mean()
 
             if ratio >= threshold:
+
                 date_columns.append(column)
 
         except Exception:
+
             continue
 
     return date_columns
 
+
+# ============================================================
+# MEASURE DETECTION
+# ============================================================
 
 def detect_measures(
     df: pd.DataFrame
@@ -641,14 +416,25 @@ def detect_measures(
     Détecte les colonnes numériques pouvant
     être utilisées comme mesures BI.
 
-    Les identifiants sont exclus.
+    Exemple :
+    - Quantity
+    - Revenue
+    - Price
+    - MonthlyCharges
     """
 
     measures = []
 
     for column in df.columns:
 
-        if not is_numeric_dtype(df[column]):
+        # ----------------------------------------------------
+        # Une mesure doit être numérique.
+        # ----------------------------------------------------
+
+        if not is_numeric_dtype(
+            df[column]
+        ):
+
             continue
 
         unique_count = df[column].nunique(
@@ -664,9 +450,13 @@ def detect_measures(
             unique_count / total_count
         )
 
-        # Une colonne presque entièrement unique
-        # est probablement un identifiant.
+        # ----------------------------------------------------
+        # Les colonnes numériques presque entièrement
+        # uniques sont probablement des identifiants.
+        # ----------------------------------------------------
+
         if uniqueness_ratio >= 0.95:
+
             continue
 
         measures.append(column)
@@ -674,6 +464,9 @@ def detect_measures(
     return measures
 
 
+# ============================================================
+# DIMENSION DETECTION
+# ============================================================
 
 def detect_dimensions(
     df: pd.DataFrame,
@@ -682,14 +475,27 @@ def detect_dimensions(
     """
     Détecte les colonnes pouvant servir
     de dimensions pour l'analyse BI.
+
+    Exemple :
+    - Country
+    - Region
+    - Gender
+    - Product Category
+
+    Les dates sont exclues car elles sont déjà
+    identifiées séparément.
     """
 
     dimensions = []
 
     for column in df.columns:
 
-        # Les dates seront traitées séparément.
+        # ----------------------------------------------------
+        # Les dates sont traitées séparément.
+        # ----------------------------------------------------
+
         if column in date_columns:
+
             continue
 
         role = detect_column_role(
@@ -701,6 +507,280 @@ def detect_dimensions(
             "categorical",
             "potential_target"
         ]:
+
             dimensions.append(column)
 
     return dimensions
+
+
+# ============================================================
+# MAIN DATA PROFILING
+# ============================================================
+
+def profile_dataset(
+    file_path: str
+) -> dict:
+    """
+    Analyse automatiquement la structure d'un dataset.
+
+    Le profiling contient uniquement des informations
+    descriptives et structurelles.
+
+    Il ne réalise PAS de Data Quality.
+
+    Contenu :
+    - nombre de lignes
+    - nombre de colonnes
+    - noms des colonnes
+    - types
+    - aperçu
+    - cardinalité
+    - colonnes numériques
+    - colonnes catégorielles
+    - statistiques numériques
+    - statistiques catégorielles
+    - profil détaillé des colonnes
+    - rôles potentiels
+    - colonnes de dates
+    - mesures BI
+    - dimensions BI
+    """
+
+    # ========================================================
+    # LOAD DATASET
+    # ========================================================
+
+    df = load_dataset(
+        file_path
+    )
+
+    # ========================================================
+    # GENERAL INFORMATION
+    # ========================================================
+
+    rows = len(df)
+
+    columns = len(
+        df.columns
+    )
+
+    # ========================================================
+    # PREVIEW
+    # ========================================================
+
+    preview = (
+        df
+        .head(5)
+        .to_dict(
+            orient="records"
+        )
+    )
+
+    # ========================================================
+    # COLUMN NAMES
+    # ========================================================
+
+    column_names = (
+        df.columns.tolist()
+    )
+
+    # ========================================================
+    # COLUMN TYPES
+    # ========================================================
+
+    column_types = {
+
+        column: str(dtype)
+
+        for column, dtype
+        in df.dtypes.items()
+    }
+
+    # ========================================================
+    # UNIQUE VALUES / CARDINALITY
+    # ========================================================
+
+    unique_values = {
+
+        column: int(
+            df[column]
+            .nunique(
+                dropna=True
+            )
+        )
+
+        for column in df.columns
+    }
+
+    # ========================================================
+    # NUMERICAL COLUMNS
+    # ========================================================
+
+    numerical_columns = (
+        df
+        .select_dtypes(
+            include="number"
+        )
+        .columns
+        .tolist()
+    )
+
+    # ========================================================
+    # CATEGORICAL COLUMNS
+    # ========================================================
+
+    categorical_columns = (
+        df
+        .select_dtypes(
+            include=[
+                "object",
+                "string",
+                "category",
+                "bool"
+            ]
+        )
+        .columns
+        .tolist()
+    )
+
+    # ========================================================
+    # NUMERICAL STATISTICS
+    # ========================================================
+
+    numerical_statistics = {}
+
+    if numerical_columns:
+
+        numerical_statistics = (
+            df[numerical_columns]
+            .describe()
+            .round(2)
+            .to_dict()
+        )
+
+    # ========================================================
+    # CATEGORICAL STATISTICS
+    # ========================================================
+
+    categorical_statistics = {}
+
+    for column in categorical_columns:
+
+        categorical_statistics[column] = (
+            get_top_values(
+                df,
+                column,
+                top_n=5
+            )
+        )
+
+    # ========================================================
+    # DATE COLUMNS
+    # ========================================================
+
+    date_columns = detect_date_columns(
+        df
+    )
+
+    # ========================================================
+    # BI MEASURES
+    # ========================================================
+
+    measures = detect_measures(
+        df
+    )
+
+    # ========================================================
+    # BI DIMENSIONS
+    # ========================================================
+
+    dimensions = detect_dimensions(
+        df,
+        date_columns
+    )
+
+    # ========================================================
+    # DETAILED COLUMN PROFILES
+    # ========================================================
+
+    columns_profile = {}
+
+    for column in df.columns:
+
+        columns_profile[column] = (
+            profile_column(
+                df,
+                column
+            )
+        )
+
+    # ========================================================
+    # FINAL PROFILE
+    # ========================================================
+
+    return {
+
+        # ----------------------------------------------------
+        # GENERAL
+        # ----------------------------------------------------
+
+        "dataset": str(
+            file_path
+        ),
+
+        "rows": rows,
+
+        "columns": columns,
+
+        "column_names": column_names,
+
+        # ----------------------------------------------------
+        # STRUCTURE
+        # ----------------------------------------------------
+
+        "column_types": column_types,
+
+        "preview": preview,
+
+        "unique_values": unique_values,
+
+        # ----------------------------------------------------
+        # COLUMN CATEGORIES
+        # ----------------------------------------------------
+
+        "numerical_columns":
+            numerical_columns,
+
+        "categorical_columns":
+            categorical_columns,
+
+        # ----------------------------------------------------
+        # STATISTICS
+        # ----------------------------------------------------
+
+        "numerical_statistics":
+            numerical_statistics,
+
+        "categorical_statistics":
+            categorical_statistics,
+
+        # ----------------------------------------------------
+        # DETAILED COLUMN PROFILE
+        # ----------------------------------------------------
+
+        "columns_profile":
+            columns_profile,
+
+        # ----------------------------------------------------
+        # BI STRUCTURE
+        # ----------------------------------------------------
+
+        "date_columns":
+            date_columns,
+
+        "measures":
+            measures,
+
+        "dimensions":
+            dimensions
+    }
