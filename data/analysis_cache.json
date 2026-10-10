@@ -3353,5 +3353,794 @@
                 "inconsistency_issues": 1
             }
         }
+    },
+    "D:\\BIFlow\\data\\raw\\AB_NYC_2019.csv::1791488552.1360433": {
+        "rows": 48895,
+        "columns": 16,
+        "quality": 92.85,
+        "status_text": "● Ready",
+        "status_type": "green",
+        "profile": {
+            "dataset": "D:\\BIFlow\\data\\raw\\AB_NYC_2019.csv",
+            "rows": 48895,
+            "columns": 16,
+            "column_names": [
+                "id",
+                "name",
+                "host_id",
+                "host_name",
+                "neighbourhood_group",
+                "neighbourhood",
+                "latitude",
+                "longitude",
+                "room_type",
+                "price",
+                "minimum_nights",
+                "number_of_reviews",
+                "last_review",
+                "reviews_per_month",
+                "calculated_host_listings_count",
+                "availability_365"
+            ],
+            "column_types": {
+                "id": "int64",
+                "name": "str",
+                "host_id": "int64",
+                "host_name": "str",
+                "neighbourhood_group": "str",
+                "neighbourhood": "str",
+                "latitude": "float64",
+                "longitude": "float64",
+                "room_type": "str",
+                "price": "int64",
+                "minimum_nights": "int64",
+                "number_of_reviews": "int64",
+                "last_review": "str",
+                "reviews_per_month": "str",
+                "calculated_host_listings_count": "int64",
+                "availability_365": "int64"
+            },
+            "preview": [
+                {
+                    "id": 2539,
+                    "name": "Clean & quiet apt home by the park",
+                    "host_id": 2787,
+                    "host_name": "John",
+                    "neighbourhood_group": "Brooklyn",
+                    "neighbourhood": "Kensington",
+                    "latitude": 40.64749,
+                    "longitude": -73.97237,
+                    "room_type": "Private room",
+                    "price": 149,
+                    "minimum_nights": 1,
+                    "number_of_reviews": 9,
+                    "last_review": "2018-10-19",
+                    "reviews_per_month": "0.21",
+                    "calculated_host_listings_count": 6,
+                    "availability_365": 365
+                },
+                {
+                    "id": 2595,
+                    "name": "Skylit Midtown Castle",
+                    "host_id": 2845,
+                    "host_name": "Jennifer",
+                    "neighbourhood_group": "Manhattan",
+                    "neighbourhood": "Midtown",
+                    "latitude": 40.75362,
+                    "longitude": -73.98377,
+                    "room_type": "Entire home/apt",
+                    "price": 225,
+                    "minimum_nights": 1,
+                    "number_of_reviews": 45,
+                    "last_review": "2019-05-21",
+                    "reviews_per_month": "0.38",
+                    "calculated_host_listings_count": 2,
+                    "availability_365": 355
+                },
+                {
+                    "id": 3647,
+                    "name": "THE VILLAGE OF HARLEM....NEW YORK !",
+                    "host_id": 4632,
+                    "host_name": "Elisabeth",
+                    "neighbourhood_group": "Manhattan",
+                    "neighbourhood": "Harlem",
+                    "latitude": 40.80902,
+                    "longitude": -73.9419,
+                    "room_type": "Private room",
+                    "price": 150,
+                    "minimum_nights": 3,
+                    "number_of_reviews": 0,
+                    "last_review": "",
+                    "reviews_per_month": "",
+                    "calculated_host_listings_count": 1,
+                    "availability_365": 365
+                },
+                {
+                    "id": 3831,
+                    "name": "Cozy Entire Floor of Brownstone",
+                    "host_id": 4869,
+                    "host_name": "LisaRoxanne",
+                    "neighbourhood_group": "Brooklyn",
+                    "neighbourhood": "Clinton Hill",
+                    "latitude": 40.68514,
+                    "longitude": -73.95976,
+                    "room_type": "Entire home/apt",
+                    "price": 89,
+                    "minimum_nights": 1,
+                    "number_of_reviews": 270,
+                    "last_review": "2019-07-05",
+                    "reviews_per_month": "4.64",
+                    "calculated_host_listings_count": 1,
+                    "availability_365": 194
+                },
+                {
+                    "id": 5022,
+                    "name": "Entire Apt: Spacious Studio/Loft by central park",
+                    "host_id": 7192,
+                    "host_name": "Laura",
+                    "neighbourhood_group": "Manhattan",
+                    "neighbourhood": "East Harlem",
+                    "latitude": 40.79851,
+                    "longitude": -73.94399,
+                    "room_type": "Entire home/apt",
+                    "price": 80,
+                    "minimum_nights": 10,
+                    "number_of_reviews": 9,
+                    "last_review": "2018-11-19",
+                    "reviews_per_month": "0.10",
+                    "calculated_host_listings_count": 1,
+                    "availability_365": 0
+                }
+            ],
+            "unique_values": {
+                "id": 48895,
+                "name": 47906,
+                "host_id": 37457,
+                "host_name": 11453,
+                "neighbourhood_group": 5,
+                "neighbourhood": 221,
+                "latitude": 19048,
+                "longitude": 14718,
+                "room_type": 3,
+                "price": 674,
+                "minimum_nights": 109,
+                "number_of_reviews": 394,
+                "last_review": 1765,
+                "reviews_per_month": 948,
+                "calculated_host_listings_count": 47,
+                "availability_365": 366
+            },
+            "numerical_columns": [
+                "id",
+                "host_id",
+                "latitude",
+                "longitude",
+                "price",
+                "minimum_nights",
+                "number_of_reviews",
+                "calculated_host_listings_count",
+                "availability_365"
+            ],
+            "categorical_columns": [
+                "name",
+                "host_name",
+                "neighbourhood_group",
+                "neighbourhood",
+                "room_type",
+                "last_review",
+                "reviews_per_month"
+            ],
+            "numerical_statistics": {
+                "id": {
+                    "count": 48895.0,
+                    "mean": 19017143.24,
+                    "std": 10983108.39,
+                    "min": 2539.0,
+                    "25%": 9471945.0,
+                    "50%": 19677284.0,
+                    "75%": 29152178.5,
+                    "max": 36487245.0
+                },
+                "host_id": {
+                    "count": 48895.0,
+                    "mean": 67620010.65,
+                    "std": 78610967.03,
+                    "min": 2438.0,
+                    "25%": 7822033.0,
+                    "50%": 30793816.0,
+                    "75%": 107434423.0,
+                    "max": 274321313.0
+                },
+                "latitude": {
+                    "count": 48895.0,
+                    "mean": 40.73,
+                    "std": 0.05,
+                    "min": 40.5,
+                    "25%": 40.69,
+                    "50%": 40.72,
+                    "75%": 40.76,
+                    "max": 40.91
+                },
+                "longitude": {
+                    "count": 48895.0,
+                    "mean": -73.95,
+                    "std": 0.05,
+                    "min": -74.24,
+                    "25%": -73.98,
+                    "50%": -73.96,
+                    "75%": -73.94,
+                    "max": -73.71
+                },
+                "price": {
+                    "count": 48895.0,
+                    "mean": 152.72,
+                    "std": 240.15,
+                    "min": 0.0,
+                    "25%": 69.0,
+                    "50%": 106.0,
+                    "75%": 175.0,
+                    "max": 10000.0
+                },
+                "minimum_nights": {
+                    "count": 48895.0,
+                    "mean": 7.03,
+                    "std": 20.51,
+                    "min": 1.0,
+                    "25%": 1.0,
+                    "50%": 3.0,
+                    "75%": 5.0,
+                    "max": 1250.0
+                },
+                "number_of_reviews": {
+                    "count": 48895.0,
+                    "mean": 23.27,
+                    "std": 44.55,
+                    "min": 0.0,
+                    "25%": 1.0,
+                    "50%": 5.0,
+                    "75%": 24.0,
+                    "max": 629.0
+                },
+                "calculated_host_listings_count": {
+                    "count": 48895.0,
+                    "mean": 7.14,
+                    "std": 32.95,
+                    "min": 1.0,
+                    "25%": 1.0,
+                    "50%": 1.0,
+                    "75%": 2.0,
+                    "max": 327.0
+                },
+                "availability_365": {
+                    "count": 48895.0,
+                    "mean": 112.78,
+                    "std": 131.62,
+                    "min": 0.0,
+                    "25%": 0.0,
+                    "50%": 45.0,
+                    "75%": 227.0,
+                    "max": 365.0
+                }
+            },
+            "categorical_statistics": {
+                "name": {
+                    "Hillside Hotel": 18,
+                    "Home away from home": 17,
+                    "New york Multi-unit building": 16,
+                    "Brooklyn Apartment": 12,
+                    "Loft Suite @ The Box House Hotel": 11
+                },
+                "host_name": {
+                    "Michael": 417,
+                    "David": 403,
+                    "Sonder (NYC)": 327,
+                    "John": 294,
+                    "Alex": 279
+                },
+                "neighbourhood_group": {
+                    "Manhattan": 21661,
+                    "Brooklyn": 20104,
+                    "Queens": 5666,
+                    "Bronx": 1091,
+                    "Staten Island": 373
+                },
+                "neighbourhood": {
+                    "Williamsburg": 3920,
+                    "Bedford-Stuyvesant": 3714,
+                    "Harlem": 2658,
+                    "Bushwick": 2465,
+                    "Upper West Side": 1971
+                },
+                "room_type": {
+                    "Entire home/apt": 25409,
+                    "Private room": 22326,
+                    "Shared room": 1160
+                },
+                "last_review": {
+                    "2019-06-23": 1413,
+                    "2019-07-01": 1359,
+                    "2019-06-30": 1341,
+                    "2019-06-24": 875,
+                    "2019-07-07": 718
+                },
+                "reviews_per_month": {
+                    "0.02": 919,
+                    "0.05": 893,
+                    "1": 827,
+                    "0.03": 804,
+                    "0.16": 667
+                }
+            },
+            "columns_profile": {
+                "id": {
+                    "name": "id",
+                    "type": "int64",
+                    "role": "identifier",
+                    "unique": 48895,
+                    "statistics": {
+                        "count": 48895,
+                        "mean": 19017143.24,
+                        "median": 19677284.0,
+                        "std": 10983108.39,
+                        "min": 2539.0,
+                        "max": 36487245.0,
+                        "q25": 9471945.0,
+                        "q50": 19677284.0,
+                        "q75": 29152178.5
+                    }
+                },
+                "name": {
+                    "name": "name",
+                    "type": "str",
+                    "role": "text",
+                    "unique": 47906,
+                    "top_values": {
+                        "Hillside Hotel": 18,
+                        "Home away from home": 17,
+                        "New york Multi-unit building": 16,
+                        "Brooklyn Apartment": 12,
+                        "Loft Suite @ The Box House Hotel": 11
+                    }
+                },
+                "host_id": {
+                    "name": "host_id",
+                    "type": "int64",
+                    "role": "numerical",
+                    "unique": 37457,
+                    "statistics": {
+                        "count": 48895,
+                        "mean": 67620010.65,
+                        "median": 30793816.0,
+                        "std": 78610967.03,
+                        "min": 2438.0,
+                        "max": 274321313.0,
+                        "q25": 7822033.0,
+                        "q50": 30793816.0,
+                        "q75": 107434423.0
+                    }
+                },
+                "host_name": {
+                    "name": "host_name",
+                    "type": "str",
+                    "role": "text",
+                    "unique": 11453,
+                    "top_values": {
+                        "Michael": 417,
+                        "David": 403,
+                        "Sonder (NYC)": 327,
+                        "John": 294,
+                        "Alex": 279
+                    }
+                },
+                "neighbourhood_group": {
+                    "name": "neighbourhood_group",
+                    "type": "str",
+                    "role": "categorical",
+                    "unique": 5,
+                    "top_values": {
+                        "Manhattan": 21661,
+                        "Brooklyn": 20104,
+                        "Queens": 5666,
+                        "Bronx": 1091,
+                        "Staten Island": 373
+                    }
+                },
+                "neighbourhood": {
+                    "name": "neighbourhood",
+                    "type": "str",
+                    "role": "text",
+                    "unique": 221,
+                    "top_values": {
+                        "Williamsburg": 3920,
+                        "Bedford-Stuyvesant": 3714,
+                        "Harlem": 2658,
+                        "Bushwick": 2465,
+                        "Upper West Side": 1971
+                    }
+                },
+                "latitude": {
+                    "name": "latitude",
+                    "type": "float64",
+                    "role": "numerical",
+                    "unique": 19048,
+                    "statistics": {
+                        "count": 48895,
+                        "mean": 40.73,
+                        "median": 40.72,
+                        "std": 0.05,
+                        "min": 40.5,
+                        "max": 40.91,
+                        "q25": 40.69,
+                        "q50": 40.72,
+                        "q75": 40.76
+                    }
+                },
+                "longitude": {
+                    "name": "longitude",
+                    "type": "float64",
+                    "role": "numerical",
+                    "unique": 14718,
+                    "statistics": {
+                        "count": 48895,
+                        "mean": -73.95,
+                        "median": -73.96,
+                        "std": 0.05,
+                        "min": -74.24,
+                        "max": -73.71,
+                        "q25": -73.98,
+                        "q50": -73.96,
+                        "q75": -73.94
+                    }
+                },
+                "room_type": {
+                    "name": "room_type",
+                    "type": "str",
+                    "role": "categorical",
+                    "unique": 3,
+                    "top_values": {
+                        "Entire home/apt": 25409,
+                        "Private room": 22326,
+                        "Shared room": 1160
+                    }
+                },
+                "price": {
+                    "name": "price",
+                    "type": "int64",
+                    "role": "numerical",
+                    "unique": 674,
+                    "statistics": {
+                        "count": 48895,
+                        "mean": 152.72,
+                        "median": 106.0,
+                        "std": 240.15,
+                        "min": 0.0,
+                        "max": 10000.0,
+                        "q25": 69.0,
+                        "q50": 106.0,
+                        "q75": 175.0
+                    }
+                },
+                "minimum_nights": {
+                    "name": "minimum_nights",
+                    "type": "int64",
+                    "role": "numerical",
+                    "unique": 109,
+                    "statistics": {
+                        "count": 48895,
+                        "mean": 7.03,
+                        "median": 3.0,
+                        "std": 20.51,
+                        "min": 1.0,
+                        "max": 1250.0,
+                        "q25": 1.0,
+                        "q50": 3.0,
+                        "q75": 5.0
+                    }
+                },
+                "number_of_reviews": {
+                    "name": "number_of_reviews",
+                    "type": "int64",
+                    "role": "numerical",
+                    "unique": 394,
+                    "statistics": {
+                        "count": 48895,
+                        "mean": 23.27,
+                        "median": 5.0,
+                        "std": 44.55,
+                        "min": 0.0,
+                        "max": 629.0,
+                        "q25": 1.0,
+                        "q50": 5.0,
+                        "q75": 24.0
+                    }
+                },
+                "last_review": {
+                    "name": "last_review",
+                    "type": "str",
+                    "role": "text",
+                    "unique": 1765,
+                    "top_values": {
+                        "2019-06-23": 1413,
+                        "2019-07-01": 1359,
+                        "2019-06-30": 1341,
+                        "2019-06-24": 875,
+                        "2019-07-07": 718
+                    }
+                },
+                "reviews_per_month": {
+                    "name": "reviews_per_month",
+                    "type": "str",
+                    "role": "text",
+                    "unique": 948,
+                    "top_values": {
+                        "0.02": 919,
+                        "0.05": 893,
+                        "1": 827,
+                        "0.03": 804,
+                        "0.16": 667
+                    }
+                },
+                "calculated_host_listings_count": {
+                    "name": "calculated_host_listings_count",
+                    "type": "int64",
+                    "role": "numerical",
+                    "unique": 47,
+                    "statistics": {
+                        "count": 48895,
+                        "mean": 7.14,
+                        "median": 1.0,
+                        "std": 32.95,
+                        "min": 1.0,
+                        "max": 327.0,
+                        "q25": 1.0,
+                        "q50": 1.0,
+                        "q75": 2.0
+                    }
+                },
+                "availability_365": {
+                    "name": "availability_365",
+                    "type": "int64",
+                    "role": "numerical",
+                    "unique": 366,
+                    "statistics": {
+                        "count": 48895,
+                        "mean": 112.78,
+                        "median": 45.0,
+                        "std": 131.62,
+                        "min": 0.0,
+                        "max": 365.0,
+                        "q25": 0.0,
+                        "q50": 45.0,
+                        "q75": 227.0
+                    }
+                }
+            },
+            "date_columns": [
+                "last_review"
+            ],
+            "measures": [
+                "host_id",
+                "latitude",
+                "longitude",
+                "price",
+                "minimum_nights",
+                "number_of_reviews",
+                "calculated_host_listings_count",
+                "availability_365"
+            ],
+            "dimensions": [
+                "neighbourhood_group",
+                "room_type"
+            ]
+        },
+        "quality_report": {
+            "dataset": "D:\\BIFlow\\data\\raw\\AB_NYC_2019.csv",
+            "rows": 48895,
+            "columns": 16,
+            "quality_score": 92.85,
+            "missing_values": {
+                "columns": {
+                    "name": {
+                        "count": 16,
+                        "percentage": 0.03
+                    },
+                    "host_name": {
+                        "count": 21,
+                        "percentage": 0.04
+                    },
+                    "last_review": {
+                        "count": 10052,
+                        "percentage": 20.56
+                    },
+                    "reviews_per_month": {
+                        "count": 10052,
+                        "percentage": 20.56
+                    }
+                },
+                "total": 20141
+            },
+            "duplicates": {
+                "count": 0,
+                "percentage": 0.0,
+                "has_duplicates": false
+            },
+            "type_issues": {
+                "reviews_per_month": {
+                    "current_type": "str",
+                    "expected_type": "numeric",
+                    "numeric_values": 38843,
+                    "total_values": 38843,
+                    "numeric_ratio": 100.0,
+                    "message": "La colonne 'reviews_per_month' est stockée comme texte alors que 100.00% de ses valeurs sont numériques."
+                }
+            },
+            "inconsistencies": {
+                "name": {
+                    "whitespace_values": 238,
+                    "message": "238 valeur(s) contiennent des espaces inutiles."
+                }
+            },
+            "outliers": {
+                "host_id": {
+                    "count": 1526,
+                    "percentage": 3.12,
+                    "lower_bound": -141596552.0,
+                    "upper_bound": 256853008.0,
+                    "message": "1526 valeur(s) potentiellement aberrante(s) détectée(s)."
+                },
+                "latitude": {
+                    "count": 425,
+                    "percentage": 0.87,
+                    "lower_bound": 40.58,
+                    "upper_bound": 40.87,
+                    "message": "425 valeur(s) potentiellement aberrante(s) détectée(s)."
+                },
+                "longitude": {
+                    "count": 2833,
+                    "percentage": 5.79,
+                    "lower_bound": -74.05,
+                    "upper_bound": -73.87,
+                    "message": "2833 valeur(s) potentiellement aberrante(s) détectée(s)."
+                },
+                "price": {
+                    "count": 2972,
+                    "percentage": 6.08,
+                    "lower_bound": -90.0,
+                    "upper_bound": 334.0,
+                    "message": "2972 valeur(s) potentiellement aberrante(s) détectée(s)."
+                },
+                "minimum_nights": {
+                    "count": 6607,
+                    "percentage": 13.51,
+                    "lower_bound": -5.0,
+                    "upper_bound": 11.0,
+                    "message": "6607 valeur(s) potentiellement aberrante(s) détectée(s)."
+                },
+                "number_of_reviews": {
+                    "count": 6021,
+                    "percentage": 12.31,
+                    "lower_bound": -33.5,
+                    "upper_bound": 58.5,
+                    "message": "6021 valeur(s) potentiellement aberrante(s) détectée(s)."
+                },
+                "calculated_host_listings_count": {
+                    "count": 7081,
+                    "percentage": 14.48,
+                    "lower_bound": -0.5,
+                    "upper_bound": 3.5,
+                    "message": "7081 valeur(s) potentiellement aberrante(s) détectée(s)."
+                }
+            },
+            "date_issues": {},
+            "constant_columns": {},
+            "issue_levels": {
+                "errors": {
+                    "missing_values": {
+                        "columns": {
+                            "name": {
+                                "count": 16,
+                                "percentage": 0.03
+                            },
+                            "host_name": {
+                                "count": 21,
+                                "percentage": 0.04
+                            },
+                            "last_review": {
+                                "count": 10052,
+                                "percentage": 20.56
+                            },
+                            "reviews_per_month": {
+                                "count": 10052,
+                                "percentage": 20.56
+                            }
+                        },
+                        "total": 20141
+                    },
+                    "type_issues": {
+                        "reviews_per_month": {
+                            "current_type": "str",
+                            "expected_type": "numeric",
+                            "numeric_values": 38843,
+                            "total_values": 38843,
+                            "numeric_ratio": 100.0,
+                            "message": "La colonne 'reviews_per_month' est stockée comme texte alors que 100.00% de ses valeurs sont numériques."
+                        }
+                    }
+                },
+                "warnings": {
+                    "inconsistencies": {
+                        "name": {
+                            "whitespace_values": 238,
+                            "message": "238 valeur(s) contiennent des espaces inutiles."
+                        }
+                    },
+                    "outliers": {
+                        "host_id": {
+                            "count": 1526,
+                            "percentage": 3.12,
+                            "lower_bound": -141596552.0,
+                            "upper_bound": 256853008.0,
+                            "message": "1526 valeur(s) potentiellement aberrante(s) détectée(s)."
+                        },
+                        "latitude": {
+                            "count": 425,
+                            "percentage": 0.87,
+                            "lower_bound": 40.58,
+                            "upper_bound": 40.87,
+                            "message": "425 valeur(s) potentiellement aberrante(s) détectée(s)."
+                        },
+                        "longitude": {
+                            "count": 2833,
+                            "percentage": 5.79,
+                            "lower_bound": -74.05,
+                            "upper_bound": -73.87,
+                            "message": "2833 valeur(s) potentiellement aberrante(s) détectée(s)."
+                        },
+                        "price": {
+                            "count": 2972,
+                            "percentage": 6.08,
+                            "lower_bound": -90.0,
+                            "upper_bound": 334.0,
+                            "message": "2972 valeur(s) potentiellement aberrante(s) détectée(s)."
+                        },
+                        "minimum_nights": {
+                            "count": 6607,
+                            "percentage": 13.51,
+                            "lower_bound": -5.0,
+                            "upper_bound": 11.0,
+                            "message": "6607 valeur(s) potentiellement aberrante(s) détectée(s)."
+                        },
+                        "number_of_reviews": {
+                            "count": 6021,
+                            "percentage": 12.31,
+                            "lower_bound": -33.5,
+                            "upper_bound": 58.5,
+                            "message": "6021 valeur(s) potentiellement aberrante(s) détectée(s)."
+                        },
+                        "calculated_host_listings_count": {
+                            "count": 7081,
+                            "percentage": 14.48,
+                            "lower_bound": -0.5,
+                            "upper_bound": 3.5,
+                            "message": "7081 valeur(s) potentiellement aberrante(s) détectée(s)."
+                        }
+                    }
+                },
+                "information": {}
+            },
+            "summary": {
+                "missing_issues": 4,
+                "missing_values": 20141,
+                "duplicate_rows": 0,
+                "type_issues": 1,
+                "inconsistency_issues": 1,
+                "outlier_issues": 7,
+                "date_issues": 0,
+                "constant_columns": 0,
+                "errors": 2,
+                "warnings": 2,
+                "information": 0
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ import sys
 import json
 
 import streamlit as st
+from urllib.parse import quote
 
 
 # ============================================================
@@ -879,9 +880,34 @@ for dataset_path in datasets:
     # TABLE ROW
     # --------------------------------------------------------
 
+        # --------------------------------------------------------
+    # TABLE ROW
+    # --------------------------------------------------------
+
+    dataset_url = (
+        "/Data_Quality?dataset="
+        + quote(str(dataset_path))
+    )
+
     dataset_cell = (
-        f"<b>{dataset_name}</b>"
-        f"<small>{description}</small>"
+        f"""
+        <a href="{dataset_url}"
+           target="_self"
+           style="
+               color:#0f172a;
+               text-decoration:none;
+               font-weight:700;
+               display:block;
+           ">
+
+            {dataset_name}
+
+        </a>
+
+        <small>
+            {description}
+        </small>
+        """
     )
 
     status_cell = badge(
@@ -900,7 +926,6 @@ for dataset_path in datasets:
             status_cell,
         ]
     )
-
 
 # ============================================================
 # DATASET TABLE
