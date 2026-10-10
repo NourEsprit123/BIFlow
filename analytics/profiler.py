@@ -1,786 +1,890 @@
+
+# ============================================================
+# BIFlow - GENERIC DATASET PROFILER
+# Profilage descriptif uniquement : aucune modification des donnees
+# Formats : CSV, Excel, JSON, Parquet
+# ============================================================
+
+import argparse
+import json
+import os
+from pathlib import Path
+from datetime import date, datetime
+
+import numpy as np
 import pandas as pd
 
-from pandas.api.types import (
-    is_numeric_dtype,
-    is_string_dtype
-)
+from dotenv import load_dotenv
 
-from analytics.dataset_loader import load_dataset
+load_dotenv()
 
 
 # ============================================================
-# COLUMN ROLE DETECTION
+# CONFIGURATION
 # ============================================================
 
-def detect_column_role(
-    df: pd.DataFrame,
-    column: str
-) -> str:
+BASE_DIR = Path(__file__).resolve().parent.parent
+REPORTS_DIR = BASE_DIR / "reports"
+
+SUPPORTED_FORMATS = {
+    ".csv", ".xlsx", ".xls", ".json", ".parquet"
+}
+
+MAX_EXAMPLES = 5
+MAX_CATEGORIES = 10
+MAX_TEXT_LENGTH_SAMPLE = 500
+
+
+# ============================================================
+# JSON SERIALIZATION
+# ============================================================
+
+def json_safe(value):
+    """Convertit les objets NumPy/Pandas en valeurs JSON compatibles."""
+
+    if value is None:
+        return None
+
+    if isinstance(value, dict):
+        return {str(k): json_safe(v) for k, v in value.items()}
+
+    if isinstance(value, (list, tuple)):
+        return [json_safe(v) for v in value]
+
+    if isinstance(value, (pd.Timestamp, datetime, date)):
+        return value.isoformat()
+
+    if isinstance(value, Path):
+        return str(value)
+
+    if isinstance(value, np.generic):
+        return json_safe(value.item())
+
+    if isinstance(value, float) and not np.isfinite(value):
+        return None
+
+    if pd.isna(value):
+        return None
+
+    if isinstance(value, (str, int, float, bool)):
+        return value
+
+    return str(value)
+
+
+# ============================================================
+# DATASET LOADING
+# ============================================================
+
+def load_dataset(
+    file_path,
+    has_header=True,
+    sheet_name=0,
+    encoding=None
+):
     """
-    Détermine le rôle potentiel d'une colonne.
+    Charge un dataset sans modifier les valeurs originales.
 
-    Rôles possibles :
-    - identifier
-    - numerical
-    - categorical
-    - potential_target
-    - text
-    - other
-
-    Cette fonction décrit la structure de la colonne.
-    Elle ne réalise aucun contrôle de qualité.
+    has_header=True  : la premiere ligne contient les noms.
+    has_header=False : le fichier n'a pas de ligne d'en-tete.
     """
 
-    series = df[column]
+    path = Path(file_path)
 
-    # --------------------------------------------------------
-    # EMPTY DATASET
-    # --------------------------------------------------------
+    if not path.is_absolute():
+        path = BASE_DIR / path
 
-    if len(series) == 0:
-        return "other"
+    if not path.exists():
+        raise FileNotFoundError(f"Fichier introuvable : {path}")
 
-    # --------------------------------------------------------
-    # NUMERICAL
-    # --------------------------------------------------------
+    extension = path.suffix.lower()
 
-    if is_numeric_dtype(series):
-
-        unique_count = series.nunique(
-            dropna=True
+    if extension not in SUPPORTED_FORMATS:
+        raise ValueError(
+            f"Format non supporte : {extension}. "
+            f"Formats acceptes : {', '.join(sorted(SUPPORTED_FORMATS))}"
         )
 
-        total_count = len(series)
+    if extension == ".csv":
+        options = {
+            "header": 0 if has_header else None,
+            "low_memory": False,
+        }
 
-        if total_count > 0:
+        if encoding:
+            options["encoding"] = encoding
 
-            uniqueness_ratio = (
-                unique_count / total_count
+        df = pd.read_csv(path, **options)
+
+    elif extension in {".xlsx", ".xls"}:
+        df = pd.read_excel(
+            path,
+            sheet_name=sheet_name,
+            header=0 if has_header else None
+        )
+
+    elif extension == ".json":
+        with open(path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+
+        if isinstance(data, list):
+            df = pd.json_normalize(data)
+
+        elif isinstance(data, dict):
+            # Les objets JSON peuvent representer un tableau de donnees
+            # ou un objet unique. On traite les deux possibilites.
+            if data and all(isinstance(v, list) for v in data.values()):
+                try:
+                    df = pd.DataFrame(data)
+                except ValueError:
+                    df = pd.json_normalize(data)
+            else:
+                df = pd.json_normalize(data)
+
+        else:
+            raise ValueError(
+                "La racine du JSON doit etre un objet ou une liste."
             )
 
-            # Une colonne numérique presque entièrement
-            # unique peut correspondre à un identifiant.
-            #
-            # Attention : cette règle reste heuristique.
-            if uniqueness_ratio >= 0.95:
+    else:  # Parquet
+        df = pd.read_parquet(path)
 
-                return "identifier"
-
-        return "numerical"
-
-    # --------------------------------------------------------
-    # TEXT / CATEGORICAL
-    # --------------------------------------------------------
-
-    if is_string_dtype(series):
-
-        non_empty = (
-            series
-            .dropna()
-            .astype(str)
-            .str.strip()
-        )
-
-        non_empty = non_empty[
-            non_empty != ""
+    # Les fichiers sans en-tete recoivent des noms techniques.
+    # Cela ne change pas le contenu des cellules.
+    if extension in {".csv", ".xlsx", ".xls"} and not has_header:
+        df.columns = [
+            f"column_{i + 1}" for i in range(len(df.columns))
         ]
 
-        if len(non_empty) == 0:
-            return "text"
+    # Des noms dupliques peuvent exister dans les fichiers.
+    # On les rend uniques pour faciliter le traitement des colonnes.
+    unique_columns = []
+    seen = {}
 
-        unique_count = non_empty.nunique()
+    for column in df.columns:
+        name = str(column)
+        count = seen.get(name, 0)
+        seen[name] = count + 1
 
-        # Peu de catégories
-        if unique_count <= 20:
+        if count:
+            name = f"{name}_{count + 1}"
 
-            # Une variable binaire peut être une
-            # cible potentielle, mais ce n'est qu'une
-            # suggestion et non une certitude.
-            if unique_count == 2:
+        unique_columns.append(name)
 
-                return "potential_target"
+    df.columns = unique_columns
 
-            return "categorical"
-
-        # Beaucoup de valeurs différentes :
-        # probablement du texte libre.
-        return "text"
-
-    # --------------------------------------------------------
-    # OTHER
-    # --------------------------------------------------------
-
-    return "other"
+    return df, path
 
 
 # ============================================================
-# TOP VALUES
+# TYPE DETECTION
 # ============================================================
 
-def get_top_values(
-    df: pd.DataFrame,
-    column: str,
-    top_n: int = 5
-) -> dict:
+
+
+def detect_variable_type(series):
     """
-    Retourne les valeurs les plus fréquentes
-    d'une colonne.
+    Détecte le type technique et la nature probable d'une variable
+    sans modifier les données originales.
 
-    Utilisé uniquement pour décrire les données.
+    Les chaînes vides et les chaînes composées d'espaces sont
+    considérées comme des valeurs manquantes.
     """
 
-    series = df[column]
+    dtype = str(series.dtype)
+    total = len(series)
 
-    if series.empty:
-        return {}
+    # =========================================================
+    # 1. DETECTION DES VALEURS MANQUANTES
+    # =========================================================
 
-    # On transforme en texte uniquement pour
-    # obtenir une représentation homogène.
-    series = (
-        series
-        .dropna()
-        .astype(str)
+    # Détecter les chaînes vides ou composées d'espaces.
+    blank_mask = (
+        series.astype("string")
         .str.strip()
+        .eq("")
+        .fillna(False)
     )
 
-    # Les valeurs vides ne sont pas intéressantes
-    # pour le résumé des valeurs fréquentes.
-    series = series[
-        series != ""
-    ]
+    # Une valeur est manquante si elle est NaN, None ou vide.
+    missing_mask = series.isna() | blank_mask
 
-    if series.empty:
-        return {}
+    # Exclure les valeurs manquantes pour la classification.
+    non_null = series[~missing_mask]
 
-    value_counts = (
-        series
-        .value_counts()
-        .head(top_n)
-    )
+    missing_count = int(missing_mask.sum())
+    non_missing_count = int(non_null.size)
 
-    return {
-        str(value): int(count)
-        for value, count
-        in value_counts.items()
-    }
-
-
-# ============================================================
-# DETAILED COLUMN PROFILE
-# ============================================================
-
-def profile_column(
-    df: pd.DataFrame,
-    column: str
-) -> dict:
-    """
-    Génère un profil descriptif détaillé
-    pour une colonne.
-
-    IMPORTANT :
-    Cette fonction ne détecte pas les problèmes
-    de qualité des données.
-    """
-
-    series = df[column]
-
-    # --------------------------------------------------------
-    # GENERAL INFORMATION
-    # --------------------------------------------------------
-
-    unique_count = int(
-        series.nunique(
-            dropna=True
-        )
-    )
-
-    role = detect_column_role(
-        df,
-        column
+    missing_percentage = (
+        round(missing_count / total * 100, 2)
+        if total > 0
+        else 0.0
     )
 
     result = {
-
-        "name": column,
-
-        "type": str(
-            series.dtype
-        ),
-
-        "role": role,
-
-        "unique": unique_count
+        "technical_type": dtype,
+        "semantic_type": "unknown",
+        "classification_method": "dtype",
+        "non_missing_count": non_missing_count,
+        "missing_count": missing_count,
+        "missing_percentage": missing_percentage,
     }
 
-    # --------------------------------------------------------
-    # NUMERICAL COLUMN
-    # --------------------------------------------------------
+    # =========================================================
+    # 2. COLONNE VIDE
+    # =========================================================
 
-    if is_numeric_dtype(series):
+    if non_null.empty:
+        result["semantic_type"] = "empty"
+        return result
 
-        numeric_series = series.dropna()
+    # =========================================================
+    # 3. TYPE BOOLEEN NATIF
+    # =========================================================
 
-        if not numeric_series.empty:
+    if pd.api.types.is_bool_dtype(series):
+        result["semantic_type"] = "boolean"
+        return result
 
-            result["statistics"] = {
+    # =========================================================
+    # 4. TYPE DATE NATIF
+    # =========================================================
 
-                "count": int(
-                    numeric_series.count()
-                ),
+    if pd.api.types.is_datetime64_any_dtype(series):
+        result["semantic_type"] = "datetime"
+        return result
 
-                "mean": round(
-                    float(
-                        numeric_series.mean()
-                    ),
-                    2
-                ),
+    # =========================================================
+    # 5. TYPES NUMERIQUES NATIFS
+    # =========================================================
 
-                "median": round(
-                    float(
-                        numeric_series.median()
-                    ),
-                    2
-                ),
+    if pd.api.types.is_numeric_dtype(series):
+        name = str(series.name).lower()
 
-                "std": round(
-                    float(
-                        numeric_series.std()
-                    ),
-                    2
-                ),
-
-                "min": round(
-                    float(
-                        numeric_series.min()
-                    ),
-                    2
-                ),
-
-                "max": round(
-                    float(
-                        numeric_series.max()
-                    ),
-                    2
-                ),
-
-                "q25": round(
-                    float(
-                        numeric_series.quantile(0.25)
-                    ),
-                    2
-                ),
-
-                "q50": round(
-                    float(
-                        numeric_series.quantile(0.50)
-                    ),
-                    2
-                ),
-
-                "q75": round(
-                    float(
-                        numeric_series.quantile(0.75)
-                    ),
-                    2
-                )
-            }
-
-    # --------------------------------------------------------
-    # CATEGORICAL COLUMN
-    # --------------------------------------------------------
-
-    if role in [
-        "categorical",
-        "potential_target"
-    ]:
-
-        result["top_values"] = get_top_values(
-            df,
-            column,
-            top_n=5
+        identifier_words = (
+            "id",
+            "identifier",
+            "code",
+            "postal",
+            "zip",
+            "phone",
+            "telephone",
+            "numsequence",
+            "customerid",
+            "userid",
+            "accountid",
         )
 
-    # --------------------------------------------------------
-    # TEXT COLUMN
-    # --------------------------------------------------------
-
-    if role == "text":
-
-        result["top_values"] = get_top_values(
-            df,
-            column,
-            top_n=5
+        result["semantic_type"] = (
+            "identifier"
+            if any(word in name for word in identifier_words)
+            else "numeric"
         )
+
+        result["distinct_count"] = int(non_null.nunique())
+        return result
+
+    # =========================================================
+    # 6. PREPARATION DES COLONNES TEXTE
+    # =========================================================
+
+    text = non_null.astype("string").str.strip()
+    text = text[text != ""]
+
+    if text.empty:
+        result["semantic_type"] = "empty_or_blank"
+        return result
+
+    lowered = text.str.lower()
+
+    # =========================================================
+    # 7. DETECTION DE VARIABLES BOOLEENNES
+    # =========================================================
+
+    boolean_values = {
+        "true",
+        "false",
+        "yes",
+        "no",
+        "oui",
+        "non",
+    }
+
+    if lowered.isin(boolean_values).all() and lowered.nunique() <= 2:
+        result["semantic_type"] = "boolean_candidate"
+        result["classification_method"] = "value_pattern"
+        result["distinct_count"] = int(lowered.nunique())
+        return result
+
+    # =========================================================
+    # 8. DETECTION DE NOMBRES STOCKES EN TEXTE
+    # =========================================================
+
+    normalized = (
+        text.str.replace("\u00a0", "", regex=False)
+        .str.replace(" ", "", regex=False)
+        .str.replace(",", ".", regex=False)
+    )
+
+    numeric_values = pd.to_numeric(
+        normalized,
+        errors="coerce"
+    )
+
+    numeric_ratio = (
+        float(numeric_values.notna().mean())
+        if len(numeric_values) > 0
+        else 0.0
+    )
+
+    if numeric_ratio >= 0.50:
+        result["semantic_type"] = "numeric_candidate"
+        result["classification_method"] = "value_pattern"
+
+        # Pourcentage calculé uniquement sur les valeurs présentes.
+        result["numeric_parse_percentage"] = round(
+            numeric_ratio * 100, 2
+        )
+
+        result["distinct_count"] = int(
+            numeric_values.dropna().nunique()
+        )
+
+        result["numeric_parsed_count"] = int(
+            numeric_values.notna().sum()
+        )
+
+        result["numeric_unparsed_count"] = int(
+            numeric_values.isna().sum()
+        )
+
+        return result
+
+    # =========================================================
+    # 9. DETECTION INDICATIVE DE DATES STOCKEES EN TEXTE
+    # =========================================================
+
+    try:
+        parsed_dates = pd.to_datetime(
+            text.head(200),
+            errors="coerce",
+            format="mixed"
+        )
+
+        date_ratio = float(parsed_dates.notna().mean())
+
+    except (ValueError, TypeError):
+        date_ratio = 0.0
+
+    if date_ratio >= 0.90:
+        result["semantic_type"] = "datetime_candidate"
+        result["classification_method"] = "value_pattern"
+        result["date_parse_percentage"] = round(
+            date_ratio * 100, 2
+        )
+        return result
+
+    # =========================================================
+    # 10. DETECTION DES VARIABLES CATEGORIELLES ET TEXTUELLES
+    # =========================================================
+
+    distinct_count = int(text.nunique())
+    distinct_ratio = (
+        distinct_count / len(text)
+        if len(text) > 0
+        else 0.0
+    )
+
+    average_length = float(
+        text.str.len().mean()
+    ) if len(text) > 0 else 0.0
+
+    result["distinct_count"] = distinct_count
+
+    if distinct_count <= 20 or distinct_ratio <= 0.20:
+        result["semantic_type"] = "categorical"
+
+    elif average_length > 50:
+        result["semantic_type"] = "text"
+
+    else:
+        result["semantic_type"] = "text_or_identifier"
+
+    result["classification_method"] = "value_pattern"
 
     return result
 
 
-# ============================================================
-# DATE DETECTION
-# ============================================================
-
-def detect_date_columns(
-    df: pd.DataFrame,
-    threshold: float = 0.8
-) -> list:
-    """
-    Détecte les colonnes contenant probablement des dates.
-
-    Pour éviter de ralentir les gros datasets,
-    un maximum de 2000 valeurs est analysé par colonne.
-
-    Cette fonction fait partie du profiling :
-    elle cherche à comprendre la structure temporelle
-    du dataset.
-    """
-
-    date_columns = []
-
-    for column in df.columns:
-
-        series = df[column].dropna()
-
-        if series.empty:
-            continue
-
-        # ----------------------------------------------------
-        # Déjà au format datetime
-        # ----------------------------------------------------
-
-        if pd.api.types.is_datetime64_any_dtype(
-            df[column]
-        ):
-
-            date_columns.append(column)
-
-            continue
-
-        # ----------------------------------------------------
-        # Les colonnes numériques ne sont pas analysées
-        # comme dates.
-        # ----------------------------------------------------
-
-        if not pd.api.types.is_string_dtype(
-            df[column]
-        ):
-
-            continue
-
-        # ----------------------------------------------------
-        # ECHANTILLON
-        # ----------------------------------------------------
-
-        sample = (
-            series
-            .astype(str)
-            .str.strip()
-        )
-
-        if len(sample) > 2000:
-
-            sample = sample.head(2000)
-
-        # ----------------------------------------------------
-        # CONVERSION
-        # ----------------------------------------------------
-
-        try:
-
-            converted = pd.to_datetime(
-                sample,
-                errors="coerce",
-                format="mixed"
-            )
-
-            ratio = converted.notna().mean()
-
-            if ratio >= threshold:
-
-                date_columns.append(column)
-
-        except Exception:
-
-            continue
-
-    return date_columns
-
 
 # ============================================================
-# MEASURE DETECTION
+# NUMERIC DESCRIPTIVE STATISTICS
 # ============================================================
 
-def detect_measures(
-    df: pd.DataFrame
-) -> list:
-    """
-    Détecte les colonnes numériques pouvant
-    être utilisées comme mesures BI.
+def numeric_statistics(series):
+    """Statistiques d'une colonne numerique native."""
 
-    Exemple :
-    - Quantity
-    - Revenue
-    - Price
-    - MonthlyCharges
-    """
+    values = series.dropna()
 
-    measures = []
+    if values.empty:
+        return {"available": False, "reason": "Aucune valeur numerique"}
 
-    for column in df.columns:
-
-        # ----------------------------------------------------
-        # Une mesure doit être numérique.
-        # ----------------------------------------------------
-
-        if not is_numeric_dtype(
-            df[column]
-        ):
-
-            continue
-
-        unique_count = df[column].nunique(
-            dropna=True
-        )
-
-        total_count = len(df)
-
-        if total_count == 0:
-            continue
-
-        uniqueness_ratio = (
-            unique_count / total_count
-        )
-
-        # ----------------------------------------------------
-        # Les colonnes numériques presque entièrement
-        # uniques sont probablement des identifiants.
-        # ----------------------------------------------------
-
-        if uniqueness_ratio >= 0.95:
-
-            continue
-
-        measures.append(column)
-
-    return measures
-
-
-# ============================================================
-# DIMENSION DETECTION
-# ============================================================
-
-def detect_dimensions(
-    df: pd.DataFrame,
-    date_columns: list
-) -> list:
-    """
-    Détecte les colonnes pouvant servir
-    de dimensions pour l'analyse BI.
-
-    Exemple :
-    - Country
-    - Region
-    - Gender
-    - Product Category
-
-    Les dates sont exclues car elles sont déjà
-    identifiées séparément.
-    """
-
-    dimensions = []
-
-    for column in df.columns:
-
-        # ----------------------------------------------------
-        # Les dates sont traitées séparément.
-        # ----------------------------------------------------
-
-        if column in date_columns:
-
-            continue
-
-        role = detect_column_role(
-            df,
-            column
-        )
-
-        if role in [
-            "categorical",
-            "potential_target"
-        ]:
-
-            dimensions.append(column)
-
-    return dimensions
-
-
-# ============================================================
-# MAIN DATA PROFILING
-# ============================================================
-
-def profile_dataset(
-    file_path: str
-) -> dict:
-    """
-    Analyse automatiquement la structure d'un dataset.
-
-    Le profiling contient uniquement des informations
-    descriptives et structurelles.
-
-    Il ne réalise PAS de Data Quality.
-
-    Contenu :
-    - nombre de lignes
-    - nombre de colonnes
-    - noms des colonnes
-    - types
-    - aperçu
-    - cardinalité
-    - colonnes numériques
-    - colonnes catégorielles
-    - statistiques numériques
-    - statistiques catégorielles
-    - profil détaillé des colonnes
-    - rôles potentiels
-    - colonnes de dates
-    - mesures BI
-    - dimensions BI
-    """
-
-    # ========================================================
-    # LOAD DATASET
-    # ========================================================
-
-    df = load_dataset(
-        file_path
-    )
-
-    # ========================================================
-    # GENERAL INFORMATION
-    # ========================================================
-
-    rows = len(df)
-
-    columns = len(
-        df.columns
-    )
-
-    # ========================================================
-    # PREVIEW
-    # ========================================================
-
-    preview = (
-        df
-        .head(5)
-        .to_dict(
-            orient="records"
-        )
-    )
-
-    # ========================================================
-    # COLUMN NAMES
-    # ========================================================
-
-    column_names = (
-        df.columns.tolist()
-    )
-
-    # ========================================================
-    # COLUMN TYPES
-    # ========================================================
-
-    column_types = {
-
-        column: str(dtype)
-
-        for column, dtype
-        in df.dtypes.items()
-    }
-
-    # ========================================================
-    # UNIQUE VALUES / CARDINALITY
-    # ========================================================
-
-    unique_values = {
-
-        column: int(
-            df[column]
-            .nunique(
-                dropna=True
-            )
-        )
-
-        for column in df.columns
-    }
-
-    # ========================================================
-    # NUMERICAL COLUMNS
-    # ========================================================
-
-    numerical_columns = (
-        df
-        .select_dtypes(
-            include="number"
-        )
-        .columns
-        .tolist()
-    )
-
-    # ========================================================
-    # CATEGORICAL COLUMNS
-    # ========================================================
-
-    categorical_columns = (
-        df
-        .select_dtypes(
-            include=[
-                "object",
-                "string",
-                "category",
-                "bool"
-            ]
-        )
-        .columns
-        .tolist()
-    )
-
-    # ========================================================
-    # NUMERICAL STATISTICS
-    # ========================================================
-
-    numerical_statistics = {}
-
-    if numerical_columns:
-
-        numerical_statistics = (
-            df[numerical_columns]
-            .describe()
-            .round(2)
-            .to_dict()
-        )
-
-    # ========================================================
-    # CATEGORICAL STATISTICS
-    # ========================================================
-
-    categorical_statistics = {}
-
-    for column in categorical_columns:
-
-        categorical_statistics[column] = (
-            get_top_values(
-                df,
-                column,
-                top_n=5
-            )
-        )
-
-    # ========================================================
-    # DATE COLUMNS
-    # ========================================================
-
-    date_columns = detect_date_columns(
-        df
-    )
-
-    # ========================================================
-    # BI MEASURES
-    # ========================================================
-
-    measures = detect_measures(
-        df
-    )
-
-    # ========================================================
-    # BI DIMENSIONS
-    # ========================================================
-
-    dimensions = detect_dimensions(
-        df,
-        date_columns
-    )
-
-    # ========================================================
-    # DETAILED COLUMN PROFILES
-    # ========================================================
-
-    columns_profile = {}
-
-    for column in df.columns:
-
-        columns_profile[column] = (
-            profile_column(
-                df,
-                column
-            )
-        )
-
-    # ========================================================
-    # FINAL PROFILE
-    # ========================================================
+    description = values.describe()
 
     return {
-
-        # ----------------------------------------------------
-        # GENERAL
-        # ----------------------------------------------------
-
-        "dataset": str(
-            file_path
-        ),
-
-        "rows": rows,
-
-        "columns": columns,
-
-        "column_names": column_names,
-
-        # ----------------------------------------------------
-        # STRUCTURE
-        # ----------------------------------------------------
-
-        "column_types": column_types,
-
-        "preview": preview,
-
-        "unique_values": unique_values,
-
-        # ----------------------------------------------------
-        # COLUMN CATEGORIES
-        # ----------------------------------------------------
-
-        "numerical_columns":
-            numerical_columns,
-
-        "categorical_columns":
-            categorical_columns,
-
-        # ----------------------------------------------------
-        # STATISTICS
-        # ----------------------------------------------------
-
-        "numerical_statistics":
-            numerical_statistics,
-
-        "categorical_statistics":
-            categorical_statistics,
-
-        # ----------------------------------------------------
-        # DETAILED COLUMN PROFILE
-        # ----------------------------------------------------
-
-        "columns_profile":
-            columns_profile,
-
-        # ----------------------------------------------------
-        # BI STRUCTURE
-        # ----------------------------------------------------
-
-        "date_columns":
-            date_columns,
-
-        "measures":
-            measures,
-
-        "dimensions":
-            dimensions
+        "available": True,
+        "count": int(values.count()),
+        "distinct_count": int(values.nunique()),
+        "mean": json_safe(values.mean()),
+        "median": json_safe(values.median()),
+        "std": json_safe(values.std()),
+        "min": json_safe(values.min()),
+        "q25": json_safe(description.get("25%")),
+        "q50": json_safe(description.get("50%")),
+        "q75": json_safe(description.get("75%")),
+        "max": json_safe(values.max()),
+        "sum": json_safe(values.sum()),
     }
+
+
+
+def numeric_candidate_statistics(series):
+    import pandas as pd
+
+    # 1. Identifier les valeurs manquantes, y compris les chaînes vides
+    original = series.astype("string").str.strip()
+    missing_mask = original.isna() | original.eq("")
+    non_missing = original[~missing_mask]
+
+    # 2. Convertir temporairement les valeurs non manquantes
+    normalized = (
+        non_missing
+        .str.replace("\u00A0", "", regex=False)
+        .str.replace(" ", "", regex=False)
+        .str.replace(",", ".", regex=False)
+    )
+
+    converted = pd.to_numeric(normalized, errors="coerce")
+
+    # 3. Calculer les indicateurs de conversion
+    total_values = len(series)
+    missing_count = int(missing_mask.sum())
+    non_missing_count = len(non_missing)
+    parsed_count = int(converted.notna().sum())
+    unparsed_count = non_missing_count - parsed_count
+
+    parse_percentage = (
+        parsed_count / non_missing_count * 100
+        if non_missing_count > 0
+        else 0.0
+    )
+
+    # 4. Calculer les statistiques sur les valeurs convertibles
+    valid = converted.dropna()
+
+    stats = {
+        "available": not valid.empty,
+        "total_values": total_values,
+        "missing_count": missing_count,
+        "non_missing_count": non_missing_count,
+        "parsed_count": parsed_count,
+        "unparsed_count": unparsed_count,
+        "parsed_percentage": round(parse_percentage, 2),
+        "distinct_count": int(valid.nunique()),
+        "mean": float(valid.mean()) if not valid.empty else None,
+        "median": float(valid.median()) if not valid.empty else None,
+        "std": float(valid.std()) if not valid.empty else None,
+        "min": float(valid.min()) if not valid.empty else None,
+        "q25": float(valid.quantile(0.25)) if not valid.empty else None,
+        "q75": float(valid.quantile(0.75)) if not valid.empty else None,
+        "max": float(valid.max()) if not valid.empty else None,
+        "note": (
+            "Statistiques exploratoires calculées sur les valeurs "
+            "convertibles, sans modifier la colonne originale."
+        ),
+    }
+
+    return stats
+
+
+
+# ============================================================
+# CATEGORICAL AND TEXT STATISTICS
+# ============================================================
+
+def categorical_statistics(series):
+    """Distribution des valeurs d'une colonne categorielle ou textuelle."""
+
+    non_null = series.dropna()
+    values = non_null.astype(str)
+    frequencies = values.value_counts(dropna=True)
+
+    return {
+        "non_missing_count": int(non_null.size),
+        "distinct_count": int(non_null.nunique()),
+        "most_frequent_values": [
+            {
+                "value": str(value)[:MAX_TEXT_LENGTH_SAMPLE],
+                "count": int(count),
+                "percentage_of_non_missing": round(
+                    float(count / len(non_null) * 100), 2
+                ) if len(non_null) else 0.0,
+            }
+            for value, count in frequencies.head(MAX_CATEGORIES).items()
+        ],
+        "examples": [
+            str(value)[:MAX_TEXT_LENGTH_SAMPLE]
+            for value in values.drop_duplicates().head(MAX_EXAMPLES)
+        ],
+        "text_length": {
+            "min": int(values.str.len().min()) if len(values) else None,
+            "mean": round(float(values.str.len().mean()), 2)
+            if len(values) else None,
+            "max": int(values.str.len().max()) if len(values) else None,
+        },
+    }
+
+
+# ============================================================
+# DATETIME STATISTICS
+# ============================================================
+
+def datetime_statistics(series):
+    """Resume temporel pour une colonne de dates reconnue."""
+
+    values = series.dropna()
+
+    if values.empty:
+        return {"available": False}
+
+    return {
+        "available": True,
+        "min": json_safe(values.min()),
+        "max": json_safe(values.max()),
+        "distinct_count": int(values.nunique()),
+    }
+
+
+def datetime_candidate_statistics(series):
+    """Resume indicatif de dates qui sont stockees comme texte."""
+
+    text = series.dropna().astype(str).str.strip()
+
+    if text.empty:
+        return {"available": False}
+
+    try:
+        parsed = pd.to_datetime(
+            text, errors="coerce", format="mixed"
+        ).dropna()
+    except (ValueError, TypeError):
+        return {"available": False}
+
+    if parsed.empty:
+        return {"available": False}
+
+    return {
+        "available": True,
+        "parsed_count": int(parsed.size),
+        "min": json_safe(parsed.min()),
+        "max": json_safe(parsed.max()),
+        "distinct_count": int(parsed.nunique()),
+        "note": "Interpretation indicative, sans modification des donnees.",
+    }
+
+
+# ============================================================
+# COMPLETE DATASET PROFILING
+# ============================================================
+
+def profile_dataset(df, file_path=None, objective=None):
+    """Construit un rapport descriptif pour l'ensemble du dataset."""
+
+    rows, columns = df.shape
+    column_profiles = {}
+    type_counts = {}
+
+    for column in df.columns:
+        series = df[column]
+        type_info = detect_variable_type(series)
+        semantic_type = type_info["semantic_type"]
+
+        type_counts[semantic_type] = type_counts.get(
+            semantic_type, 0
+        ) + 1
+
+        profile = {
+            "name": str(column),
+            "type": type_info,
+            "examples": [
+                json_safe(value)
+                for value in series.dropna().head(MAX_EXAMPLES).tolist()
+            ],
+        }
+
+        if semantic_type == "numeric":
+            profile["statistics"] = numeric_statistics(series)
+
+        elif semantic_type == "numeric_candidate":
+            profile["statistics"] = numeric_candidate_statistics(series)
+
+        elif semantic_type == "datetime":
+            profile["statistics"] = datetime_statistics(series)
+
+        elif semantic_type == "datetime_candidate":
+            profile["statistics"] = datetime_candidate_statistics(series)
+
+        elif semantic_type not in {"empty", "empty_or_blank"}:
+            profile["statistics"] = categorical_statistics(series)
+
+        else:
+            profile["statistics"] = {
+                "available": False,
+                "reason": "Aucune valeur exploitable"
+            }
+
+        column_profiles[str(column)] = profile
+
+    report = {
+        "dataset": {
+            "file_name": Path(file_path).name if file_path else None,
+            "file_path": str(file_path) if file_path else None,
+            "format": Path(file_path).suffix.lower() if file_path else None,
+            "rows": int(rows),
+            "columns": int(columns),
+            "memory_usage_bytes": int(
+                df.memory_usage(index=True, deep=True).sum()
+            ),
+            "objective": objective,
+        },
+        "overview": {
+            "semantic_type_counts": type_counts,
+            "total_missing_cells": int(df.isna().sum().sum()),
+            "missing_cells_percentage": round(
+                float(df.isna().sum().sum() / (rows * columns) * 100),
+                2
+            ) if rows * columns else 0.0,
+            "duplicate_row_count_descriptive": int(
+                df.duplicated().sum()
+            ),
+        },
+        "columns": column_profiles,
+        "limitations": [
+            "Le profilage est descriptif et ne modifie pas les donnees.",
+            "Les types semantiques sont des estimations et peuvent etre ambigus.",
+            "Les nombres et dates detectes dans du texte sont des candidats.",
+            "Les valeurs manquantes et les doublons sont decrits sans correction.",
+        ],
+    }
+
+    return json_safe(report)
+
+
+# ============================================================
+# OPTIONAL GEMINI INTERPRETATION
+# ============================================================
+
+def interpret_with_gemini(report, objective=None):
+    """
+    Gemini explique les statistiques deja calculees.
+    Son indisponibilite n'empeche pas la creation du rapport.
+    """
+
+    api_key = os.getenv("GEMINI_API_KEY")
+
+    if not api_key:
+        return {
+            "available": False,
+            "message": "GEMINI_API_KEY absente. Profilage Python uniquement."
+        }
+
+    try:
+        from google import genai
+
+        client = genai.Client(api_key=api_key)
+
+        # Envoyer uniquement un resume limite pour eviter un prompt enorme.
+        compact_report = {
+            "dataset": report["dataset"],
+            "overview": report["overview"],
+            "columns": {
+                name: {
+                    "type": info["type"],
+                    "statistics": info.get("statistics", {}),
+                    "examples": info.get("examples", [])[:3],
+                }
+                for name, info in list(report["columns"].items())[:60]
+            },
+        }
+
+        prompt = f"""
+Tu es l'analyste de profilage descriptif de BIFlow.
+
+Objectif demande : {objective or "Comprendre la structure du dataset"}.
+
+Analyse le resume JSON ci-dessous et redige en francais :
+1. Une synthese de la structure du dataset.
+2. Les types de variables dominants.
+3. Les principales observations statistiques.
+4. Les colonnes qui meritent une exploration ulterieure.
+5. Les ambiguities de classification a verifier.
+
+Regles :
+- Utilise uniquement les informations fournies.
+- N'invente aucune statistique.
+- Ne propose pas de corriger ou supprimer des valeurs.
+- Ne calcule pas de score de qualite.
+- Distingue les types confirmes des types potentiels.
+- Si une information est absente, indique-le.
+
+Resume JSON :
+{json.dumps(compact_report, ensure_ascii=False, default=str)}
+"""
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+        )
+
+        return {
+            "available": True,
+            "model": "gemini-2.5-flash",
+            "interpretation": response.text or "Aucune interpretation retournee."
+        }
+
+    except Exception as exc:
+        return {
+            "available": False,
+            "message": (
+                "Interpretation Gemini indisponible. "
+                "Le rapport descriptif Python reste disponible."
+            ),
+            "error": str(exc)[:500],
+        }
+
+
+# ============================================================
+# SAVE REPORT
+# ============================================================
+
+def save_report(report, file_path):
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    dataset_name = Path(file_path).stem
+    report_path = REPORTS_DIR / f"{dataset_name}_profiling_report.json"
+
+    with open(report_path, "w", encoding="utf-8") as file:
+        json.dump(
+            report,
+            file,
+            ensure_ascii=False,
+            indent=2,
+            default=str
+        )
+
+    return report_path
+
+
+# ============================================================
+# COMMAND-LINE INTERFACE
+# ============================================================
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="BIFlow - Profilage descriptif generique de datasets"
+    )
+
+    parser.add_argument(
+        "file_path",
+        help="Chemin du dataset a profiler"
+    )
+
+    parser.add_argument(
+        "--objective",
+        default="Comprendre la structure et les statistiques descriptives.",
+        help="Objectif du profilage"
+    )
+
+    parser.add_argument(
+        "--no-header",
+        action="store_true",
+        help="Indique que le CSV ou Excel ne contient pas de ligne d'en-tete"
+    )
+
+    parser.add_argument(
+        "--sheet",
+        default="0",
+        help="Nom ou index de la feuille Excel (defaut : 0)"
+    )
+
+    parser.add_argument(
+        "--encoding",
+        default=None,
+        help="Encodage CSV facultatif, par exemple utf-8 ou latin-1"
+    )
+
+    parser.add_argument(
+        "--no-gemini",
+        action="store_true",
+        help="Desactive l'interpretation Gemini"
+    )
+
+    args = parser.parse_args()
+
+    sheet_name = args.sheet
+    if sheet_name.isdigit():
+        sheet_name = int(sheet_name)
+
+    df, resolved_path = load_dataset(
+        args.file_path,
+        has_header=not args.no_header,
+        sheet_name=sheet_name,
+        encoding=args.encoding,
+    )
+
+    print("\n========== BIFlow : PROFILAGE DESCRIPTIF ==========")
+    print(f"Dataset : {resolved_path.name}")
+    print(f"Lignes : {df.shape[0]}")
+    print(f"Colonnes : {df.shape[1]}")
+    print(f"Memoire estimee : {df.memory_usage(deep=True).sum():,} octets")
+
+    print("\nTypes de variables :")
+    report = profile_dataset(
+        df,
+        file_path=resolved_path,
+        objective=args.objective,
+    )
+
+    for semantic_type, count in report["overview"][
+        "semantic_type_counts"
+    ].items():
+        print(f"  - {semantic_type} : {count}")
+
+    print("\nApercu des colonnes :")
+    for name, info in report["columns"].items():
+        print(
+            f"  - {name} : "
+            f"{info['type']['technical_type']} "
+            f"-> {info['type']['semantic_type']}"
+        )
+
+    if not args.no_gemini:
+        print("\nInterpretation Gemini...")
+        report["gemini_interpretation"] = interpret_with_gemini(
+            report,
+            objective=args.objective,
+        )
+
+        gemini = report["gemini_interpretation"]
+        if gemini.get("available"):
+            print(gemini.get("interpretation", ""))
+        else:
+            print(gemini.get("message", "Gemini indisponible."))
+
+    report_path = save_report(report, resolved_path)
+
+    print(f"\nRapport JSON enregistre : {report_path}")
+    print("Profilage termine.")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,425 @@
+{
+  "status": "success",
+  "dataset": "telco_churn.csv",
+  "model": "gemini-3.8-flash",
+  "profiling": {
+    "structure": {
+      "nombre_lignes": 7043,
+      "nombre_colonnes": 21,
+      "noms_colonnes": [
+        "customerID",
+        "gender",
+        "SeniorCitizen",
+        "Partner",
+        "Dependents",
+        "tenure",
+        "PhoneService",
+        "MultipleLines",
+        "InternetService",
+        "OnlineSecurity",
+        "OnlineBackup",
+        "DeviceProtection",
+        "TechSupport",
+        "StreamingTV",
+        "StreamingMovies",
+        "Contract",
+        "PaperlessBilling",
+        "PaymentMethod",
+        "MonthlyCharges",
+        "TotalCharges",
+        "Churn"
+      ],
+      "nombre_lignes_dupliquees": 0
+    },
+    "types_variables": {
+      "numeriques": [
+        "SeniorCitizen",
+        "tenure",
+        "MonthlyCharges"
+      ],
+      "categoricielles": [
+        "customerID",
+        "gender",
+        "Partner",
+        "Dependents",
+        "PhoneService",
+        "MultipleLines",
+        "InternetService",
+        "OnlineSecurity",
+        "OnlineBackup",
+        "DeviceProtection",
+        "TechSupport",
+        "StreamingTV",
+        "StreamingMovies",
+        "Contract",
+        "PaperlessBilling",
+        "PaymentMethod",
+        "TotalCharges",
+        "Churn"
+      ],
+      "dates": []
+    },
+    "statistiques_descriptives": {
+      "numeriques": {
+        "SeniorCitizen": {
+          "count": 7043.0,
+          "mean": 0.1621468124378816,
+          "std": 0.3686116056100131,
+          "min": 0.0,
+          "25%": 0.0,
+          "50%": 0.0,
+          "75%": 0.0,
+          "max": 1.0
+        },
+        "tenure": {
+          "count": 7043.0,
+          "mean": 32.37114865824223,
+          "std": 24.55948102309446,
+          "min": 0.0,
+          "25%": 9.0,
+          "50%": 29.0,
+          "75%": 55.0,
+          "max": 72.0
+        },
+        "MonthlyCharges": {
+          "count": 7043.0,
+          "mean": 64.76169246059918,
+          "std": 30.090047097678493,
+          "min": 18.25,
+          "25%": 35.5,
+          "50%": 70.35,
+          "75%": 89.85,
+          "max": 118.75
+        }
+      },
+      "categoricielles": {
+        "customerID": {
+          "nombre_valeurs_distinctes": 7043,
+          "valeur_la_plus_frequente": "7590-VHVEG",
+          "frequence_maximale": 1,
+          "top_5_valeurs": {
+            "7590-VHVEG": 1,
+            "5575-GNVDE": 1,
+            "3668-QPYBK": 1,
+            "7795-CFOCW": 1,
+            "9237-HQITU": 1
+          }
+        },
+        "gender": {
+          "nombre_valeurs_distinctes": 2,
+          "valeur_la_plus_frequente": "Male",
+          "frequence_maximale": 3555,
+          "top_5_valeurs": {
+            "Male": 3555,
+            "Female": 3488
+          }
+        },
+        "Partner": {
+          "nombre_valeurs_distinctes": 2,
+          "valeur_la_plus_frequente": "No",
+          "frequence_maximale": 3641,
+          "top_5_valeurs": {
+            "No": 3641,
+            "Yes": 3402
+          }
+        },
+        "Dependents": {
+          "nombre_valeurs_distinctes": 2,
+          "valeur_la_plus_frequente": "No",
+          "frequence_maximale": 4933,
+          "top_5_valeurs": {
+            "No": 4933,
+            "Yes": 2110
+          }
+        },
+        "PhoneService": {
+          "nombre_valeurs_distinctes": 2,
+          "valeur_la_plus_frequente": "Yes",
+          "frequence_maximale": 6361,
+          "top_5_valeurs": {
+            "Yes": 6361,
+            "No": 682
+          }
+        },
+        "MultipleLines": {
+          "nombre_valeurs_distinctes": 3,
+          "valeur_la_plus_frequente": "No",
+          "frequence_maximale": 3390,
+          "top_5_valeurs": {
+            "No": 3390,
+            "Yes": 2971,
+            "No phone service": 682
+          }
+        },
+        "InternetService": {
+          "nombre_valeurs_distinctes": 3,
+          "valeur_la_plus_frequente": "Fiber optic",
+          "frequence_maximale": 3096,
+          "top_5_valeurs": {
+            "Fiber optic": 3096,
+            "DSL": 2421,
+            "No": 1526
+          }
+        },
+        "OnlineSecurity": {
+          "nombre_valeurs_distinctes": 3,
+          "valeur_la_plus_frequente": "No",
+          "frequence_maximale": 3498,
+          "top_5_valeurs": {
+            "No": 3498,
+            "Yes": 2019,
+            "No internet service": 1526
+          }
+        },
+        "OnlineBackup": {
+          "nombre_valeurs_distinctes": 3,
+          "valeur_la_plus_frequente": "No",
+          "frequence_maximale": 3088,
+          "top_5_valeurs": {
+            "No": 3088,
+            "Yes": 2429,
+            "No internet service": 1526
+          }
+        },
+        "DeviceProtection": {
+          "nombre_valeurs_distinctes": 3,
+          "valeur_la_plus_frequente": "No",
+          "frequence_maximale": 3095,
+          "top_5_valeurs": {
+            "No": 3095,
+            "Yes": 2422,
+            "No internet service": 1526
+          }
+        },
+        "TechSupport": {
+          "nombre_valeurs_distinctes": 3,
+          "valeur_la_plus_frequente": "No",
+          "frequence_maximale": 3473,
+          "top_5_valeurs": {
+            "No": 3473,
+            "Yes": 2044,
+            "No internet service": 1526
+          }
+        },
+        "StreamingTV": {
+          "nombre_valeurs_distinctes": 3,
+          "valeur_la_plus_frequente": "No",
+          "frequence_maximale": 2810,
+          "top_5_valeurs": {
+            "No": 2810,
+            "Yes": 2707,
+            "No internet service": 1526
+          }
+        },
+        "StreamingMovies": {
+          "nombre_valeurs_distinctes": 3,
+          "valeur_la_plus_frequente": "No",
+          "frequence_maximale": 2785,
+          "top_5_valeurs": {
+            "No": 2785,
+            "Yes": 2732,
+            "No internet service": 1526
+          }
+        },
+        "Contract": {
+          "nombre_valeurs_distinctes": 3,
+          "valeur_la_plus_frequente": "Month-to-month",
+          "frequence_maximale": 3875,
+          "top_5_valeurs": {
+            "Month-to-month": 3875,
+            "Two year": 1695,
+            "One year": 1473
+          }
+        },
+        "PaperlessBilling": {
+          "nombre_valeurs_distinctes": 2,
+          "valeur_la_plus_frequente": "Yes",
+          "frequence_maximale": 4171,
+          "top_5_valeurs": {
+            "Yes": 4171,
+            "No": 2872
+          }
+        },
+        "PaymentMethod": {
+          "nombre_valeurs_distinctes": 4,
+          "valeur_la_plus_frequente": "Electronic check",
+          "frequence_maximale": 2365,
+          "top_5_valeurs": {
+            "Electronic check": 2365,
+            "Mailed check": 1612,
+            "Bank transfer (automatic)": 1544,
+            "Credit card (automatic)": 1522
+          }
+        },
+        "TotalCharges": {
+          "nombre_valeurs_distinctes": 6531,
+          "valeur_la_plus_frequente": "20.2",
+          "frequence_maximale": 11,
+          "top_5_valeurs": {
+            "20.2": 11,
+            " ": 11,
+            "19.75": 9,
+            "19.9": 8,
+            "20.05": 8
+          }
+        },
+        "Churn": {
+          "nombre_valeurs_distinctes": 2,
+          "valeur_la_plus_frequente": "No",
+          "frequence_maximale": 5174,
+          "top_5_valeurs": {
+            "No": 5174,
+            "Yes": 1869
+          }
+        }
+      }
+    },
+    "details_colonnes": {
+      "customerID": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 7043,
+        "chaines_vides_ou_espaces": 0
+      },
+      "gender": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 2,
+        "chaines_vides_ou_espaces": 0
+      },
+      "SeniorCitizen": {
+        "type_technique": "int64",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 2
+      },
+      "Partner": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 2,
+        "chaines_vides_ou_espaces": 0
+      },
+      "Dependents": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 2,
+        "chaines_vides_ou_espaces": 0
+      },
+      "tenure": {
+        "type_technique": "int64",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 73
+      },
+      "PhoneService": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 2,
+        "chaines_vides_ou_espaces": 0
+      },
+      "MultipleLines": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 3,
+        "chaines_vides_ou_espaces": 0
+      },
+      "InternetService": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 3,
+        "chaines_vides_ou_espaces": 0
+      },
+      "OnlineSecurity": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 3,
+        "chaines_vides_ou_espaces": 0
+      },
+      "OnlineBackup": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 3,
+        "chaines_vides_ou_espaces": 0
+      },
+      "DeviceProtection": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 3,
+        "chaines_vides_ou_espaces": 0
+      },
+      "TechSupport": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 3,
+        "chaines_vides_ou_espaces": 0
+      },
+      "StreamingTV": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 3,
+        "chaines_vides_ou_espaces": 0
+      },
+      "StreamingMovies": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 3,
+        "chaines_vides_ou_espaces": 0
+      },
+      "Contract": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 3,
+        "chaines_vides_ou_espaces": 0
+      },
+      "PaperlessBilling": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 2,
+        "chaines_vides_ou_espaces": 0
+      },
+      "PaymentMethod": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 4,
+        "chaines_vides_ou_espaces": 0
+      },
+      "MonthlyCharges": {
+        "type_technique": "float64",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 1585
+      },
+      "TotalCharges": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 6531,
+        "chaines_vides_ou_espaces": 11
+      },
+      "Churn": {
+        "type_technique": "str",
+        "valeurs_manquantes": 0,
+        "pourcentage_manquant": 0.0,
+        "valeurs_distinctes": 2,
+        "chaines_vides_ou_espaces": 0
+      }
+    }
+  },
+  "interpretation_llm": "Voici le rapport descriptif de profilage des données issu de l'analyse du profil technique fourni.\n\n---\n\n# Rapport de Profilage de Données (Data Profiling)\n\n## 1. Structure générale du jeu de données\n\n* **Nombre d'observations (lignes) :** 7 043\n* **Nombre de variables (colonnes) :** 21\n* **Lignes dupliquées :** 0 ligne dupliquée identifiée.\n* **Granularité :** La variable `customerID` possède 7 043 valeurs distinctes pour 7 043 lignes (fréquence unitaire pour chaque enregistrement), ce qui indique factuellement qu'elle joue le rôle d'identifiant unique par ligne.\n\n---\n\n## 2. Typologie technique des variables\n\nLe jeu de données se divise techniquement en deux grands ensembles de types de données :\n\n* **Types numériques (3 colonnes) :**\n  * `int64` (2) : `SeniorCitizen`, `tenure`\n  * `float64` (1) : `MonthlyCharges`\n* **Types textuels / chaînes de caractères (`str`) (18 colonnes) :**\n  * `customerID`, `gender`, `Partner`, `Dependents`, `PhoneService`, `MultipleLines`, `InternetService`, `OnlineSecurity`, `OnlineBackup`, `DeviceProtection`, `TechSupport`, `StreamingTV`, `StreamingMovies`, `Contract`, `PaperlessBilling`, `PaymentMethod`, `TotalCharges`, `Churn`.\n* **Dates :** Aucune variable n'a été détectée ou typée sous un format temporel/date.\n\n---\n\n## 3. Analyse des variables numériques\n\nBien que classées comme numériques par le moteur de calcul, ces variables recouvrent des natures d'information différentes :\n\n### `SeniorCitizen` (Type technique : `int64`)\n* **Statistiques descriptives :** Minimum = 0, Maximum = 1, Moyenne = 0,162, Médiane = 0, 75ᵉ percentile = 0.\n* **Constat :** Cette variable ne prend que 2 valeurs distinctes (0 et 1). \n* **Distinction métier :** Sur le plan de l'usage métier, il s'agit d'un indicateur binaire (flag booléen encodé numériquement) et non d'une variable quantitative continue. Environ 16,2 % des lignes présentent la valeur 1.\n\n### `tenure` (Type technique : `int64`)\n* **Statistiques descriptives :**\n  * Minimum : 0\n  * Premier quartile (25 %) : 9\n  * Médiane (50 %) : 29\n  * Moyenne : 32,37 (Écart-type : 24,56)\n  * Troisième quartile (75 %) : 55\n  * Maximum : 72\n* **Constat :** La distribution s'étend de 0 à 72 unités (avec 73 valeurs distinctes). La dispersion est large (écart-type proche de 25), la moitié des observations se situant en dessous de 29.\n\n### `MonthlyCharges` (Type technique : `float64`)\n* **Statistiques descriptives :**\n  * Minimum : 18,25\n  * Premier quartile (25 %) : 35,50\n  * Médiane (50 %) : 70,35\n  * Moyenne : 64,76 (Écart-type : 30,09)\n  * Troisième quartile (75 %) : 89,85\n  * Maximum : 118,75\n* **Constat :** Variable quantitative continue comptant 1 585 valeurs distinctes. La médiane (70,35) est légèrement supérieure à la moyenne (64,76).\n\n---\n\n## 4. Analyse des variables catégorielles\n\nÀ l'exception de `customerID` (identifiant unique) et de `TotalCharges` (détaillée ci-après), les variables catégorielles décrivent le profil démographique, les abonnements et les modalités contractuelles.\n\n### Profil démographique\n* **`gender`** (2 modalités) : Répartition équilibrée (Male : 3 555, Female : 3 488).\n* **`Partner`** (2 modalités) : \"No\" est majoritaire (3 641) face à \"Yes\" (3 402).\n* **`Dependents`** (2 modalités) : Majorité nette de \"No\" (4 933 contre 2 110 \"Yes\").\n\n### Services souscrits\n* **Téléphonie :**\n  * `PhoneService` : Majoritairement \"Yes\" (6 361) contre 682 \"No\".\n  * `MultipleLines` : 3 modalités (\"No\" : 3 390, \"Yes\" : 2 971, \"No phone service\" : 682). À noter que le décompte de \"No phone service\" correspond exactement aux \"No\" de `PhoneService`.\n* **Internet et options associées :**\n  * `InternetService` : 3 modalités (\"Fiber optic\" : 3 096, \"DSL\" : 2 421, \"No\" : 1 526).\n  * Les services complémentaires (`OnlineSecurity`, `OnlineBackup`, `DeviceProtection`, `TechSupport`, `StreamingTV`, `StreamingMovies`) possèdent tous 3 modalités : \"No\", \"Yes\", et systématiquement 1 526 occurrences de la modalité \"No internet service\" (ce qui concorde avec la catégorie \"No\" de `InternetService`).\n\n### Modalités contractuelles et financières\n* **`Contract`** (3 modalités) : Prédominance des contrats \"Month-to-month\" (3 875), suivis par \"Two year\" (1 695) et \"One year\" (1 473).\n* **`PaperlessBilling`** (2 modalités) : Majorité de \"Yes\" (4 171 contre 2 872 \"No\").\n* **`PaymentMethod`** (4 modalités) : \"Electronic check\" est le mode le plus fréquent (2 365), suivi de \"Mailed check\" (1 612), \"Bank transfer (automatic)\" (1 544) et \"Credit card (automatic)\" (1 522).\n* **`Churn`** (2 modalités) : \"No\" = 5 174 (représentant la majorité des cas), \"Yes\" = 1 869.\n\n---\n\n## 5. Qualité des données et points d'attention\n\n### Valeurs manquantes et chaînes vides\n* **Valeurs manquantes formelles (`null` / `NaN`) :** Aucune valeur manquante n'est enregistrée au sens technique du terme (0 % de valeurs manquantes sur l'ensemble des 21 colonnes).\n* **Présence d'espaces / chaînes vides :** La variable **`TotalCharges`** contient **11 enregistrements** constitués d'une chaîne vide ou d'un espace (`\" \"`).\n\n### Points d'attention identifiés dans les statistiques\n\n1. **Typage de `TotalCharges` :**\n   * *Fait calculé :* La variable est typée techniquement en chaîne de caractères (`str`) et comporte 6 531 valeurs distinctes.\n   * *Observation / Hypothèse :* La désignation et les valeurs observables (ex. \"20.2\", \"19.75\") suggèrent une nature monétaire/continue. La présence des 11 chaînes constituées d'espaces (`\" \"`) explique techniquement pourquoi cette variable a été interprétée comme textuelle lors de l'extraction automatisée.\n2. **Valeur minimale de `tenure` à 0 :**\n   * *Fait calculé :* Le minimum de la variable `tenure` est 0.\n   * *Observation :* Sans présumer d'une anomalie, il conviendra de vérifier dans le contexte métier si ces valeurs correspondent à de nouveaux contrats souscrits récemment.\n3. **Usage binaire de `SeniorCitizen` :**\n   * *Fait calculé :* Bien que typée en entier (`int64`), cette variable n'adopte que les valeurs 0 ou 1."
+}

@@ -1,0 +1,1031 @@
+{
+  "dataset": {
+    "file_name": "telco_churn.csv",
+    "file_path": "D:\\BIFlow\\data\\raw\\telco_churn.csv",
+    "format": ".csv",
+    "rows": 7043,
+    "columns": 21,
+    "memory_usage_bytes": 1954553,
+    "objective": "Comprendre la structure et les statistiques descriptives."
+  },
+  "overview": {
+    "semantic_type_counts": {
+      "text_or_identifier": 1,
+      "categorical": 11,
+      "numeric": 3,
+      "boolean_candidate": 5,
+      "numeric_candidate": 1
+    },
+    "total_missing_cells": 0,
+    "missing_cells_percentage": 0.0,
+    "duplicate_row_count_descriptive": 0
+  },
+  "columns": {
+    "customerID": {
+      "name": "customerID",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "text_or_identifier",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 7043
+      },
+      "examples": [
+        "7590-VHVEG",
+        "5575-GNVDE",
+        "3668-QPYBK",
+        "7795-CFOCW",
+        "9237-HQITU"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 7043,
+        "most_frequent_values": [
+          {
+            "value": "7590-VHVEG",
+            "count": 1,
+            "percentage_of_non_missing": 0.01
+          },
+          {
+            "value": "5575-GNVDE",
+            "count": 1,
+            "percentage_of_non_missing": 0.01
+          },
+          {
+            "value": "3668-QPYBK",
+            "count": 1,
+            "percentage_of_non_missing": 0.01
+          },
+          {
+            "value": "7795-CFOCW",
+            "count": 1,
+            "percentage_of_non_missing": 0.01
+          },
+          {
+            "value": "9237-HQITU",
+            "count": 1,
+            "percentage_of_non_missing": 0.01
+          },
+          {
+            "value": "9305-CDSKC",
+            "count": 1,
+            "percentage_of_non_missing": 0.01
+          },
+          {
+            "value": "1452-KIOVK",
+            "count": 1,
+            "percentage_of_non_missing": 0.01
+          },
+          {
+            "value": "6713-OKOMC",
+            "count": 1,
+            "percentage_of_non_missing": 0.01
+          },
+          {
+            "value": "7892-POOKP",
+            "count": 1,
+            "percentage_of_non_missing": 0.01
+          },
+          {
+            "value": "6388-TABGU",
+            "count": 1,
+            "percentage_of_non_missing": 0.01
+          }
+        ],
+        "examples": [
+          "7590-VHVEG",
+          "5575-GNVDE",
+          "3668-QPYBK",
+          "7795-CFOCW",
+          "9237-HQITU"
+        ],
+        "text_length": {
+          "min": 10,
+          "mean": 10.0,
+          "max": 10
+        }
+      }
+    },
+    "gender": {
+      "name": "gender",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 2
+      },
+      "examples": [
+        "Female",
+        "Male",
+        "Male",
+        "Male",
+        "Female"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 2,
+        "most_frequent_values": [
+          {
+            "value": "Male",
+            "count": 3555,
+            "percentage_of_non_missing": 50.48
+          },
+          {
+            "value": "Female",
+            "count": 3488,
+            "percentage_of_non_missing": 49.52
+          }
+        ],
+        "examples": [
+          "Female",
+          "Male"
+        ],
+        "text_length": {
+          "min": 4,
+          "mean": 4.99,
+          "max": 6
+        }
+      }
+    },
+    "SeniorCitizen": {
+      "name": "SeniorCitizen",
+      "type": {
+        "technical_type": "int64",
+        "semantic_type": "numeric",
+        "classification_method": "dtype",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 2
+      },
+      "examples": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "statistics": {
+        "available": true,
+        "count": 7043,
+        "distinct_count": 2,
+        "mean": 0.1621468124378816,
+        "median": 0.0,
+        "std": 0.3686116056100131,
+        "min": 0,
+        "q25": 0.0,
+        "q50": 0.0,
+        "q75": 0.0,
+        "max": 1,
+        "sum": 1142
+      }
+    },
+    "Partner": {
+      "name": "Partner",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "boolean_candidate",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 2
+      },
+      "examples": [
+        "Yes",
+        "No",
+        "No",
+        "No",
+        "No"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 2,
+        "most_frequent_values": [
+          {
+            "value": "No",
+            "count": 3641,
+            "percentage_of_non_missing": 51.7
+          },
+          {
+            "value": "Yes",
+            "count": 3402,
+            "percentage_of_non_missing": 48.3
+          }
+        ],
+        "examples": [
+          "Yes",
+          "No"
+        ],
+        "text_length": {
+          "min": 2,
+          "mean": 2.48,
+          "max": 3
+        }
+      }
+    },
+    "Dependents": {
+      "name": "Dependents",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "boolean_candidate",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 2
+      },
+      "examples": [
+        "No",
+        "No",
+        "No",
+        "No",
+        "No"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 2,
+        "most_frequent_values": [
+          {
+            "value": "No",
+            "count": 4933,
+            "percentage_of_non_missing": 70.04
+          },
+          {
+            "value": "Yes",
+            "count": 2110,
+            "percentage_of_non_missing": 29.96
+          }
+        ],
+        "examples": [
+          "No",
+          "Yes"
+        ],
+        "text_length": {
+          "min": 2,
+          "mean": 2.3,
+          "max": 3
+        }
+      }
+    },
+    "tenure": {
+      "name": "tenure",
+      "type": {
+        "technical_type": "int64",
+        "semantic_type": "numeric",
+        "classification_method": "dtype",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 73
+      },
+      "examples": [
+        1,
+        34,
+        2,
+        45,
+        2
+      ],
+      "statistics": {
+        "available": true,
+        "count": 7043,
+        "distinct_count": 73,
+        "mean": 32.37114865824223,
+        "median": 29.0,
+        "std": 24.55948102309446,
+        "min": 0,
+        "q25": 9.0,
+        "q50": 29.0,
+        "q75": 55.0,
+        "max": 72,
+        "sum": 227990
+      }
+    },
+    "PhoneService": {
+      "name": "PhoneService",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "boolean_candidate",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 2
+      },
+      "examples": [
+        "No",
+        "Yes",
+        "Yes",
+        "No",
+        "Yes"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 2,
+        "most_frequent_values": [
+          {
+            "value": "Yes",
+            "count": 6361,
+            "percentage_of_non_missing": 90.32
+          },
+          {
+            "value": "No",
+            "count": 682,
+            "percentage_of_non_missing": 9.68
+          }
+        ],
+        "examples": [
+          "No",
+          "Yes"
+        ],
+        "text_length": {
+          "min": 2,
+          "mean": 2.9,
+          "max": 3
+        }
+      }
+    },
+    "MultipleLines": {
+      "name": "MultipleLines",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 3
+      },
+      "examples": [
+        "No phone service",
+        "No",
+        "No",
+        "No phone service",
+        "No"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 3,
+        "most_frequent_values": [
+          {
+            "value": "No",
+            "count": 3390,
+            "percentage_of_non_missing": 48.13
+          },
+          {
+            "value": "Yes",
+            "count": 2971,
+            "percentage_of_non_missing": 42.18
+          },
+          {
+            "value": "No phone service",
+            "count": 682,
+            "percentage_of_non_missing": 9.68
+          }
+        ],
+        "examples": [
+          "No phone service",
+          "No",
+          "Yes"
+        ],
+        "text_length": {
+          "min": 2,
+          "mean": 3.78,
+          "max": 16
+        }
+      }
+    },
+    "InternetService": {
+      "name": "InternetService",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 3
+      },
+      "examples": [
+        "DSL",
+        "DSL",
+        "DSL",
+        "DSL",
+        "Fiber optic"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 3,
+        "most_frequent_values": [
+          {
+            "value": "Fiber optic",
+            "count": 3096,
+            "percentage_of_non_missing": 43.96
+          },
+          {
+            "value": "DSL",
+            "count": 2421,
+            "percentage_of_non_missing": 34.37
+          },
+          {
+            "value": "No",
+            "count": 1526,
+            "percentage_of_non_missing": 21.67
+          }
+        ],
+        "examples": [
+          "DSL",
+          "Fiber optic",
+          "No"
+        ],
+        "text_length": {
+          "min": 2,
+          "mean": 6.3,
+          "max": 11
+        }
+      }
+    },
+    "OnlineSecurity": {
+      "name": "OnlineSecurity",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 3
+      },
+      "examples": [
+        "No",
+        "Yes",
+        "Yes",
+        "Yes",
+        "No"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 3,
+        "most_frequent_values": [
+          {
+            "value": "No",
+            "count": 3498,
+            "percentage_of_non_missing": 49.67
+          },
+          {
+            "value": "Yes",
+            "count": 2019,
+            "percentage_of_non_missing": 28.67
+          },
+          {
+            "value": "No internet service",
+            "count": 1526,
+            "percentage_of_non_missing": 21.67
+          }
+        ],
+        "examples": [
+          "No",
+          "Yes",
+          "No internet service"
+        ],
+        "text_length": {
+          "min": 2,
+          "mean": 5.97,
+          "max": 19
+        }
+      }
+    },
+    "OnlineBackup": {
+      "name": "OnlineBackup",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 3
+      },
+      "examples": [
+        "Yes",
+        "No",
+        "Yes",
+        "No",
+        "No"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 3,
+        "most_frequent_values": [
+          {
+            "value": "No",
+            "count": 3088,
+            "percentage_of_non_missing": 43.84
+          },
+          {
+            "value": "Yes",
+            "count": 2429,
+            "percentage_of_non_missing": 34.49
+          },
+          {
+            "value": "No internet service",
+            "count": 1526,
+            "percentage_of_non_missing": 21.67
+          }
+        ],
+        "examples": [
+          "Yes",
+          "No",
+          "No internet service"
+        ],
+        "text_length": {
+          "min": 2,
+          "mean": 6.03,
+          "max": 19
+        }
+      }
+    },
+    "DeviceProtection": {
+      "name": "DeviceProtection",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 3
+      },
+      "examples": [
+        "No",
+        "Yes",
+        "No",
+        "Yes",
+        "No"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 3,
+        "most_frequent_values": [
+          {
+            "value": "No",
+            "count": 3095,
+            "percentage_of_non_missing": 43.94
+          },
+          {
+            "value": "Yes",
+            "count": 2422,
+            "percentage_of_non_missing": 34.39
+          },
+          {
+            "value": "No internet service",
+            "count": 1526,
+            "percentage_of_non_missing": 21.67
+          }
+        ],
+        "examples": [
+          "No",
+          "Yes",
+          "No internet service"
+        ],
+        "text_length": {
+          "min": 2,
+          "mean": 6.03,
+          "max": 19
+        }
+      }
+    },
+    "TechSupport": {
+      "name": "TechSupport",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 3
+      },
+      "examples": [
+        "No",
+        "No",
+        "No",
+        "Yes",
+        "No"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 3,
+        "most_frequent_values": [
+          {
+            "value": "No",
+            "count": 3473,
+            "percentage_of_non_missing": 49.31
+          },
+          {
+            "value": "Yes",
+            "count": 2044,
+            "percentage_of_non_missing": 29.02
+          },
+          {
+            "value": "No internet service",
+            "count": 1526,
+            "percentage_of_non_missing": 21.67
+          }
+        ],
+        "examples": [
+          "No",
+          "Yes",
+          "No internet service"
+        ],
+        "text_length": {
+          "min": 2,
+          "mean": 5.97,
+          "max": 19
+        }
+      }
+    },
+    "StreamingTV": {
+      "name": "StreamingTV",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 3
+      },
+      "examples": [
+        "No",
+        "No",
+        "No",
+        "No",
+        "No"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 3,
+        "most_frequent_values": [
+          {
+            "value": "No",
+            "count": 2810,
+            "percentage_of_non_missing": 39.9
+          },
+          {
+            "value": "Yes",
+            "count": 2707,
+            "percentage_of_non_missing": 38.44
+          },
+          {
+            "value": "No internet service",
+            "count": 1526,
+            "percentage_of_non_missing": 21.67
+          }
+        ],
+        "examples": [
+          "No",
+          "Yes",
+          "No internet service"
+        ],
+        "text_length": {
+          "min": 2,
+          "mean": 6.07,
+          "max": 19
+        }
+      }
+    },
+    "StreamingMovies": {
+      "name": "StreamingMovies",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 3
+      },
+      "examples": [
+        "No",
+        "No",
+        "No",
+        "No",
+        "No"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 3,
+        "most_frequent_values": [
+          {
+            "value": "No",
+            "count": 2785,
+            "percentage_of_non_missing": 39.54
+          },
+          {
+            "value": "Yes",
+            "count": 2732,
+            "percentage_of_non_missing": 38.79
+          },
+          {
+            "value": "No internet service",
+            "count": 1526,
+            "percentage_of_non_missing": 21.67
+          }
+        ],
+        "examples": [
+          "No",
+          "Yes",
+          "No internet service"
+        ],
+        "text_length": {
+          "min": 2,
+          "mean": 6.07,
+          "max": 19
+        }
+      }
+    },
+    "Contract": {
+      "name": "Contract",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 3
+      },
+      "examples": [
+        "Month-to-month",
+        "One year",
+        "Month-to-month",
+        "One year",
+        "Month-to-month"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 3,
+        "most_frequent_values": [
+          {
+            "value": "Month-to-month",
+            "count": 3875,
+            "percentage_of_non_missing": 55.02
+          },
+          {
+            "value": "Two year",
+            "count": 1695,
+            "percentage_of_non_missing": 24.07
+          },
+          {
+            "value": "One year",
+            "count": 1473,
+            "percentage_of_non_missing": 20.91
+          }
+        ],
+        "examples": [
+          "Month-to-month",
+          "One year",
+          "Two year"
+        ],
+        "text_length": {
+          "min": 8,
+          "mean": 11.3,
+          "max": 14
+        }
+      }
+    },
+    "PaperlessBilling": {
+      "name": "PaperlessBilling",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "boolean_candidate",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 2
+      },
+      "examples": [
+        "Yes",
+        "No",
+        "Yes",
+        "No",
+        "Yes"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 2,
+        "most_frequent_values": [
+          {
+            "value": "Yes",
+            "count": 4171,
+            "percentage_of_non_missing": 59.22
+          },
+          {
+            "value": "No",
+            "count": 2872,
+            "percentage_of_non_missing": 40.78
+          }
+        ],
+        "examples": [
+          "Yes",
+          "No"
+        ],
+        "text_length": {
+          "min": 2,
+          "mean": 2.59,
+          "max": 3
+        }
+      }
+    },
+    "PaymentMethod": {
+      "name": "PaymentMethod",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 4
+      },
+      "examples": [
+        "Electronic check",
+        "Mailed check",
+        "Mailed check",
+        "Bank transfer (automatic)",
+        "Electronic check"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 4,
+        "most_frequent_values": [
+          {
+            "value": "Electronic check",
+            "count": 2365,
+            "percentage_of_non_missing": 33.58
+          },
+          {
+            "value": "Mailed check",
+            "count": 1612,
+            "percentage_of_non_missing": 22.89
+          },
+          {
+            "value": "Bank transfer (automatic)",
+            "count": 1544,
+            "percentage_of_non_missing": 21.92
+          },
+          {
+            "value": "Credit card (automatic)",
+            "count": 1522,
+            "percentage_of_non_missing": 21.61
+          }
+        ],
+        "examples": [
+          "Electronic check",
+          "Mailed check",
+          "Bank transfer (automatic)",
+          "Credit card (automatic)"
+        ],
+        "text_length": {
+          "min": 12,
+          "mean": 18.57,
+          "max": 25
+        }
+      }
+    },
+    "MonthlyCharges": {
+      "name": "MonthlyCharges",
+      "type": {
+        "technical_type": "float64",
+        "semantic_type": "numeric",
+        "classification_method": "dtype",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 1585
+      },
+      "examples": [
+        29.85,
+        56.95,
+        53.85,
+        42.3,
+        70.7
+      ],
+      "statistics": {
+        "available": true,
+        "count": 7043,
+        "distinct_count": 1585,
+        "mean": 64.76169246059918,
+        "median": 70.35,
+        "std": 30.090047097678493,
+        "min": 18.25,
+        "q25": 35.5,
+        "q50": 70.35,
+        "q75": 89.85,
+        "max": 118.75,
+        "sum": 456116.6
+      }
+    },
+    "TotalCharges": {
+      "name": "TotalCharges",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "numeric_candidate",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7032,
+        "missing_count": 11,
+        "missing_percentage": 0.16,
+        "numeric_parse_percentage": 100.0,
+        "distinct_count": 6530,
+        "numeric_parsed_count": 7032,
+        "numeric_unparsed_count": 0
+      },
+      "examples": [
+        "29.85",
+        "1889.5",
+        "108.15",
+        "1840.75",
+        "151.65"
+      ],
+      "statistics": {
+        "available": true,
+        "total_values": 7043,
+        "missing_count": 11,
+        "non_missing_count": 7032,
+        "parsed_count": 7032,
+        "unparsed_count": 0,
+        "parsed_percentage": 100.0,
+        "distinct_count": 6530,
+        "mean": 2283.300440841866,
+        "median": 1397.475,
+        "std": 2266.771361883145,
+        "min": 18.8,
+        "q25": 401.45,
+        "q75": 3794.7375,
+        "max": 8684.8,
+        "note": "Statistiques exploratoires calculées sur les valeurs convertibles, sans modifier la colonne originale."
+      }
+    },
+    "Churn": {
+      "name": "Churn",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "boolean_candidate",
+        "classification_method": "value_pattern",
+        "non_missing_count": 7043,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 2
+      },
+      "examples": [
+        "No",
+        "No",
+        "Yes",
+        "No",
+        "Yes"
+      ],
+      "statistics": {
+        "non_missing_count": 7043,
+        "distinct_count": 2,
+        "most_frequent_values": [
+          {
+            "value": "No",
+            "count": 5174,
+            "percentage_of_non_missing": 73.46
+          },
+          {
+            "value": "Yes",
+            "count": 1869,
+            "percentage_of_non_missing": 26.54
+          }
+        ],
+        "examples": [
+          "No",
+          "Yes"
+        ],
+        "text_length": {
+          "min": 2,
+          "mean": 2.27,
+          "max": 3
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Le profilage est descriptif et ne modifie pas les donnees.",
+    "Les types semantiques sont des estimations et peuvent etre ambigus.",
+    "Les nombres et dates detectes dans du texte sont des candidats.",
+    "Les valeurs manquantes et les doublons sont decrits sans correction."
+  ],
+  "gemini_interpretation": {
+    "available": false,
+    "message": "GEMINI_API_KEY absente. Profilage Python uniquement."
+  }
+}

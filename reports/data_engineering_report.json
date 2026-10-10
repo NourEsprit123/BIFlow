@@ -1,0 +1,391 @@
+{
+  "status": "success",
+  "model": "gemini-3.8-flash",
+  "dataset": "telco_churn.csv",
+  "objective": "Comprendre le dataset, interpréter ses variables et proposer des pistes d'analyse pertinentes.",
+  "metadata": {
+    "rows": 7043,
+    "columns": 21
+  },
+  "factual_summary": {
+    "nombre_exact_lignes": 7043,
+    "nombre_exact_colonnes": 21,
+    "noms_colonnes": [
+      "customerID",
+      "gender",
+      "SeniorCitizen",
+      "Partner",
+      "Dependents",
+      "tenure",
+      "PhoneService",
+      "MultipleLines",
+      "InternetService",
+      "OnlineSecurity",
+      "OnlineBackup",
+      "DeviceProtection",
+      "TechSupport",
+      "StreamingTV",
+      "StreamingMovies",
+      "Contract",
+      "PaperlessBilling",
+      "PaymentMethod",
+      "MonthlyCharges",
+      "TotalCharges",
+      "Churn"
+    ],
+    "nombre_lignes_dupliquees": 0,
+    "colonnes": {
+      "customerID": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 7043,
+        "exemples": [
+          "7590-VHVEG",
+          "5575-GNVDE",
+          "3668-QPYBK"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "7590-VHVEG": 1,
+          "5575-GNVDE": 1,
+          "3668-QPYBK": 1,
+          "7795-CFOCW": 1,
+          "9237-HQITU": 1,
+          "9305-CDSKC": 1,
+          "1452-KIOVK": 1,
+          "6713-OKOMC": 1
+        }
+      },
+      "gender": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 2,
+        "exemples": [
+          "Female",
+          "Male",
+          "Male"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "Male": 3555,
+          "Female": 3488
+        }
+      },
+      "SeniorCitizen": {
+        "type_python": "int64",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 2,
+        "exemples": [
+          "0",
+          "0",
+          "0"
+        ],
+        "statistiques_numeriques": {
+          "count": 7043,
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.1621468124378816,
+          "median": 0.0,
+          "q25": 0.0,
+          "q75": 0.0
+        }
+      },
+      "Partner": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 2,
+        "exemples": [
+          "Yes",
+          "No",
+          "No"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "No": 3641,
+          "Yes": 3402
+        }
+      },
+      "Dependents": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 2,
+        "exemples": [
+          "No",
+          "No",
+          "No"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "No": 4933,
+          "Yes": 2110
+        }
+      },
+      "tenure": {
+        "type_python": "int64",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 73,
+        "exemples": [
+          "1",
+          "34",
+          "2"
+        ],
+        "statistiques_numeriques": {
+          "count": 7043,
+          "min": 0.0,
+          "max": 72.0,
+          "mean": 32.37114865824223,
+          "median": 29.0,
+          "q25": 9.0,
+          "q75": 55.0
+        }
+      },
+      "PhoneService": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 2,
+        "exemples": [
+          "No",
+          "Yes",
+          "Yes"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "Yes": 6361,
+          "No": 682
+        }
+      },
+      "MultipleLines": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 3,
+        "exemples": [
+          "No phone service",
+          "No",
+          "No"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "No": 3390,
+          "Yes": 2971,
+          "No phone service": 682
+        }
+      },
+      "InternetService": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 3,
+        "exemples": [
+          "DSL",
+          "DSL",
+          "DSL"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "Fiber optic": 3096,
+          "DSL": 2421,
+          "No": 1526
+        }
+      },
+      "OnlineSecurity": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 3,
+        "exemples": [
+          "No",
+          "Yes",
+          "Yes"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "No": 3498,
+          "Yes": 2019,
+          "No internet service": 1526
+        }
+      },
+      "OnlineBackup": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 3,
+        "exemples": [
+          "Yes",
+          "No",
+          "Yes"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "No": 3088,
+          "Yes": 2429,
+          "No internet service": 1526
+        }
+      },
+      "DeviceProtection": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 3,
+        "exemples": [
+          "No",
+          "Yes",
+          "No"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "No": 3095,
+          "Yes": 2422,
+          "No internet service": 1526
+        }
+      },
+      "TechSupport": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 3,
+        "exemples": [
+          "No",
+          "No",
+          "No"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "No": 3473,
+          "Yes": 2044,
+          "No internet service": 1526
+        }
+      },
+      "StreamingTV": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 3,
+        "exemples": [
+          "No",
+          "No",
+          "No"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "No": 2810,
+          "Yes": 2707,
+          "No internet service": 1526
+        }
+      },
+      "StreamingMovies": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 3,
+        "exemples": [
+          "No",
+          "No",
+          "No"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "No": 2785,
+          "Yes": 2732,
+          "No internet service": 1526
+        }
+      },
+      "Contract": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 3,
+        "exemples": [
+          "Month-to-month",
+          "One year",
+          "Month-to-month"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "Month-to-month": 3875,
+          "Two year": 1695,
+          "One year": 1473
+        }
+      },
+      "PaperlessBilling": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 2,
+        "exemples": [
+          "Yes",
+          "No",
+          "Yes"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "Yes": 4171,
+          "No": 2872
+        }
+      },
+      "PaymentMethod": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 4,
+        "exemples": [
+          "Electronic check",
+          "Mailed check",
+          "Mailed check"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "Electronic check": 2365,
+          "Mailed check": 1612,
+          "Bank transfer (automatic)": 1544,
+          "Credit card (automatic)": 1522
+        }
+      },
+      "MonthlyCharges": {
+        "type_python": "float64",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 1585,
+        "exemples": [
+          "29.85",
+          "56.95",
+          "53.85"
+        ],
+        "statistiques_numeriques": {
+          "count": 7043,
+          "min": 18.25,
+          "max": 118.75,
+          "mean": 64.76169246059918,
+          "median": 70.35,
+          "q25": 35.5,
+          "q75": 89.85
+        }
+      },
+      "TotalCharges": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 6531,
+        "exemples": [
+          "29.85",
+          "1889.5",
+          "108.15"
+        ],
+        "chaines_vides_ou_espaces": 11,
+        "valeurs_frequentes": {
+          "20.2": 11,
+          " ": 11,
+          "19.75": 9,
+          "19.9": 8,
+          "20.05": 8,
+          "19.65": 8,
+          "45.3": 7,
+          "19.55": 7
+        }
+      },
+      "Churn": {
+        "type_python": "str",
+        "valeurs_manquantes": 0,
+        "valeurs_uniques": 2,
+        "exemples": [
+          "No",
+          "No",
+          "Yes"
+        ],
+        "chaines_vides_ou_espaces": 0,
+        "valeurs_frequentes": {
+          "No": 5174,
+          "Yes": 1869
+        }
+      }
+    }
+  },
+  "report": "Voici le rapport d'analyse préparé en tant que Data Engineering Agent de BIFlow, basé sur le résumé statistique calculé localement par Python.\n\n---\n\n# Rapport d'analyse et d'ingénierie des données\n\n## 1. Vue d'ensemble et volumétrie\n* **Nombre de lignes :** 7 043 observations.\n* **Nombre de colonnes :** 21 variables.\n* **Lignes dupliquées :** 0 ligne dupliquée détectée dans le jeu de données complet.\n* **Source d'information :** Synthèse descriptive issue d'un profilage programmatique Python (aucune inspection manuelle ligne par ligne n'a été réalisée par le modèle).\n\n---\n\n## 2. Domaine probable du dataset et justification\n* **Domaine identifié :** Télécommunications et services d'abonnement grand public (FAI / Téléphonie).\n* **Justification :** \n  * Présence explicite de services techniques et d'infrastructure de communication : `PhoneService`, `MultipleLines`, `InternetService` (avec modalités *DSL*, *Fiber optic*).\n  * Services optionnels associés à l'accès Internet : `OnlineSecurity`, `OnlineBackup`, `DeviceProtection`, `TechSupport`, `StreamingTV`, `StreamingMovies`.\n  * Structure contractuelle et financière récurrente : `tenure` (durée de souscription en mois), `Contract`, `PaperlessBilling`, `PaymentMethod`, `MonthlyCharges`, `TotalCharges`.\n  * Variable d'attrition/résiliation explicite : `Churn` (modalités *Yes* / *No*).\n\n---\n\n## 3. Interprétation des colonnes importantes et typage\n\nLes variables se répartissent en quatre grandes catégories :\n\n1. **Identification :**\n   * `customerID` (type lu : `str`) : 7 043 valeurs uniques pour 7 043 lignes. Cette unicité en fait la clé primaire candidate pour identifier individuellement chaque abonné.\n\n2. **Profil démographique :**\n   * `gender` (`str`) : Genre de l'abonné (*Male* : 3 555, *Female* : 3 488).\n   * `SeniorCitizen` (type lu : `int64`) : Variable binaire (min 0, max 1, moyenne ~0,162) indiquant si le client est senior. Représentation numérique d'un booléen.\n   * `Partner` (`str`) : Présence d'un partenaire de vie (*No* : 3 641, *Yes* : 3 402).\n   * `Dependents` (`str`) : Personnes à charge (*No* : 4 933, *Yes* : 2 110).\n\n3. **Services souscrits :**\n   * `PhoneService` & `MultipleLines` : Téléphonie (6 361 ont le service, dont 2 971 ont plusieurs lignes ; 682 n'ont pas de service téléphonique).\n   * `InternetService` : Type de connexion (Fibre optique : 3 096, DSL : 2 421, Aucun : 1 526).\n   * Services à valeur ajoutée (`OnlineSecurity`, `OnlineBackup`, `DeviceProtection`, `TechSupport`, `StreamingTV`, `StreamingMovies`) : Chacun partage la modalité d'exclusion *No internet service* pour exactement 1 526 enregistrements, ce qui est strictement cohérent avec la modalité *No* de `InternetService`.\n\n4. **Facturation, fidélité et statut :**\n   * `tenure` (type lu : `int64`) : Ancienneté s'échelonnant de 0 à 72 (médiane à 29, moyenne à ~32,37).\n   * `Contract` (`str`) : Type d'engagement (*Month-to-month* : 3 875, *Two year* : 1 695, *One year* : 1 473).\n   * `PaperlessBilling` (`str`) : Dématérialisation de la facture (*Yes* : 4 171, *No* : 2 872).\n   * `PaymentMethod` (`str`) : 4 modes de règlement dominés par le chèque électronique (*Electronic check* : 2 365).\n   * `MonthlyCharges` (type lu : `float64`) : Montant facturé mensuellement (min : 18.25, médiane : 70.35, moyenne : ~64.76, max : 118.75).\n   * `TotalCharges` (type lu : `str`) : Cumul des montants facturés.\n   * `Churn` (`str`) : Statut de désabonnement (*No* : 5 174, *Yes* : 1 869).\n\n---\n\n## 4. Observations étayées par les informations fournies\n\n* **Cohérence relationnelle des services :** Le sous-ensemble de clients sans service Internet est uniformément de 1 526 à travers l'ensemble des six options Internet additionnelles, et de 682 pour les clients sans ligne téléphonique dans `MultipleLines`.\n* **Répartition de la variable cible `Churn` :** 5 174 clients sont restés actifs (*No*) contre 1 869 ayant résilié (*Yes*).\n* **Forte prévalence des engagements courts :** Le contrat mensuel (*Month-to-month*) représente le volume le plus important (3 875 abonnés).\n* **Distribution de l'ancienneté (`tenure`) :** Le 1er quartile se situe à 9, la médiane à 29 et le 3e quartile à 55, couvrant une plage de 0 à 72 périodes (vraisemblablement des mois).\n\n---\n\n## 5. Problèmes potentiels de qualité et incertitudes\n\n1. **Anomalie de typage et valeurs vides sur `TotalCharges` :**\n   * La colonne a été chargée en `str` au lieu d'un type flottant/numérique.\n   * Présence de 11 enregistrements contenant des chaînes vides composées d'espaces (`\" \"`).\n   * *Hypothèse à vérifier :* Ces 11 cas correspondent probablement à des clients ayant une ancienneté `tenure` égale à 0 (nouveaux inscrits n'ayant pas encore reçu de facture totale).\n2. **Encodage hétérogène des variables binaires :**\n   * `SeniorCitizen` est représenté sous forme d'entiers (`0`, `1`).\n   * Les autres variables binaires (`Partner`, `Dependents`, `PhoneService`, `PaperlessBilling`, `Churn`) sont stockées sous forme textuelle (`\"Yes\"`, `\"No\"`).\n3. **Modalités redondantes imbriquées :**\n   * Des colonnes catégorielles comme `OnlineSecurity` ou `MultipleLines` portent à la fois l'information de l'option (*Yes*/*No*) et l'absence du service parent (*No internet service*, *No phone service*), ce qui introduit une multicolinéarité structurelle pour les futurs modèles statistiques.\n\n---\n\n## 6. Recommandations pour le pipeline Data Engineering et analyses complémentaires\n\n### Transformations et nettoyage (Pipeline ETL / Préparation) :\n* **Nettoyage de `TotalCharges` :** Remplacer les chaînes d'espaces `\" \"` par `NaN` ou `0.0` (après vérification de la valeur de `tenure`), puis convertir la colonne en type numérique (`float64`).\n* **Standardisation des types :** \n  * Convertir les colonnes binaires texte (*Yes*/*No*) et `SeniorCitizen` vers un format booléen homogène.\n  * Convertir les variables à faibles cardinalités fixes (`Contract`, `InternetService`, `PaymentMethod`) en type `category` pour optimiser l'empreinte mémoire.\n* **Gestion des clés :** Valider formellement la contrainte d'unicité et de non-nullité de `customerID` en tant qu'index applicatif.\n\n### Analyses complémentaires recommandées :\n* **Audit des 11 valeurs vides :** Confirmer le croisement strict entre `tenure == 0` et `TotalCharges == \" \"`.\n* **Cohérence financière :** Évaluer l'écart éventuel entre `TotalCharges` et l'approximation théorique `tenure * MonthlyCharges`.\n* **Étude de l'attrition (`Churn`) :**\n  * Analyser la distribution du churn selon le type de contrat (`Contract`), le mode de paiement et l'ancienneté.\n  * Analyser le churn selon le type d'accès Internet (Fibre vs DSL vs Aucun).\n* **Analyse de survie / Cohortes :** Exploiter la variable `tenure` pour modéliser le cycle de vie client et identifier les périodes critiques de résiliation.\n\n---\n\n## 7. Conclusion\n\nLe dataset fournit une base riche, propre dans sa globalité (zéro doublon de ligne, aucune valeur manquante brute `null`), mais comportant une anomalie de casting critique sur `TotalCharges` due à 11 espaces blancs. \n\nUne fois cette correction opérée et les types uniformisés, ce jeu de données constitue un actif directement exploitable pour des cas d'usage de modélisation prédictive du churn, d'analyse de la valeur vie client (CLV) et d'optimisation des offres contractuelles."
+}

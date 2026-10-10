@@ -1,0 +1,382 @@
+{
+  "dataset": {
+    "file_name": "heath 1995-2010.csv",
+    "file_path": "D:\\BIFlow\\data\\raw\\heath 1995-2010.csv",
+    "format": ".csv",
+    "rows": 1639,
+    "columns": 7,
+    "memory_usage_bytes": 333777,
+    "objective": "Comprendre la structure et les statistiques descriptives."
+  },
+  "overview": {
+    "semantic_type_counts": {
+      "numeric": 1,
+      "categorical": 4,
+      "numeric_candidate": 2
+    },
+    "total_missing_cells": 0,
+    "missing_cells_percentage": 0.0,
+    "duplicate_row_count_descriptive": 0
+  },
+  "columns": {
+    "column_1": {
+      "name": "column_1",
+      "type": {
+        "technical_type": "int64",
+        "semantic_type": "numeric",
+        "classification_method": "dtype",
+        "non_missing_count": 1639,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 16
+      },
+      "examples": [
+        1995,
+        2006,
+        1997,
+        2001,
+        2009
+      ],
+      "statistics": {
+        "available": true,
+        "count": 1639,
+        "distinct_count": 16,
+        "mean": 2002.6625991458206,
+        "median": 2003.0,
+        "std": 4.735263583080111,
+        "min": 1995,
+        "q25": 1998.0,
+        "q50": 2003.0,
+        "q75": 2007.0,
+        "max": 2010,
+        "sum": 3282364
+      }
+    },
+    "column_2": {
+      "name": "column_2",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "heuristic",
+        "non_missing_count": 1639,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 56
+      },
+      "examples": [
+        "Idaho",
+        "Idaho",
+        "North Dakota",
+        "New York",
+        "Nationwide (States, DC, and Territories)"
+      ],
+      "statistics": {
+        "non_missing_count": 1639,
+        "distinct_count": 56,
+        "most_frequent_values": [
+          {
+            "value": "Idaho",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "North Dakota",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "New York",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "Nationwide (States, DC, and Territories)",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "Louisiana",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "Connecticut",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "Illinois",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "Michigan",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "Oregon",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "Kentucky",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          }
+        ],
+        "examples": [
+          "Idaho",
+          "North Dakota",
+          "New York",
+          "Nationwide (States, DC, and Territories)",
+          "Louisiana"
+        ],
+        "text_length": {
+          "min": 4,
+          "mean": 9.62,
+          "max": 40
+        }
+      }
+    },
+    "column_3": {
+      "name": "column_3",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "numeric_candidate",
+        "classification_method": "value_pattern",
+        "non_missing_count": 1639,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "numeric_parse_percentage": 89.63
+      },
+      "examples": [
+        "85.7",
+        "81.2",
+        "88.3",
+        "83.7",
+        "83"
+      ],
+      "statistics": {
+        "available": true,
+        "parsed_count": 1469,
+        "distinct_count": 193,
+        "mean": 85.4004765146358,
+        "median": 85.9,
+        "std": 4.515674311404177,
+        "min": 67.3,
+        "q25": 82.9,
+        "q75": 88.6,
+        "max": 95.7,
+        "note": "Statistiques exploratoires : conversion temporaire, aucune modification de la colonne originale."
+      }
+    },
+    "column_4": {
+      "name": "column_4",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "numeric_candidate",
+        "classification_method": "value_pattern",
+        "non_missing_count": 1639,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "numeric_parse_percentage": 84.14
+      },
+      "examples": [
+        "14.3",
+        "18.8",
+        "11.7",
+        "16.3",
+        "17"
+      ],
+      "statistics": {
+        "available": true,
+        "parsed_count": 1379,
+        "distinct_count": 206,
+        "mean": 15.290645395213925,
+        "median": 14.2,
+        "std": 4.981191716691022,
+        "min": 4.3,
+        "q25": 11.8,
+        "q75": 18.3,
+        "max": 34.1,
+        "note": "Statistiques exploratoires : conversion temporaire, aucune modification de la colonne originale."
+      }
+    },
+    "column_5": {
+      "name": "column_5",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "heuristic",
+        "non_missing_count": 1639,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 1
+      },
+      "examples": [
+        "Health Care Access/Coverage",
+        "Health Care Access/Coverage",
+        "Health Care Access/Coverage",
+        "Health Care Access/Coverage",
+        "Health Care Access/Coverage"
+      ],
+      "statistics": {
+        "non_missing_count": 1639,
+        "distinct_count": 1,
+        "most_frequent_values": [
+          {
+            "value": "Health Care Access/Coverage",
+            "count": 1639,
+            "percentage_of_non_missing": 100.0
+          }
+        ],
+        "examples": [
+          "Health Care Access/Coverage"
+        ],
+        "text_length": {
+          "min": 27,
+          "mean": 27.0,
+          "max": 27
+        }
+      }
+    },
+    "column_6": {
+      "name": "column_6",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "heuristic",
+        "non_missing_count": 1639,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 2
+      },
+      "examples": [
+        "Do you have any kind of health care coverage?",
+        "Do you have any kind of health care coverage?",
+        "Do you have any kind of health care coverage?",
+        "Do you have any kind of health care coverage?",
+        "Adults aged 18-64 who have any kind of health care coverage"
+      ],
+      "statistics": {
+        "non_missing_count": 1639,
+        "distinct_count": 2,
+        "most_frequent_values": [
+          {
+            "value": "Do you have any kind of health care coverage?",
+            "count": 875,
+            "percentage_of_non_missing": 53.39
+          },
+          {
+            "value": "Adults aged 18-64 who have any kind of health care coverage",
+            "count": 764,
+            "percentage_of_non_missing": 46.61
+          }
+        ],
+        "examples": [
+          "Do you have any kind of health care coverage?",
+          "Adults aged 18-64 who have any kind of health care coverage"
+        ],
+        "text_length": {
+          "min": 45,
+          "mean": 51.53,
+          "max": 59
+        }
+      }
+    },
+    "column_7": {
+      "name": "column_7",
+      "type": {
+        "technical_type": "str",
+        "semantic_type": "categorical",
+        "classification_method": "heuristic",
+        "non_missing_count": 1639,
+        "missing_count": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 56
+      },
+      "examples": [
+        "Idaho\n(43.682630005000476, -114.3637300419997)",
+        "Idaho\n(43.682630005000476, -114.3637300419997)",
+        "North Dakota\n(47.47531977900047, -100.11842104899966)",
+        "New York\n(42.82700103200045, -75.54397042699964)",
+        "Nationwide (States, DC, and Territories)"
+      ],
+      "statistics": {
+        "non_missing_count": 1639,
+        "distinct_count": 56,
+        "most_frequent_values": [
+          {
+            "value": "Idaho\n(43.682630005000476, -114.3637300419997)",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "North Dakota\n(47.47531977900047, -100.11842104899966)",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "New York\n(42.82700103200045, -75.54397042699964)",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "Nationwide (States, DC, and Territories)",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "Louisiana\n(31.31266064400046, -92.44568007099969)",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "Connecticut\n(41.56266102000046, -72.64984095199964)",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "Illinois\n(40.48501028300046, -88.99771017799969)",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "Michigan\n(44.6613195430005, -84.71439026999968)",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "Oregon\n(44.56744942400047, -120.15503132599969)",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          },
+          {
+            "value": "Kentucky\n(37.645970271000465, -84.77497104799966)",
+            "count": 30,
+            "percentage_of_non_missing": 1.83
+          }
+        ],
+        "examples": [
+          "Idaho\n(43.682630005000476, -114.3637300419997)",
+          "North Dakota\n(47.47531977900047, -100.11842104899966)",
+          "New York\n(42.82700103200045, -75.54397042699964)",
+          "Nationwide (States, DC, and Territories)",
+          "Louisiana\n(31.31266064400046, -92.44568007099969)"
+        ],
+        "text_length": {
+          "min": 4,
+          "mean": 47.27,
+          "max": 60
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Le profilage est descriptif et ne modifie pas les donnees.",
+    "Les types semantiques sont des estimations et peuvent etre ambigus.",
+    "Les nombres et dates detectes dans du texte sont des candidats.",
+    "Les valeurs manquantes et les doublons sont decrits sans correction."
+  ]
+}
