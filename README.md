@@ -297,6 +297,27 @@ L'interface est accessible depuis le navigateur à l'adresse indiquée par Strea
 http://localhost:8501
 ```
 
+## Charger les données nettoyées dans PostgreSQL
+
+Après un nettoyage, BIFlow conserve les fichiers CSV et Parquet et peut également charger
+le résultat dans PostgreSQL. Créez d'abord une base (par exemple `biflow`) dans PostgreSQL
+ou pgAdmin, puis configurez les variables suivantes dans le fichier `.env` à la racine :
+
+```text
+DATABASE_URL=postgresql+psycopg://postgres:mot_de_passe@localhost:5432/biflow
+POSTGRES_SCHEMA=analytics
+```
+
+Installez les dépendances avec `pip install -r requirements.txt`, redémarrez Streamlit,
+puis cliquez sur **Apply recommended cleaning**. BIFlow crée le schéma `analytics` s'il
+n'existe pas et écrit le dataset dans une table nommée à partir du fichier source, par
+exemple `data/raw/dirty_sales_test.csv` devient `analytics.dirty_sales_test`.
+Chaque nouveau chargement remplace le contenu précédent de cette table.
+
+Si `DATABASE_URL` n'est pas configurée, le nettoyage produit seulement les fichiers locaux.
+Si la connexion PostgreSQL échoue, l'application affiche l'erreur au lieu de signaler un
+chargement réussi. Ne partagez pas et ne commitez pas votre fichier `.env`.
+
 ---
 
 # 🧭 9. Interface BIFlow

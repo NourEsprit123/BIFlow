@@ -1,0 +1,50 @@
+{
+  "timestamp": "2026-10-10T16:34:54.826937+00:00",
+  "raw_file": "data/raw\\dirty_sales_test.csv",
+  "cleaned_file": "data/cleaned/dirty_sales_test_cleaned.csv",
+  "processed_file": "data/processed/dirty_sales_test_processed.parquet",
+  "quality_score_before": 88.7,
+  "quality_score_after": 99.2,
+  "applied_transformations": [
+    {
+      "column": "MonthlyCost",
+      "action": "numeric_waterfall_cleaning",
+      "nulls_before": 1,
+      "nulls_after": 2
+    },
+    {
+      "column": "Revenue",
+      "action": "numeric_waterfall_cleaning",
+      "nulls_before": 1,
+      "nulls_after": 3
+    },
+    {
+      "column": "SignupDate",
+      "action": "datetime_conversion"
+    },
+    {
+      "column": "IsActive",
+      "action": "boolean_conversion"
+    },
+    {
+      "column": "Revenue",
+      "action": "imputation_median",
+      "imputed_rows": 3
+    },
+    {
+      "column": "MonthlyCost",
+      "action": "imputation_median",
+      "imputed_rows": 2
+    },
+    {
+      "column": "Quantity",
+      "action": "imputation_median",
+      "imputed_rows": 2
+    },
+    {
+      "column": "SignupDate",
+      "action": "imputation_mode",
+      "imputed_rows": 2
+    }
+  ]
+}

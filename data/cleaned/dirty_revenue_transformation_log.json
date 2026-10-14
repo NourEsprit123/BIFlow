@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-10-10T16:50:34.765236+00:00",
+  "raw_file": "C:\\Users\\Nour\\AppData\\Local\\Temp\\pytest-of-Nour\\pytest-9\\test_dirty_numeric_recommendat0\\dirty_revenue.csv",
+  "cleaned_file": "data/cleaned/dirty_revenue_cleaned.csv",
+  "processed_file": "data/processed/dirty_revenue_processed.parquet",
+  "database_load": {
+    "status": "not_configured"
+  },
+  "quality_score_before": 97.0,
+  "quality_score_after": 91.7,
+  "applied_transformations": [
+    {
+      "column": "Revenue",
+      "action": "numeric_waterfall_cleaning",
+      "nulls_before": 0,
+      "nulls_after": 2
+    }
+  ]
+}
