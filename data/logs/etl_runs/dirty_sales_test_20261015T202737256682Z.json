@@ -1,0 +1,9 @@
+{
+  "run_id": "20261015T202737256682Z",
+  "status": "failed",
+  "source_file": "data\\raw\\dirty_sales_test.csv",
+  "started_at": "2026-10-15T20:27:37.256682+00:00",
+  "finished_at": "2026-10-15T20:27:37.371142+00:00",
+  "error_type": "ValueError",
+  "error": "ETL validation failed: The transformed dataset still contains 4 missing cell(s)."
+}

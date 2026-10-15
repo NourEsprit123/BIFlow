@@ -67,6 +67,12 @@ BIFlow repose sur une architecture composée de **4 agents principaux** :
 | 📊 **BI Analyst Agent**       | KPI, tendances, anomalies, segmentation et insights         |
 | 🔍 **XAI / Auditor Agent**    | Explication, traçabilité et audit des résultats             |
 
+La carte BI de **Workflows** orchestre le profilage, le nettoyage ETL validé,
+puis le calcul des KPI et des agrégats sur le fichier nettoyé. L’Agent BI demande
+ensuite au LLM des insights fondés sur ces statistiques, sans lui transmettre
+les lignes individuelles. La page **BI Analysis** affiche les résultats du
+dataset nettoyé.
+
 ---
 
 # 📁 Structure du projet

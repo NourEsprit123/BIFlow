@@ -1,0 +1,64 @@
+{
+  "run_id": "20261015T220523716764Z",
+  "status": "success",
+  "started_at": "2026-10-15T22:05:23.716764+00:00",
+  "finished_at": "2026-10-15T22:05:24.220595+00:00",
+  "source_file": "data\\raw\\dirty_sales_test.csv",
+  "destination_format": "csv",
+  "output_files": {
+    "csv": "data\\cleaned\\dirty_sales_test_cleaned.csv"
+  },
+  "rows_extracted": 30,
+  "rows_loaded": 30,
+  "columns_extracted": 9,
+  "columns_loaded": 9,
+  "quality_score_before": 90.2,
+  "quality_score_after": 99.2,
+  "validation": {
+    "valid": true,
+    "errors": [],
+    "source_rows": 30,
+    "output_rows": 30,
+    "rows_removed": 0,
+    "columns": 9,
+    "missing_cells": 0,
+    "duplicate_rows": 0,
+    "schema_preserved": true
+  },
+  "applied_transformations": [
+    {
+      "column": "MonthlyCost",
+      "action": "numeric_waterfall_cleaning",
+      "nulls_before": 1,
+      "nulls_after": 1
+    },
+    {
+      "column": "SignupDate",
+      "action": "parse_datetime"
+    },
+    {
+      "column": "IsActive",
+      "action": "normalize_boolean"
+    },
+    {
+      "column": "Quantity",
+      "action": "imputation_median",
+      "imputed_rows": 2
+    },
+    {
+      "column": "Revenue",
+      "action": "imputation_median",
+      "imputed_rows": 1
+    },
+    {
+      "column": "MonthlyCost",
+      "action": "imputation_median",
+      "imputed_rows": 1
+    },
+    {
+      "column": "SignupDate",
+      "action": "imputation_mode",
+      "imputed_rows": 2
+    }
+  ]
+}

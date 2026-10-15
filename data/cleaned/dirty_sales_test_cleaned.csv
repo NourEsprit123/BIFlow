@@ -5,12 +5,12 @@ ORD-003,Carol White,1.5k,210.0,5.0,East,2023-03-10,True,Premium
 ORD-004,David Lee,one thousand,180.5,2.0,West,2023-04-05,False,Basic
 ORD-005,Eva Brown,"$2,300.00",890.25,7.0,North,2023-05-18,True,Premium
 ORD-006,Frank Green,banana,150.0,1.0,South,2023-06-22,False,Basic
-ORD-007,Grace Kim,"$3,750.50",710348.0000000009,4.0,East,2023-07-30,True,Standard
+ORD-007,Grace Kim,"$3,750.50",1000000.0,4.0,East,2023-07-30,True,Standard
 ORD-008,Henry Davis,2.1k,430.0,6.0,West,2023-08-14,False,Premium
 ORD-009,Isla Wilson,$980.00,375.5,2.0,North,2023-09-09,True,Basic
 ORD-010,Jack Moore,ERROR_404,290.0,3.0,South,2023-10-01,False,Standard
 ORD-011,Karen Taylor,"$1,850.00",670.0,5.0,East,2023-11-11,True,Premium
-ORD-012,Leo Anderson,five hundred,128.7,1.0,West,2023-12-25,False,Basic
+ORD-012,Leo Anderson,five hundred,120.0,1.0,West,2023-12-25,False,Basic
 ORD-013,Mia Thomas,"$4,200.75",1100.0,8.0,North,2023-01-15,True,Premium
 ORD-014,Noah Jackson,750.00,280.0,4.0,South,2024-01-08,False,Standard
 ORD-015,Olivia Harris,"$1,100.00",415.0,3.0,East,2024-02-14,True,Basic

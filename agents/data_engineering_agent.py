@@ -15,7 +15,7 @@ from analytics.cleaning import (
     standardize_categorical_synonyms,
     treat_outliers
 )
-from agents.llm_client import LLMClient
+from agents.llm_client import LLMClient, LLMRateLimitError
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +23,8 @@ PROFILE_COLUMNS_PER_REQUEST = 5
 PROFILE_MAX_OUTPUT_TOKENS = 150
 SINGLE_COLUMN_PROFILE_MAX_OUTPUT_TOKENS = 100
 QUALITY_PLAN_MAX_OUTPUT_TOKENS = 200
+QUALITY_STRATEGY_REPAIR_MAX_OUTPUT_TOKENS = 180
+QUALITY_IMPUTATION_PLAN_MAX_OUTPUT_TOKENS = 160
 
 
 class DataEngineeringAgent:
@@ -39,6 +41,26 @@ class DataEngineeringAgent:
         file_path: str,
         workflow: str,
         destination_format: str = "both",
+    ) -> Dict[str, Any]:
+        try:
+            return self._run_llm_workflow(file_path, workflow, destination_format)
+        except LLMRateLimitError as error:
+            logger.warning(
+                "LLM quota reached; running deterministic workflow for %s: %s",
+                file_path,
+                error,
+            )
+            return self._run_deterministic_workflow(
+                file_path,
+                workflow,
+                destination_format,
+            )
+
+    def _run_llm_workflow(
+        self,
+        file_path: str,
+        workflow: str,
+        destination_format: str,
     ) -> Dict[str, Any]:
         """Run a selected workflow using an LLM decision at every analysis stage."""
         if workflow not in {"profiling", "profiling_quality_cleaning"}:
@@ -108,6 +130,46 @@ class DataEngineeringAgent:
         ):
             raise ValueError("The LLM returned invalid quality findings.")
         strategy = quality_plan.get("cleaning_strategy")
+        required_strategy_fields = {
+            "numeric_waterfall_columns",
+            "imputation_plan",
+            "synonym_mappings",
+            "outlier_columns",
+            "date_columns",
+            "boolean_columns",
+            "remove_duplicates",
+        }
+        if isinstance(strategy, dict):
+            missing_strategy_fields = required_strategy_fields - set(strategy)
+            if missing_strategy_fields:
+                repair_prompt = (
+                    "Complete the cleaning strategy. Return only a JSON object containing "
+                    "exactly these missing fields, with the required types: "
+                    "numeric_waterfall_columns (array of source column names), "
+                    "imputation_plan (object), synonym_mappings (object), "
+                    "outlier_columns (array of source column names), "
+                    "date_columns (array of source column names), "
+                    "boolean_columns (array of source column names), and "
+                    "remove_duplicates (boolean). Choose empty arrays/objects where no "
+                    "operation is recommended. Decide remove_duplicates from the supplied "
+                    "quality report. Do not repeat other strategy fields or add explanation.\n"
+                    f"Missing fields: {json.dumps(sorted(missing_strategy_fields))}\n"
+                    f"Dataset metadata and quality report: {json.dumps(llm_context, default=str)}"
+                )
+                repaired_strategy = self.llm_client.generate_json(
+                    repair_prompt,
+                    (
+                        "You complete missing fields in a data cleaning plan using only "
+                        "the provided dataset quality report. Return valid concise JSON."
+                    ),
+                    max_output_tokens=QUALITY_STRATEGY_REPAIR_MAX_OUTPUT_TOKENS,
+                )
+                if isinstance(repaired_strategy, dict):
+                    strategy.update({
+                        field: repaired_strategy[field]
+                        for field in missing_strategy_fields
+                        if field in repaired_strategy
+                    })
         self._validate_llm_cleaning_strategy(strategy, profile["column_names"])
         analysis.update(quality_plan)
         result = self.execute_cleaning(
@@ -121,6 +183,111 @@ class DataEngineeringAgent:
             "workflow": workflow,
             "profile": profile,
             "llm_analysis": analysis,
+        })
+        return result
+
+    def _run_deterministic_workflow(
+        self,
+        file_path: str,
+        workflow: str,
+        destination_format: str,
+    ) -> Dict[str, Any]:
+        if workflow not in {"profiling", "profiling_quality_cleaning"}:
+            raise ValueError(f"Unsupported workflow: {workflow}")
+
+        dataframe = load_dataset(file_path)
+        profile = profile_dataset(file_path)
+        health = calculate_health_scores(dataframe)
+        analysis = {
+            "profile_summary": (
+                f"Python profile of {profile['rows']} rows and "
+                f"{profile['columns']} columns; LLM quota unavailable."
+            ),
+            "columns": [
+                {
+                    "name": column,
+                    "type": profile["column_types"][column],
+                    "role": profile["column_roles"][column],
+                    "insight": (
+                        f"{profile['unique_values'][column]} distinct values; "
+                        f"{profile['missing_values'][column]} missing."
+                    ),
+                }
+                for column in profile["column_names"]
+            ],
+        }
+        if workflow == "profiling":
+            return {
+                "status": "success",
+                "workflow": workflow,
+                "profile": profile,
+                "llm_analysis": analysis,
+                "fallback_used": True,
+                "fallback_reason": "LLM rate limit reached; Python profiling was used.",
+            }
+
+        dirty_numeric_columns = [
+            column for column, issue in health["type_issues"].items()
+            if issue["issue"].startswith("Dirty numeric strings")
+        ]
+        date_columns = [
+            column for column, issue in health["type_issues"].items()
+            if issue["issue"].startswith("Date/time values stored as plain text")
+        ]
+        boolean_columns = [
+            column for column, issue in health["type_issues"].items()
+            if issue["issue"].startswith("Boolean flag stored as text")
+        ]
+        missing_tokens = {"", "n/a", "null", "none", "?", "missing"}
+        imputation_plan = {}
+        for column in dataframe.columns:
+            has_missing = bool(dataframe[column].isna().any())
+            if pd.api.types.is_string_dtype(dataframe[column]) or dataframe[column].dtype == "object":
+                has_missing = has_missing or dataframe[column].astype("string").str.strip().str.lower().isin(
+                    missing_tokens
+                ).any()
+            if column in dirty_numeric_columns or column in date_columns or column in boolean_columns:
+                has_missing = True
+            if has_missing:
+                if (
+                    column in dirty_numeric_columns
+                    or pd.api.types.is_numeric_dtype(dataframe[column])
+                    and not pd.api.types.is_bool_dtype(dataframe[column])
+                ):
+                    strategy = "median"
+                else:
+                    strategy = "mode"
+                imputation_plan[column] = {"strategy": strategy}
+
+        strategy = {
+            "numeric_waterfall_columns": dirty_numeric_columns,
+            "imputation_plan": imputation_plan,
+            "synonym_mappings": {},
+            "outlier_columns": list(health.get("outlier_info", {})),
+            "date_columns": date_columns,
+            "boolean_columns": boolean_columns,
+            "remove_duplicates": True,
+        }
+        result = self.execute_cleaning(
+            file_path,
+            strategy=strategy,
+            preview_mode=False,
+            destination_format=destination_format,
+            llm_controlled=True,
+        )
+        result.update({
+            "workflow": workflow,
+            "profile": profile,
+            "llm_analysis": {
+                **analysis,
+                "quality_findings": [
+                    f"{health['missing_info']['total_missing_cells']} missing values detected.",
+                    f"{health['duplicate_info']['count']} duplicate rows detected.",
+                ],
+                "cleaning_strategy": strategy,
+            },
+            "fallback_used": True,
+            "fallback_reason": "LLM rate limit reached; deterministic Python cleaning was used.",
         })
         return result
 
@@ -434,6 +601,26 @@ class DataEngineeringAgent:
         if not isinstance(strategy["remove_duplicates"], bool):
             raise ValueError("The LLM must explicitly decide whether to remove duplicates.")
 
+    @staticmethod
+    def _validate_llm_imputation_plan(
+        imputation_plan: Any,
+        required_columns: list,
+    ) -> None:
+        if not isinstance(imputation_plan, dict):
+            raise ValueError("The LLM returned an invalid imputation plan.")
+        if set(imputation_plan) != set(required_columns):
+            raise ValueError(
+                "The LLM imputation plan must cover every requested missing-value column "
+                "exactly once."
+            )
+        for column, plan in imputation_plan.items():
+            if not isinstance(plan, dict) or plan.get("strategy") not in {
+                "median", "mean", "mode", "constant"
+            }:
+                raise ValueError(f"The LLM returned an invalid imputation plan for {column}.")
+            if plan["strategy"] == "constant" and "value" not in plan:
+                raise ValueError(f"The constant imputation for {column} needs a value.")
+
     def run_audit(self, file_path: str) -> Dict[str, Any]:
         """
         Runs complete profiling and quality health assessment on a dataset.
@@ -672,6 +859,45 @@ class DataEngineeringAgent:
                         if pd.api.types.is_numeric_dtype(df_clean[col])
                         else "mode"
                     }
+        else:
+            missing_columns = [
+                col for col in df_clean.columns
+                if df_clean[col].isna().any() and col not in impute_plan
+            ]
+            if missing_columns:
+                missing_summary = {
+                    col: {
+                        "missing_cells": int(df_clean[col].isna().sum()),
+                        "dtype": str(df_clean[col].dtype),
+                    }
+                    for col in missing_columns
+                }
+                imputation_response = self.llm_client.generate_json(
+                    (
+                        "Choose a safe imputation strategy for every listed column with "
+                        "missing values. Return only JSON with one key, imputation_plan, "
+                        "mapping every listed column exactly once to {strategy: median|mean|"
+                        "mode|constant, value: required only for constant}. Prefer median "
+                        "for numeric columns, mode for categorical, boolean, and datetime "
+                        "columns. Use a constant only when its value is justified by the "
+                        "provided quality context. Include no unlisted columns.\n"
+                        f"Missing-value columns: {json.dumps(missing_summary)}\n"
+                        "Use the dataset quality report and selected strategy already "
+                        "provided earlier in this workflow."
+                    ),
+                    (
+                        "You are a data-quality planner. Select an imputation plan for every "
+                        "requested column using its type and missing count. Return valid JSON."
+                    ),
+                    max_output_tokens=QUALITY_IMPUTATION_PLAN_MAX_OUTPUT_TOKENS,
+                )
+                proposed_plan = (
+                    imputation_response.get("imputation_plan")
+                    if isinstance(imputation_response, dict)
+                    else None
+                )
+                self._validate_llm_imputation_plan(proposed_plan, missing_columns)
+                impute_plan.update(proposed_plan)
         for col, plan in impute_plan.items():
             if col in df_clean.columns:
                 before_nulls = int(df_clean[col].isna().sum())
@@ -707,6 +933,16 @@ class DataEngineeringAgent:
                         "capped_at": {"low": q_low, "high": q_high}
                     })
             df_clean = treat_outliers(df_clean, outlier_cols, method="cap")
+
+        # Imputation and normalization can make formerly different rows identical.
+        if remove_duplicates:
+            newly_duplicate_count = int(df_clean.duplicated().sum())
+            if newly_duplicate_count:
+                df_clean = df_clean.drop_duplicates().reset_index(drop=True)
+                transformations_log.append({
+                    "action": "remove_duplicate_rows_after_transformations",
+                    "removed_rows": newly_duplicate_count,
+                })
 
         health_after = calculate_health_scores(df_clean)
 

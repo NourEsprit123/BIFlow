@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 import streamlit as st
 
 from agents.data_engineering_agent import DataEngineeringAgent
+from agents.bi_analyst_agent import BIAnalystAgent
 from components import setup, page_header, btn, html, badge
 
 setup("Workflows")
@@ -100,7 +101,7 @@ html(section(
     "Select one or more workflow cards to run or open.",
     "",
 ))
-profiling_col, quality_col = st.columns(2)
+profiling_col, quality_col, bi_col = st.columns(3)
 with profiling_col:
     with st.container(border=True):
         st.markdown("### Data Profiling")
@@ -125,13 +126,33 @@ with quality_col:
             key="workflow_select_data_quality",
         )
         st.caption("The selected dataset opens on Data Quality; cleaning remains under your control.")
+with bi_col:
+    with st.container(border=True):
+        st.markdown("### Profiling + Cleaning + KPI Dashboard")
+        st.write(
+            "Run profiling and validated cleaning first, then calculate KPIs, "
+            "build dashboards, and generate LLM insights from the cleaned dataset."
+        )
+        select_bi_analysis = st.checkbox(
+            "Select full BI pipeline",
+            key="workflow_select_bi_analysis",
+        )
+        st.caption("The full sequence runs automatically and opens the cleaned dataset analysis.")
 
-if select_profiling and select_quality:
+if select_profiling and select_quality and select_bi_analysis:
+    selected_workflows_label = "Profiling + Cleaning + ETL + KPI Dashboard + AI Insights"
+elif select_profiling and select_quality:
     selected_workflows_label = "Data Profiling + Data Quality + Cleaning + ETL"
+elif select_profiling and select_bi_analysis:
+    selected_workflows_label = "Profiling + Cleaning + ETL + BI Analysis"
+elif select_quality and select_bi_analysis:
+    selected_workflows_label = "Profiling + Cleaning + ETL + BI Analysis"
 elif select_profiling:
     selected_workflows_label = "Data Profiling"
 elif select_quality:
     selected_workflows_label = "Data Quality + Cleaning + ETL"
+elif select_bi_analysis:
+    selected_workflows_label = "Profiling + Cleaning + ETL + KPI Dashboard + AI Insights"
 else:
     selected_workflows_label = "No workflow selected"
 
@@ -163,7 +184,8 @@ prefs = (
 html(section(3, "Preferences", "Configure this run", prefs))
 
 agent = DataEngineeringAgent()
-selected_count = int(select_profiling) + int(select_quality)
+bi_agent = BIAnalystAgent()
+selected_count = int(select_profiling) + int(select_quality) + int(select_bi_analysis)
 html(f'''<div class="bf-card" style="display:flex;gap:1rem;align-items:center">
   {badge(f"{selected_count} workflows selected")} {selected_file} · {selected_workflows_label}</div>''')
 run_selected_workflows = st.button(
@@ -180,16 +202,49 @@ if run_selected_workflows:
     st.session_state["dq_dataset_select"] = selected_file
 
     if select_quality and not select_profiling:
-        st.session_state.pop("workflow_profile_result", None)
-        st.session_state.pop("workflow_profile_dataset", None)
-        st.switch_page("pages/4_Data_Quality.py")
+        if not select_bi_analysis:
+            st.session_state.pop("workflow_profile_result", None)
+            st.session_state.pop("workflow_profile_dataset", None)
+            st.switch_page("pages/4_Data_Quality.py")
 
-    try:
-        with st.spinner(f"LLM is running Data Profiling for {selected_file}..."):
-            result = agent.run_workflow(file_path, "profiling")
-    except (RuntimeError, ValueError, OSError) as error:
-        st.error(f"Workflow failed. No fallback was used. Details: {error}")
-    else:
+    if select_bi_analysis:
+        try:
+            with st.spinner(
+                f"Running profiling, quality cleaning, and ETL for {selected_file}..."
+            ):
+                pipeline = bi_agent.run_pipeline(file_path)
+        except (RuntimeError, ValueError, OSError) as error:
+            st.error(f"Profile and cleaning pipeline failed. Details: {error}")
+            st.stop()
+        st.session_state["workflow_profile_result"] = {
+            "status": pipeline["status"],
+            "workflow": "profiling",
+            "profile": pipeline["profile"],
+        }
+        st.session_state["workflow_profile_dataset"] = selected_file
+        cleaned_path = pipeline["cleaned_dataset_path"]
+        st.session_state["workflow_cleaned_dataset_path"] = cleaned_path
+        st.session_state["workflow_cleaned_dataset_source"] = selected_file
+
+        dataset_stat = os.stat(cleaned_path)
+        st.session_state["bi_analysis_result"] = pipeline["analysis"]
+        st.session_state["bi_analysis_dataset"] = selected_file
+        st.session_state["bi_analysis_source_path"] = cleaned_path
+        st.session_state["bi_analysis_fingerprint"] = (
+            dataset_stat.st_size,
+            dataset_stat.st_mtime_ns,
+        )
+        st.switch_page("pages/5_BI_Analysis.py")
+
+    if select_profiling:
+        try:
+            with st.spinner(f"LLM is running Data Profiling for {selected_file}..."):
+                result = agent.run_workflow(file_path, "profiling")
+        except (RuntimeError, ValueError, OSError) as error:
+            st.error(f"Data profiling failed. Details: {error}")
+            st.stop()
         st.session_state["workflow_profile_result"] = result
         st.session_state["workflow_profile_dataset"] = selected_file
+
+    if select_profiling:
         st.switch_page("pages/2_Datasets.py")

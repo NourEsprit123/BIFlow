@@ -9,6 +9,11 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
+
+class LLMRateLimitError(RuntimeError):
+    """Raised when a configured LLM provider rejects a request due to rate limits."""
+
+
 class LLMClient:
     """
     Unified LLM Client for BIFlow supporting Ollama (Local Qwen 2.5 / Llama 3.1)
@@ -139,6 +144,11 @@ class LLMClient:
             raise
         except Exception as e:
             logger.exception("Groq API call failed.")
+            if (
+                getattr(e, "status_code", None) == 429
+                or getattr(e, "code", None) == "rate_limit_exceeded"
+            ):
+                raise LLMRateLimitError(f"Groq rate limit reached: {e}") from e
             raise RuntimeError(f"Groq API call failed: {e}") from e
 
     def _call_openai(self, prompt: str, system_prompt: Optional[str] = None) -> str:

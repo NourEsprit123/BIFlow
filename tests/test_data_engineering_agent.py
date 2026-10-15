@@ -375,7 +375,7 @@ def test_combined_workflow_uses_llm_plan_for_cleaning_and_loading(tmp_path, monk
             "outlier_columns": [],
             "date_columns": [],
             "boolean_columns": [],
-            "remove_duplicates": True,
+            "remove_duplicates": False,
         },
     })
     llm = StubLLMClient(llm_response)
@@ -427,7 +427,7 @@ def test_combined_workflow_chunks_profile_before_requesting_cleaning_plan(
                         "outlier_columns": [],
                         "date_columns": [],
                         "boolean_columns": [],
-                        "remove_duplicates": False,
+                        "remove_duplicates": True,
                     },
                 }
 
@@ -453,6 +453,159 @@ def test_combined_workflow_chunks_profile_before_requesting_cleaning_plan(
     assert [call[2] for call in llm.calls] == [150, 150, 150, 200]
 
 
+def test_combined_workflow_repairs_missing_cleaning_strategy_fields(tmp_path, monkeypatch):
+    source = tmp_path / "raw" / "strategy_repair.csv"
+    source.parent.mkdir()
+    pd.DataFrame({
+        "amount": [10, 20, 30],
+        "active": ["yes", "no", "yes"],
+    }).to_csv(source, index=False)
+    monkeypatch.chdir(tmp_path)
+
+    class MissingFieldsLLMClient:
+        provider = "test"
+
+        def __init__(self):
+            self.calls = []
+
+        def generate_json(self, prompt, system_prompt=None, max_output_tokens=None):
+            self.calls.append((prompt, system_prompt, max_output_tokens))
+            if max_output_tokens == 200:
+                return {
+                    "quality_findings": [],
+                    "cleaning_strategy": {
+                        "numeric_waterfall_columns": [],
+                        "imputation_plan": {},
+                        "synonym_mappings": {},
+                        "outlier_columns": [],
+                    },
+                }
+            if max_output_tokens == 180:
+                return {
+                    "date_columns": [],
+                    "boolean_columns": ["active"],
+                    "remove_duplicates": True,
+                }
+            batch_columns = [
+                name for name in ("amount", "active")
+                if f'"{name}"' in prompt
+            ]
+            return {
+                "profile_summary": "Dataset has amount and active fields.",
+                "columns": llm_profile(batch_columns)["columns"],
+            }
+
+    llm = MissingFieldsLLMClient()
+    result = DataEngineeringAgent(llm_client=llm).run_workflow(
+        str(source),
+        "profiling_quality_cleaning",
+        destination_format="csv",
+    )
+
+    assert result["status"] == "success"
+    strategy = result["llm_analysis"]["cleaning_strategy"]
+    assert strategy["boolean_columns"] == ["active"]
+    assert strategy["date_columns"] == []
+    assert strategy["remove_duplicates"] is True
+    assert [call[2] for call in llm.calls] == [150, 200, 180]
+
+
+def test_combined_workflow_fails_if_cleaning_strategy_repair_is_incomplete(
+    tmp_path,
+    monkeypatch,
+):
+    source = tmp_path / "raw" / "incomplete_strategy.csv"
+    source.parent.mkdir()
+    pd.DataFrame({"amount": [10, 20, 30]}).to_csv(source, index=False)
+    monkeypatch.chdir(tmp_path)
+
+    class IncompleteStrategyLLMClient:
+        provider = "test"
+
+        def generate_json(self, prompt, system_prompt=None, max_output_tokens=None):
+            if max_output_tokens == 200:
+                return {
+                    "quality_findings": [],
+                    "cleaning_strategy": {
+                        "numeric_waterfall_columns": [],
+                        "imputation_plan": {},
+                        "synonym_mappings": {},
+                        "outlier_columns": [],
+                    },
+                }
+            if max_output_tokens == 180:
+                return {"date_columns": [], "boolean_columns": []}
+            return {
+                "profile_summary": "A numeric amount column.",
+                "columns": llm_profile(["amount"])["columns"],
+            }
+
+    with pytest.raises(ValueError, match="missing: remove_duplicates"):
+        DataEngineeringAgent(llm_client=IncompleteStrategyLLMClient()).run_workflow(
+            str(source),
+            "profiling_quality_cleaning",
+            destination_format="csv",
+        )
+
+
+def test_combined_workflow_asks_llm_to_impute_remaining_missing_values(
+    tmp_path,
+    monkeypatch,
+):
+    source = tmp_path / "raw" / "missing_values.csv"
+    source.parent.mkdir()
+    pd.DataFrame({"amount": [10.0, None, 30.0, None, 50.0]}).to_csv(
+        source,
+        index=False,
+    )
+    monkeypatch.chdir(tmp_path)
+
+    class MissingValuesLLMClient:
+        provider = "test"
+
+        def __init__(self):
+            self.calls = []
+
+        def generate_json(self, prompt, system_prompt=None, max_output_tokens=None):
+            self.calls.append((prompt, system_prompt, max_output_tokens))
+            if max_output_tokens == 200:
+                return {
+                    "quality_findings": ["Two amount values are missing."],
+                    "cleaning_strategy": {
+                        "numeric_waterfall_columns": [],
+                        "imputation_plan": {},
+                        "synonym_mappings": {},
+                        "outlier_columns": [],
+                        "date_columns": [],
+                        "boolean_columns": [],
+                        "remove_duplicates": True,
+                    },
+                }
+            if max_output_tokens == 160:
+                assert '"amount"' in prompt
+                assert '"missing_cells": 2' in prompt
+                return {"imputation_plan": {"amount": {"strategy": "median"}}}
+            return {
+                "profile_summary": "One numeric amount column.",
+                "columns": llm_profile(["amount"])["columns"],
+            }
+
+    llm = MissingValuesLLMClient()
+    result = DataEngineeringAgent(llm_client=llm).run_workflow(
+        str(source),
+        "profiling_quality_cleaning",
+        destination_format="csv",
+    )
+
+    cleaned = pd.read_csv(result["output_files"]["csv"])
+    assert result["status"] == "success"
+    assert result["validation"]["valid"]
+    assert result["validation"]["missing_cells"] == 0
+    assert cleaned["amount"].tolist() == [10.0, 30.0, 50.0]
+    assert result["validation"]["duplicate_rows"] == 0
+    assert [call[2] for call in llm.calls] == [150, 200, 160]
+
+
 def test_workflow_stops_when_llm_is_unavailable(tmp_path, monkeypatch):
     source = tmp_path / "raw" / "profile.csv"
     source.parent.mkdir()
@@ -476,3 +629,11 @@ def test_blank_text_values_are_counted_and_imputed():
 
     assert health["missing_info"]["columns"]["category"] == 5
     assert cleaned["category"].notna().all()
+
+
+def test_mode_imputation_handles_all_missing_nullable_boolean_column():
+    df = pd.DataFrame({"active": pd.Series([pd.NA, pd.NA], dtype="boolean")})
+
+    cleaned = impute_missing_values(df, {"active": {"strategy": "mode"}})
+
+    assert cleaned["active"].tolist() == ["Unknown", "Unknown"]

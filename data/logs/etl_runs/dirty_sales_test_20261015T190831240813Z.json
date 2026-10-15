@@ -1,0 +1,9 @@
+{
+  "run_id": "20261015T190831240813Z",
+  "status": "failed",
+  "source_file": "data/raw\\dirty_sales_test.csv",
+  "started_at": "2026-10-15T19:08:31.240813+00:00",
+  "finished_at": "2026-10-15T19:08:33.253817+00:00",
+  "error_type": "ArrowTypeError",
+  "error": "(\"object of type <class 'str'> cannot be converted to int\", 'Conversion failed for column SignupDate with type object')"
+}

@@ -112,8 +112,8 @@ agents_html = "".join(
     for n, d, s in [
         ("Data Engineering Agent",
          f"Profiled {len(profiles)} dataset(s), avg quality {avg_score}%", "&#10003;"),
-        ("BI Analyst Agent", "Pending — not yet implemented", badge("Standby", "purple")),
-        ("Dashboard Agent",  "Pending — not yet implemented", badge("Standby", "purple")),
+        ("BI Analyst Agent", "KPI dashboards and LLM insights available", badge("Ready", "green")),
+        ("Dashboard Agent",  "Dynamic charts rendered by the BI Analyst", badge("Ready", "green")),
         ("XAI Auditor Agent","Pending — not yet implemented", badge("Standby", "purple")),
     ]
 )

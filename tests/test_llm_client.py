@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 import requests
 
-from agents.llm_client import LLMClient
+from agents.llm_client import LLMClient, LLMRateLimitError
 
 
 def test_qwen3_generation_disables_thinking_and_limits_output(monkeypatch):
@@ -97,6 +97,23 @@ def test_groq_provider_generates_json(monkeypatch):
         response_format={"type": "json_object"},
         max_completion_tokens=180,
     )
+
+
+def test_groq_rate_limit_raises_specific_error(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "groq")
+    monkeypatch.setenv("GROQ_API_KEY", "test-groq-key")
+    client = LLMClient()
+    mock_client = Mock()
+
+    class RateLimitError(Exception):
+        status_code = 429
+
+    mock_client.chat.completions.create.side_effect = RateLimitError(
+        "daily token quota reached"
+    )
+    with patch("openai.OpenAI", return_value=mock_client):
+        with pytest.raises(LLMRateLimitError, match="rate limit reached"):
+            client.generate_json("Return JSON.")
 
 
 def test_groq_requires_api_key(monkeypatch):

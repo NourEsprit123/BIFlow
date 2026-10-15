@@ -116,7 +116,11 @@ def impute_missing_values(df: pd.DataFrame, imputation_plan: Dict[str, Dict[str,
             df_clean[col] = df_clean[col].fillna(mean_val)
         elif strategy == "mode":
             mode_series = df_clean[col].mode()
-            mode_val = mode_series.iloc[0] if not mode_series.empty else "Unknown"
+            if mode_series.empty:
+                df_clean[col] = df_clean[col].astype(object)
+                mode_val = "Unknown"
+            else:
+                mode_val = mode_series.iloc[0]
             df_clean[col] = df_clean[col].fillna(mode_val)
         elif strategy == "constant" and fill_val is not None:
             df_clean[col] = df_clean[col].fillna(fill_val)

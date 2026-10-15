@@ -1,0 +1,9 @@
+{
+  "run_id": "20261015T220004905746Z",
+  "status": "failed",
+  "source_file": "data\\raw\\dirty_sales_test.csv",
+  "started_at": "2026-10-15T22:00:04.905746+00:00",
+  "finished_at": "2026-10-15T22:00:05.787329+00:00",
+  "error_type": "TypeError",
+  "error": "Invalid value 'Unknown' for dtype 'boolean'"
+}
