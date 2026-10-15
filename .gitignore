@@ -66,3 +66,6 @@ results/
 # Ignore automated data pipeline outputs
 data/cleaned/
 data/processed/
+
+# Ignore standalone synthetic test data
+synthetic_corrupted_data.csv
