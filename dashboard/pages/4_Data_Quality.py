@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import streamlit as st
-from components import setup, page_header, btn, html, kpi, grid, card, table, badge, bar, donut, columns_chart
+from components import setup, page_header, html, kpi, grid, card, table, badge, bar, donut, columns_chart
 from agents.data_engineering_agent import DataEngineeringAgent
 
 setup("Data Quality")
@@ -21,6 +21,23 @@ def get_audit(file_path: str):
 # Dataset selector
 supported = (".csv", ".xlsx", ".xls", ".parquet")
 available = [f for f in os.listdir(RAW_DIR) if f.lower().endswith(supported)] if os.path.exists(RAW_DIR) else []
+workflow_dataset_scope = st.session_state.get("workflow_dataset_scope")
+if workflow_dataset_scope:
+    if workflow_dataset_scope in available:
+        available = [workflow_dataset_scope]
+        scope_col, clear_scope_col = st.columns([5, 1])
+        with scope_col:
+            st.info(f"Showing quality results for **{workflow_dataset_scope}** only.")
+        with clear_scope_col:
+            if st.button("Show all", key="show_all_workflow_quality_datasets"):
+                st.session_state.pop("workflow_dataset_scope", None)
+                st.rerun()
+    else:
+        st.warning(
+            f"The workflow-selected dataset `{workflow_dataset_scope}` is no longer "
+            "available in `data/raw/`."
+        )
+        st.session_state.pop("workflow_dataset_scope", None)
 
 if not available:
     st.warning("No datasets found in `data/raw/`. Please upload a dataset from the Datasets page first.")
@@ -49,8 +66,12 @@ with _btn_col:
 file_path = os.path.join(RAW_DIR, selected_file)
 
 # Load audit
-with st.spinner(f"Data Engineering Agent is auditing '{selected_file}'..."):
-    audit_data = get_audit(file_path)
+try:
+    with st.spinner(f"Data Engineering Agent is auditing '{selected_file}'..."):
+        audit_data = get_audit(file_path)
+except (RuntimeError, ValueError, OSError) as error:
+    st.error(f"Could not load the data-quality recommendations: {error}")
+    st.stop()
 
 health   = audit_data["health"]
 strategy = audit_data["cleaning_strategy"]
@@ -66,7 +87,6 @@ outlier_cnt     = len(outlier_info)
 page_header(
     "Data Quality",
     f"Monitor, understand, and improve the reliability of <b>{selected_file}</b>.",
-    btn("Apply recommended cleaning", True),
     f"{selected_file} &rsaquo; <b>Data Quality</b>"
 )
 
@@ -98,7 +118,11 @@ overview = card(
 
 # Severity breakdown — now includes outliers
 high_cnt   = type_issues_cnt
-medium_cnt = len(health["missing_info"]["columns"]) + outlier_cnt
+medium_cnt = (
+    len(health["missing_info"]["columns"])
+    + outlier_cnt
+    + int(dup_cnt > 0)
+)
 total_issues = high_cnt + medium_cnt
 severity = card(
     columns_chart(
@@ -155,6 +179,15 @@ if missing_cnt > 0:
             rec
         ])
 
+if dup_cnt > 0:
+    table_rows.append([
+        badge("Medium", "blue"),
+        "-",
+        "Duplicate rows",
+        f"{dup_cnt} duplicate row(s)",
+        "Remove exact duplicate rows"
+    ])
+
 for col, info in outlier_info.items():
     table_rows.append([
         badge("Medium", "blue"),
@@ -191,27 +224,71 @@ summary_text = strategy.get(
 )
 html(f'<div class="bf-card" style="background:#eef2ff;display:flex;gap:1rem;align-items:center">'
      f'<div style="flex:1"><b style="font-size:1.1rem">BIFlow AI Recommendation</b> '
-     f'{badge("Qwen 2.5 Agent")}<br>{summary_text}</div></div>')
+     f'{badge(f"{agent.llm_client.provider.title()} Agent")}'
+     f'<br>{summary_text}</div></div>')
 
 html("<br>")
+
+# ETL destination selection
+destination_label = st.selectbox(
+    "Load cleaned data as:",
+    options=["CSV and Parquet", "CSV only", "Parquet only"],
+)
+destination_format = {
+    "CSV and Parquet": "both",
+    "CSV only": "csv",
+    "Parquet only": "parquet",
+}[destination_label]
 
 # Action buttons
 col1, col2 = st.columns(2)
 with col1:
     if st.button("Preview changes", use_container_width=True):
         with st.spinner("Running preview..."):
-            preview = agent.execute_cleaning(file_path, preview_mode=True)
-        st.success(
-            f"Preview ready! Score: **{score}%** to "
-            f"**{preview['health_after']['overall_health_score']}%**"
-        )
+            preview = agent.execute_cleaning(
+                file_path,
+                strategy=strategy,
+                preview_mode=True,
+                destination_format=destination_format,
+            )
+        if preview["validation"]["valid"]:
+            st.success(
+                f"Validation passed. Quality score: **{score}%** to "
+                f"**{preview['health_after']['overall_health_score']}%**. "
+                f"{preview['rows_processed']} rows will be loaded."
+            )
+        else:
+            st.warning(
+                "The transformed preview cannot be loaded until its validation "
+                "issues are resolved: " + " ".join(preview["validation"]["errors"])
+            )
 with col2:
     if st.button("Apply recommended cleaning", type="primary", use_container_width=True):
         with st.spinner("Applying cleaning pipeline..."):
-            res = agent.execute_cleaning(file_path, preview_mode=False)
-        st.success(
-            f"Done! Saved to `{res['cleaned_file_path']}`. "
-            f"New score: **{res['health_after']['overall_health_score']}%**"
-        )
-        st.cache_data.clear()
-        st.rerun()
+            try:
+                res = agent.execute_cleaning(
+                    file_path,
+                    strategy=strategy,
+                    preview_mode=False,
+                    destination_format=destination_format,
+                )
+            except ValueError as error:
+                st.error(f"ETL run stopped before loading: {error}")
+            else:
+                st.success(
+                    f"ETL completed and validated. {res['rows_extracted']} rows extracted; "
+                    f"{res['rows_loaded']} rows loaded. "
+                    f"Quality score: **{score}%** to "
+                    f"**{res['health_after']['overall_health_score']}%**."
+                )
+                st.caption(f"ETL execution log: `{res['audit_log_path']}`")
+                for file_format, output_path in res["output_files"].items():
+                    with open(output_path, "rb") as cleaned_file:
+                        cleaned_data = cleaned_file.read()
+                    st.download_button(
+                        f"Download {file_format.upper()} dataset",
+                        data=cleaned_data,
+                        file_name=os.path.basename(output_path),
+                        mime="text/csv" if file_format == "csv" else "application/vnd.apache.parquet",
+                        key=f"download_cleaned_{file_format}",
+                    )

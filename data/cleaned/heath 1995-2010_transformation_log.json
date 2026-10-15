@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-10-15T14:16:58.215032+00:00",
+  "raw_file": "data/raw\\heath 1995-2010.csv",
+  "cleaned_file": "data/cleaned/heath 1995-2010_cleaned.csv",
+  "processed_file": "data/processed/heath 1995-2010_processed.parquet",
+  "quality_score_before": 94.0,
+  "quality_score_after": 99.2,
+  "applied_transformations": [
+    {
+      "column": "14.3",
+      "action": "numeric_waterfall_cleaning",
+      "nulls_before": 0,
+      "nulls_after": 58
+    },
+    {
+      "column": "85.7",
+      "action": "numeric_waterfall_cleaning",
+      "nulls_before": 0,
+      "nulls_after": 170
+    },
+    {
+      "column": "85.7",
+      "action": "imputation_median",
+      "imputed_rows": 170
+    },
+    {
+      "column": "14.3",
+      "action": "imputation_median",
+      "imputed_rows": 58
+    },
+    {
+      "column": "14.3",
+      "action": "outlier_winsorizing",
+      "capped_at": {
+        "low": 6.8,
+        "high": 29.062999999999988
+      }
+    },
+    {
+      "column": "85.7",
+      "action": "outlier_winsorizing",
+      "capped_at": {
+        "low": 71.948,
+        "high": 93.2
+      }
+    }
+  ]
+}

@@ -51,7 +51,7 @@ BIFlow is an intelligent Business Intelligence system designed to work dynamical
 2. **Dynamic Adaptation to Any Dataset:**
    * Agents inspect raw column types, semantic meanings, and distributions to adapt cleaning, KPI generation, and dashboard layout automatically.
 3. **Unified LLM Backbone with Specialized Personas:**
-   * All agents leverage a shared LLM infrastructure (e.g. Gemini API), differentiated by specialized System Prompts, dedicated Python tools, and contextual workflow state.
+   * All agents leverage a shared LLM infrastructure (OpenAI API), differentiated by specialized System Prompts, dedicated Python tools, and contextual workflow state.
 
 ---
 

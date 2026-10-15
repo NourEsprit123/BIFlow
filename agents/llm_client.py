@@ -12,32 +12,58 @@ logger = logging.getLogger(__name__)
 class LLMClient:
     """
     Unified LLM Client for BIFlow supporting Ollama (Local Qwen 2.5 / Llama 3.1)
-    and cloud providers (Gemini) with automatic JSON extraction.
+    and API providers with automatic JSON extraction.
     """
 
     def __init__(self):
-        self.provider = os.getenv("LLM_PROVIDER", "ollama").lower()
+        self.groq_api_key = os.getenv("GROQ_API_KEY", "").strip()
+        self.groq_model = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b").strip()
+        self.groq_max_completion_tokens = int(
+            os.getenv("GROQ_MAX_COMPLETION_TOKENS", "900")
+        )
+        self.openai_api_key = os.getenv("OPENAI_API_KEY", "").strip()
+        configured_provider = os.getenv("LLM_PROVIDER", "").strip().lower()
+        self.provider = configured_provider or "groq"
         self.ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
         self.model_name = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
-        self.gemini_api_key = os.getenv("GEMINI_API_KEY", "")
+        self.ollama_timeout = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "180"))
+        self.ollama_num_predict = int(os.getenv("OLLAMA_NUM_PREDICT", "256"))
+        self.ollama_keep_alive = os.getenv("OLLAMA_KEEP_ALIVE", "10m")
+        self.openai_model = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
 
-    def generate_json(self, prompt: str, system_prompt: Optional[str] = None) -> Dict[str, Any]:
+    def generate_json(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        max_output_tokens: Optional[int] = None,
+    ) -> Dict[str, Any]:
         """
         Sends a prompt to the LLM and returns the parsed JSON response.
         """
-        raw_response = self.generate_text(prompt, system_prompt)
+        raw_response = self.generate_text(
+            prompt,
+            system_prompt,
+            max_output_tokens=max_output_tokens,
+        )
         return self._extract_json(raw_response)
 
-    def generate_text(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+    def generate_text(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        max_output_tokens: Optional[int] = None,
+    ) -> str:
         """
         Generates text output from the configured LLM provider.
         """
         if self.provider == "ollama":
             return self._call_ollama(prompt, system_prompt)
-        elif self.provider == "gemini":
-            return self._call_gemini(prompt, system_prompt)
+        elif self.provider == "groq":
+            return self._call_groq(prompt, system_prompt, max_output_tokens)
+        elif self.provider == "openai":
+            return self._call_openai(prompt, system_prompt)
         else:
-            return self._call_ollama(prompt, system_prompt)
+            raise ValueError(f"Unsupported LLM_PROVIDER: {self.provider}")
 
     def _call_ollama(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         """
@@ -48,38 +74,107 @@ class LLMClient:
             "model": self.model_name,
             "prompt": prompt,
             "stream": False,
-            "format": "json"
+            "format": "json",
+            "keep_alive": self.ollama_keep_alive,
+            "options": {"num_predict": self.ollama_num_predict}
         }
+        if self.model_name.lower().startswith("qwen3"):
+            payload["think"] = False
         if system_prompt:
             payload["system"] = system_prompt
 
         try:
-            response = requests.post(url, json=payload, timeout=180)
+            response = requests.post(url, json=payload, timeout=self.ollama_timeout)
             response.raise_for_status()
             data = response.json()
             return data.get("response", "")
-        except Exception as e:
-            logger.warning(f"Ollama call failed ({e}). Returning fallback JSON.")
+        except requests.Timeout:
+            logger.error(
+                "Ollama timed out after %s seconds using %s. "
+                "Try a smaller model (for example qwen3:4b) or reduce OLLAMA_NUM_PREDICT. "
+                "Returning fallback JSON.",
+                self.ollama_timeout,
+                self.model_name
+            )
+            return "{}"
+        except (requests.RequestException, ValueError) as e:
+            logger.error("Ollama call failed (%s). Returning fallback JSON.", e)
             return "{}"
 
-    def _call_gemini(self, prompt: str, system_prompt: Optional[str] = None) -> str:
-        """
-        Calls Google Gemini API.
-        """
-        if not self.gemini_api_key:
-            logger.warning("GEMINI_API_KEY not set in .env")
-            return "{}"
+    def _call_groq(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        max_output_tokens: Optional[int] = None,
+    ) -> str:
+        """Calls the Groq API and requests a JSON object response."""
+        if not self.groq_api_key:
+            raise RuntimeError(
+                "GROQ_API_KEY is not set. Create a Groq API key, add it to .env, "
+                "and set LLM_PROVIDER=groq."
+            )
 
         try:
-            import google.generativeai as genai
-            genai.configure(api_key=self.gemini_api_key)
-            model = genai.GenerativeModel("gemini-1.5-flash")
-            full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
-            response = model.generate_content(full_prompt)
-            return response.text
+            from openai import OpenAI
+
+            client = OpenAI(
+                api_key=self.groq_api_key,
+                base_url="https://api.groq.com/openai/v1",
+            )
+            response = client.chat.completions.create(
+                model=self.groq_model,
+                messages=self._build_messages(prompt, system_prompt),
+                response_format={"type": "json_object"},
+                max_completion_tokens=(
+                    max_output_tokens
+                    if max_output_tokens is not None
+                    else self.groq_max_completion_tokens
+                ),
+            )
+            content = response.choices[0].message.content
+            if not content:
+                raise RuntimeError("Groq returned an empty response.")
+            return content
+        except RuntimeError:
+            raise
         except Exception as e:
-            logger.error(f"Gemini API call failed: {e}")
-            return "{}"
+            logger.exception("Groq API call failed.")
+            raise RuntimeError(f"Groq API call failed: {e}") from e
+
+    def _call_openai(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+        """Calls the OpenAI API and requests a JSON object response."""
+        if not self.openai_api_key:
+            raise RuntimeError(
+                "OPENAI_API_KEY is not set. Add your OpenAI API key to .env "
+                "and set LLM_PROVIDER=openai."
+            )
+
+        try:
+            from openai import OpenAI
+
+            client = OpenAI(api_key=self.openai_api_key)
+            response = client.chat.completions.create(
+                model=self.openai_model,
+                messages=self._build_messages(prompt, system_prompt),
+                response_format={"type": "json_object"},
+            )
+            content = response.choices[0].message.content
+            if not content:
+                raise RuntimeError("OpenAI returned an empty response.")
+            return content
+        except RuntimeError:
+            raise
+        except Exception as e:
+            logger.exception("OpenAI API call failed.")
+            raise RuntimeError(f"OpenAI API call failed: {e}") from e
+
+    @staticmethod
+    def _build_messages(prompt: str, system_prompt: Optional[str]) -> list:
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+        return messages
 
     def _extract_json(self, text: str) -> Dict[str, Any]:
         """

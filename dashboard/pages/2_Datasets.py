@@ -69,6 +69,23 @@ html("<br>")
 
 # ── Build dataset list ────────────────────────────────────────────────────────
 raw_files = list_raw_datasets()
+workflow_dataset_scope = st.session_state.get("workflow_dataset_scope")
+if workflow_dataset_scope:
+    if workflow_dataset_scope in raw_files:
+        raw_files = [workflow_dataset_scope]
+        scope_col, clear_scope_col = st.columns([5, 1])
+        with scope_col:
+            st.info(f"Showing workflow results for **{workflow_dataset_scope}** only.")
+        with clear_scope_col:
+            if st.button("Show all", key="show_all_workflow_datasets"):
+                st.session_state.pop("workflow_dataset_scope", None)
+                st.rerun()
+    else:
+        st.warning(
+            f"The workflow-selected dataset `{workflow_dataset_scope}` is no longer "
+            "available in `data/raw/`."
+        )
+        st.session_state.pop("workflow_dataset_scope", None)
 
 if not raw_files:
     st.info("No datasets found in `data/raw/`. Upload a CSV, Excel, or Parquet file above.")
@@ -144,10 +161,18 @@ html(card(
 html("<br>")
 
 # ── Per-dataset detail: selectbox ─────────────────────────────────────────────
+active_dataset = st.session_state.get("active_dataset")
+selected_index = 0
+if active_dataset:
+    active_name = os.path.basename(active_dataset)
+    dataset_names = [ds["fname"] for ds in dataset_summaries]
+    if active_name in dataset_names:
+        selected_index = dataset_names.index(active_name)
+
 selected_name = st.selectbox(
     "Inspect dataset details:",
     options=[ds["fname"] for ds in dataset_summaries],
-    index=0
+    index=selected_index
 )
 selected = next(ds for ds in dataset_summaries if ds["fname"] == selected_name)
 
@@ -199,7 +224,7 @@ else:
 
 ai_rec = f'''<div style="background:#eef2ff;border-radius:12px;padding:1.2rem;display:flex;gap:1rem;align-items:center">
   <div style="flex:1"><b style="font-size:1.05rem">BIFlow AI Recommendation</b>
-  <span class="bf-badge blue" style="margin-left:.5rem">Qwen 2.5 Agent</span>
+  <span class="bf-badge blue" style="margin-left:.5rem">{agent.llm_client.provider.title()} Agent</span>
   <br><span style="color:#334155">{rec}</span></div></div>'''
 
 storage_html = f'''<div class="ch"><div><h3>{selected_name}</h3>
@@ -218,17 +243,70 @@ html(f'<div class="bf-grid g21"><div>'
      f'<br>{ai_rec}'
      f'</div><div>{card(storage_html)}</div></div>')
 
+workflow_profile_result = st.session_state.get("workflow_profile_result")
+if (
+    st.session_state.get("workflow_profile_dataset") == selected_name
+    and workflow_profile_result
+):
+    llm_analysis = workflow_profile_result["llm_analysis"]
+    st.subheader("LLM Data Profiling")
+    st.write(llm_analysis["profile_summary"])
+    st.dataframe(
+        llm_analysis["columns"],
+        use_container_width=True,
+        hide_index=True,
+    )
+
 html("<br>")
+
+destination_label = st.selectbox(
+    "Load cleaned data as:",
+    options=["CSV and Parquet", "CSV only", "Parquet only"],
+    key="dataset_etl_destination",
+)
+destination_format = {
+    "CSV and Parquet": "both",
+    "CSV only": "csv",
+    "Parquet only": "parquet",
+}[destination_label]
 
 c1, c2 = st.columns(2)
 with c1:
     if st.button("Preview cleaning changes", use_container_width=True, key="prev_ds"):
         with st.spinner("Running preview..."):
-            preview = agent.execute_cleaning(selected["fpath"], preview_mode=True)
-        st.success(f"Health score after cleaning: **{preview['health_after']['overall_health_score']}%**")
+            preview = agent.execute_cleaning(
+                selected["fpath"],
+                strategy=strategy,
+                preview_mode=True,
+                destination_format=destination_format,
+            )
+        if preview["validation"]["valid"]:
+            st.success(
+                f"ETL validation passed. Health score after cleaning: "
+                f"**{preview['health_after']['overall_health_score']}%**"
+            )
+        else:
+            st.warning(
+                "The transformed preview cannot be loaded until its validation "
+                "issues are resolved: " + " ".join(preview["validation"]["errors"])
+            )
 with c2:
     if st.button("Apply recommended cleaning", type="primary", use_container_width=True, key="apply_ds"):
         with st.spinner("Cleaning dataset..."):
-            res = agent.execute_cleaning(selected["fpath"], preview_mode=False)
-        st.success(f"Done! Saved to `{res['cleaned_file_path']}`. New score: **{res['health_after']['overall_health_score']}%**")
-        st.cache_data.clear()
+            try:
+                res = agent.execute_cleaning(
+                    selected["fpath"],
+                    strategy=strategy,
+                    preview_mode=False,
+                    destination_format=destination_format,
+                )
+            except ValueError as error:
+                st.error(f"ETL run stopped before loading: {error}")
+            else:
+                st.success(
+                    f"ETL completed and validated. {res['rows_extracted']} rows extracted; "
+                    f"{res['rows_loaded']} rows loaded. Saved to `{res['cleaned_file_path']}`. "
+                    f"New score: **{res['health_after']['overall_health_score']}%**"
+                )
+                st.caption(f"ETL execution log: `{res['audit_log_path']}`")
+                st.cache_data.clear()

@@ -1,0 +1,9 @@
+{
+  "run_id": "20261015T185521632121Z",
+  "status": "failed",
+  "source_file": "data/raw\\dirty_sales_test.csv",
+  "started_at": "2026-10-15T18:55:21.632121+00:00",
+  "finished_at": "2026-10-15T18:55:24.013791+00:00",
+  "error_type": "RuntimeError",
+  "error": "Groq API call failed: Error code: 400 - {'error': {'message': \"Failed to generate JSON. Please adjust your prompt. See 'failed_generation' for more details.\", 'type': 'invalid_request_error', 'code': 'json_validate_failed', 'failed_generation': '{\\\\n\"nan\": null}'}}"
+}

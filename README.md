@@ -245,6 +245,57 @@ Vous pouvez également vérifier les packages installés avec :
 pip list
 ```
 
+## Configuration d'Ollama
+
+Sans fournisseur explicitement configuré, BIFlow utilise Groq. Pour utiliser
+Ollama localement, configurez `LLM_PROVIDER=ollama`. Pour les modèles Qwen 3, BIFlow
+désactive le mode « thinking » pour les sorties JSON, limite la génération à
+256 tokens et garde le modèle chargé pendant 10 minutes. Ces valeurs peuvent
+être modifiées dans `.env` :
+
+```dotenv
+OLLAMA_MODEL=qwen3:4b
+OLLAMA_NUM_PREDICT=256
+OLLAMA_KEEP_ALIVE=10m
+OLLAMA_TIMEOUT_SECONDS=180
+```
+
+Si les appels avec `qwen3:8b` expirent, essayez d'abord un modèle plus léger :
+
+```powershell
+ollama pull qwen3:4b
+```
+
+Puis changez `OLLAMA_MODEL` dans `.env` et redémarrez BIFlow. Pour vérifier
+l'utilisation du modèle et du GPU pendant un appel, exécutez `ollama ps`.
+Augmenter le délai d'attente ne rend pas le modèle plus rapide.
+
+## Configuration de Groq (offre gratuite disponible)
+
+Groq propose une offre gratuite avec des limites de requêtes et de modèles qui
+peuvent varier selon le compte. Créez une clé dans la console Groq, puis ajoutez-la
+à `.env` :
+
+```dotenv
+LLM_PROVIDER=groq
+GROQ_API_KEY=votre_cle_api
+GROQ_MODEL=qwen/qwen3.8-27b
+GROQ_MAX_COMPLETION_TOKENS=900
+```
+
+La clé se crée sur [GroqCloud](https://console.groq.com/keys). Installez les
+dépendances avec `pip install -r requirements.txt`, puis redémarrez Streamlit.
+La sortie est limitée à 900 tokens afin de rester sous le plafond de sortie par
+minute de l'offre gratuite; les descriptions du profil sont donc volontairement
+courtes. Les workflows traitent les colonnes par groupes de cinq et limitent
+chaque réponse de profil à 150 tokens; le plan de nettoyage a un budget séparé
+de 200 tokens.
+Les limites gratuites et les modèles disponibles peuvent changer; vérifiez la
+console Groq si le modèle configuré n'est plus accessible. BIFlow demande des
+réponses JSON; en cas d'erreur, le workflow s'arrête sans basculer vers un autre
+fournisseur. OpenAI reste sélectionnable avec `LLM_PROVIDER=openai` et
+`OPENAI_API_KEY` si vous avez un crédit API.
+
 ---
 
 # 📊 7. Vérifier les données
@@ -276,6 +327,27 @@ et les données transformées dans :
 ```text
 data/processed/
 ```
+
+## Pipeline ETL sur fichiers
+
+Les pages **Datasets** et **Data Quality** exécutent le pipeline ETL sur le fichier sélectionné :
+
+1. **Extract** : lecture d'un fichier CSV, Excel ou Parquet depuis `data/raw/`; l'original reste inchangé.
+2. **Transform** : application des corrections recommandées et suivi des opérations effectuées.
+3. **Validate** : vérification de la structure, du schéma, des valeurs manquantes et des doublons avant l'écriture.
+4. **Load** : choix d'un résultat CSV dans `data/cleaned/`, Parquet dans `data/processed/`, ou les deux.
+
+Chaque exécution d'application est inscrite dans un journal JSON distinct sous
+`data/logs/etl_runs/`, avec son statut, les volumes traités, le résultat de validation
+et les transformations appliquées. Une validation échouée empêche le chargement et
+est également inscrite au journal.
+
+La page **Workflows** propose deux exécutions pilotées par le fournisseur LLM
+configuré : **Data Profiling** et **Profiling + Quality + Data Cleaning**.
+Le LLM doit fournir un profil complet et, pour le flux ETL, un plan de nettoyage valide;
+en cas d'indisponibilité ou de réponse invalide, le workflow s'arrête sans stratégie
+de remplacement générée par Python. Seules les métadonnées, statistiques agrégées et
+informations de qualité sont envoyées au LLM, pas les lignes brutes.
 
 ---
 
@@ -457,7 +529,7 @@ Les clés API et informations sensibles ne doivent **jamais être directement é
 Utiliser un fichier `.env` local :
 
 ```text
-GEMINI_API_KEY=your_api_key
+GROQ_API_KEY=your_api_key
 ```
 
 Le fichier `.env` est ignoré par Git grâce au `.gitignore`.
@@ -471,7 +543,7 @@ Pour partager la structure des variables nécessaires avec l'équipe, utiliser p
 Exemple :
 
 ```text
-GEMINI_API_KEY=
+GROQ_API_KEY=
 ```
 
 ---

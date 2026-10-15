@@ -27,14 +27,14 @@ def detect_missing(df: pd.DataFrame) -> Dict[str, Any]:
         empty_count = 0
         if pd.api.types.is_string_dtype(df[column]) or df[column].dtype == "object":
             empty_count = int(
-                df[column]
-                .fillna("")
-                .astype(str)
-                .str.strip()
-                .isin(["", "n/a", "null", "none", "?", "missing"])
-                .sum()
+                (
+                    df[column].notna()
+                    & df[column].astype(str).str.strip().str.lower().isin(
+                        ["", "n/a", "null", "none", "?", "missing"]
+                    )
+                ).sum()
             )
-        total = max(nan_count, empty_count)
+        total = nan_count + empty_count
         if total > 0:
             missing[column] = total
 

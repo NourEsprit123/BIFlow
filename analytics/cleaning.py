@@ -1,7 +1,11 @@
+import json
 import re
 import pandas as pd
 import numpy as np
 from typing import Dict, Any, Optional, List
+
+NUMERIC_LLM_BATCH_SIZE = 5
+NUMERIC_LLM_MAX_OUTPUT_TOKENS = 150
 
 try:
     from word2number import w2n
@@ -48,25 +52,38 @@ def clean_dirty_numeric_series(series: pd.Series, llm_client: Optional[Any] = No
     remaining_failed_indices = level1_num.isna() & (cleaned_str != '') & (~cleaned_str.str.lower().isin(['nan', 'none', 'null', 'n/a', '?']))
     remaining_indices = series[remaining_failed_indices].index.tolist()
 
-    # Level 3: LLM Fallback (if LLM client provided and there are remaining items)
+    # Level 3: LLM fallback in small batches to keep JSON responses within provider limits.
     if llm_client and remaining_indices:
-        dirty_samples = series.loc[remaining_indices].unique().tolist()[:20]  # Cap at 20 unique items
-        prompt = (
-            f"You are a Data Cleaning assistant. Convert the following list of dirty text numbers into numeric floats.\n"
-            f"If an item is total nonsense (e.g. 'banana', 'unknown'), return null.\n"
-            f"Dirty items: {dirty_samples}\n\n"
-            f"Return a JSON dictionary mapping exact original string -> numeric float or null.\n"
-            f'Example output format: {{"one thousand": 1000.0, "1.5k": 1500.0, "banana": null}}'
-        )
-        llm_response = llm_client.generate_json(prompt)
-        if isinstance(llm_response, dict):
-            for idx in remaining_indices:
-                val_raw = str(series.loc[idx])
-                if val_raw in llm_response and llm_response[val_raw] is not None:
-                    try:
-                        level1_num.loc[idx] = float(llm_response[val_raw])
-                    except (ValueError, TypeError):
-                        pass
+        dirty_values = list(dict.fromkeys(
+            str(value) for value in series.loc[remaining_indices].tolist()
+        ))
+        for start in range(0, len(dirty_values), NUMERIC_LLM_BATCH_SIZE):
+            dirty_batch = dirty_values[start:start + NUMERIC_LLM_BATCH_SIZE]
+            prompt = (
+                "Convert each dirty text number to a numeric float. Return null for "
+                "nonsense. Return only a JSON object mapping each exact input string "
+                "to a number or null. Include every input key exactly once. "
+                f"Inputs: {json.dumps(dirty_batch, ensure_ascii=False)}"
+            )
+            llm_response = llm_client.generate_json(
+                prompt,
+                system_prompt=(
+                    "You convert text representations of numbers. Return only the "
+                    "requested compact JSON object; do not add explanations."
+                ),
+                max_output_tokens=NUMERIC_LLM_MAX_OUTPUT_TOKENS,
+            )
+            if isinstance(llm_response, dict):
+                for idx in remaining_indices:
+                    val_raw = str(series.loc[idx])
+                    if val_raw not in dirty_batch:
+                        continue
+                    converted_value = llm_response.get(val_raw)
+                    if converted_value is not None:
+                        try:
+                            level1_num.loc[idx] = float(converted_value)
+                        except (ValueError, TypeError):
+                            pass
 
     # Level 4: Guardrail - Any unconvertible value remains NaN safely
     return level1_num
@@ -81,6 +98,12 @@ def impute_missing_values(df: pd.DataFrame, imputation_plan: Dict[str, Dict[str,
     for col, plan in imputation_plan.items():
         if col not in df_clean.columns:
             continue
+
+        if pd.api.types.is_string_dtype(df_clean[col]) or df_clean[col].dtype == "object":
+            missing_mask = df_clean[col].astype("string").str.strip().str.lower().isin(
+                ["", "n/a", "null", "none", "?", "missing"]
+            )
+            df_clean.loc[missing_mask, col] = np.nan
 
         strategy = plan.get("strategy", "median").lower()
         fill_val = plan.get("value", None)

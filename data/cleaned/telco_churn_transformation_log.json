@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-10-15T14:18:51.535443+00:00",
+  "raw_file": "data/raw\\telco_churn.csv",
+  "cleaned_file": "data/cleaned/telco_churn_cleaned.csv",
+  "processed_file": "data/processed/telco_churn_processed.parquet",
+  "quality_score_before": 85.0,
+  "quality_score_after": 97.0,
+  "applied_transformations": [
+    {
+      "column": "TotalCharges",
+      "action": "numeric_waterfall_cleaning",
+      "nulls_before": 11,
+      "nulls_after": 11
+    },
+    {
+      "column": "Partner",
+      "action": "normalize_boolean"
+    },
+    {
+      "column": "Dependents",
+      "action": "normalize_boolean"
+    },
+    {
+      "column": "PhoneService",
+      "action": "normalize_boolean"
+    },
+    {
+      "column": "PaperlessBilling",
+      "action": "normalize_boolean"
+    },
+    {
+      "column": "Churn",
+      "action": "normalize_boolean"
+    },
+    {
+      "column": "TotalCharges",
+      "action": "imputation_median",
+      "imputed_rows": 11
+    }
+  ]
+}

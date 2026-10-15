@@ -1,0 +1,68 @@
+{
+  "run_id": "20261015T150042717356Z",
+  "status": "success",
+  "started_at": "2026-10-15T15:00:42.717356+00:00",
+  "finished_at": "2026-10-15T15:00:51.985952+00:00",
+  "source_file": "data/raw\\heath 1995-2010.csv",
+  "destination_format": "csv",
+  "output_files": {
+    "csv": "data\\cleaned\\heath 1995-2010_cleaned.csv"
+  },
+  "rows_extracted": 1638,
+  "rows_loaded": 1638,
+  "columns_extracted": 7,
+  "columns_loaded": 7,
+  "quality_score_before": 94.0,
+  "quality_score_after": 99.2,
+  "validation": {
+    "valid": true,
+    "errors": [],
+    "source_rows": 1638,
+    "output_rows": 1638,
+    "rows_removed": 0,
+    "columns": 7,
+    "missing_cells": 0,
+    "duplicate_rows": 0,
+    "schema_preserved": true
+  },
+  "applied_transformations": [
+    {
+      "column": "85.7",
+      "action": "numeric_waterfall_cleaning",
+      "nulls_before": 0,
+      "nulls_after": 170
+    },
+    {
+      "column": "14.3",
+      "action": "numeric_waterfall_cleaning",
+      "nulls_before": 0,
+      "nulls_after": 260
+    },
+    {
+      "column": "85.7",
+      "action": "imputation_median",
+      "imputed_rows": 170
+    },
+    {
+      "column": "14.3",
+      "action": "imputation_median",
+      "imputed_rows": 260
+    },
+    {
+      "column": "85.7",
+      "action": "outlier_winsorizing",
+      "capped_at": {
+        "low": 71.948,
+        "high": 93.2
+      }
+    },
+    {
+      "column": "14.3",
+      "action": "outlier_winsorizing",
+      "capped_at": {
+        "low": 6.8,
+        "high": 29.062999999999988
+      }
+    }
+  ]
+}
