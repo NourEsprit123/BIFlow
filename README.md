@@ -299,7 +299,48 @@ http://localhost:8501
 
 ---
 
-# 🧭 9. Interface BIFlow
+# � Test the Multi-Agent BI Sequential Pipeline (POC)
+
+Before integrating into the full graph architecture, you can test a completely
+generalized, data-agnostic sequential pipeline demonstrating **Agent 1 (Data Engineering)**
+and **Agent 2 (BI Analyst)** working together locally.
+
+This pipeline is fully compatible with **any business dataset** and runs locally
+using **Ollama (Qwen 2.5:7b)**.
+
+### Step 1 — (Optional) Generate a Synthetic Corrupted Dataset
+
+To stress-test the data quality resilience of the pipeline, generate a completely
+synthetic, corrupted corporate dataset from scratch — no original files needed :
+
+```powershell
+python generate_dirty_dataset.py
+```
+
+This instantly creates `synthetic_corrupted_data.csv` at the project root, packed
+with missing values, data type errors, and structural duplicates.
+
+### Step 2 — Launch the Isolated POC Dashboard
+
+To avoid port collisions with the main application (port `8501`), this standalone
+pipeline runs on an isolated safe port (**8520**) :
+
+```powershell
+streamlit run test_pipeline_agents.py --server.port 8520
+```
+
+### Step 3 — Demonstrate the Pipeline
+
+* Open your browser at `http://localhost:8520`.
+* The dashboard **automatically defaults** to `data/raw/telco_churn.csv` to prove baseline calculations.
+* Use the **Upload CSV** button to drag-and-drop `synthetic_corrupted_data.csv`.
+* Watch the system dynamically recompute agnostic data health scores (Pandas), trigger the
+  **Data Engineering Agent** for structural text diagnosis, and hand over the state to the
+  **BI Analyst Agent** to stream strategic business recommendations.
+
+---
+
+# �🧭 9. Interface BIFlow
 
 L'application contient plusieurs espaces :
 
