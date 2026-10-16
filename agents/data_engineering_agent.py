@@ -1,9 +1,11 @@
 import os
 import json
 import logging
+import math
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 
+import numpy as np
 import pandas as pd
 
 from analytics.profiler import profile_dataset, load_dataset
@@ -19,12 +21,32 @@ from agents.llm_client import LLMClient, LLMRateLimitError
 
 logger = logging.getLogger(__name__)
 
-PROFILE_COLUMNS_PER_REQUEST = 5
-PROFILE_MAX_OUTPUT_TOKENS = 150
-SINGLE_COLUMN_PROFILE_MAX_OUTPUT_TOKENS = 100
+PROFILE_COLUMNS_PER_REQUEST = 3
+PROFILE_MAX_OUTPUT_TOKENS = 300
+SINGLE_COLUMN_PROFILE_MAX_OUTPUT_TOKENS = 200
 QUALITY_PLAN_MAX_OUTPUT_TOKENS = 200
 QUALITY_STRATEGY_REPAIR_MAX_OUTPUT_TOKENS = 180
 QUALITY_IMPUTATION_PLAN_MAX_OUTPUT_TOKENS = 160
+
+
+def _json_for_prompt(value: Any) -> str:
+    def normalize(item: Any) -> Any:
+        if isinstance(item, dict):
+            return {key: normalize(nested) for key, nested in item.items()}
+        if isinstance(item, (list, tuple)):
+            return [normalize(nested) for nested in item]
+        if isinstance(item, np.generic):
+            return normalize(item.item())
+        if isinstance(item, float) and not math.isfinite(item):
+            return None
+        return item
+
+    return json.dumps(
+        normalize(value),
+        ensure_ascii=False,
+        default=str,
+        allow_nan=False,
+    )
 
 
 class DataEngineeringAgent:
@@ -115,7 +137,7 @@ class DataEngineeringAgent:
             "outlier_columns (array), date_columns (array), boolean_columns (array), "
             "remove_duplicates (boolean). Select actions based on the report; do not include "
             "columns that do not need the operation. Do not return profile fields in this response.\n"
-            f"Dataset metadata and quality report: {json.dumps(llm_context, default=str)}"
+            f"Dataset metadata and quality report: {_json_for_prompt(llm_context)}"
         )
         quality_plan = self._request_required_llm_json(
             prompt,
@@ -153,8 +175,8 @@ class DataEngineeringAgent:
                     "remove_duplicates (boolean). Choose empty arrays/objects where no "
                     "operation is recommended. Decide remove_duplicates from the supplied "
                     "quality report. Do not repeat other strategy fields or add explanation.\n"
-                    f"Missing fields: {json.dumps(sorted(missing_strategy_fields))}\n"
-                    f"Dataset metadata and quality report: {json.dumps(llm_context, default=str)}"
+                    f"Missing fields: {_json_for_prompt(sorted(missing_strategy_fields))}\n"
+                    f"Dataset metadata and quality report: {_json_for_prompt(llm_context)}"
                 )
                 repaired_strategy = self.llm_client.generate_json(
                     repair_prompt,
@@ -397,7 +419,7 @@ class DataEngineeringAgent:
         return (
             prompt
             + "Use compact type and role labels; do not add extra fields.\n"
-            + f"Dataset metadata: {json.dumps(batch_context, default=str)}"
+            + f"Dataset metadata: {_json_for_prompt(batch_context)}"
         )
 
     def _request_profile_chunk(
@@ -420,7 +442,7 @@ class DataEngineeringAgent:
                 f"{prompt}\n\n"
                 "Your JSON response omitted the required profile_summary. Add a concise, "
                 "non-empty profile_summary and return all requested columns exactly once.\n"
-                f"Previous JSON response: {json.dumps(response, ensure_ascii=False, default=str)}"
+                f"Previous JSON response: {_json_for_prompt(response)}"
             )
             corrected_response = self._request_required_llm_json(
                 correction_prompt,
@@ -474,7 +496,7 @@ class DataEngineeringAgent:
                 "\nThe previous response did not provide a valid profile for the requested "
                 f"column {column_name!r}. Return one item with non-empty name, type, role, "
                 "and insight fields. Keep insight under 5 words. Previous response: "
-                f"{json.dumps(response, ensure_ascii=False, default=str)}"
+                f"{_json_for_prompt(response)}"
             )
 
         raise ValueError(
@@ -881,7 +903,7 @@ class DataEngineeringAgent:
                         "for numeric columns, mode for categorical, boolean, and datetime "
                         "columns. Use a constant only when its value is justified by the "
                         "provided quality context. Include no unlisted columns.\n"
-                        f"Missing-value columns: {json.dumps(missing_summary)}\n"
+                        f"Missing-value columns: {_json_for_prompt(missing_summary)}\n"
                         "Use the dataset quality report and selected strategy already "
                         "provided earlier in this workflow."
                     ),

@@ -2,6 +2,7 @@ import html as html_lib
 import json
 import os
 import sys
+from datetime import datetime
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
@@ -50,7 +51,7 @@ if not datasets:
 active_dataset = st.session_state.get("active_dataset")
 active_name = os.path.basename(active_dataset) if active_dataset else None
 default_dataset = active_name if active_name in datasets else datasets[0]
-dataset_column, action_column = st.columns([5, 1.5])
+dataset_column, workflow_column, action_column = st.columns([4.5, 1.5, 1.5])
 with dataset_column:
     dataset_name = st.selectbox(
         "Active dataset",
@@ -58,6 +59,10 @@ with dataset_column:
         index=datasets.index(default_dataset),
         key="bi_analysis_dataset",
     )
+with workflow_column:
+    st.write("")
+    if st.button("✨ Create workflow", key="bi_create_workflow", use_container_width=True):
+        st.switch_page("pages/3_Workflows.py")
 with action_column:
     st.write("")
     run_analysis = st.button(
@@ -182,244 +187,431 @@ if analysis.get("fallback_used"):
 
 kpis = analysis["kpis"]
 numeric_metrics = kpis["numeric_metrics"]
+chart_df = load_dataset(analysis_source_path)
+numeric_columns = chart_df.select_dtypes(include="number").columns.tolist()
+def find_column(keywords):
+    return next(
+        (
+            column for column in chart_df.columns
+            if any(keyword in str(column).lower().replace("_", " ") for keyword in keywords)
+        ),
+        None,
+    )
 
-active_card = f'''<div class="bf-card" style="background:#eef2ff;display:flex;gap:1rem;align-items:center;margin-bottom:1rem">
-  🗄 <small style="color:#4338ca"><b>ACTIVE DATASET</b></small>
-  <b>{html_lib.escape(dataset_name)}</b> · {kpis["record_count"]:,} records · {kpis["field_count"]} fields
-  <span style="margin-left:auto">{badge("● Cleaned dataset", "green")}</span></div>'''
-html(active_card)
-st.caption(f"BI results are calculated from the validated cleaned file: `{os.path.basename(analysis_source_path)}`.")
+
+churn_column = find_column(("churn", "attrition"))
+contract_column = find_column(("contract", "subscription plan"))
+if contract_column is None and churn_column is not None:
+    contract_column = next(
+        (
+            column for column in chart_df.columns
+            if column != churn_column
+            and (
+                pd.api.types.is_object_dtype(chart_df[column])
+                or isinstance(chart_df[column].dtype, pd.CategoricalDtype)
+            )
+            and 1 < chart_df[column].nunique(dropna=True) <= 12
+        ),
+        None,
+    )
+additional_group_column = next(
+    (
+        column for column in kpis["categorical_distributions"]
+        if column not in {churn_column, contract_column}
+    ),
+    None,
+)
+
+churn_rate = None
+churn_mask = None
+churn_count = 0
+if churn_column:
+    positive_labels = {
+        "yes", "y", "true", "1", "churn", "churned", "attrited",
+        "left", "cancelled", "canceled",
+    }
+    known_churn = chart_df[churn_column].notna()
+    churn_mask = (
+        chart_df[churn_column].astype("string").str.strip().str.lower()
+        .isin(positive_labels)
+    )
+    if bool((churn_mask & known_churn).any()):
+        churn_count = int((churn_mask & known_churn).sum())
+        churn_rate = churn_count / max(int(known_churn.sum()), 1) * 100
 
 primary_metric_name = next(iter(numeric_metrics), None)
 primary_metric = numeric_metrics.get(primary_metric_name, {}) if primary_metric_name else {}
+charge_column = find_column(("monthly charges", "monthly charge", "charges", "revenue", "amount"))
+tenure_column = find_column(("tenure", "months"))
+date_column = find_column(("date", "time", "month"))
+if charge_column not in numeric_metrics:
+    charge_column = primary_metric_name
+if tenure_column not in numeric_metrics or tenure_column == charge_column:
+    tenure_column = next(
+        (column for column in numeric_metrics if column != charge_column),
+        None,
+    )
+
+stat = os.stat(analysis_source_path)
+completed_at = datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
+html(
+    f'''<div class="bf-card" style="background:linear-gradient(110deg,#eef2ff,#f5f3ff);display:flex;gap:1rem;align-items:center;margin-bottom:1rem">
+      🗄 <small style="color:#4338ca"><b>ACTIVE DATASET</b></small>
+      <b>{html_lib.escape(dataset_name)}</b> · {kpis["record_count"]:,} records · {kpis["field_count"]} fields · Validated {completed_at}
+      <span style="margin-left:auto">{badge("● Results ready", "blue")}</span></div>'''
+)
+html(
+    """<style>
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        border-color: #e8eaf5;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(30, 41, 59, .04);
+        background: linear-gradient(180deg, #ffffff, #fcfcff);
+    }
+    div[data-testid="stVerticalBlockBorderWrapper"] h4 {
+        color: #1e1b4b;
+        letter-spacing: -.01em;
+    }
+    </style>"""
+)
+
 average_label = (
     f"Average {html_lib.escape(primary_metric_name)}"
-    if primary_metric_name
-    else "Numeric metrics"
+    if primary_metric_name else "Numeric metrics"
 )
 average_value = f'{primary_metric["mean"]:,.2f}' if primary_metric else "—"
 average_subtitle = (
-    f'Median {primary_metric["median"]:,.2f}' if primary_metric else "No numeric metrics detected"
+    f'Median {primary_metric["median"]:,.2f}'
+    if primary_metric else "No numeric metrics detected"
+)
+secondary_label = (
+    "Churn Rate" if churn_rate is not None
+    else "Missing cells"
+)
+secondary_value = (
+    f"{churn_rate:.1f}%" if churn_rate is not None
+    else f'{kpis["missing_percentage"]:.1f}%'
+)
+secondary_subtitle = (
+    f"{churn_count:,} churned records" if churn_rate is not None
+    else f'{kpis["missing_cells"]:,} total missing'
+)
+fourth_label = (
+    f"Average {html_lib.escape(tenure_column)}"
+    if tenure_column else "Duplicate rows"
+)
+fourth_value = (
+    f'{numeric_metrics[tenure_column]["mean"]:,.1f}'
+    if tenure_column else f'{kpis["duplicate_rows"]:,}'
+)
+fourth_subtitle = (
+    f'Median {numeric_metrics[tenure_column]["median"]:,.1f}'
+    if tenure_column else "Exact duplicate records"
 )
 html(grid([
-    kpi("Records", f'{kpis["record_count"]:,}', "Rows analyzed", "👥"),
     kpi(
-        "Missing cells",
-        f'{kpis["missing_percentage"]:.1f}%',
-        f'{kpis["missing_cells"]:,} total',
-        "⚠",
-        "red",
-        "red" if kpis["missing_cells"] else "gray",
+        "Customers" if "customer" in dataset_name.lower() else "Records",
+        f'{kpis["record_count"]:,}',
+        "Complete population",
+        "👥",
+    ),
+    kpi(
+        secondary_label,
+        secondary_value,
+        secondary_subtitle,
+        "👤" if churn_rate is not None else "⚠",
+        "red" if churn_rate is not None or kpis["missing_cells"] else "blue",
+        "red" if churn_rate is not None or kpis["missing_cells"] else "gray",
     ),
     kpi(average_label, average_value, average_subtitle, "💵"),
-    kpi("Duplicate rows", f'{kpis["duplicate_rows"]:,}', "Exact duplicate records", "▦", "blue", "gray"),
+    kpi(fourth_label, fourth_value, fourth_subtitle, "📅" if tenure_column else "▦", "blue", "gray"),
 ], "g4"))
 
-st.subheader("Interactive dashboard")
-st.caption(
-    "Build and explore charts from the validated cleaned dataset. Use the chart toolbar "
-    "to zoom, pan, and inspect values; filters affect the chart below."
+chart_df = chart_df.copy()
+chart_df["__bi_churn__"] = churn_mask if churn_mask is not None else False
+chart_df["__bi_churn_known__"] = (
+    chart_df[churn_column].notna() if churn_column else False
 )
-chart_df = load_dataset(analysis_source_path)
-category_columns = [
-    column for column in chart_df.columns
-    if (
-        pd.api.types.is_object_dtype(chart_df[column])
-        or isinstance(chart_df[column].dtype, pd.CategoricalDtype)
-        or pd.api.types.is_bool_dtype(chart_df[column])
-    )
-    and 1 < chart_df[column].nunique(dropna=True) <= 50
-]
-filter_columns = [
-    column for column in chart_df.columns
-    if (
-        pd.api.types.is_object_dtype(chart_df[column])
-        or isinstance(chart_df[column].dtype, pd.CategoricalDtype)
-        or pd.api.types.is_bool_dtype(chart_df[column])
-    )
-    and 1 < chart_df[column].nunique(dropna=True) <= 100
-]
-numeric_columns = chart_df.select_dtypes(include="number").columns.tolist()
-chart_options = ["Bar", "Pie", "Line", "Scatter", "Histogram", "Box"]
 
-filter_column = st.selectbox(
-    "Filter by category",
-    ["No filter"] + filter_columns,
-    key=f"bi_chart_filter_column_{dataset_name}",
-)
-if filter_column != "No filter":
-    filter_values = sorted(
-        chart_df[filter_column].dropna().astype(str).unique().tolist()
-    )
-    selected_values = st.multiselect(
-        "Keep selected values (leave empty to show all)",
-        filter_values,
-        key=f"bi_chart_filter_values_{dataset_name}_{filter_column}",
-    )
-    if selected_values:
-        chart_df = chart_df[
-            chart_df[filter_column].astype("string").isin(selected_values)
-        ]
-
-chart_type = st.selectbox(
-    "Chart type",
-    chart_options,
-    key=f"bi_chart_type_{dataset_name}",
-)
-figure = None
-
-if chart_type in {"Bar", "Pie", "Line"}:
-    if not category_columns:
-        st.info("This chart type needs a categorical column with 2–50 distinct values.")
-    else:
-        dimension = st.selectbox(
-            "Category / X axis",
-            category_columns,
-            key=f"bi_chart_dimension_{dataset_name}_{chart_type}",
-        )
-        metric_options = ["Record count"] + numeric_columns
-        metric = st.selectbox(
-            "Value",
-            metric_options,
-            key=f"bi_chart_metric_{dataset_name}_{chart_type}",
-        )
-        aggregation = st.selectbox(
-            "Aggregation",
-            ["Sum", "Mean", "Median"],
-            disabled=metric == "Record count",
-            key=f"bi_chart_aggregation_{dataset_name}_{chart_type}",
-        )
-        category_values = chart_df[dimension].fillna("(missing)").astype(str)
-        if metric == "Record count":
-            chart_data = category_values.value_counts().rename_axis(dimension).reset_index(name="value")
-            value_label = "Records"
-        else:
-            values = pd.to_numeric(chart_df[metric], errors="coerce")
-            grouped = pd.DataFrame({dimension: category_values, metric: values}).groupby(
-                dimension, dropna=False
-            )[metric]
-            if aggregation == "Sum":
-                chart_data = grouped.sum().reset_index(name="value")
-            elif aggregation == "Mean":
-                chart_data = grouped.mean().reset_index(name="value")
-            else:
-                chart_data = grouped.median().reset_index(name="value")
-            value_label = f"{aggregation} of {metric}"
-        chart_data = chart_data.dropna(subset=["value"]).sort_values(
-            "value", ascending=False
-        ).head(50)
-        if chart_data.empty:
-            st.info("No values are available for this chart with the current filter.")
-        elif chart_type == "Bar":
-            figure = px.bar(
-                chart_data, x=dimension, y="value", hover_data={dimension: True, "value": ":,.2f"},
-                labels={"value": value_label}, title=f"{value_label} by {dimension}",
+distribution_column = churn_column
+if distribution_column is None:
+    distribution_column = next(iter(kpis["categorical_distributions"]), None)
+if distribution_column is None:
+    distribution_column = next(
+        (
+            column for column in chart_df.columns
+            if column not in {"__bi_churn__", "__bi_churn_known__"}
+            and (
+                pd.api.types.is_object_dtype(chart_df[column])
+                or isinstance(chart_df[column].dtype, pd.CategoricalDtype)
+                or pd.api.types.is_bool_dtype(chart_df[column])
             )
-        elif chart_type == "Pie":
-            if (chart_data["value"] < 0).any() or chart_data["value"].sum() <= 0:
-                st.warning("Pie charts require non-negative values with a positive total.")
+            and 1 < chart_df[column].nunique(dropna=True) <= 10
+        ),
+        None,
+    )
+
+plot_theme = {
+    "template": "plotly_white",
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "font": {"family": "Inter, sans-serif", "color": "#334155", "size": 12},
+    "colorway": ["#4f46e5", "#38bdf8", "#a78bfa", "#fb7185", "#14b8a6"],
+    "margin": {"l": 12, "r": 12, "t": 20, "b": 12},
+    "legend": {"orientation": "h", "y": -0.18},
+}
+
+st.markdown("### Customer behaviour")
+left_chart, right_chart = st.columns([0.9, 1.1], gap="large")
+with left_chart:
+    with st.container(border=True):
+        st.markdown("#### Churn distribution" if churn_column else "#### Category distribution")
+        st.caption(
+            "Customer share by churn status"
+            if churn_column else "Share of records across the largest available category"
+        )
+        if distribution_column:
+            distribution = (
+                chart_df[distribution_column].fillna("(missing)").astype(str)
+                .value_counts().rename_axis("category").reset_index(name="records")
+            )
+            if churn_column and churn_count:
+                palette = ["#4f46e5" if value.strip().lower() in positive_labels else "#c7d2fe"
+                           for value in distribution["category"]]
             else:
-                figure = px.pie(
-                    chart_data, names=dimension, values="value",
-                    title=f"{value_label} by {dimension}", hole=0.35,
+                palette = ["#4f46e5", "#8b5cf6", "#38bdf8", "#14b8a6", "#f59e0b"]
+            figure = px.pie(
+                distribution,
+                names="category",
+                values="records",
+                hole=0.68,
+                color_discrete_sequence=palette,
+            )
+            figure.update_layout(**plot_theme, showlegend=True)
+            if churn_rate is not None:
+                figure.add_annotation(
+                    text=f"<b>{churn_rate:.1f}%</b><br><span style='font-size:11px'>CHURN</span>",
+                    showarrow=False,
+                    font={"size": 20, "color": "#0f172a"},
+                )
+            st.plotly_chart(
+                figure,
+                use_container_width=True,
+                key=f"bi_churn_distribution_{dataset_name}",
+            )
+            if churn_rate is not None:
+                st.markdown(
+                    f"Retained **{kpis['record_count'] - churn_count:,}** · "
+                    f"Churned **{churn_count:,}**"
                 )
         else:
-            figure = px.line(
-                chart_data.sort_values(dimension), x=dimension, y="value", markers=True,
-                labels={"value": value_label}, title=f"{value_label} by {dimension}",
-            )
-elif chart_type == "Scatter":
-    if len(numeric_columns) < 2:
-        st.info("A scatter plot needs at least two numeric columns.")
-    else:
-        scatter_columns = st.columns(2)
-        with scatter_columns[0]:
-            x_axis = st.selectbox(
-                "X axis", numeric_columns, key=f"bi_scatter_x_{dataset_name}"
-            )
-        y_options = [column for column in numeric_columns if column != x_axis]
-        with scatter_columns[1]:
-            y_axis = st.selectbox(
-                "Y axis", y_options, key=f"bi_scatter_y_{dataset_name}_{x_axis}"
-            )
-        color_options = ["No grouping"] + category_columns
-        color_by = st.selectbox(
-            "Color by",
-            color_options,
-            key=f"bi_scatter_color_{dataset_name}",
-        )
-        figure = px.scatter(
-            chart_df, x=x_axis, y=y_axis,
-            color=None if color_by == "No grouping" else color_by,
-            title=f"{y_axis} vs {x_axis}",
-            hover_data=chart_df.columns[:5].tolist(),
-        )
-elif chart_type == "Histogram":
-    if not numeric_columns:
-        st.info("A histogram needs a numeric column.")
-    else:
-        value_column = st.selectbox(
-            "Numeric column",
-            numeric_columns,
-            key=f"bi_histogram_column_{dataset_name}",
-        )
-        figure = px.histogram(
-            chart_df, x=value_column, nbins=30,
-            title=f"Distribution of {value_column}",
-        )
-else:
-    if not numeric_columns:
-        st.info("A box plot needs a numeric column.")
-    else:
-        value_column = st.selectbox(
-            "Numeric column",
-            numeric_columns,
-            key=f"bi_box_value_{dataset_name}",
-        )
-        box_categories = ["No grouping"] + category_columns
-        group_column = st.selectbox(
-            "Group by",
-            box_categories,
-            key=f"bi_box_group_{dataset_name}",
-        )
-        figure = px.box(
-            chart_df,
-            x=None if group_column == "No grouping" else group_column,
-            y=value_column,
-            color=None if group_column == "No grouping" else group_column,
-            title=f"Distribution of {value_column}",
-        )
+            st.info("No categorical column is available for a distribution chart.")
 
-if figure is not None:
-    figure.update_layout(template="plotly_white", margin=dict(l=20, r=20, t=60, b=20))
-    st.plotly_chart(figure, use_container_width=True, key=f"bi_chart_{dataset_name}")
+with right_chart:
+    with st.container(border=True):
+        st.markdown(
+            f"#### Churn by {html_lib.escape(str(contract_column))}"
+            if churn_column and contract_column
+            else "#### Group comparison"
+        )
+        st.caption(
+            "Observed churn rate across contract groups"
+            if churn_column and contract_column
+            else "Record counts across the largest available categories"
+        )
+        if churn_column and contract_column:
+            comparison = chart_df.loc[chart_df["__bi_churn_known__"]].groupby(
+                contract_column, dropna=False
+            )["__bi_churn__"].agg(["mean", "count"]).reset_index()
+            comparison["group"] = comparison[contract_column].fillna("(missing)").astype(str)
+            comparison["rate"] = comparison["mean"] * 100
+            comparison = comparison.sort_values("rate", ascending=True)
+            figure = px.bar(
+                comparison,
+                x="rate",
+                y="group",
+                orientation="h",
+                text=comparison["rate"].map(lambda value: f"{value:.1f}%"),
+                color="rate",
+                color_continuous_scale=["#c4b5fd", "#4f46e5", "#312e81"],
+                labels={"rate": "Churn rate", "group": str(contract_column)},
+            )
+            figure.update_traces(textposition="outside", cliponaxis=False)
+            figure.update_layout(**plot_theme, coloraxis_showscale=False, xaxis_ticksuffix="%")
+        elif distribution_column:
+            distribution = (
+                chart_df[distribution_column].fillna("(missing)").astype(str)
+                .value_counts().head(8).rename_axis("group").reset_index(name="records")
+                .sort_values("records", ascending=True)
+            )
+            figure = px.bar(
+                distribution,
+                x="records",
+                y="group",
+                orientation="h",
+                text="records",
+                color="records",
+                color_continuous_scale=["#c4b5fd", "#4f46e5"],
+                labels={"records": "Records", "group": str(distribution_column)},
+            )
+            figure.update_traces(textposition="outside", cliponaxis=False)
+            figure.update_layout(**plot_theme, coloraxis_showscale=False)
+        else:
+            figure = None
+        if figure is not None:
+            st.plotly_chart(
+                figure,
+                use_container_width=True,
+                key=f"bi_contract_comparison_{dataset_name}",
+            )
+        else:
+            st.info("No categorical groups are available to compare.")
+
+st.markdown("### Dataset trends & distributions")
+trend_columns = st.columns(3, gap="large")
+for index, (title, metric_column, description) in enumerate((
+    ("Monthly charges distribution", charge_column, "Record frequency across value bands"),
+    ("Customer tenure distribution", tenure_column, "Records across lifecycle stages"),
+    (
+     "Churn trend" if churn_column and date_column else
+     f"Churn by {additional_group_column}" if churn_column and additional_group_column else
+     "Numeric metric distribution",
+     date_column if churn_column and date_column else primary_metric_name,
+     "Observed churn rate over time" if churn_column and date_column else
+     f"Observed churn rate by {additional_group_column}"
+     if churn_column and additional_group_column else
+     "Frequency across the selected measure"),
+)):
+    with trend_columns[index]:
+        with st.container(border=True):
+            st.markdown(f"#### {html_lib.escape(title)}")
+            st.caption(html_lib.escape(description))
+            if index == 2 and churn_column and date_column and metric_column in chart_df.columns:
+                trend = pd.DataFrame({
+                    "date": pd.to_datetime(chart_df[date_column], errors="coerce"),
+                    "churned": chart_df["__bi_churn__"],
+                    "known": chart_df["__bi_churn_known__"],
+                }).dropna(subset=["date"])
+                trend = trend.loc[trend["known"]].assign(
+                    period=lambda frame: frame["date"].dt.to_period("M").dt.to_timestamp()
+                )
+                trend = (
+                    trend.groupby("period")["churned"].mean().mul(100)
+                    .rename("churn_rate").reset_index()
+                )
+                if not trend.empty:
+                    figure = px.line(
+                        trend,
+                        x="period",
+                        y="churn_rate",
+                        markers=True,
+                        color_discrete_sequence=["#4f46e5"],
+                        labels={"period": "", "churn_rate": "Churn rate"},
+                    )
+                    figure.update_traces(line={"width": 3}, marker={"size": 7})
+                    figure.update_layout(**plot_theme, yaxis_ticksuffix="%", showlegend=False)
+                    st.plotly_chart(
+                        figure,
+                        use_container_width=True,
+                        key=f"bi_churn_trend_{dataset_name}",
+                    )
+                else:
+                    st.info("No valid dates are available for a churn trend.")
+            elif index == 2 and churn_column and additional_group_column:
+                comparison = chart_df.loc[chart_df["__bi_churn_known__"]].groupby(
+                    additional_group_column, dropna=False
+                )["__bi_churn__"].agg(["mean", "count"]).reset_index()
+                comparison["group"] = (
+                    comparison[additional_group_column].fillna("(missing)").astype(str)
+                )
+                comparison["rate"] = comparison["mean"] * 100
+                comparison = comparison.sort_values("rate", ascending=True)
+                figure = px.bar(
+                    comparison,
+                    x="rate",
+                    y="group",
+                    orientation="h",
+                    text=comparison["rate"].map(lambda value: f"{value:.1f}%"),
+                    color="rate",
+                    color_continuous_scale=["#bae6fd", "#0284c7", "#075985"],
+                    labels={"rate": "Churn rate", "group": str(additional_group_column)},
+                )
+                figure.update_traces(textposition="outside", cliponaxis=False)
+                figure.update_layout(
+                    **plot_theme,
+                    coloraxis_showscale=False,
+                    xaxis_ticksuffix="%",
+                )
+                st.plotly_chart(
+                    figure,
+                    use_container_width=True,
+                    key=f"bi_churn_by_group_{dataset_name}",
+                )
+            elif metric_column and metric_column in chart_df.columns:
+                figure = px.histogram(
+                    chart_df,
+                    x=metric_column,
+                    nbins=24,
+                    color_discrete_sequence=[
+                        ["#38bdf8", "#075985"][index % 2]
+                    ],
+                    labels={metric_column: str(metric_column)},
+                )
+                figure.update_traces(marker_line_width=0, opacity=0.9)
+                figure.update_layout(**plot_theme, bargap=0.08, showlegend=False)
+                st.plotly_chart(
+                    figure,
+                    use_container_width=True,
+                    key=f"bi_distribution_{index}_{dataset_name}",
+                )
+            elif kpis["missing_cells"]:
+                missing_by_column = (
+                    chart_df.isna().sum().sort_values(ascending=False).head(10)
+                    .rename_axis("column").reset_index(name="missing")
+                )
+                figure = px.bar(
+                    missing_by_column,
+                    x="missing",
+                    y="column",
+                    orientation="h",
+                    color_discrete_sequence=["#8b5cf6"],
+                )
+                figure.update_layout(**plot_theme, showlegend=False)
+                st.plotly_chart(
+                    figure,
+                    use_container_width=True,
+                    key=f"bi_missing_{index}_{dataset_name}",
+                )
+            else:
+                st.info("No eligible numeric measure is available for this chart.")
 
 insights = analysis["insights"]
 html(
-    f'<div style="display:flex;justify-content:space-between">'
-    f'<h2>AI Insights</h2>{badge(f"{len(insights)} evidence-based insights")}</div>'
+    f'<div style="display:flex;justify-content:space-between;align-items:center;margin:1.5rem 0 .8rem">'
+    f'<h2>AI Insights</h2>{badge(f"{len(insights)} evidence-based insights", "blue")}</div>'
 )
-insight_cards = []
-for item in insights:
+insight_columns = st.columns(3, gap="large")
+for index, item in enumerate(insights):
     title = html_lib.escape(item["title"])
     finding = html_lib.escape(item["finding"])
     evidence = html_lib.escape(item["evidence"])
     recommendation = html_lib.escape(item["recommendation"])
     confidence = item["confidence"]
     sources = ", ".join(html_lib.escape(column) for column in item["source_columns"])
-    insight_cards.append(
-        f'''<div class="bf-card">
-          <span class="bf-badge blue" style="float:right">● {confidence}% confidence</span>
-          <small style="color:#4338ca"><b>DATASET INSIGHT</b></small>
-          <h3 style="font-size:1.1rem;margin:.5rem 0">{title}</h3>
-          <p style="color:#64748b;font-size:.85rem">{finding}</p>
-          <div class="bf-box"><b>Evidence</b><br>{evidence}</div>
-          <div class="bf-box"><b>Recommendation</b><br>{recommendation}</div>
-          <small>Confidence</small><b style="float:right">{confidence}%</b>{bar(confidence, "#075985")}
-          <small>Source columns: {sources or "Dataset-level aggregates"}</small>
-        </div>'''
-    )
-html(grid(insight_cards, "g3"))
+    with insight_columns[index % 3]:
+        html(
+            f'''<div class="bf-card" style="height:100%;border-top:3px solid #6366f1">
+              <span class="bf-badge blue" style="float:right">● {confidence}% confidence</span>
+              <small style="color:#4338ca"><b>{sources.upper() or "DATASET INSIGHT"}</b></small>
+              <h3 style="font-size:1.05rem;margin:.65rem 0">{title}</h3>
+              <p style="color:#64748b;font-size:.88rem;min-height:3.6rem">{finding}</p>
+              <small>Confidence</small><b style="float:right">{confidence}%</b>{bar(confidence, "#4f46e5")}
+            </div>'''
+        )
+        with st.expander("✨ Explain this insight"):
+            st.markdown(f"**Evidence**  \n{evidence}")
+            st.markdown(f"**Recommended action**  \n{recommendation}")
+            st.caption(f"Source columns: {sources or 'Dataset-level aggregates'}")
 
 export_json = json.dumps(analysis, indent=2, ensure_ascii=False, allow_nan=False)
 st.download_button(

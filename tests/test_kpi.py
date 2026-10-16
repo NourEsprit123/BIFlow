@@ -143,7 +143,7 @@ def test_bi_pipeline_runs_kpis_on_validated_cleaned_dataset(tmp_path, monkeypatc
     class PipelineLLMClient(StubLLMClient):
         def generate_json(self, prompt, system_prompt=None, max_output_tokens=None):
             self.calls.append((prompt, system_prompt, max_output_tokens))
-            if max_output_tokens == 150:
+            if max_output_tokens == 300:
                 return {
                     "profile_summary": "Revenue values are numeric.",
                     "columns": [{
@@ -176,7 +176,7 @@ def test_bi_pipeline_runs_kpis_on_validated_cleaned_dataset(tmp_path, monkeypatc
     assert pd.read_csv(result["cleaned_dataset_path"]).shape[0] == 2
     assert result["analysis"]["kpis"]["record_count"] == 2
     assert len(llm.calls) == 3
-    assert [call[2] for call in llm.calls] == [150, 200, 700]
+    assert [call[2] for call in llm.calls] == [300, 200, 700]
     assert "PRIVATE" not in llm.calls[-1][0]
 
 

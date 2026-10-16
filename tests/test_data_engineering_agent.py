@@ -50,6 +50,30 @@ def test_profiler_and_quality():
     assert "TotalCharges" in health["type_issues"]
 
 
+def test_profile_prompt_serializes_non_finite_statistics_as_json_null():
+    context = {
+        "file_name": "empty_numeric.csv",
+        "rows": 2,
+        "columns": 1,
+        "duplicate_rows": 0,
+        "column_types": {"amount": "float64"},
+        "column_roles": {"amount": "continuous_numeric"},
+        "unique_values_per_column": {"amount": 0},
+        "missing_values_per_column": {"amount": 2},
+        "numerical_statistics": {"amount": {"mean": float("nan")}},
+    }
+
+    prompt = DataEngineeringAgent._build_profile_chunk_prompt(
+        context,
+        ["amount"],
+        include_summary=True,
+    )
+    metadata = json.loads(prompt.split("Dataset metadata: ", 1)[1])
+
+    assert metadata["column_metadata"]["numerical_statistics"]["amount"]["mean"] is None
+    assert "NaN" not in prompt
+
+
 def test_run_audit_uses_compact_prompt_and_bounded_llm_output(tmp_path):
     source = tmp_path / "quality.csv"
     pd.DataFrame({
@@ -295,8 +319,8 @@ def test_profiling_generates_all_columns_in_bounded_llm_batches(tmp_path, monkey
     assert result["status"] == "success"
     assert result["llm_analysis"]["profile_summary"] == "Summary across the dataset."
     assert [item["name"] for item in result["llm_analysis"]["columns"]] == column_names
-    assert len(llm.calls) == 3
-    assert all(call[2] == 150 for call in llm.calls)
+    assert len(llm.calls) == 4
+    assert all(call[2] == 300 for call in llm.calls)
 
 
 def test_profiling_recovers_column_omitted_from_llm_batch(tmp_path, monkeypatch):
@@ -353,8 +377,8 @@ def test_profiling_recovers_column_omitted_from_llm_batch(tmp_path, monkeypatch)
     assert result["status"] == "success"
     assert [item["name"] for item in result["llm_analysis"]["columns"]] == column_names
     assert len(llm.calls) == 3
-    assert llm.calls[-1][2] == 100
-    assert "field_4" in llm.calls[-1][0]
+    assert llm.calls[-1][2] == 200
+    assert "field_2" in llm.calls[-1][0]
 
 
 def test_combined_workflow_uses_llm_plan_for_cleaning_and_loading(tmp_path, monkeypatch):
@@ -392,7 +416,7 @@ def test_combined_workflow_uses_llm_plan_for_cleaning_and_loading(tmp_path, monk
     assert pd.read_csv(result["output_files"]["csv"])["amount"].notna().all()
     assert len(llm.calls) == 2
     assert "PRIVATE-CUSTOMER-TEXT" not in llm.calls[0][0]
-    assert llm.calls[0][2] == 150
+    assert llm.calls[0][2] == 300
     assert llm.calls[1][2] == 200
 
 
@@ -427,7 +451,7 @@ def test_combined_workflow_chunks_profile_before_requesting_cleaning_plan(
                         "outlier_columns": [],
                         "date_columns": [],
                         "boolean_columns": [],
-                        "remove_duplicates": True,
+                        "remove_duplicates": False,
                     },
                 }
 
@@ -450,7 +474,7 @@ def test_combined_workflow_chunks_profile_before_requesting_cleaning_plan(
     assert result["status"] == "success"
     assert [item["name"] for item in result["llm_analysis"]["columns"]] == column_names
     assert result["llm_analysis"]["cleaning_strategy"]["remove_duplicates"] is False
-    assert [call[2] for call in llm.calls] == [150, 150, 150, 200]
+    assert [call[2] for call in llm.calls] == [300, 300, 300, 300, 200]
 
 
 def test_combined_workflow_repairs_missing_cleaning_strategy_fields(tmp_path, monkeypatch):
@@ -507,7 +531,7 @@ def test_combined_workflow_repairs_missing_cleaning_strategy_fields(tmp_path, mo
     assert strategy["boolean_columns"] == ["active"]
     assert strategy["date_columns"] == []
     assert strategy["remove_duplicates"] is True
-    assert [call[2] for call in llm.calls] == [150, 200, 180]
+    assert [call[2] for call in llm.calls] == [300, 200, 180]
 
 
 def test_combined_workflow_fails_if_cleaning_strategy_repair_is_incomplete(
@@ -554,7 +578,10 @@ def test_combined_workflow_asks_llm_to_impute_remaining_missing_values(
 ):
     source = tmp_path / "raw" / "missing_values.csv"
     source.parent.mkdir()
-    pd.DataFrame({"amount": [10.0, None, 30.0, None, 50.0]}).to_csv(
+    pd.DataFrame({
+        "amount": [10.0, None, 30.0, None, 50.0],
+        "row_id": [1, 2, 3, 4, 5],
+    }).to_csv(
         source,
         index=False,
     )
@@ -578,16 +605,19 @@ def test_combined_workflow_asks_llm_to_impute_remaining_missing_values(
                         "outlier_columns": [],
                         "date_columns": [],
                         "boolean_columns": [],
-                        "remove_duplicates": True,
+                        "remove_duplicates": False,
                     },
                 }
             if max_output_tokens == 160:
                 assert '"amount"' in prompt
-                assert '"missing_cells": 2' in prompt
+                missing_summary = json.loads(
+                    prompt.split("Missing-value columns: ", 1)[1].split("\n", 1)[0]
+                )
+                assert missing_summary["amount"]["missing_cells"] == 2
                 return {"imputation_plan": {"amount": {"strategy": "median"}}}
             return {
                 "profile_summary": "One numeric amount column.",
-                "columns": llm_profile(["amount"])["columns"],
+                "columns": llm_profile(["amount", "row_id"])["columns"],
             }
 
     llm = MissingValuesLLMClient()
@@ -601,9 +631,9 @@ def test_combined_workflow_asks_llm_to_impute_remaining_missing_values(
     assert result["status"] == "success"
     assert result["validation"]["valid"]
     assert result["validation"]["missing_cells"] == 0
-    assert cleaned["amount"].tolist() == [10.0, 30.0, 50.0]
+    assert cleaned["amount"].tolist() == [10.0, 30.0, 30.0, 30.0, 50.0]
     assert result["validation"]["duplicate_rows"] == 0
-    assert [call[2] for call in llm.calls] == [150, 200, 160]
+    assert [call[2] for call in llm.calls] == [300, 200, 160]
 
 
 def test_workflow_stops_when_llm_is_unavailable(tmp_path, monkeypatch):

@@ -293,9 +293,9 @@ La clé se crée sur [GroqCloud](https://console.groq.com/keys). Installez les
 dépendances avec `pip install -r requirements.txt`, puis redémarrez Streamlit.
 La sortie est limitée à 900 tokens afin de rester sous le plafond de sortie par
 minute de l'offre gratuite; les descriptions du profil sont donc volontairement
-courtes. Les workflows traitent les colonnes par groupes de cinq et limitent
-chaque réponse de profil à 150 tokens; le plan de nettoyage a un budget séparé
-de 200 tokens.
+courtes. Les workflows traitent les colonnes par groupes de trois et limitent
+chaque réponse de profil à 300 tokens pour éviter les réponses JSON tronquées;
+le plan de nettoyage a un budget séparé de 200 tokens.
 Les limites gratuites et les modèles disponibles peuvent changer; vérifiez la
 console Groq si le modèle configuré n'est plus accessible. BIFlow demande des
 réponses JSON; en cas d'erreur, le workflow s'arrête sans basculer vers un autre

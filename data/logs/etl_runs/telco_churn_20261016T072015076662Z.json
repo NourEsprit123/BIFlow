@@ -1,0 +1,65 @@
+{
+  "run_id": "20261016T072015076662Z",
+  "status": "success",
+  "started_at": "2026-10-16T07:20:15.076662+00:00",
+  "finished_at": "2026-10-16T07:20:16.741708+00:00",
+  "source_file": "data\\raw\\telco_churn.csv",
+  "destination_format": "csv",
+  "output_files": {
+    "csv": "data\\cleaned\\telco_churn_cleaned.csv"
+  },
+  "rows_extracted": 7043,
+  "rows_loaded": 7043,
+  "columns_extracted": 21,
+  "columns_loaded": 21,
+  "quality_score_before": 85.0,
+  "quality_score_after": 97.0,
+  "validation": {
+    "valid": true,
+    "errors": [],
+    "source_rows": 7043,
+    "output_rows": 7043,
+    "rows_removed": 0,
+    "columns": 21,
+    "missing_cells": 0,
+    "duplicate_rows": 0,
+    "schema_preserved": true
+  },
+  "applied_transformations": [
+    {
+      "column": "TotalCharges",
+      "action": "numeric_waterfall_cleaning",
+      "nulls_before": 11,
+      "nulls_after": 11
+    },
+    {
+      "column": "SeniorCitizen",
+      "action": "normalize_boolean"
+    },
+    {
+      "column": "Partner",
+      "action": "normalize_boolean"
+    },
+    {
+      "column": "Dependents",
+      "action": "normalize_boolean"
+    },
+    {
+      "column": "PhoneService",
+      "action": "normalize_boolean"
+    },
+    {
+      "column": "PaperlessBilling",
+      "action": "normalize_boolean"
+    },
+    {
+      "column": "Churn",
+      "action": "normalize_boolean"
+    },
+    {
+      "column": "TotalCharges",
+      "action": "imputation_mean",
+      "imputed_rows": 11
+    }
+  ]
+}
