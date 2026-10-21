@@ -1,5 +1,8 @@
 from components import setup, page_header, btn, html, card, badge
 
+from chat_widget import render_chat
+render_chat("Datasets")
+
 setup("Audit & XAI")
 page_header("Audit & Explainability", "Understand how BIFlow generated its results and verify algorithmic decisions.",
             btn("⭳ Export audit log") + btn("🛡 Verify result", True), "Workspace › <b>Audit & XAI</b>")

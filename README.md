@@ -97,6 +97,10 @@ BIFlow/
 │   ├── segmentation.py
 │   └── churn_model.py
 │
+├── auth/
+│   ├── __init__.py
+│   └── service.py
+│
 ├── explainability/
 │   ├── shap_explainer.py
 │   ├── lineage.py
@@ -297,6 +301,31 @@ L'interface est accessible depuis le navigateur à l'adresse indiquée par Strea
 http://localhost:8501
 ```
 
+## Comptes BIFlow
+
+Les boutons **Sign up** et **Sign in** utilisent une base SQLite locale.
+Les nouveaux comptes sont enregistrés dans `data/biflow_auth.sqlite3` ; les
+mot de passe sont stockés sous forme de hachages et non en clair. Le mot de
+passe doit contenir au moins 8 caractères, une lettre majuscule et un caractère
+spécial. Cette règle s'applique à l'inscription et à la réinitialisation.
+
+Par défaut, la base reste sur cette machine et n'est pas suivie par Git. Pour
+choisir un autre emplacement, définissez la variable d'environnement
+`BIFLOW_AUTH_DB` avant de démarrer Streamlit. **Forgot password?** envoie un
+code à usage unique par e-mail ; ce code expire après 30 minutes. Configurez
+SMTP dans `.env` à partir du modèle `.env.example` :
+
+* `BIFLOW_SMTP_HOST` et `BIFLOW_SMTP_FROM` sont obligatoires ;
+* `BIFLOW_SMTP_PORT` vaut `587` par défaut (STARTTLS) ;
+* `BIFLOW_SMTP_USE_SSL=true` active TLS direct, habituellement avec le port `465` ;
+* `BIFLOW_SMTP_USER` et `BIFLOW_SMTP_PASSWORD` sont facultatifs ensemble, selon
+  le fournisseur.
+
+Copiez `.env.example` vers `.env`, puis remplacez les valeurs par celles de votre
+fournisseur SMTP. Ne partagez pas et ne commitez jamais le fichier `.env`.
+Les pages internes nécessitent une session connectée et le bouton **Sign out**
+ferme la session.
+
 ---
 
 # 🧭 9. Interface BIFlow
@@ -341,6 +370,14 @@ Espace dédié à l'analyse business :
 ### 🤖 AI Agents
 
 Visualisation et suivi des différents agents BIFlow.
+
+Depuis la barre horizontale en haut de l'application, ouvrez **Agent 1**
+et cochez les tâches souhaitées. La sélection est affichée dans le menu ;
+aucune tâche n'est exécutée à ce stade.
+
+* **Agent 1 · Data Engineering** : Data Profiling, Data Quality et Data Cleaning ;
+* **Agent 2 · BI Analyst** : KPIs et Dashboards ;
+* **Agent 3 · XAI Auditor** : XAI.
 
 ### 🔍 Audit
 

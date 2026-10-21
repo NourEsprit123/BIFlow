@@ -1,4 +1,6 @@
 """Blocs réutilisables : layout (sidebar/topbar/header) + petits composants HTML."""
+from html import escape
+
 import streamlit as st
 from style import load_css
 
@@ -10,6 +12,21 @@ NAV = [
     ("BI Analysis", "pages/5_BI_Analysis.py", "📊"),
     ("Audit & XAI", "pages/6_Audit_XAI.py", "🧠"),
     ("Agent Ops", "pages/7_Agent_Ops.py", "🤖"),
+]
+
+AGENTS = [
+    ("Agent 1 · Data Engineering", "agent1", [
+        ("Data Profiling", "profiling"),
+        ("Data Quality", "quality"),
+        ("Data Cleaning", "cleaning"),
+    ]),
+    ("Agent 2 · BI Analyst", "agent2", [
+        ("KPIs", "kpis"),
+        ("Dashboards", "dashboards"),
+    ]),
+    ("Agent 3 · XAI Auditor", "agent3", [
+        ("XAI", "xai"),
+    ]),
 ]
 
 
@@ -60,12 +77,34 @@ def setup(title, hub="Enterprise Analytics Hub"):
     """À appeler en PREMIER dans chaque page."""
     st.set_page_config(page_title=f"BIFlow · {title}", page_icon="📈", layout="wide")
     load_css()
+    user = st.session_state.get("authenticated_user")
+    if not user:
+        st.warning("Connectez-vous pour accéder à votre espace BIFlow.")
+        st.page_link("app.py", label="Aller à la page de connexion", icon="🔐")
+        st.stop()
+
     with st.sidebar:
         html('<div class="bf-brand"><div class="logo">B</div><div><b>BIFlow</b><small>Intelligent Business Intelligence</small></div></div>'
              '<div class="bf-nav-label">ANALYTICAL CORE</div>')
         for label, path, icon in NAV:
             st.page_link(path, label=label, icon=icon)
-        html('<div class="bf-user"><div class="av">SC</div><div><b>Sarah Chen</b><small>Analytics Lead</small></div></div>')
+        full_name = escape(user["full_name"])
+        initials = escape("".join(part[0] for part in user["full_name"].split()[:2]).upper())
+        html(f'<div class="bf-user"><div class="av">{initials}</div><div><b>{full_name}</b>'
+             f'<small>{escape(user["email"])}</small></div></div>')
+        if st.button("Sign out", use_container_width=True):
+            st.session_state.pop("authenticated_user", None)
+            st.switch_page("app.py")
+    agent_columns = st.columns(len(AGENTS))
+    for column, (agent, key_prefix, tasks) in zip(agent_columns, AGENTS):
+        with column:
+            with st.popover(agent, use_container_width=True):
+                selected_tasks = [
+                    label for label, task in tasks
+                    if st.checkbox(label, key=f"{key_prefix}_{task}")
+                ]
+                if selected_tasks:
+                    st.caption("Sélection : " + " + ".join(selected_tasks))
     html(f'''<div class="bf-top"><div class="crumb">Workspace › <b>{hub}</b></div>
       <div class="bf-search"><span>🔍 Search BIFlow...</span><span>⌘ K</span></div><span>🔔</span>
       <div class="bf-org">Northstar Labs <span class="bf-badge">Enterprise</span></div><div class="bf-avatar">👤</div></div>''')
