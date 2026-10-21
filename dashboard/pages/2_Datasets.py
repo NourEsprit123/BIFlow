@@ -1,5 +1,8 @@
 from components import setup, page_header, btn, html, card, table, badge, bar
 
+from chat_widget import render_chat
+render_chat("Datasets")
+
 setup("Datasets")
 page_header("Datasets", "Manage, inspect, and streamline your business intelligence assets and data ingest pipelines.",
             btn("⟳ Refresh") + btn("☁ + Upload dataset", True), "Workspace › <b>Datasets</b>")

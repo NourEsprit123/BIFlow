@@ -1,5 +1,8 @@
 from components import setup, page_header, btn, html, kpi, grid, card, table, badge, bar, donut, columns_chart
 
+from chat_widget import render_chat
+render_chat("Datasets")
+
 setup("Data Quality")
 page_header("Data Quality", "Monitor, understand, and improve the reliability of Telco Customer Churn.",
             btn("✨ Apply recommended cleaning", True), "Telco Customer Churn › <b>Data Quality</b>")

@@ -1,5 +1,8 @@
 from components import setup, page_header, btn, html, kpi, grid, card, table, badge, svg_line
 
+from chat_widget import render_chat
+render_chat("Datasets")
+
 setup("Agent Operations")
 page_header("Agent Health & Performance", "Real-time telemetry, resource metrics, and operational health of BIFlow's multi-agent system.",
             badge("● ACTIVE CLUSTER") + btn("🕒 Last 24 Hours") + btn("● Auto-refresh: 15s") + btn("⟳ Restart Agent Pool") + btn("⭳ Export Telemetry Log", True))

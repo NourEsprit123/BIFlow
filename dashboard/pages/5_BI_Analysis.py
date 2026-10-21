@@ -1,5 +1,8 @@
 from components import setup, page_header, btn, html, kpi, grid, card, badge, bar, donut, columns_chart, svg_line
 
+from chat_widget import render_chat
+render_chat("Datasets")
+
 setup("BI Analysis")
 page_header("Business Intelligence Analysis", "Turn your data into actionable insights.",
             btn("⭳ Export report") + btn("✨ Create workflow", True), "Telco Customer Churn / <b>Analysis</b>")
