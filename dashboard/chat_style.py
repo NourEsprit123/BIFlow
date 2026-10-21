@@ -1,0 +1,111 @@
+SUGGESTIONS = {
+    "Overview": ["Summarize my workspace", "Which dataset needs attention?", "What are the top insights?"],
+    "Datasets": ["Which datasets need attention?", "How do I upload a dataset?", "What is the storage usage?"],
+    "Data Quality": ["Why is quality 94%?", "What does the cleaning rule do?", "Explain the TotalCharges issue"],
+    "BI Analysis": ["Why is churn at 26.5%?", "Which contract type is riskiest?", "Explain the pricing insight"],
+    "Audit & XAI": ["How was churn calculated?", "Is this result verified?", "Show the lineage"],
+    "Agent Operations": ["Are all agents healthy?", "Which agent is slowest?", "Any errors in the last 24h?"],
+}
+
+CHAT_CSS = """
+<style>
+/* ================= Bouton flottant (chat fermé) ================= */
+.st-key-bf_chat_fab{position:fixed!important;right:1.6rem;bottom:1.6rem;z-index:1000;width:auto!important}
+.st-key-bf_chat_fab button{
+  min-height:3.3rem!important;padding:.6rem 1.4rem!important;border-radius:999px!important;border:0!important;
+  color:#fff!important;font-weight:700!important;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6 55%,#c026d3)!important;
+  box-shadow:0 14px 34px rgba(99,102,241,.45);animation:bfc-ring 2.8s ease-out infinite;
+  transition:transform .25s ease}
+.st-key-bf_chat_fab button p{color:#fff!important;font-size:.95rem}
+.st-key-bf_chat_fab button:hover{transform:translateY(-3px) scale(1.04)}
+@keyframes bfc-ring{
+  0%{box-shadow:0 14px 34px rgba(99,102,241,.45),0 0 0 0 rgba(139,92,246,.5)}
+  70%{box-shadow:0 14px 34px rgba(99,102,241,.45),0 0 0 18px rgba(139,92,246,0)}
+  100%{box-shadow:0 14px 34px rgba(99,102,241,.45),0 0 0 0 rgba(139,92,246,0)}}
+
+/* ================= Fenêtre de chat ================= */
+.st-key-bf_chat_panel{
+  position:fixed!important;right:1.6rem;bottom:1.6rem;z-index:1001;
+  width:min(410px,calc(100vw - 2rem))!important;max-height:calc(100vh - 3rem);
+  gap:0!important;padding:0!important;overflow:hidden;background:#fff;
+  border:1px solid #e3e8fb;border-radius:26px;
+  box-shadow:0 34px 90px rgba(30,41,99,.32);
+  transform-origin:bottom right;animation:bfc-pop .4s cubic-bezier(.2,.9,.3,1.15) both}
+@keyframes bfc-pop{from{opacity:0;transform:translateY(24px) scale(.92)}to{opacity:1;transform:none}}
+.st-key-bf_chat_panel iframe{display:block;height:0;border:0}
+
+/* En-tête */
+.bfc-head{position:relative;overflow:hidden;display:flex;align-items:center;gap:.9rem;
+  padding:1.2rem 5.2rem 1.35rem 1.3rem;color:#fff;
+  background:linear-gradient(135deg,#4338ca,#7c3aed 58%,#c026d3)}
+.bfc-head::before{content:"";position:absolute;width:190px;height:190px;border-radius:50%;
+  right:-60px;top:-90px;background:radial-gradient(circle,rgba(255,255,255,.28),transparent 70%)}
+.bfc-head::after{content:"";position:absolute;inset:0;opacity:.35;pointer-events:none;
+  background-image:radial-gradient(rgba(255,255,255,.35) 1px,transparent 1px);background-size:16px 16px;
+  -webkit-mask-image:linear-gradient(120deg,transparent 40%,#000);mask-image:linear-gradient(120deg,transparent 40%,#000)}
+.bfc-head .av{position:relative;z-index:1;width:46px;height:46px;border-radius:15px;flex:none;display:grid;
+  place-items:center;font-size:1.4rem;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);
+  backdrop-filter:blur(6px)}
+.bfc-head .txt{position:relative;z-index:1}
+.bfc-head b{display:block;font-size:1.05rem;letter-spacing:-.01em}
+.bfc-head small{display:flex;align-items:center;gap:.45rem;font-size:.74rem;opacity:.92;margin-top:.15rem}
+.bfc-head small i{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 0 rgba(74,222,128,.7);
+  animation:bfc-live 2s ease-in-out infinite}
+@keyframes bfc-live{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.7)}50%{box-shadow:0 0 0 6px rgba(74,222,128,0)}}
+
+/* Boutons X (fermer) et corbeille, placés dans l'en-tête */
+.st-key-bf_chat_close{position:absolute!important;top:.9rem;right:1rem;z-index:6;width:auto!important}
+.st-key-bf_chat_clear{position:absolute!important;top:.9rem;right:3.6rem;z-index:6;width:auto!important}
+.st-key-bf_chat_close button,.st-key-bf_chat_clear button{
+  width:34px!important;height:34px!important;min-height:0!important;padding:0!important;border-radius:50%!important;
+  border:1px solid rgba(255,255,255,.35)!important;background:rgba(255,255,255,.18)!important;
+  color:#fff!important;transition:all .25s ease}
+.st-key-bf_chat_close button p,.st-key-bf_chat_clear button p{color:#fff!important;font-size:1rem;line-height:1}
+.st-key-bf_chat_close button:hover{background:rgba(255,255,255,.38)!important;transform:rotate(90deg)}
+.st-key-bf_chat_clear button:hover{background:rgba(255,255,255,.38)!important;transform:scale(1.1)}
+
+/* Zone des messages */
+.st-key-bf_chat_msgs{background:linear-gradient(180deg,#f3f5ff,#f8faff);padding:1rem .9rem .2rem}
+.bfc-row{display:flex;gap:.55rem;margin-bottom:.75rem;align-items:flex-end}
+.bfc-row.me{justify-content:flex-end}
+.bfc-av{width:28px;height:28px;border-radius:9px;flex:none;display:grid;place-items:center;font-size:.85rem;
+  color:#fff;background:linear-gradient(135deg,#6366f1,#a855f7);box-shadow:0 4px 10px rgba(99,102,241,.3)}
+.bfc-bub{max-width:82%;padding:.65rem .9rem;font-size:.86rem;line-height:1.55;border-radius:18px;word-wrap:break-word}
+.bfc-bub.bot{background:#fff;color:#1e293b;border:1px solid #e8ecfb;border-bottom-left-radius:6px;
+  box-shadow:0 2px 10px rgba(30,41,99,.06)}
+.bfc-bub.me{color:#fff;border-bottom-right-radius:6px;background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  box-shadow:0 8px 18px rgba(99,102,241,.32)}
+.bfc-bub em{display:block;font-style:normal;font-size:.62rem;opacity:.55;margin-top:.3rem;text-align:right}
+.bfc-bub code{background:#eef2ff;color:#4338ca;padding:.05rem .35rem;border-radius:6px;font-size:.78rem}
+.bfc-bub.me code{background:rgba(255,255,255,.22);color:#fff}
+.bfc-bub.new{animation:bfc-in .4s ease both}
+@keyframes bfc-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* Suggestions (pastilles) */
+.st-key-bf_chat_sugg{background:#f8faff;padding:.1rem .9rem .8rem;gap:.4rem!important}
+.bfc-hint{font-size:.66rem;letter-spacing:.12em;font-weight:700;color:#94a3b8;margin:0 0 .1rem .15rem}
+.st-key-bf_chat_sugg button{
+  min-height:0!important;padding:.42rem .95rem!important;border-radius:999px!important;justify-content:flex-start;
+  background:#fff!important;border:1px solid #dfe5fb!important;color:#4338ca!important;
+  font-size:.8rem;font-weight:600;transition:all .2s ease}
+.st-key-bf_chat_sugg button p{color:#4338ca!important;font-size:.8rem}
+.st-key-bf_chat_sugg button:hover{background:#eef2ff!important;border-color:#a5b4fc!important;transform:translateX(4px)}
+
+/* Saisie */
+.st-key-bf_chat_form{background:#fff;border-top:1px solid #eef0fb;padding:.8rem .9rem .3rem;gap:.3rem!important}
+.st-key-bf_chat_form [data-testid="stForm"]{border:0!important;padding:0!important}
+.st-key-bf_chat_form [data-baseweb="input"],.st-key-bf_chat_form [data-baseweb="base-input"]{
+  border-radius:999px!important;background:#f1f4fd!important;border:1px solid transparent!important}
+.st-key-bf_chat_form [data-baseweb="input"]:focus-within{border-color:#818cf8!important;
+  box-shadow:0 0 0 3px rgba(129,140,248,.2)}
+.st-key-bf_chat_form input{background:transparent!important;color:#1e293b!important;padding-left:1rem!important;font-size:.88rem}
+.st-key-bf_chat_form button{
+  width:42px!important;height:42px!important;min-height:0!important;padding:0!important;border-radius:50%!important;
+  border:0!important;background:linear-gradient(135deg,#6366f1,#8b5cf6)!important;
+  box-shadow:0 8px 18px rgba(99,102,241,.4);transition:transform .2s ease}
+.st-key-bf_chat_form button p{color:#fff!important;font-size:1.05rem}
+.st-key-bf_chat_form button:hover{transform:scale(1.1) rotate(-8deg)}
+.bfc-foot{text-align:center;font-size:.64rem;color:#94a3b8;padding:.2rem 0 .5rem}
+</style>
+"""

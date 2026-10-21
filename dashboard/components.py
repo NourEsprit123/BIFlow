@@ -12,6 +12,7 @@ NAV = [
     ("BI Analysis", "pages/5_BI_Analysis.py", "📊"),
     ("Audit & XAI", "pages/6_Audit_XAI.py", "🧠"),
     ("Agent Ops", "pages/7_Agent_Ops.py", "🤖"),
+    ("Infrastructure", "pages/8_Infrastructure_Test.py", "⚙️"),
 ]
 
 AGENTS = [
