@@ -120,7 +120,7 @@ def profile_dataset(df: pd.DataFrame, max_cat_values: int = 6) -> dict:
             odd = _unusual_values(s)
             if odd:
                 info["unusual_values"] = odd
-        info["examples"] = s.dropna().astype(str).unique()[:3].tolist()
+        info["examples"] = s.dropna().astype(str).unique()[:2].tolist()
         cols.append(info)
     return {"n_rows": int(len(df)), "n_columns": int(df.shape[1]),
             "duplicate_rows": int(df.duplicated().sum()), "columns": cols}
@@ -454,6 +454,7 @@ def execute_chart(df: pd.DataFrame, spec: dict) -> dict:
         grain = spec.get("time_grain") if spec.get("time_grain") in TIME_GRAINS else "month"
         xs = d[x].dt.to_period(TIME_GRAINS[grain]).dt.to_timestamp()
         base["note"] = f"Grouped by {grain}."
+        base["grain"] = grain
     elif x_numeric:
         xs = d[x]                      # on garde le numérique pour trier correctement (2 avant 10)
     else:
@@ -649,13 +650,23 @@ def run_plan(df: pd.DataFrame, plan: dict):
     return {"rows_before": rows_before, "rows_after": int(len(work)), "kpis": kpis, "charts": charts}, errors
 
 
+def _fmt_ts(ts, grain="month") -> str:
+    if grain in ("day", "week"):
+        return ts.strftime("%Y-%m-%d")
+    if grain == "quarter":
+        return f"{ts.year}-Q{(ts.month - 1) // 3 + 1}"
+    if grain == "year":
+        return str(ts.year)
+    return ts.strftime("%Y-%m")
+
+
 def results_digest(result: dict, max_rows: int = 15) -> dict:
-    """Résultats réellement calculés + parts/totaux PRÉ-CALCULÉS (le LLM ne doit faire aucun calcul)."""
-    def rec(df, total=None):
+    """Résultats réellement calculés + parts/totaux/extrêmes PRÉ-CALCULÉS (le LLM ne fait aucun calcul)."""
+    def rec(df, total=None, grain="month"):
         out = df.head(max_rows).copy()
         for c in out.columns:
             if pd.api.types.is_datetime64_any_dtype(out[c]):
-                out[c] = out[c].dt.strftime("%Y-%m")
+                out[c] = out[c].map(lambda t: _fmt_ts(t, grain))
             elif pd.api.types.is_float_dtype(out[c]):
                 out[c] = out[c].round(2)
         if total and "value" in out.columns:
@@ -665,17 +676,25 @@ def results_digest(result: dict, max_rows: int = 15) -> dict:
     charts = []
     for c in result["charts"]:
         total = c.get("total_all")
+        grain = c.get("grain", "month")
+        data = c["data"]
         entry = {"title": c["title"], "type": c["type"], "x": c["x_label"], "measure": c["y_label"],
-                 "data": rec(c["data"], total)}
+                 "data": rec(data, total, grain)}
         if total:
-            shown = c["data"] if c["type"] != "donut" else c["data"][c["data"]["x"] != "Other"]
+            shown = data if c["type"] != "donut" else data[data["x"] != "Other"]
             entry.update(total_all_categories=round(total, 2), n_categories=c["n_categories"],
                          shown_total=round(float(shown["value"].sum()), 2),
                          shown_share_pct=round(float(shown["value"].sum()) / total * 100, 2))
         if c.get("stats"):
             entry["distribution_stats"] = c["stats"]
-        if c["is_time"] and len(c["data"]):
-            entry["period"] = f"{c['data']['x'].min():%Y-%m} to {c['data']['x'].max():%Y-%m}"
+        if c["is_time"] and len(data):
+            entry["period"] = f"{_fmt_ts(data['x'].min(), grain)} to {_fmt_ts(data['x'].max(), grain)}"
+        if not c["has_series"] and c["type"] not in ("scatter", "histogram") and len(data):
+            def point(i):
+                x = data.loc[i, "x"]
+                return {"x": _fmt_ts(x, grain) if c["is_time"] else str(x), "value": round(float(data.loc[i, "value"]), 2)}
+            entry.update(n_points=int(len(data)), highest=point(data["value"].idxmax()),
+                         lowest=point(data["value"].idxmin()))
         charts.append(entry)
 
     kpis = []

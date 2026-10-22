@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "D:\BIFlow\test_one.py", line 3, in <module>
+    import pandas as pd
+  File "D:\BIFlow\.venv\Lib\site-packages\pandas\__init__.py", line 34, in <module>
+    from pandas.compat import (
+  File "D:\BIFlow\.venv\Lib\site-packages\pandas\compat\__init__.py", line 29, in <module>
+    from pandas.compat.pyarrow import (
+  File "D:\BIFlow\.venv\Lib\site-packages\pandas\compat\pyarrow.py", line 12, in <module>
+    import pyarrow as pa
+  File "D:\BIFlow\.venv\Lib\site-packages\pyarrow\__init__.py", line 71, in <module>
+    from pyarrow.lib import (BuildInfo, CppBuildInfo, RuntimeInfo, set_timezone_db_path,
+  File "<frozen importlib._bootstrap>", line 405, in parent
+KeyboardInterrupt
