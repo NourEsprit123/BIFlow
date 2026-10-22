@@ -10,7 +10,6 @@ html('''<div class="bf-card" style="display:flex;gap:2rem;align-items:center;mar
 
 tasks = [("Data Profiling", "Understand structure, data distributions, and column cardinality", "Core Agent", "~30 sec", 1),
          ("Data Quality", "Detect missing, invalid, or duplicate records & anomalies", "Auditor", "~45 sec", 1),
-         ("Data Cleaning", "Standardize categorical values and impute sparse metrics", "ETL Agent", "Optional", 0),
          ("KPI Analysis", "Calculate enterprise churn velocity, revenue risk, and LTV", "BI Engine", "~40 sec", 1),
          ("Trend Analysis", "Reveal movement and temporal churn shifts across rolling cohorts", "Temporal", "Optional", 0),
          ("Anomaly Detection", "Surface statistical outliers and abrupt churn pattern spikes", "ML Detector", "Optional", 0),

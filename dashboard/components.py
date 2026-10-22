@@ -18,7 +18,6 @@ AGENTS = [
     ("Agent 1 · Data Engineering", "agent1", [
         ("Data Profiling", "profiling"),
         ("Data Quality", "quality"),
-        ("Data Cleaning", "cleaning"),
     ]),
     ("Agent 2 · BI Analyst", "agent2", [
         ("KPIs", "kpis"),

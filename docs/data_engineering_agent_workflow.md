@@ -29,6 +29,8 @@ Le **Data Engineering Agent** est un agent autonome qui utilise une approche hyb
 
 L'agent produit un **ProfilingReport JSON** qui contient toutes les informations nécessaires pour la phase de nettoyage (Cleaning Agent de Malek).
 
+**Périmètre actuel :** Agent 1 profile et audite les données, puis transmet ses constats et recommandations dans le rapport. Il n'applique pas de nettoyage/ETL et ne produit pas de dataset transformé. Les exemples de la phase 4 décrivent l'intégration attendue côté agent aval.
+
 ---
 
 ## Architecture Générale

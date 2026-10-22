@@ -375,7 +375,7 @@ Depuis la barre horizontale en haut de l'application, ouvrez **Agent 1**
 et cochez les tâches souhaitées. La sélection est affichée dans le menu ;
 aucune tâche n'est exécutée à ce stade.
 
-* **Agent 1 · Data Engineering** : Data Profiling, Data Quality et Data Cleaning ;
+* **Agent 1 · Data Engineering** : Data Profiling, Data Quality et recommandations de nettoyage/ETL transmises à l'agent aval ;
 * **Agent 2 · BI Analyst** : KPIs et Dashboards ;
 * **Agent 3 · XAI Auditor** : XAI.
 

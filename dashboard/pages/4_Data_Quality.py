@@ -5,7 +5,7 @@ render_chat("Datasets")
 
 setup("Data Quality")
 page_header("Data Quality", "Monitor, understand, and improve the reliability of Telco Customer Churn.",
-            btn("✨ Apply recommended cleaning", True), "Telco Customer Churn › <b>Data Quality</b>")
+            "", "Telco Customer Churn › <b>Data Quality</b>")
 
 html(grid([kpi("Quality Score", "94%", "● Excellent data health", "🛡"),
            kpi("Missing Values", "11", "0.16% of total cells", "⚠", "blue", "gray"),
@@ -30,4 +30,4 @@ html("<br>")
 html(f'''<div class="bf-card" style="background:#eef2ff;display:flex;gap:1rem;align-items:center">🪄
   <div style="flex:1"><b style="font-size:1.1rem">BIFlow recommends one safe cleaning rule</b> {badge("AI Profiler")}<br>
   Convert <code>TotalCharges</code> to numeric and treat 11 empty values as missing. Your original dataset will be preserved.</div>
-  {btn("Preview changes")} {btn("✨ Apply recommended cleaning", True)}</div>''')
+  </div>''')
