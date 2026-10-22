@@ -495,9 +495,12 @@ Utiliser un fichier `.env` local :
 
 ```text
 GEMINI_API_KEY=your_api_key
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=llama-3.3-70b-versatile
 ```
 
 Le fichier `.env` est ignoré par Git grâce au `.gitignore`.
+L'agent de nettoyage utilise `GROQ_API_KEY`; `GROQ_MODEL` est facultatif.
 
 Pour partager la structure des variables nécessaires avec l'équipe, utiliser plutôt :
 
