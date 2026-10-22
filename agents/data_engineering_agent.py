@@ -12,6 +12,12 @@ from analytics.data_quality import (
     run_sandboxed_check,
     detect_cross_column_issues,
 )
+from analytics.cleaning import (
+    clean_dirty_numeric_series,
+    impute_missing_values,
+    standardize_categorical_synonyms,
+    treat_outliers,
+)
 from agents.llm_client import LLMClient
 
 logger = logging.getLogger(__name__)
@@ -96,6 +102,111 @@ class DataEngineeringAgent:
             "cleaning_strategy": cleaning_strategy,
             "profiling_report":  profiling_report,
             "report_path":       report_path,
+        }
+
+    def execute_cleaning(
+        self,
+        file_path: str,
+        strategy: Optional[Dict[str, Any]] = None,
+        preview_mode: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Executes data cleaning using the cleaning strategy from run_audit().
+        Saves cleaned CSV + processed Parquet + transformation audit log.
+        If preview_mode=True, returns diff stats without saving.
+        """
+        df_raw = load_dataset(file_path)
+        df_clean = df_raw.copy()
+
+        if not strategy:
+            audit_res = self.run_audit(file_path)
+            strategy = audit_res["cleaning_strategy"]
+
+        transformations_log: List[Dict[str, Any]] = []
+
+        # 1. Waterfall cleaning
+        for col in strategy.get("numeric_waterfall_columns", []):
+            if col in df_clean.columns:
+                before = int(df_clean[col].isna().sum())
+                df_clean[col] = clean_dirty_numeric_series(df_clean[col], self.llm_client)
+                after = int(df_clean[col].isna().sum())
+                transformations_log.append({
+                    "column": col, "action": "numeric_waterfall_cleaning",
+                    "nulls_before": before, "nulls_after": after,
+                })
+
+        # 2. Imputation
+        impute_plan = strategy.get("imputation_plan", {})
+        for col, plan in impute_plan.items():
+            if col in df_clean.columns:
+                transformations_log.append({
+                    "column": col,
+                    "action": f"imputation_{plan.get('strategy', 'median')}",
+                    "imputed_rows": int(df_clean[col].isna().sum()),
+                })
+        df_clean = impute_missing_values(df_clean, impute_plan)
+
+        # 3. Synonym normalization
+        synonym_maps = strategy.get("synonym_mappings", {})
+        for col, mapping in synonym_maps.items():
+            if col in df_clean.columns and mapping:
+                transformations_log.append({
+                    "column": col, "action": "synonym_normalization",
+                    "replacements": len(mapping), "mapping": mapping,
+                })
+        df_clean = standardize_categorical_synonyms(df_clean, synonym_maps)
+
+        # 4. Outlier winsorizing
+        outlier_cols = strategy.get("outlier_columns", [])
+        for col in outlier_cols:
+            if col in df_clean.columns:
+                q_low  = float(df_clean[col].quantile(0.01))
+                q_high = float(df_clean[col].quantile(0.99))
+                transformations_log.append({
+                    "column": col, "action": "outlier_winsorizing",
+                    "capped_at": {"low": q_low, "high": q_high},
+                })
+        if outlier_cols:
+            df_clean = treat_outliers(df_clean, outlier_cols, method="cap")
+
+        health_after = calculate_health_scores(df_clean)
+
+        if preview_mode:
+            return {
+                "status": "preview",
+                "rows_processed": len(df_clean),
+                "columns_processed": len(df_clean.columns),
+                "health_after": health_after,
+            }
+
+        os.makedirs("data/cleaned", exist_ok=True)
+        os.makedirs("data/processed", exist_ok=True)
+        base_name = os.path.splitext(os.path.basename(file_path))[0]
+        cleaned_path   = f"data/cleaned/{base_name}_cleaned.csv"
+        processed_path = f"data/processed/{base_name}_processed.parquet"
+
+        df_clean.to_csv(cleaned_path, index=False)
+        df_clean.to_parquet(processed_path, index=False)
+
+        health_before = calculate_health_scores(df_raw)
+        audit_log = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "raw_file": file_path,
+            "cleaned_file": cleaned_path,
+            "processed_file": processed_path,
+            "quality_score_before": health_before["overall_health_score"],
+            "quality_score_after": health_after["overall_health_score"],
+            "applied_transformations": transformations_log,
+        }
+        audit_log_path = f"data/cleaned/{base_name}_transformation_log.json"
+        with open(audit_log_path, "w", encoding="utf-8") as f:
+            json.dump(audit_log, f, indent=2)
+
+        return {
+            "status": "success",
+            "cleaned_file_path": cleaned_path,
+            "audit_log_path": audit_log_path,
+            "health_after": health_after,
         }
 
     # ────────────────────────────────────────────────────────────────────────
@@ -719,3 +830,4 @@ class DataEngineeringAgent:
             "recommended_output_format": "parquet",
             "uncertainty_flags": [],
         }
+

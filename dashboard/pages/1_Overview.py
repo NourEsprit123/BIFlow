@@ -76,8 +76,15 @@ div[data-testid="stPopoverBody"]{border-radius:18px;border:1px solid #e3e8fb;
 </style>
 """, unsafe_allow_html=True)
 
-page_header(f"{greeting}, {first_name}.", "Here's what's happening with your data today.",
-            btn("☰ Filter View") + btn("+ Create analysis ✨", True))
+# ── Real action buttons ──────────────────────────────────────────────────────
+_act_col1, _act_col2, _act_spacer = st.columns([1.4, 1.8, 6])
+with _act_col1:
+    st.button("☰ Filter View", use_container_width=True)
+with _act_col2:
+    if st.button("+ Create analysis ✨", type="primary", use_container_width=True):
+        st.switch_page("pages/3_Workflows.py")
+
+page_header(f"{greeting}, {first_name}.", "Here's what's happening with your data today.")
 
 html(grid([
     kpi("Active datasets", "12", "↑ +2 this month", "🗄"),

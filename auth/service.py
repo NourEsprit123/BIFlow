@@ -5,6 +5,7 @@ import re
 import secrets
 import sqlite3
 from contextlib import closing
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 PBKDF2_ITERATIONS = 600_000
@@ -13,6 +14,7 @@ PASSWORD_MAX_LENGTH = 1024
 PASSWORD_SPECIAL_PATTERN = re.compile(r"[^A-Za-z0-9]")
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _DUMMY_SALT = bytes(16)
+SESSION_TTL_DAYS = 7
 
 
 class UserAlreadyExistsError(ValueError):
@@ -40,6 +42,17 @@ def _connect() -> sqlite3.Connection:
             password_hash TEXT NOT NULL,
             password_salt TEXT NOT NULL,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS sessions (
+            token TEXT PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            expires_at TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
         )
         """
     )
@@ -135,3 +148,54 @@ def authenticate_user(email: str, password: str) -> dict | None:
         return None
 
     return {"id": row["id"], "full_name": row["full_name"], "email": row["email"]}
+
+
+# ── Session token management ──────────────────────────────────────────────────
+
+def create_session(user_id: int) -> str:
+    """Create a session token for a user, store in DB, return the token."""
+    token = secrets.token_urlsafe(32)
+    expires_at = (
+        datetime.now(timezone.utc) + timedelta(days=SESSION_TTL_DAYS)
+    ).isoformat()
+    with closing(_connect()) as conn, conn:
+        conn.execute(
+            "INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)",
+            (token, user_id, expires_at),
+        )
+    return token
+
+
+def get_user_from_session(token: str) -> dict | None:
+    """Look up user from session token. Returns user dict or None if invalid/expired."""
+    if not token:
+        return None
+    now = datetime.now(timezone.utc).isoformat()
+    with closing(_connect()) as conn:
+        row = conn.execute(
+            """
+            SELECT u.id, u.full_name, u.email
+            FROM sessions s
+            JOIN users u ON u.id = s.user_id
+            WHERE s.token = ? AND s.expires_at > ?
+            """,
+            (token, now),
+        ).fetchone()
+    if row is None:
+        return None
+    return {"id": row["id"], "full_name": row["full_name"], "email": row["email"]}
+
+
+def delete_session(token: str) -> None:
+    """Delete a session token (logout)."""
+    if not token:
+        return
+    with closing(_connect()) as conn, conn:
+        conn.execute("DELETE FROM sessions WHERE token = ?", (token,))
+
+
+def cleanup_expired_sessions() -> None:
+    """Remove expired sessions from DB (call periodically)."""
+    now = datetime.now(timezone.utc).isoformat()
+    with closing(_connect()) as conn, conn:
+        conn.execute("DELETE FROM sessions WHERE expires_at <= ?", (now,))

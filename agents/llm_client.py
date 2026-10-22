@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import time
 import requests
 from typing import Dict, Any, Optional
 from dotenv import load_dotenv
@@ -64,21 +65,53 @@ class LLMClient:
 
     def _call_gemini(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         """
-        Calls Google Gemini API.
+        Calls Google Gemini API using the google-genai SDK with retry/backoff.
         """
         if not self.gemini_api_key:
-            logger.warning("GEMINI_API_KEY not set in .env")
+            logger.error("GEMINI_API_KEY not set in .env file")
             return "{}"
 
         try:
-            import google.generativeai as genai
-            genai.configure(api_key=self.gemini_api_key)
-            model = genai.GenerativeModel("gemini-1.5-flash")
-            full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
-            response = model.generate_content(full_prompt)
-            return response.text
+            from google import genai
+            from google.genai import types
+        except ImportError as e:
+            logger.error(f"Failed to import google.genai: {e}. Install with: pip install google-genai")
+            return "{}"
+
+        try:
+            client = genai.Client(api_key=self.gemini_api_key)
+            config = types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                temperature=0.3,
+                max_output_tokens=8192,
+            ) if system_prompt else types.GenerateContentConfig(
+                temperature=0.3,
+                max_output_tokens=8192,
+            )
+
+            max_retries = 2  # Reduced from 3 for faster failure
+            for attempt in range(1, max_retries + 1):
+                try:
+                    logger.info(f"Calling Gemini API (attempt {attempt}/{max_retries})...")
+                    # Use gemini-flash-latest which is an alias to the latest stable flash model
+                    response = client.models.generate_content(
+                        model="gemini-flash-latest",
+                        contents=prompt,
+                        config=config
+                    )
+                    logger.info(f"Gemini API call successful")
+                    return response.text
+                except Exception as e:
+                    logger.error(f"Gemini API call failed: {e}")
+                    if attempt < max_retries:
+                        wait = 2
+                        logger.warning(f"Retrying in {wait}s...")
+                        time.sleep(wait)
+                    else:
+                        return "{}"
+            return "{}"
         except Exception as e:
-            logger.error(f"Gemini API call failed: {e}")
+            logger.error(f"Unexpected error in _call_gemini: {e}")
             return "{}"
 
     def _extract_json(self, text: str) -> Dict[str, Any]:

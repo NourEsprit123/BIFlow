@@ -1,0 +1,516 @@
+{
+  "schema_version": "2.1",
+  "dataset_ref": {
+    "file_path": "C:\\Users\\moham\\Desktop\\Med\\biflow\\data\\raw\\dirty_sales_test.csv",
+    "file_name": "dirty_sales_test.csv",
+    "rows": 30,
+    "columns": 9,
+    "size_bytes": 2207
+  },
+  "health_scores": {
+    "overall": 90.2,
+    "completeness": 97.8,
+    "validity": 85.0,
+    "uniqueness": 100.0,
+    "consistency": 70.0
+  },
+  "column_profiles": {
+    "OrderID": {
+      "dtype": "object",
+      "inferred_role": "primary_key",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 30,
+      "unique_pct": 100.0,
+      "sample_values": [
+        "ORD-001",
+        "ORD-002",
+        "ORD-003",
+        "ORD-004",
+        "ORD-005",
+        "ORD-006",
+        "ORD-007",
+        "ORD-008"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "ORD-001": 1,
+        "ORD-002": 1,
+        "ORD-029": 1,
+        "ORD-028": 1,
+        "ORD-027": 1,
+        "ORD-026": 1,
+        "ORD-025": 1,
+        "ORD-024": 1,
+        "ORD-023": 1,
+        "ORD-022": 1
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
+      "business_interpretation": "Column 'OrderID' (primary_key)",
+      "severity": "NONE",
+      "uncertainty": "HIGH",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "CustomerName": {
+      "dtype": "object",
+      "inferred_role": "primary_key",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 30,
+      "unique_pct": 100.0,
+      "sample_values": [
+        "Alice Martin",
+        "Bob Smith",
+        "Carol White",
+        "David Lee",
+        "Eva Brown",
+        "Frank Green",
+        "Grace Kim",
+        "Henry Davis"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Alice Martin": 1,
+        "Bob Smith": 1,
+        "Diana Carter": 1,
+        "Carlos Baker": 1,
+        "Bella Adams": 1,
+        "Aaron Scott": 1,
+        "Yara Lopez": 1,
+        "Xander Wright": 1,
+        "Wendy King": 1,
+        "Victor Hernandez": 1
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
+      "business_interpretation": "Column 'CustomerName' (primary_key)",
+      "severity": "NONE",
+      "uncertainty": "HIGH",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Revenue": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 1,
+      "missing_pct": 3.33,
+      "unique_count": 29,
+      "unique_pct": 96.67,
+      "sample_values": [
+        "$1,200.50",
+        "850.00",
+        "1.5k",
+        "one thousand",
+        "$2,300.00",
+        "banana",
+        "$3,750.50",
+        "2.1k"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "$1,200.50": 1,
+        "3k": 1,
+        "$670.00": 1,
+        "$2,100.00": 1,
+        "$1,300.00": 1,
+        "$920.00": 1,
+        "$3,100.00": 1,
+        "$550.00": 1,
+        "$1,750.00": 1,
+        "quarter million": 1
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 1 (3.33%)",
+          "evidence": {
+            "count": 1,
+            "pct": 3.33
+          }
+        }
+      ],
+      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
+      "business_interpretation": "Column 'Revenue' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "HIGH",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "MonthlyCost": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 1,
+      "missing_pct": 3.33,
+      "unique_count": 29,
+      "unique_pct": 96.67,
+      "sample_values": [
+        "$450.00",
+        "$320.75",
+        "$210.00",
+        "$180.50",
+        "$890.25",
+        "$150.00",
+        "half a million",
+        "$430.00"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "$450.00": 1,
+        "$560.00": 1,
+        "$250.00": 1,
+        "$720.00": 1,
+        "$490.00": 1,
+        "$340.00": 1,
+        "$840.00": 1,
+        "$200.00": 1,
+        "$920.00": 1,
+        "$300.00": 1
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Dirty numeric strings (numeric stored as text with symbols/mixed entries)",
+          "evidence": {
+            "detected": "1 unparseable entries out of 29",
+            "recommendation": "Apply 4-level waterfall cleaning \u2192 convert to float/int",
+            "valid_ratio": 96.55
+          },
+          "llm_agreement": "agree"
+        },
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 1 (3.33%)",
+          "evidence": {
+            "count": 1,
+            "pct": 3.33
+          }
+        }
+      ],
+      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
+      "business_interpretation": "Column 'MonthlyCost' (categorical)",
+      "severity": "MEDIUM",
+      "uncertainty": "HIGH",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Quantity": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 2,
+      "missing_pct": 6.67,
+      "unique_count": 10,
+      "unique_pct": 33.33,
+      "sample_values": [
+        "3.0",
+        "1.0",
+        "5.0",
+        "2.0",
+        "7.0",
+        "1.0",
+        "4.0",
+        "6.0"
+      ],
+      "numeric_stats": {
+        "mean": 4.25,
+        "median": 4.0,
+        "std": 2.4438,
+        "min": 1.0,
+        "max": 10.0,
+        "q1": 2.0,
+        "q3": 6.0,
+        "skewness": 0.6549,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 2 (6.67%)",
+          "evidence": {
+            "count": 2,
+            "pct": 6.67
+          }
+        }
+      ],
+      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
+      "business_interpretation": "Column 'Quantity' (continuous_numeric)",
+      "severity": "MEDIUM",
+      "uncertainty": "HIGH",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Region": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 4,
+      "unique_pct": 13.33,
+      "sample_values": [
+        "North",
+        "South",
+        "East",
+        "West",
+        "North",
+        "South",
+        "East",
+        "West"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "North": 8,
+        "South": 8,
+        "East": 7,
+        "West": 7
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
+      "business_interpretation": "Column 'Region' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "HIGH",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "SignupDate": {
+      "dtype": "object",
+      "inferred_role": "timestamp",
+      "missing_count": 2,
+      "missing_pct": 6.67,
+      "unique_count": 28,
+      "unique_pct": 93.33,
+      "sample_values": [
+        "2023-01-15",
+        "2023-02-20",
+        "2023-03-10",
+        "2023-04-05",
+        "2023-05-18",
+        "2023-06-22",
+        "2023-07-30",
+        "2023-08-14"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "2023-01-15": 1,
+        "2023-02-20": 1,
+        "2024-12-12": 1,
+        "2024-12-10": 1,
+        "2024-12-08": 1,
+        "2024-12-05": 1,
+        "2024-12-01": 1,
+        "2024-10-01": 1,
+        "2024-09-15": 1,
+        "2024-08-30": 1
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Date/time values stored as plain text (not parsed as datetime)",
+          "evidence": {
+            "detected": "~100% of sampled values match date patterns",
+            "recommendation": "Parse with pd.to_datetime() to enable time-series operations",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        },
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 2 (6.67%)",
+          "evidence": {
+            "count": 2,
+            "pct": 6.67
+          }
+        }
+      ],
+      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
+      "business_interpretation": "Column 'SignupDate' (timestamp)",
+      "severity": "MEDIUM",
+      "uncertainty": "HIGH",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "IsActive": {
+      "dtype": "object",
+      "inferred_role": "boolean",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 2,
+      "unique_pct": 6.67,
+      "sample_values": [
+        "Yes",
+        "No",
+        "Yes",
+        "No",
+        "Yes",
+        "No",
+        "Yes",
+        "No"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Yes": 16,
+        "No": 14
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Boolean flag stored as text (Yes/No or True/False as object)",
+          "evidence": {
+            "detected": "Unique values: ['no', 'yes']",
+            "recommendation": "Map to bool dtype: True/False (saves memory, enables logic ops)",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        }
+      ],
+      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
+      "business_interpretation": "Column 'IsActive' (boolean)",
+      "severity": "MEDIUM",
+      "uncertainty": "HIGH",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Segment": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 3,
+      "unique_pct": 10.0,
+      "sample_values": [
+        "Premium",
+        "Standard",
+        "Premium",
+        "Basic",
+        "Premium",
+        "Basic",
+        "Standard",
+        "Premium"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Premium": 12,
+        "Standard": 9,
+        "Basic": 9
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
+      "business_interpretation": "Column 'Segment' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "HIGH",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    }
+  },
+  "cross_column_issues": [],
+  "llm_discovered_issues": [],
+  "uncertainty_flags": [],
+  "recommended_cleaning_order": [
+    "Quantity",
+    "SignupDate",
+    "MonthlyCost",
+    "IsActive",
+    "Revenue"
+  ],
+  "etl_hints": {
+    "type_casting_targets": {},
+    "join_key_candidates": [],
+    "drop_candidates": [],
+    "recommended_output_format": "parquet",
+    "synonym_mappings": {}
+  },
+  "imputation_plan": {
+    "Revenue": {
+      "strategy": "median"
+    },
+    "MonthlyCost": {
+      "strategy": "median"
+    },
+    "Quantity": {
+      "strategy": "median"
+    },
+    "SignupDate": {
+      "strategy": "median"
+    }
+  },
+  "outlier_columns": [],
+  "agent_summary": "Dataset has 90.2% health score. LLM reasoning was unavailable \u2014 results are rule-based only.",
+  "recommendation_summary": "Rule-based analysis found 3 type issues and 6 missing values.",
+  "metadata": {
+    "agent_version": "2.0.0",
+    "profiling_timestamp": "2026-10-21T19:54:53.110445+00:00",
+    "llm_model_used": "gemini-flash-latest",
+    "sandbox_executions": 0,
+    "llm_driven": true
+  }
+}

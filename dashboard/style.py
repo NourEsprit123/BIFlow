@@ -4,13 +4,25 @@ CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 html,body,.stApp,[class*="css"]{font-family:'Inter',sans-serif;color:#0f172a}
 .stApp{background:#f8fafc}
-header[data-testid="stHeader"],footer,#MainMenu,[data-testid="stSidebarNav"]{display:none}
+footer,#MainMenu,[data-testid="stSidebarNav"]{display:none}
+[data-testid="stHeader"]{background:transparent}
+[data-testid="collapsedControl"]{display:flex!important;visibility:visible!important}
 .block-container{padding:1rem 2rem 3rem;max-width:1280px}
 section[data-testid="stSidebar"]{background:#fff;border-right:1px solid #e5e7eb;min-width:260px}
-a[data-testid="stPageLink-NavLink"]{border-radius:10px;padding:.5rem .75rem;color:#334155}
+a[data-testid="stPageLink-NavLink"]{border-radius:10px;padding:.5rem .75rem;color:#334155!important}
+a[data-testid="stPageLink-NavLink"] p{color:#334155!important}
 a[data-testid="stPageLink-NavLink"][aria-current="page"]{background:#4f46e5}
+a[data-testid="stPageLink-NavLink"][aria-current="page"] p{color:#fff!important}
 a[data-testid="stPageLink-NavLink"][aria-current="page"] *{color:#fff!important}
-button[kind="primary"]{background:#4f46e5;border:none;border-radius:10px;font-weight:600}
+section[data-testid="stSidebar"] p,section[data-testid="stSidebar"] span,
+section[data-testid="stSidebar"] b,section[data-testid="stSidebar"] small,
+section[data-testid="stSidebar"] div{color:#334155}
+section[data-testid="stSidebar"] button p{color:#334155!important}
+button[kind="secondary"]{background:#fff!important;color:#334155!important;border:1px solid #e5e7eb!important;border-radius:10px;font-weight:600}
+button[kind="secondary"] p{color:#334155!important}
+button[kind="secondary"]:hover{border-color:#a5b4fc!important;color:#4338ca!important}
+button[kind="primary"]{background:#4f46e5!important;border:none;border-radius:10px;font-weight:600;color:#fff!important}
+button[kind="primary"] p{color:#fff!important}
 .mono{font-family:'JetBrains Mono',monospace}
 .bf-brand{display:flex;gap:.6rem;align-items:center;margin-bottom:1.2rem}
 .bf-brand .logo{width:38px;height:38px;border-radius:10px;background:#4f46e5;color:#fff;display:grid;place-items:center;font-weight:800}
@@ -19,8 +31,9 @@ button[kind="primary"]{background:#4f46e5;border:none;border-radius:10px;font-we
 .bf-user{display:flex;gap:.6rem;align-items:center;background:#eef2ff;border-radius:12px;padding:.6rem;margin-top:2rem}
 .bf-user .av{width:34px;height:34px;border-radius:50%;background:#5b21b6;color:#fff;display:grid;place-items:center;font-weight:700;font-size:.8rem}
 .bf-user small{display:block;color:#64748b;font-size:.7rem}
-div[data-testid="stPopover"]>button{width:100%;border:1px solid #e5e7eb;border-radius:10px;background:#fff;color:#334155;font-weight:600}
-div[data-testid="stPopover"]>button:hover{border-color:#a5b4fc;color:#4338ca}
+div[data-testid="stPopover"]>button{width:100%;border:1px solid #e3e8fb!important;border-radius:16px!important;background:linear-gradient(135deg,#ffffff 55%,#f5f7ff)!important;color:#1e293b!important;font-weight:600;box-shadow:0 2px 6px rgba(15,23,42,.05);transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+div[data-testid="stPopover"]>button:hover{border-color:#a5b4fc!important;color:#4338ca!important;transform:translateY(-3px);box-shadow:0 14px 30px rgba(99,102,241,.18)}
+div[data-testid="stPopover"]>button p{color:#1e293b!important;font-weight:600}
 .bf-top{display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem}
 .bf-top .crumb{color:#475569;font-size:.9rem}
 .bf-search{flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:.55rem .9rem;color:#94a3b8;font-size:.85rem;display:flex;justify-content:space-between}
@@ -63,6 +76,8 @@ table.bf-table{width:100%;border-collapse:collapse;font-size:.88rem}
 .bf-table small{display:block;color:#64748b}
 .bf-chip{border-radius:999px;padding:.4rem .9rem;font-size:.85rem;background:#f1f5f9;margin-right:.4rem;display:inline-block}
 .bf-chip.on{background:#4f46e5;color:#fff}
+/* task checkbox alignment */
+[data-testid="stCheckbox"]{margin-top:.55rem}
 .bf-task{border-radius:14px;padding:1.1rem;background:#fff;border:1px solid #f1f5f9}
 .bf-task.on{background:#eef2ff}.bf-task h4{margin:.6rem 0 .2rem}.bf-task p{color:#475569;font-size:.85rem;margin:0 0 .8rem}
 .bf-task .chk{float:right;width:22px;height:22px;border-radius:6px;border:2px solid #c7d2fe}.bf-task.on .chk{background:#3730a3;border-color:#3730a3}

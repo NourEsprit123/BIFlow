@@ -15,6 +15,9 @@ from auth import (
     register_user,
     validate_email,
     validate_password,
+    create_session,
+    get_user_from_session,
+    delete_session,
 )
 from components import html
 import style
@@ -55,7 +58,6 @@ section[data-testid='stSidebar'],[data-testid='collapsedControl'],header[data-te
   box-shadow:0 8px 24px rgba(99,102,241,.35)}
 .block-container>div[data-testid="stHorizontalBlock"]:first-child button[kind="primary"] p{color:#fff!important}
 .stButton button[kind="primary"]:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(99,102,241,.5)}
-
 /* ---------- Brand ---------- */
 .bf2-brand{display:flex;align-items:center;gap:12px}
 .bf2-logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:800;
@@ -206,6 +208,13 @@ def show_login_dialog():
                 st.session_state.pop("signup_complete", None)
                 st.session_state.pop("login_email_value", None)
                 st.session_state["authenticated_user"] = user
+                # Create persistent session token and store in cookie
+                token = create_session(user["id"])
+                st.session_state["session_token"] = token
+                st.markdown(
+                    f'<script>document.cookie="bf_session={token};path=/;max-age={7*86400};SameSite=Lax"</script>',
+                    unsafe_allow_html=True,
+                )
                 st.switch_page("pages/1_Overview.py")
 
 

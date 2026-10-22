@@ -1,0 +1,2110 @@
+{
+  "schema_version": "2.1",
+  "dataset_ref": {
+    "file_path": "C:\\Users\\moham\\Desktop\\Med\\biflow\\data\\raw\\network_telemetry.csv",
+    "file_name": "network_telemetry.csv",
+    "rows": 7869,
+    "columns": 38,
+    "size_bytes": 1361071
+  },
+  "health_scores": {
+    "overall": 97.0,
+    "completeness": 100.0,
+    "validity": 95.0,
+    "uniqueness": 100.0,
+    "consistency": 90.0
+  },
+  "column_profiles": {
+    "timestamp": {
+      "dtype": "object",
+      "inferred_role": "primary_key",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 7869,
+      "unique_pct": 100.0,
+      "sample_values": [
+        "2026-06-14 13:55:25.725467",
+        "2026-06-14 13:55:32.080006",
+        "2026-06-14 13:55:38.027604",
+        "2026-06-14 13:55:43.935451",
+        "2026-06-14 13:55:49.598611",
+        "2026-06-14 13:55:55.267869",
+        "2026-06-14 13:56:00.879154",
+        "2026-06-14 13:56:06.561012"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "2026-06-14 13:55:25.725467": 1,
+        "2026-06-14 22:39:52.912648": 1,
+        "2026-06-14 22:39:40.610466": 1,
+        "2026-06-14 22:39:34.365803": 1,
+        "2026-06-14 22:39:28.360143": 1,
+        "2026-06-14 22:39:22.414397": 1,
+        "2026-06-14 22:39:15.693946": 1,
+        "2026-06-14 22:39:09.021407": 1,
+        "2026-06-14 22:39:03.147979": 1,
+        "2026-06-14 22:38:57.084715": 1
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Pseudo-ID column (near-unique string \u2014 likely an identifier or key)",
+          "evidence": {
+            "detected": "7869 unique values out of 7869 rows (100.0%)",
+            "recommendation": "Exclude from ML features; consider as join key or primary key",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Type issue: Pseudo-ID column (near-unique string \u2014 likely an identifier or key); High cardinality (7869 unique values).",
+      "business_interpretation": "Column 'timestamp' (primary_key)",
+      "severity": "MEDIUM",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "pc1_status": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "numeric_stats": {
+        "mean": 1.0,
+        "median": 1.0,
+        "std": 0.0,
+        "min": 1.0,
+        "max": 1.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "skewness": 0.0,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'pc1_status' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "pc1_rtt": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1067,
+      "unique_pct": 13.56,
+      "sample_values": [
+        "1.65",
+        "2.03",
+        "2.11",
+        "1.21",
+        "1.13",
+        "0.527",
+        "1.08",
+        "0.938"
+      ],
+      "numeric_stats": {
+        "mean": 1.8886,
+        "median": 1.57,
+        "std": 1.4699,
+        "min": 0.297,
+        "max": 58.0,
+        "q1": 1.02,
+        "q3": 2.39,
+        "skewness": 10.4656,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "300 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 300,
+            "outlier_pct": 3.81,
+            "bounds": {
+              "low": -1.035,
+              "high": 4.445
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'pc1_rtt' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "pc1_loss": {
+      "dtype": "float64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0"
+      ],
+      "numeric_stats": {
+        "mean": 0.0,
+        "median": 0.0,
+        "std": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 0.0,
+        "zeros_count": 7869,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'pc1_loss' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "pc2_status": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "numeric_stats": {
+        "mean": 1.0,
+        "median": 1.0,
+        "std": 0.0,
+        "min": 1.0,
+        "max": 1.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "skewness": 0.0,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'pc2_status' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "pc2_rtt": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1079,
+      "unique_pct": 13.71,
+      "sample_values": [
+        "1.21",
+        "1.04",
+        "1.83",
+        "0.732",
+        "0.841",
+        "0.966",
+        "1.51",
+        "1.37"
+      ],
+      "numeric_stats": {
+        "mean": 1.6496,
+        "median": 1.34,
+        "std": 1.2186,
+        "min": 0.283,
+        "max": 27.0,
+        "q1": 0.883,
+        "q3": 2.02,
+        "skewness": 4.6133,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "404 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 404,
+            "outlier_pct": 5.13,
+            "bounds": {
+              "low": -0.8225,
+              "high": 3.7255
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'pc2_rtt' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "pc2_loss": {
+      "dtype": "float64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0"
+      ],
+      "numeric_stats": {
+        "mean": 0.0,
+        "median": 0.0,
+        "std": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 0.0,
+        "zeros_count": 7869,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'pc2_loss' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "pc3_status": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "numeric_stats": {
+        "mean": 1.0,
+        "median": 1.0,
+        "std": 0.0,
+        "min": 1.0,
+        "max": 1.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "skewness": 0.0,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'pc3_status' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "pc3_rtt": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1082,
+      "unique_pct": 13.75,
+      "sample_values": [
+        "1.38",
+        "1.05",
+        "1.48",
+        "0.89",
+        "1.39",
+        "0.673",
+        "0.835",
+        "1.31"
+      ],
+      "numeric_stats": {
+        "mean": 1.5999,
+        "median": 1.32,
+        "std": 1.1482,
+        "min": 0.271,
+        "max": 30.3,
+        "q1": 0.866,
+        "q3": 2.0,
+        "skewness": 4.7765,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "338 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 338,
+            "outlier_pct": 4.3,
+            "bounds": {
+              "low": -0.835,
+              "high": 3.701
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'pc3_rtt' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "pc3_loss": {
+      "dtype": "float64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0"
+      ],
+      "numeric_stats": {
+        "mean": 0.0,
+        "median": 0.0,
+        "std": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 0.0,
+        "zeros_count": 7869,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'pc3_loss' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_status": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "numeric_stats": {
+        "mean": 1.0,
+        "median": 1.0,
+        "std": 0.0,
+        "min": 1.0,
+        "max": 1.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "skewness": 0.0,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'server_status' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_rtt": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 801,
+      "unique_pct": 10.18,
+      "sample_values": [
+        "1.38",
+        "3.88",
+        "2.16",
+        "1.43",
+        "1.08",
+        "1.41",
+        "1.48",
+        "1.81"
+      ],
+      "numeric_stats": {
+        "mean": 2.9425,
+        "median": 2.55,
+        "std": 1.8237,
+        "min": 0.593,
+        "max": 55.8,
+        "q1": 1.74,
+        "q3": 3.73,
+        "skewness": 5.7983,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "226 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 226,
+            "outlier_pct": 2.87,
+            "bounds": {
+              "low": -1.245,
+              "high": 6.715
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'server_rtt' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_loss": {
+      "dtype": "float64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0"
+      ],
+      "numeric_stats": {
+        "mean": 0.0,
+        "median": 0.0,
+        "std": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 0.0,
+        "zeros_count": 7869,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'server_loss' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "fortigate_status": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "numeric_stats": {
+        "mean": 1.0,
+        "median": 1.0,
+        "std": 0.0,
+        "min": 1.0,
+        "max": 1.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "skewness": 0.0,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'fortigate_status' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "fortigate_rtt": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 846,
+      "unique_pct": 10.75,
+      "sample_values": [
+        "1.34",
+        "2.25",
+        "0.988",
+        "1.48",
+        "1.32",
+        "0.943",
+        "2.4",
+        "1.21"
+      ],
+      "numeric_stats": {
+        "mean": 2.5494,
+        "median": 2.21,
+        "std": 1.5405,
+        "min": 0.632,
+        "max": 48.5,
+        "q1": 1.5,
+        "q3": 3.23,
+        "skewness": 5.1702,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "217 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 217,
+            "outlier_pct": 2.76,
+            "bounds": {
+              "low": -1.095,
+              "high": 5.825
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'fortigate_rtt' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "fortigate_loss": {
+      "dtype": "float64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0"
+      ],
+      "numeric_stats": {
+        "mean": 0.0,
+        "median": 0.0,
+        "std": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 0.0,
+        "zeros_count": 7869,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'fortigate_loss' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "internet_status": {
+      "dtype": "int64",
+      "inferred_role": "boolean",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 2,
+      "unique_pct": 0.03,
+      "sample_values": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "numeric_stats": {
+        "mean": 0.9916,
+        "median": 1.0,
+        "std": 0.0912,
+        "min": 0.0,
+        "max": 1.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "skewness": -10.7833,
+        "zeros_count": 66,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Column analyzed with rule-based detection.",
+      "business_interpretation": "Column 'internet_status' (boolean)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "internet_rtt": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 66,
+      "missing_pct": 0.84,
+      "unique_count": 718,
+      "unique_pct": 9.12,
+      "sample_values": [
+        "66.9",
+        "64.2",
+        "69.6",
+        "59.5",
+        "75.9",
+        "56.1",
+        "67.9",
+        "67.1"
+      ],
+      "numeric_stats": {
+        "mean": 66.2514,
+        "median": 57.9,
+        "std": 59.575,
+        "min": 30.9,
+        "max": 986.0,
+        "q1": 51.4,
+        "q3": 67.7,
+        "skewness": 10.0835,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 66 (0.84%)",
+          "evidence": {
+            "count": 66,
+            "pct": 0.84
+          }
+        },
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "211 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 211,
+            "outlier_pct": 2.7,
+            "bounds": {
+              "low": 26.95,
+              "high": 92.15
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'internet_rtt' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "internet_loss": {
+      "dtype": "float64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 2,
+      "unique_pct": 0.03,
+      "sample_values": [
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0"
+      ],
+      "numeric_stats": {
+        "mean": 0.8387,
+        "median": 0.0,
+        "std": 9.1203,
+        "min": 0.0,
+        "max": 100.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 10.7833,
+        "zeros_count": 7803,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical column with 2 categories.",
+      "business_interpretation": "Column 'internet_loss' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "monitor_cpu": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 432,
+      "unique_pct": 5.49,
+      "sample_values": [
+        "43.7",
+        "31.7",
+        "33.4",
+        "26.9",
+        "27.0",
+        "28.6",
+        "35.2",
+        "48.0"
+      ],
+      "numeric_stats": {
+        "mean": 5.6309,
+        "median": 3.0,
+        "std": 8.2993,
+        "min": 0.7,
+        "max": 83.5,
+        "q1": 2.0,
+        "q3": 5.1,
+        "skewness": 4.3072,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "1076 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 1076,
+            "outlier_pct": 13.67,
+            "bounds": {
+              "low": -2.65,
+              "high": 9.75
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'monitor_cpu' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "monitor_memory": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 103,
+      "unique_pct": 1.31,
+      "sample_values": [
+        "55.3",
+        "56.0",
+        "55.6",
+        "57.4",
+        "56.5",
+        "55.7",
+        "55.6",
+        "56.7"
+      ],
+      "numeric_stats": {
+        "mean": 50.1996,
+        "median": 50.2,
+        "std": 0.9251,
+        "min": 46.6,
+        "max": 59.7,
+        "q1": 49.9,
+        "q3": 50.6,
+        "skewness": 1.621,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "699 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 699,
+            "outlier_pct": 8.88,
+            "bounds": {
+              "low": 48.85,
+              "high": 51.65
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'monitor_memory' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_link_switch1_status": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "numeric_stats": {
+        "mean": 1.0,
+        "median": 1.0,
+        "std": 0.0,
+        "min": 1.0,
+        "max": 1.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "skewness": 0.0,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'server_link_switch1_status' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_link_switch3_status": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "numeric_stats": {
+        "mean": 1.0,
+        "median": 1.0,
+        "std": 0.0,
+        "min": 1.0,
+        "max": 1.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "skewness": 0.0,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'server_link_switch3_status' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_link_switch1_rx_bytes": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 7869,
+      "unique_pct": 100.0,
+      "sample_values": [
+        "256085636",
+        "256120644",
+        "256126162",
+        "256131933",
+        "256136670",
+        "256141407",
+        "256146012",
+        "256150749"
+      ],
+      "numeric_stats": {
+        "mean": 12217300237.6761,
+        "median": 11635210864.0,
+        "std": 6617877534.3578,
+        "min": 256085636.0,
+        "max": 22512822050.0,
+        "q1": 7911874035.0,
+        "q3": 18016647882.0,
+        "skewness": 0.1496,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'server_link_switch1_rx_bytes' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_link_switch1_tx_bytes": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 7869,
+      "unique_pct": 100.0,
+      "sample_values": [
+        "3533829",
+        "3543212",
+        "3549902",
+        "3557150",
+        "3563412",
+        "3569608",
+        "3575738",
+        "3582000"
+      ],
+      "numeric_stats": {
+        "mean": 41513542.968,
+        "median": 40867670.0,
+        "std": 21415808.8654,
+        "min": 3533829.0,
+        "max": 77473159.0,
+        "q1": 24500520.0,
+        "q3": 60288427.0,
+        "skewness": 0.0503,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'server_link_switch1_tx_bytes' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_link_switch1_rx_errors": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 0.0,
+        "median": 0.0,
+        "std": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 0.0,
+        "zeros_count": 7869,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'server_link_switch1_rx_errors' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_link_switch1_tx_errors": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 0.0,
+        "median": 0.0,
+        "std": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 0.0,
+        "zeros_count": 7869,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'server_link_switch1_tx_errors' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_link_switch1_rx_dropped": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 0.0,
+        "median": 0.0,
+        "std": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 0.0,
+        "zeros_count": 7869,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'server_link_switch1_rx_dropped' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_link_switch1_tx_dropped": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 0.0,
+        "median": 0.0,
+        "std": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 0.0,
+        "zeros_count": 7869,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'server_link_switch1_tx_dropped' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_link_switch3_rx_bytes": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 108,
+      "unique_pct": 1.37,
+      "sample_values": [
+        "2894",
+        "2894",
+        "2894",
+        "2894",
+        "2894",
+        "2894",
+        "2894",
+        "2894"
+      ],
+      "numeric_stats": {
+        "mean": 5729.5575,
+        "median": 5854.0,
+        "std": 1427.2948,
+        "min": 2894.0,
+        "max": 7978.0,
+        "q1": 4612.0,
+        "q3": 7012.0,
+        "skewness": -0.2468,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'server_link_switch3_rx_bytes' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_link_switch3_tx_bytes": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 750,
+      "unique_pct": 9.53,
+      "sample_values": [
+        "19646",
+        "19646",
+        "19969",
+        "19969",
+        "19969",
+        "19969",
+        "19969",
+        "20039"
+      ],
+      "numeric_stats": {
+        "mean": 138492.5434,
+        "median": 138564.0,
+        "std": 69190.9286,
+        "min": 19646.0,
+        "max": 257918.0,
+        "q1": 77630.0,
+        "q3": 198922.0,
+        "skewness": -0.0032,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'server_link_switch3_tx_bytes' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_link_switch3_rx_errors": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 0.0,
+        "median": 0.0,
+        "std": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 0.0,
+        "zeros_count": 7869,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'server_link_switch3_rx_errors' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_link_switch3_tx_errors": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 0.0,
+        "median": 0.0,
+        "std": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 0.0,
+        "zeros_count": 7869,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'server_link_switch3_tx_errors' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_link_switch3_rx_dropped": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 0.0,
+        "median": 0.0,
+        "std": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 0.0,
+        "zeros_count": 7869,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'server_link_switch3_rx_dropped' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_link_switch3_tx_dropped": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 0.0,
+        "median": 0.0,
+        "std": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 0.0,
+        "zeros_count": 7869,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Low cardinality categorical (1 categories); Zero variance - consider dropping.",
+      "business_interpretation": "Column 'server_link_switch3_tx_dropped' (categorical)",
+      "severity": "LOW",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": true,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_memory": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 2353,
+      "unique_pct": 29.9,
+      "sample_values": [
+        "25.1111",
+        "24.8499",
+        "24.8381",
+        "24.8466",
+        "24.8405",
+        "24.8458",
+        "24.8562",
+        "24.8319"
+      ],
+      "numeric_stats": {
+        "mean": 24.8855,
+        "median": 24.8632,
+        "std": 0.2302,
+        "min": 24.0058,
+        "max": 28.7151,
+        "q1": 24.8025,
+        "q3": 24.9298,
+        "skewness": 1.4603,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "1131 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 1131,
+            "outlier_pct": 14.37,
+            "bounds": {
+              "low": 24.6115,
+              "high": 25.1208
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'server_memory' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "server_cpu": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 76,
+      "unique_pct": 0.97,
+      "sample_values": [
+        "100.0",
+        "18.2",
+        "9.1",
+        "9.1",
+        "9.1",
+        "9.1",
+        "9.1",
+        "23.1"
+      ],
+      "numeric_stats": {
+        "mean": 11.9431,
+        "median": 9.1,
+        "std": 11.7745,
+        "min": 0.0,
+        "max": 100.0,
+        "q1": 9.1,
+        "q3": 16.7,
+        "skewness": 3.8671,
+        "zeros_count": 1416,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "272 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 272,
+            "outlier_pct": 3.46,
+            "bounds": {
+              "low": -2.3,
+              "high": 28.1
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'server_cpu' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "collection_time_seconds": {
+      "dtype": "float64",
+      "inferred_role": "timestamp",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 254,
+      "unique_pct": 3.23,
+      "sample_values": [
+        "1.31",
+        "0.93",
+        "0.9",
+        "0.65",
+        "0.66",
+        "0.6",
+        "0.67",
+        "0.74"
+      ],
+      "numeric_stats": {
+        "mean": 0.9535,
+        "median": 0.9,
+        "std": 0.4483,
+        "min": 0.5,
+        "max": 10.96,
+        "q1": 0.67,
+        "q3": 1.07,
+        "skewness": 5.6305,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "448 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 448,
+            "outlier_pct": 5.69,
+            "bounds": {
+              "low": 0.07,
+              "high": 1.67
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Column analyzed with rule-based detection.",
+      "business_interpretation": "Column 'collection_time_seconds' (timestamp)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    }
+  },
+  "cross_column_issues": [],
+  "llm_discovered_issues": [],
+  "uncertainty_flags": [],
+  "recommended_cleaning_order": [
+    "timestamp",
+    "pc1_status",
+    "pc1_loss",
+    "pc2_status",
+    "pc2_loss",
+    "pc3_status",
+    "pc3_loss",
+    "server_status",
+    "server_loss",
+    "fortigate_status",
+    "fortigate_loss",
+    "server_link_switch1_status",
+    "server_link_switch3_status",
+    "server_link_switch1_rx_errors",
+    "server_link_switch1_tx_errors",
+    "server_link_switch1_rx_dropped",
+    "server_link_switch1_tx_dropped",
+    "server_link_switch3_rx_errors",
+    "server_link_switch3_tx_errors",
+    "server_link_switch3_rx_dropped",
+    "server_link_switch3_tx_dropped",
+    "internet_rtt",
+    "pc1_rtt",
+    "pc2_rtt",
+    "pc3_rtt",
+    "server_rtt",
+    "fortigate_rtt",
+    "monitor_cpu",
+    "monitor_memory",
+    "server_memory",
+    "server_cpu",
+    "collection_time_seconds"
+  ],
+  "etl_hints": {
+    "type_casting_targets": {},
+    "join_key_candidates": [],
+    "drop_candidates": [],
+    "recommended_output_format": "parquet",
+    "synonym_mappings": {}
+  },
+  "imputation_plan": {
+    "internet_rtt": {
+      "strategy": "median"
+    }
+  },
+  "outlier_columns": [
+    "pc1_rtt",
+    "pc2_rtt",
+    "pc3_rtt",
+    "server_rtt",
+    "fortigate_rtt",
+    "internet_rtt",
+    "monitor_cpu",
+    "monitor_memory",
+    "server_memory",
+    "server_cpu",
+    "collection_time_seconds"
+  ],
+  "agent_summary": "Dataset has 97.0% health score. LLM reasoning was unavailable \u2014 results are rule-based only.",
+  "recommendation_summary": "Rule-based analysis found 1 type issues and 66 missing values.",
+  "metadata": {
+    "agent_version": "2.0.0",
+    "profiling_timestamp": "2026-10-22T20:50:04.319097+00:00",
+    "llm_model_used": "gemini-flash-latest",
+    "sandbox_executions": 0,
+    "llm_driven": true
+  }
+}

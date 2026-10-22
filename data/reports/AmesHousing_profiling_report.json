@@ -1,0 +1,4267 @@
+{
+  "schema_version": "2.1",
+  "dataset_ref": {
+    "file_path": "C:\\Users\\moham\\Desktop\\Med\\biflow\\data\\raw\\AmesHousing.csv",
+    "file_name": "AmesHousing.csv",
+    "rows": 2930,
+    "columns": 82,
+    "size_bytes": 963738
+  },
+  "health_scores": {
+    "overall": 94.7,
+    "completeness": 93.5,
+    "validity": 95.0,
+    "uniqueness": 100.0,
+    "consistency": 90.0
+  },
+  "column_profiles": {
+    "Order": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 2930,
+      "unique_pct": 100.0,
+      "sample_values": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "numeric_stats": {
+        "mean": 1465.5,
+        "median": 1465.5,
+        "std": 845.9625,
+        "min": 1.0,
+        "max": 2930.0,
+        "q1": 733.25,
+        "q3": 2197.75,
+        "skewness": 0.0,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Sequential row identifier with zero missing values; exclude from predictive modeling.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "drop",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "PID": {
+      "dtype": "int64",
+      "inferred_role": "primary_key",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 2930,
+      "unique_pct": 100.0,
+      "sample_values": [
+        "526301100",
+        "526350040",
+        "526351010",
+        "526353030",
+        "527105010",
+        "527105030",
+        "527127150",
+        "527145080"
+      ],
+      "numeric_stats": {
+        "mean": 714464496.9887,
+        "median": 535453620.0,
+        "std": 188730844.6494,
+        "min": 526301100.0,
+        "max": 1007100110.0,
+        "q1": 528477022.5,
+        "q3": 907181097.5,
+        "skewness": 0.0559,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Primary key identifier with no data quality issues.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "drop",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "MS SubClass": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 16,
+      "unique_pct": 0.55,
+      "sample_values": [
+        "20",
+        "20",
+        "20",
+        "20",
+        "60",
+        "60",
+        "120",
+        "120"
+      ],
+      "numeric_stats": {
+        "mean": 57.3874,
+        "median": 50.0,
+        "std": 42.638,
+        "min": 20.0,
+        "max": 190.0,
+        "q1": 20.0,
+        "q3": 70.0,
+        "skewness": 1.3576,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "208 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 208,
+            "outlier_pct": 7.1,
+            "bounds": {
+              "low": -55.0,
+              "high": 145.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Clean coded categorical variable with complete records.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "MS Zoning": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 7,
+      "unique_pct": 0.24,
+      "sample_values": [
+        "RL",
+        "RH",
+        "RL",
+        "RL",
+        "RL",
+        "RL",
+        "RL",
+        "RL"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "RL": 2273,
+        "RM": 462,
+        "FV": 139,
+        "RH": 27,
+        "C (all)": 25,
+        "I (all)": 2,
+        "A (agr)": 2
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete categorical distribution with no missing values.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Lot Frontage": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 490,
+      "missing_pct": 16.72,
+      "unique_count": 128,
+      "unique_pct": 4.37,
+      "sample_values": [
+        "141.0",
+        "80.0",
+        "81.0",
+        "93.0",
+        "74.0",
+        "78.0",
+        "41.0",
+        "43.0"
+      ],
+      "numeric_stats": {
+        "mean": 69.2246,
+        "median": 68.0,
+        "std": 23.3653,
+        "min": 21.0,
+        "max": 313.0,
+        "q1": 58.0,
+        "q3": 80.0,
+        "skewness": 1.4991,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Missing values: 490 (16.72%)",
+          "evidence": {
+            "count": 490,
+            "pct": 16.72
+          }
+        },
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "187 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 187,
+            "outlier_pct": 7.66,
+            "bounds": {
+              "low": 25.0,
+              "high": 113.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Missing 16.72% of values with right-skewed distribution and upper outliers.",
+      "business_interpretation": "",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Lot Area": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1960,
+      "unique_pct": 66.89,
+      "sample_values": [
+        "31770",
+        "11622",
+        "14267",
+        "11160",
+        "13830",
+        "9978",
+        "4920",
+        "5005"
+      ],
+      "numeric_stats": {
+        "mean": 10147.9218,
+        "median": 9436.5,
+        "std": 7880.0178,
+        "min": 1300.0,
+        "max": 215245.0,
+        "q1": 7440.25,
+        "q3": 11555.25,
+        "skewness": 12.8209,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "127 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 127,
+            "outlier_pct": 4.33,
+            "bounds": {
+              "low": 1267.75,
+              "high": 17727.75
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "No missing values, but exhibits extreme positive skewness and outliers.",
+      "business_interpretation": "",
+      "severity": "LOW",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Street": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 2,
+      "unique_pct": 0.07,
+      "sample_values": [
+        "Pave",
+        "Pave",
+        "Pave",
+        "Pave",
+        "Pave",
+        "Pave",
+        "Pave",
+        "Pave"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Pave": 2918,
+        "Grvl": 12
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete binary categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Alley": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 2732,
+      "missing_pct": 93.24,
+      "unique_count": 2,
+      "unique_pct": 0.07,
+      "sample_values": [
+        "Pave",
+        "Pave",
+        "Pave",
+        "Pave",
+        "Pave",
+        "Pave",
+        "Pave",
+        "Grvl"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Grvl": 120,
+        "Pave": 78
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Missing values: 2732 (93.24%)",
+          "evidence": {
+            "count": 2732,
+            "pct": 93.24
+          }
+        }
+      ],
+      "agent_reasoning": "Over 93% missing; represents absence of alley access but exceeds threshold for direct modeling.",
+      "business_interpretation": "",
+      "severity": "HIGH",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "drop",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Lot Shape": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 4,
+      "unique_pct": 0.14,
+      "sample_values": [
+        "IR1",
+        "Reg",
+        "IR1",
+        "Reg",
+        "IR1",
+        "IR1",
+        "Reg",
+        "IR1"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Reg": 1859,
+        "IR1": 979,
+        "IR2": 76,
+        "IR3": 16
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical data with standard levels.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Land Contour": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 4,
+      "unique_pct": 0.14,
+      "sample_values": [
+        "Lvl",
+        "Lvl",
+        "Lvl",
+        "Lvl",
+        "Lvl",
+        "Lvl",
+        "Lvl",
+        "HLS"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Lvl": 2633,
+        "HLS": 120,
+        "Bnk": 117,
+        "Low": 60
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Utilities": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 3,
+      "unique_pct": 0.1,
+      "sample_values": [
+        "AllPub",
+        "AllPub",
+        "AllPub",
+        "AllPub",
+        "AllPub",
+        "AllPub",
+        "AllPub",
+        "AllPub"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "AllPub": 2927,
+        "NoSewr": 2,
+        "NoSeWa": 1
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Lot Config": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "Corner",
+        "Inside",
+        "Corner",
+        "Corner",
+        "Inside",
+        "Inside",
+        "Inside",
+        "Inside"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Inside": 2140,
+        "Corner": 511,
+        "CulDSac": 180,
+        "FR2": 85,
+        "FR3": 14
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Land Slope": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 3,
+      "unique_pct": 0.1,
+      "sample_values": [
+        "Gtl",
+        "Gtl",
+        "Gtl",
+        "Gtl",
+        "Gtl",
+        "Gtl",
+        "Gtl",
+        "Gtl"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Gtl": 2789,
+        "Mod": 125,
+        "Sev": 16
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Neighborhood": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 28,
+      "unique_pct": 0.96,
+      "sample_values": [
+        "NAmes",
+        "NAmes",
+        "NAmes",
+        "NAmes",
+        "Gilbert",
+        "Gilbert",
+        "StoneBr",
+        "StoneBr"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "NAmes": 443,
+        "CollgCr": 267,
+        "OldTown": 239,
+        "Edwards": 194,
+        "Somerst": 182,
+        "NridgHt": 166,
+        "Gilbert": 165,
+        "Sawyer": 151,
+        "NWAmes": 131,
+        "SawyerW": 125
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical feature with standard neighborhood codes.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Condition 1": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 9,
+      "unique_pct": 0.31,
+      "sample_values": [
+        "Norm",
+        "Feedr",
+        "Norm",
+        "Norm",
+        "Norm",
+        "Norm",
+        "Norm",
+        "Norm"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Norm": 2522,
+        "Feedr": 164,
+        "Artery": 92,
+        "RRAn": 50,
+        "PosN": 39,
+        "RRAe": 28,
+        "PosA": 20,
+        "RRNn": 9,
+        "RRNe": 6
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Condition 2": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 8,
+      "unique_pct": 0.27,
+      "sample_values": [
+        "Norm",
+        "Norm",
+        "Norm",
+        "Norm",
+        "Norm",
+        "Norm",
+        "Norm",
+        "Norm"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Norm": 2900,
+        "Feedr": 13,
+        "Artery": 5,
+        "PosA": 4,
+        "PosN": 4,
+        "RRNn": 2,
+        "RRAe": 1,
+        "RRAn": 1
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Bldg Type": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "1Fam",
+        "1Fam",
+        "1Fam",
+        "1Fam",
+        "1Fam",
+        "1Fam",
+        "TwnhsE",
+        "TwnhsE"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "1Fam": 2425,
+        "TwnhsE": 233,
+        "Duplex": 109,
+        "Twnhs": 101,
+        "2fmCon": 62
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "House Style": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 8,
+      "unique_pct": 0.27,
+      "sample_values": [
+        "1Story",
+        "1Story",
+        "1Story",
+        "1Story",
+        "2Story",
+        "2Story",
+        "1Story",
+        "1Story"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "1Story": 1481,
+        "2Story": 873,
+        "1.5Fin": 314,
+        "SLvl": 128,
+        "SFoyer": 83,
+        "2.5Unf": 24,
+        "1.5Unf": 19,
+        "2.5Fin": 8
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Overall Qual": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 10,
+      "unique_pct": 0.34,
+      "sample_values": [
+        "6",
+        "5",
+        "6",
+        "7",
+        "5",
+        "6",
+        "8",
+        "8"
+      ],
+      "numeric_stats": {
+        "mean": 6.0949,
+        "median": 6.0,
+        "std": 1.411,
+        "min": 1.0,
+        "max": 10.0,
+        "q1": 5.0,
+        "q3": 7.0,
+        "skewness": 0.1906,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "4 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 4,
+            "outlier_pct": 0.14,
+            "bounds": {
+              "low": 2.0,
+              "high": 10.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Ordinal score in valid 1-10 range with zero missing data.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Overall Cond": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 9,
+      "unique_pct": 0.31,
+      "sample_values": [
+        "5",
+        "6",
+        "6",
+        "5",
+        "5",
+        "6",
+        "5",
+        "5"
+      ],
+      "numeric_stats": {
+        "mean": 5.5631,
+        "median": 5.0,
+        "std": 1.1115,
+        "min": 1.0,
+        "max": 9.0,
+        "q1": 5.0,
+        "q3": 6.0,
+        "skewness": 0.5744,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "252 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 252,
+            "outlier_pct": 8.6,
+            "bounds": {
+              "low": 3.5,
+              "high": 7.5
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Ordinal score in valid 1-9 range with zero missing data.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Year Built": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 118,
+      "unique_pct": 4.03,
+      "sample_values": [
+        "1960",
+        "1961",
+        "1958",
+        "1968",
+        "1997",
+        "1998",
+        "2001",
+        "1992"
+      ],
+      "numeric_stats": {
+        "mean": 1971.3563,
+        "median": 1973.0,
+        "std": 30.2454,
+        "min": 1872.0,
+        "max": 2010.0,
+        "q1": 1954.0,
+        "q3": 2001.0,
+        "skewness": -0.6045,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "9 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 9,
+            "outlier_pct": 0.31,
+            "bounds": {
+              "low": 1883.5,
+              "high": 2071.5
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Temporal continuous variable within expected historical range.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Year Remod/Add": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 61,
+      "unique_pct": 2.08,
+      "sample_values": [
+        "1960",
+        "1961",
+        "1958",
+        "1968",
+        "1998",
+        "1998",
+        "2001",
+        "1992"
+      ],
+      "numeric_stats": {
+        "mean": 1984.2666,
+        "median": 1993.0,
+        "std": 20.8603,
+        "min": 1950.0,
+        "max": 2010.0,
+        "q1": 1965.0,
+        "q3": 2004.0,
+        "skewness": -0.4519,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Temporal continuous variable with valid ranges.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Roof Style": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 6,
+      "unique_pct": 0.2,
+      "sample_values": [
+        "Hip",
+        "Gable",
+        "Hip",
+        "Hip",
+        "Gable",
+        "Gable",
+        "Gable",
+        "Gable"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Gable": 2321,
+        "Hip": 551,
+        "Gambrel": 22,
+        "Flat": 20,
+        "Mansard": 11,
+        "Shed": 5
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Roof Matl": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 8,
+      "unique_pct": 0.27,
+      "sample_values": [
+        "CompShg",
+        "CompShg",
+        "CompShg",
+        "CompShg",
+        "CompShg",
+        "CompShg",
+        "CompShg",
+        "CompShg"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "CompShg": 2887,
+        "Tar&Grv": 23,
+        "WdShake": 9,
+        "WdShngl": 7,
+        "Membran": 1,
+        "ClyTile": 1,
+        "Roll": 1,
+        "Metal": 1
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Exterior 1st": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 16,
+      "unique_pct": 0.55,
+      "sample_values": [
+        "BrkFace",
+        "VinylSd",
+        "Wd Sdng",
+        "BrkFace",
+        "VinylSd",
+        "VinylSd",
+        "CemntBd",
+        "HdBoard"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "VinylSd": 1026,
+        "MetalSd": 450,
+        "HdBoard": 442,
+        "Wd Sdng": 420,
+        "Plywood": 221,
+        "CemntBd": 126,
+        "BrkFace": 88,
+        "WdShing": 56,
+        "AsbShng": 44,
+        "Stucco": 43
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Exterior 2nd": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 17,
+      "unique_pct": 0.58,
+      "sample_values": [
+        "Plywood",
+        "VinylSd",
+        "Wd Sdng",
+        "BrkFace",
+        "VinylSd",
+        "VinylSd",
+        "CmentBd",
+        "HdBoard"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "VinylSd": 1015,
+        "MetalSd": 447,
+        "HdBoard": 406,
+        "Wd Sdng": 397,
+        "Plywood": 274,
+        "CmentBd": 126,
+        "Wd Shng": 81,
+        "Stucco": 47,
+        "BrkFace": 47,
+        "AsbShng": 38
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Mas Vnr Type": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 1775,
+      "missing_pct": 60.58,
+      "unique_count": 4,
+      "unique_pct": 0.14,
+      "sample_values": [
+        "Stone",
+        "BrkFace",
+        "BrkFace",
+        "BrkFace",
+        "Stone",
+        "Stone",
+        "BrkFace",
+        "BrkFace"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "BrkFace": 880,
+        "Stone": 249,
+        "BrkCmn": 25,
+        "CBlock": 1
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Missing values: 1775 (60.58%)",
+          "evidence": {
+            "count": 1775,
+            "pct": 60.58
+          }
+        }
+      ],
+      "agent_reasoning": "Missing 60.58% of values corresponding to properties lacking masonry veneer.",
+      "business_interpretation": "",
+      "severity": "HIGH",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Mas Vnr Area": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 23,
+      "missing_pct": 0.78,
+      "unique_count": 445,
+      "unique_pct": 15.19,
+      "sample_values": [
+        "112.0",
+        "0.0",
+        "108.0",
+        "0.0",
+        "0.0",
+        "20.0",
+        "0.0",
+        "0.0"
+      ],
+      "numeric_stats": {
+        "mean": 101.8968,
+        "median": 0.0,
+        "std": 179.1126,
+        "min": 0.0,
+        "max": 1600.0,
+        "q1": 0.0,
+        "q3": 164.0,
+        "skewness": 2.607,
+        "zeros_count": 1748,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 23 (0.78%)",
+          "evidence": {
+            "count": 23,
+            "pct": 0.78
+          }
+        },
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "200 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 200,
+            "outlier_pct": 6.88,
+            "bounds": {
+              "low": -246.0,
+              "high": 410.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Minimal missing values (<1%) with heavy right skew and zero inflation.",
+      "business_interpretation": "",
+      "severity": "LOW",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Exter Qual": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 4,
+      "unique_pct": 0.14,
+      "sample_values": [
+        "TA",
+        "TA",
+        "TA",
+        "Gd",
+        "TA",
+        "TA",
+        "Gd",
+        "Gd"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "TA": 1799,
+        "Gd": 989,
+        "Ex": 107,
+        "Fa": 35
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete ordinal categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Exter Cond": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "TA": 2549,
+        "Gd": 299,
+        "Fa": 67,
+        "Ex": 12,
+        "Po": 3
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete ordinal categorical feature.",
+      "business_interpretation": "",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Foundation": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 6,
+      "unique_pct": 0.2,
+      "sample_values": [
+        "CBlock",
+        "CBlock",
+        "CBlock",
+        "CBlock",
+        "PConc",
+        "PConc",
+        "PConc",
+        "PConc"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "PConc": 1310,
+        "CBlock": 1244,
+        "BrkTil": 311,
+        "Slab": 49,
+        "Stone": 11,
+        "Wood": 5
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical column with 6 categories.",
+      "business_interpretation": "Column 'Foundation' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Bsmt Qual": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 80,
+      "missing_pct": 2.73,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "Gd",
+        "TA",
+        "Gd",
+        "Gd"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "TA": 1283,
+        "Gd": 1219,
+        "Ex": 258,
+        "Fa": 88,
+        "Po": 2
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 80 (2.73%)",
+          "evidence": {
+            "count": 80,
+            "pct": 2.73
+          }
+        }
+      ],
+      "agent_reasoning": "Clean categorical column with 5 categories.",
+      "business_interpretation": "Column 'Bsmt Qual' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Bsmt Cond": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 80,
+      "missing_pct": 2.73,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "Gd",
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "TA": 2616,
+        "Gd": 122,
+        "Fa": 104,
+        "Po": 5,
+        "Ex": 3
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 80 (2.73%)",
+          "evidence": {
+            "count": 80,
+            "pct": 2.73
+          }
+        }
+      ],
+      "agent_reasoning": "Clean categorical column with 5 categories.",
+      "business_interpretation": "Column 'Bsmt Cond' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Bsmt Exposure": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 83,
+      "missing_pct": 2.83,
+      "unique_count": 4,
+      "unique_pct": 0.14,
+      "sample_values": [
+        "Gd",
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "Mn",
+        "No"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "No": 1906,
+        "Av": 418,
+        "Gd": 284,
+        "Mn": 239
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 83 (2.83%)",
+          "evidence": {
+            "count": 83,
+            "pct": 2.83
+          }
+        }
+      ],
+      "agent_reasoning": "Clean categorical column with 4 categories.",
+      "business_interpretation": "Column 'Bsmt Exposure' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "BsmtFin Type 1": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 80,
+      "missing_pct": 2.73,
+      "unique_count": 6,
+      "unique_pct": 0.2,
+      "sample_values": [
+        "BLQ",
+        "Rec",
+        "ALQ",
+        "ALQ",
+        "GLQ",
+        "GLQ",
+        "GLQ",
+        "ALQ"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "GLQ": 859,
+        "Unf": 851,
+        "ALQ": 429,
+        "Rec": 288,
+        "BLQ": 269,
+        "LwQ": 154
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 80 (2.73%)",
+          "evidence": {
+            "count": 80,
+            "pct": 2.73
+          }
+        }
+      ],
+      "agent_reasoning": "Clean categorical column with 6 categories.",
+      "business_interpretation": "Column 'BsmtFin Type 1' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "BsmtFin SF 1": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 1,
+      "missing_pct": 0.03,
+      "unique_count": 995,
+      "unique_pct": 33.96,
+      "sample_values": [
+        "639.0",
+        "468.0",
+        "923.0",
+        "1065.0",
+        "791.0",
+        "602.0",
+        "616.0",
+        "263.0"
+      ],
+      "numeric_stats": {
+        "mean": 442.6296,
+        "median": 370.0,
+        "std": 455.5908,
+        "min": 0.0,
+        "max": 5644.0,
+        "q1": 0.0,
+        "q3": 734.0,
+        "skewness": 1.4162,
+        "zeros_count": 930,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 1 (0.03%)",
+          "evidence": {
+            "count": 1,
+            "pct": 0.03
+          }
+        },
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "15 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 15,
+            "outlier_pct": 0.51,
+            "bounds": {
+              "low": -1101.0,
+              "high": 1835.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'BsmtFin SF 1' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "BsmtFin Type 2": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 81,
+      "missing_pct": 2.76,
+      "unique_count": 6,
+      "unique_pct": 0.2,
+      "sample_values": [
+        "Unf",
+        "LwQ",
+        "Unf",
+        "Unf",
+        "Unf",
+        "Unf",
+        "Unf",
+        "Unf"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Unf": 2499,
+        "Rec": 106,
+        "LwQ": 89,
+        "BLQ": 68,
+        "ALQ": 53,
+        "GLQ": 34
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 81 (2.76%)",
+          "evidence": {
+            "count": 81,
+            "pct": 2.76
+          }
+        }
+      ],
+      "agent_reasoning": "Clean categorical column with 6 categories.",
+      "business_interpretation": "Column 'BsmtFin Type 2' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "BsmtFin SF 2": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 1,
+      "missing_pct": 0.03,
+      "unique_count": 274,
+      "unique_pct": 9.35,
+      "sample_values": [
+        "0.0",
+        "144.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0"
+      ],
+      "numeric_stats": {
+        "mean": 49.7224,
+        "median": 0.0,
+        "std": 169.1685,
+        "min": 0.0,
+        "max": 1526.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 4.14,
+        "zeros_count": 2578,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 1 (0.03%)",
+          "evidence": {
+            "count": 1,
+            "pct": 0.03
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'BsmtFin SF 2' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Bsmt Unf SF": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 1,
+      "missing_pct": 0.03,
+      "unique_count": 1137,
+      "unique_pct": 38.81,
+      "sample_values": [
+        "441.0",
+        "270.0",
+        "406.0",
+        "1045.0",
+        "137.0",
+        "324.0",
+        "722.0",
+        "1017.0"
+      ],
+      "numeric_stats": {
+        "mean": 559.2625,
+        "median": 466.0,
+        "std": 439.4942,
+        "min": 0.0,
+        "max": 2336.0,
+        "q1": 219.0,
+        "q3": 802.0,
+        "skewness": 0.9231,
+        "zeros_count": 244,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 1 (0.03%)",
+          "evidence": {
+            "count": 1,
+            "pct": 0.03
+          }
+        },
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "56 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 56,
+            "outlier_pct": 1.91,
+            "bounds": {
+              "low": -655.5,
+              "high": 1676.5
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'Bsmt Unf SF' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Total Bsmt SF": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 1,
+      "missing_pct": 0.03,
+      "unique_count": 1058,
+      "unique_pct": 36.11,
+      "sample_values": [
+        "1080.0",
+        "882.0",
+        "1329.0",
+        "2110.0",
+        "928.0",
+        "926.0",
+        "1338.0",
+        "1280.0"
+      ],
+      "numeric_stats": {
+        "mean": 1051.6145,
+        "median": 990.0,
+        "std": 440.6151,
+        "min": 0.0,
+        "max": 6110.0,
+        "q1": 793.0,
+        "q3": 1302.0,
+        "skewness": 1.1562,
+        "zeros_count": 79,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 1 (0.03%)",
+          "evidence": {
+            "count": 1,
+            "pct": 0.03
+          }
+        },
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "123 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 123,
+            "outlier_pct": 4.2,
+            "bounds": {
+              "low": 29.5,
+              "high": 2065.5
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'Total Bsmt SF' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Heating": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 6,
+      "unique_pct": 0.2,
+      "sample_values": [
+        "GasA",
+        "GasA",
+        "GasA",
+        "GasA",
+        "GasA",
+        "GasA",
+        "GasA",
+        "GasA"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "GasA": 2885,
+        "GasW": 27,
+        "Grav": 9,
+        "Wall": 6,
+        "OthW": 2,
+        "Floor": 1
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical column with 6 categories.",
+      "business_interpretation": "Column 'Heating' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Heating QC": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "Fa",
+        "TA",
+        "TA",
+        "Ex",
+        "Gd",
+        "Ex",
+        "Ex",
+        "Ex"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Ex": 1495,
+        "TA": 864,
+        "Gd": 476,
+        "Fa": 92,
+        "Po": 3
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical column with 5 categories.",
+      "business_interpretation": "Column 'Heating QC' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Central Air": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 2,
+      "unique_pct": 0.07,
+      "sample_values": [
+        "Y",
+        "Y",
+        "Y",
+        "Y",
+        "Y",
+        "Y",
+        "Y",
+        "Y"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Y": 2734,
+        "N": 196
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Boolean flag stored as text (Yes/No or True/False as object)",
+          "evidence": {
+            "detected": "Unique values: ['n', 'y']",
+            "recommendation": "Map to bool dtype: True/False (saves memory, enables logic ops)",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Type issue: Boolean flag stored as text (Yes/No or True/False as object); Binary categorical feature.",
+      "business_interpretation": "Column 'Central Air' (categorical)",
+      "severity": "MEDIUM",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Electrical": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 1,
+      "missing_pct": 0.03,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "SBrkr",
+        "SBrkr",
+        "SBrkr",
+        "SBrkr",
+        "SBrkr",
+        "SBrkr",
+        "SBrkr",
+        "SBrkr"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "SBrkr": 2682,
+        "FuseA": 188,
+        "FuseF": 50,
+        "FuseP": 8,
+        "Mix": 1
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 1 (0.03%)",
+          "evidence": {
+            "count": 1,
+            "pct": 0.03
+          }
+        }
+      ],
+      "agent_reasoning": "Clean categorical column with 5 categories.",
+      "business_interpretation": "Column 'Electrical' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "1st Flr SF": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1083,
+      "unique_pct": 36.96,
+      "sample_values": [
+        "1656",
+        "896",
+        "1329",
+        "2110",
+        "928",
+        "926",
+        "1338",
+        "1280"
+      ],
+      "numeric_stats": {
+        "mean": 1159.5577,
+        "median": 1084.0,
+        "std": 391.8909,
+        "min": 334.0,
+        "max": 5095.0,
+        "q1": 876.25,
+        "q3": 1384.0,
+        "skewness": 1.4694,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "43 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 43,
+            "outlier_pct": 1.47,
+            "bounds": {
+              "low": 114.625,
+              "high": 2145.625
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column '1st Flr SF' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "2nd Flr SF": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 635,
+      "unique_pct": 21.67,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "701",
+        "678",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 335.456,
+        "median": 0.0,
+        "std": 428.3957,
+        "min": 0.0,
+        "max": 2065.0,
+        "q1": 0.0,
+        "q3": 703.75,
+        "skewness": 0.8665,
+        "zeros_count": 1678,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "8 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 8,
+            "outlier_pct": 0.27,
+            "bounds": {
+              "low": -1055.625,
+              "high": 1759.375
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column '2nd Flr SF' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Low Qual Fin SF": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 36,
+      "unique_pct": 1.23,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 4.6768,
+        "median": 0.0,
+        "std": 46.3105,
+        "min": 0.0,
+        "max": 1064.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 12.1182,
+        "zeros_count": 2890,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'Low Qual Fin SF' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Gr Liv Area": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1292,
+      "unique_pct": 44.1,
+      "sample_values": [
+        "1656",
+        "896",
+        "1329",
+        "2110",
+        "1629",
+        "1604",
+        "1338",
+        "1280"
+      ],
+      "numeric_stats": {
+        "mean": 1499.6904,
+        "median": 1442.0,
+        "std": 505.5089,
+        "min": 334.0,
+        "max": 5642.0,
+        "q1": 1126.0,
+        "q3": 1742.75,
+        "skewness": 1.2741,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "75 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 75,
+            "outlier_pct": 2.56,
+            "bounds": {
+              "low": 200.875,
+              "high": 2667.875
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'Gr Liv Area' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Bsmt Full Bath": {
+      "dtype": "float64",
+      "inferred_role": "categorical",
+      "missing_count": 2,
+      "missing_pct": 0.07,
+      "unique_count": 4,
+      "unique_pct": 0.14,
+      "sample_values": [
+        "1.0",
+        "0.0",
+        "0.0",
+        "1.0",
+        "0.0",
+        "0.0",
+        "1.0",
+        "0.0"
+      ],
+      "numeric_stats": {
+        "mean": 0.4314,
+        "median": 0.0,
+        "std": 0.5248,
+        "min": 0.0,
+        "max": 3.0,
+        "q1": 0.0,
+        "q3": 1.0,
+        "skewness": 0.6166,
+        "zeros_count": 1707,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 2 (0.07%)",
+          "evidence": {
+            "count": 2,
+            "pct": 0.07
+          }
+        },
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "2 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 2,
+            "outlier_pct": 0.07,
+            "bounds": {
+              "low": -1.5,
+              "high": 2.5
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Clean categorical column with 4 categories.",
+      "business_interpretation": "Column 'Bsmt Full Bath' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Bsmt Half Bath": {
+      "dtype": "float64",
+      "inferred_role": "categorical",
+      "missing_count": 2,
+      "missing_pct": 0.07,
+      "unique_count": 3,
+      "unique_pct": 0.1,
+      "sample_values": [
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0"
+      ],
+      "numeric_stats": {
+        "mean": 0.0611,
+        "median": 0.0,
+        "std": 0.2453,
+        "min": 0.0,
+        "max": 2.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 3.9408,
+        "zeros_count": 2753,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 2 (0.07%)",
+          "evidence": {
+            "count": 2,
+            "pct": 0.07
+          }
+        }
+      ],
+      "agent_reasoning": "Clean categorical column with 3 categories.",
+      "business_interpretation": "Column 'Bsmt Half Bath' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Full Bath": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "1",
+        "1",
+        "1",
+        "2",
+        "2",
+        "2",
+        "2",
+        "2"
+      ],
+      "numeric_stats": {
+        "mean": 1.5666,
+        "median": 2.0,
+        "std": 0.5529,
+        "min": 0.0,
+        "max": 4.0,
+        "q1": 1.0,
+        "q3": 2.0,
+        "skewness": 0.172,
+        "zeros_count": 12,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "4 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 4,
+            "outlier_pct": 0.14,
+            "bounds": {
+              "low": -0.5,
+              "high": 3.5
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Clean categorical column with 5 categories.",
+      "business_interpretation": "Column 'Full Bath' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Half Bath": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 3,
+      "unique_pct": 0.1,
+      "sample_values": [
+        "0",
+        "0",
+        "1",
+        "1",
+        "1",
+        "1",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 0.3795,
+        "median": 0.0,
+        "std": 0.5026,
+        "min": 0.0,
+        "max": 2.0,
+        "q1": 0.0,
+        "q3": 1.0,
+        "skewness": 0.6977,
+        "zeros_count": 1843,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical column with 3 categories.",
+      "business_interpretation": "Column 'Half Bath' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Bedroom AbvGr": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 8,
+      "unique_pct": 0.27,
+      "sample_values": [
+        "3",
+        "2",
+        "3",
+        "3",
+        "3",
+        "3",
+        "2",
+        "2"
+      ],
+      "numeric_stats": {
+        "mean": 2.8543,
+        "median": 3.0,
+        "std": 0.8277,
+        "min": 0.0,
+        "max": 8.0,
+        "q1": 2.0,
+        "q3": 3.0,
+        "skewness": 0.3057,
+        "zeros_count": 8,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "78 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 78,
+            "outlier_pct": 2.66,
+            "bounds": {
+              "low": 0.5,
+              "high": 4.5
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Clean categorical column with 8 categories.",
+      "business_interpretation": "Column 'Bedroom AbvGr' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Kitchen AbvGr": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 4,
+      "unique_pct": 0.14,
+      "sample_values": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "numeric_stats": {
+        "mean": 1.0444,
+        "median": 1.0,
+        "std": 0.2141,
+        "min": 0.0,
+        "max": 3.0,
+        "q1": 1.0,
+        "q3": 1.0,
+        "skewness": 4.3138,
+        "zeros_count": 3,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical column with 4 categories.",
+      "business_interpretation": "Column 'Kitchen AbvGr' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Kitchen Qual": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "TA",
+        "TA",
+        "Gd",
+        "Ex",
+        "TA",
+        "Gd",
+        "Gd",
+        "Gd"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "TA": 1494,
+        "Gd": 1160,
+        "Ex": 205,
+        "Fa": 70,
+        "Po": 1
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical column with 5 categories.",
+      "business_interpretation": "Column 'Kitchen Qual' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "TotRms AbvGrd": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 14,
+      "unique_pct": 0.48,
+      "sample_values": [
+        "7",
+        "5",
+        "6",
+        "8",
+        "6",
+        "7",
+        "6",
+        "5"
+      ],
+      "numeric_stats": {
+        "mean": 6.443,
+        "median": 6.0,
+        "std": 1.573,
+        "min": 2.0,
+        "max": 15.0,
+        "q1": 5.0,
+        "q3": 7.0,
+        "skewness": 0.7535,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "51 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 51,
+            "outlier_pct": 1.74,
+            "bounds": {
+              "low": 2.0,
+              "high": 10.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'TotRms AbvGrd' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Functional": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 8,
+      "unique_pct": 0.27,
+      "sample_values": [
+        "Typ",
+        "Typ",
+        "Typ",
+        "Typ",
+        "Typ",
+        "Typ",
+        "Typ",
+        "Typ"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Typ": 2728,
+        "Min2": 70,
+        "Min1": 65,
+        "Mod": 35,
+        "Maj1": 19,
+        "Maj2": 9,
+        "Sev": 2,
+        "Sal": 2
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical column with 8 categories.",
+      "business_interpretation": "Column 'Functional' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Fireplaces": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "2",
+        "0",
+        "0",
+        "2",
+        "1",
+        "1",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 0.5993,
+        "median": 1.0,
+        "std": 0.6479,
+        "min": 0.0,
+        "max": 4.0,
+        "q1": 0.0,
+        "q3": 1.0,
+        "skewness": 0.7392,
+        "zeros_count": 1422,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "13 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 13,
+            "outlier_pct": 0.44,
+            "bounds": {
+              "low": -1.5,
+              "high": 2.5
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Clean categorical column with 5 categories.",
+      "business_interpretation": "Column 'Fireplaces' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Fireplace Qu": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 1422,
+      "missing_pct": 48.53,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "Gd",
+        "TA",
+        "TA",
+        "Gd",
+        "TA",
+        "TA",
+        "TA",
+        "Gd"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Gd": 744,
+        "TA": 600,
+        "Fa": 75,
+        "Po": 46,
+        "Ex": 43
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Missing values: 1422 (48.53%)",
+          "evidence": {
+            "count": 1422,
+            "pct": 48.53
+          }
+        }
+      ],
+      "agent_reasoning": "48.5% missing values requiring imputation; Low cardinality categorical (5 categories).",
+      "business_interpretation": "Column 'Fireplace Qu' (categorical)",
+      "severity": "HIGH",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Garage Type": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 157,
+      "missing_pct": 5.36,
+      "unique_count": 6,
+      "unique_pct": 0.2,
+      "sample_values": [
+        "Attchd",
+        "Attchd",
+        "Attchd",
+        "Attchd",
+        "Attchd",
+        "Attchd",
+        "Attchd",
+        "Attchd"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Attchd": 1731,
+        "Detchd": 782,
+        "BuiltIn": 186,
+        "Basment": 36,
+        "2Types": 23,
+        "CarPort": 15
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 157 (5.36%)",
+          "evidence": {
+            "count": 157,
+            "pct": 5.36
+          }
+        }
+      ],
+      "agent_reasoning": "157 missing values (5.4%); Low cardinality categorical (6 categories).",
+      "business_interpretation": "Column 'Garage Type' (categorical)",
+      "severity": "MEDIUM",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Garage Yr Blt": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 159,
+      "missing_pct": 5.43,
+      "unique_count": 103,
+      "unique_pct": 3.52,
+      "sample_values": [
+        "1960.0",
+        "1961.0",
+        "1958.0",
+        "1968.0",
+        "1997.0",
+        "1998.0",
+        "2001.0",
+        "1992.0"
+      ],
+      "numeric_stats": {
+        "mean": 1978.1324,
+        "median": 1979.0,
+        "std": 25.5284,
+        "min": 1895.0,
+        "max": 2207.0,
+        "q1": 1960.0,
+        "q3": 2002.0,
+        "skewness": -0.3847,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 159 (5.43%)",
+          "evidence": {
+            "count": 159,
+            "pct": 5.43
+          }
+        },
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "3 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 3,
+            "outlier_pct": 0.11,
+            "bounds": {
+              "low": 1897.0,
+              "high": 2065.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "159 missing values (5.4%); 3 outliers detected (0.1%).",
+      "business_interpretation": "Column 'Garage Yr Blt' (continuous_numeric)",
+      "severity": "MEDIUM",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Garage Finish": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 159,
+      "missing_pct": 5.43,
+      "unique_count": 3,
+      "unique_pct": 0.1,
+      "sample_values": [
+        "Fin",
+        "Unf",
+        "Unf",
+        "Fin",
+        "Fin",
+        "Fin",
+        "Fin",
+        "RFn"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Unf": 1231,
+        "RFn": 812,
+        "Fin": 728
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 159 (5.43%)",
+          "evidence": {
+            "count": 159,
+            "pct": 5.43
+          }
+        }
+      ],
+      "agent_reasoning": "159 missing values (5.4%); Low cardinality categorical (3 categories).",
+      "business_interpretation": "Column 'Garage Finish' (categorical)",
+      "severity": "MEDIUM",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Garage Cars": {
+      "dtype": "float64",
+      "inferred_role": "categorical",
+      "missing_count": 1,
+      "missing_pct": 0.03,
+      "unique_count": 6,
+      "unique_pct": 0.2,
+      "sample_values": [
+        "2.0",
+        "1.0",
+        "1.0",
+        "2.0",
+        "2.0",
+        "2.0",
+        "2.0",
+        "2.0"
+      ],
+      "numeric_stats": {
+        "mean": 1.7668,
+        "median": 2.0,
+        "std": 0.7606,
+        "min": 0.0,
+        "max": 5.0,
+        "q1": 1.0,
+        "q3": 2.0,
+        "skewness": -0.2198,
+        "zeros_count": 157,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 1 (0.03%)",
+          "evidence": {
+            "count": 1,
+            "pct": 0.03
+          }
+        },
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "17 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 17,
+            "outlier_pct": 0.58,
+            "bounds": {
+              "low": -0.5,
+              "high": 3.5
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Clean categorical column with 6 categories.",
+      "business_interpretation": "Column 'Garage Cars' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Garage Area": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 1,
+      "missing_pct": 0.03,
+      "unique_count": 603,
+      "unique_pct": 20.58,
+      "sample_values": [
+        "528.0",
+        "730.0",
+        "312.0",
+        "522.0",
+        "482.0",
+        "470.0",
+        "582.0",
+        "506.0"
+      ],
+      "numeric_stats": {
+        "mean": 472.8197,
+        "median": 480.0,
+        "std": 215.0465,
+        "min": 0.0,
+        "max": 1488.0,
+        "q1": 320.0,
+        "q3": 576.0,
+        "skewness": 0.242,
+        "zeros_count": 157,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 1 (0.03%)",
+          "evidence": {
+            "count": 1,
+            "pct": 0.03
+          }
+        },
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "42 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 42,
+            "outlier_pct": 1.43,
+            "bounds": {
+              "low": -64.0,
+              "high": 960.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'Garage Area' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Garage Qual": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 159,
+      "missing_pct": 5.43,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "TA": 2615,
+        "Fa": 124,
+        "Gd": 24,
+        "Po": 5,
+        "Ex": 3
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 159 (5.43%)",
+          "evidence": {
+            "count": 159,
+            "pct": 5.43
+          }
+        }
+      ],
+      "agent_reasoning": "159 missing values (5.4%); Low cardinality categorical (5 categories).",
+      "business_interpretation": "Column 'Garage Qual' (categorical)",
+      "severity": "MEDIUM",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Garage Cond": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 159,
+      "missing_pct": 5.43,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA",
+        "TA"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "TA": 2665,
+        "Fa": 74,
+        "Gd": 15,
+        "Po": 14,
+        "Ex": 3
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 159 (5.43%)",
+          "evidence": {
+            "count": 159,
+            "pct": 5.43
+          }
+        }
+      ],
+      "agent_reasoning": "159 missing values (5.4%); Low cardinality categorical (5 categories).",
+      "business_interpretation": "Column 'Garage Cond' (categorical)",
+      "severity": "MEDIUM",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Paved Drive": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 3,
+      "unique_pct": 0.1,
+      "sample_values": [
+        "P",
+        "Y",
+        "Y",
+        "Y",
+        "Y",
+        "Y",
+        "Y",
+        "Y"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Y": 2652,
+        "N": 216,
+        "P": 62
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical column with 3 categories.",
+      "business_interpretation": "Column 'Paved Drive' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Wood Deck SF": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 380,
+      "unique_pct": 12.97,
+      "sample_values": [
+        "210",
+        "140",
+        "393",
+        "0",
+        "212",
+        "360",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 93.7519,
+        "median": 0.0,
+        "std": 126.3616,
+        "min": 0.0,
+        "max": 1424.0,
+        "q1": 0.0,
+        "q3": 168.0,
+        "skewness": 1.8427,
+        "zeros_count": 1526,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "67 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 67,
+            "outlier_pct": 2.29,
+            "bounds": {
+              "low": -252.0,
+              "high": 420.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'Wood Deck SF' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Open Porch SF": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 252,
+      "unique_pct": 8.6,
+      "sample_values": [
+        "62",
+        "0",
+        "36",
+        "0",
+        "34",
+        "36",
+        "0",
+        "82"
+      ],
+      "numeric_stats": {
+        "mean": 47.5334,
+        "median": 27.0,
+        "std": 67.4834,
+        "min": 0.0,
+        "max": 742.0,
+        "q1": 0.0,
+        "q3": 70.0,
+        "skewness": 2.5354,
+        "zeros_count": 1300,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "159 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 159,
+            "outlier_pct": 5.43,
+            "bounds": {
+              "low": -105.0,
+              "high": 175.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'Open Porch SF' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Enclosed Porch": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 183,
+      "unique_pct": 6.25,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "170",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 23.0116,
+        "median": 0.0,
+        "std": 64.1391,
+        "min": 0.0,
+        "max": 1012.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 4.0144,
+        "zeros_count": 2471,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'Enclosed Porch' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "3Ssn Porch": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 31,
+      "unique_pct": 1.06,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 2.5925,
+        "median": 0.0,
+        "std": 25.1413,
+        "min": 0.0,
+        "max": 508.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 11.4038,
+        "zeros_count": 2893,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column '3Ssn Porch' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Screen Porch": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 121,
+      "unique_pct": 4.13,
+      "sample_values": [
+        "0",
+        "120",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "144"
+      ],
+      "numeric_stats": {
+        "mean": 16.002,
+        "median": 0.0,
+        "std": 56.0874,
+        "min": 0.0,
+        "max": 576.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 3.9575,
+        "zeros_count": 2674,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'Screen Porch' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Pool Area": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 14,
+      "unique_pct": 0.48,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 2.2433,
+        "median": 0.0,
+        "std": 35.5972,
+        "min": 0.0,
+        "max": 800.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 16.9391,
+        "zeros_count": 2917,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'Pool Area' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Pool QC": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 2917,
+      "missing_pct": 99.56,
+      "unique_count": 4,
+      "unique_pct": 0.14,
+      "sample_values": [
+        "Ex",
+        "Gd",
+        "Gd",
+        "Ex",
+        "TA",
+        "TA",
+        "Ex",
+        "TA"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Ex": 4,
+        "Gd": 4,
+        "TA": 3,
+        "Fa": 2
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Missing values: 2917 (99.56%)",
+          "evidence": {
+            "count": 2917,
+            "pct": 99.56
+          }
+        }
+      ],
+      "agent_reasoning": "99.6% missing values indicates severe sparsity; Low cardinality categorical (4 categories).",
+      "business_interpretation": "Column 'Pool QC' (categorical)",
+      "severity": "HIGH",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Fence": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 2358,
+      "missing_pct": 80.48,
+      "unique_count": 4,
+      "unique_pct": 0.14,
+      "sample_values": [
+        "MnPrv",
+        "MnPrv",
+        "GdPrv",
+        "MnPrv",
+        "MnPrv",
+        "MnPrv",
+        "MnPrv",
+        "GdWo"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "MnPrv": 330,
+        "GdPrv": 118,
+        "GdWo": 112,
+        "MnWw": 12
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Missing values: 2358 (80.48%)",
+          "evidence": {
+            "count": 2358,
+            "pct": 80.48
+          }
+        }
+      ],
+      "agent_reasoning": "80.5% missing values indicates severe sparsity; Low cardinality categorical (4 categories).",
+      "business_interpretation": "Column 'Fence' (categorical)",
+      "severity": "HIGH",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Misc Feature": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 2824,
+      "missing_pct": 96.38,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "Gar2",
+        "Shed",
+        "Shed",
+        "Shed",
+        "Shed",
+        "Shed",
+        "Shed",
+        "Shed"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Shed": 95,
+        "Gar2": 5,
+        "Othr": 4,
+        "Elev": 1,
+        "TenC": 1
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Missing values: 2824 (96.38%)",
+          "evidence": {
+            "count": 2824,
+            "pct": 96.38
+          }
+        }
+      ],
+      "agent_reasoning": "96.4% missing values indicates severe sparsity; Low cardinality categorical (5 categories).",
+      "business_interpretation": "Column 'Misc Feature' (categorical)",
+      "severity": "HIGH",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Misc Val": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 38,
+      "unique_pct": 1.3,
+      "sample_values": [
+        "0",
+        "0",
+        "12500",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 50.6352,
+        "median": 0.0,
+        "std": 566.3443,
+        "min": 0.0,
+        "max": 17000.0,
+        "q1": 0.0,
+        "q3": 0.0,
+        "skewness": 21.9998,
+        "zeros_count": 2827,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'Misc Val' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Mo Sold": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 12,
+      "unique_pct": 0.41,
+      "sample_values": [
+        "5",
+        "6",
+        "6",
+        "4",
+        "3",
+        "6",
+        "4",
+        "1"
+      ],
+      "numeric_stats": {
+        "mean": 6.216,
+        "median": 6.0,
+        "std": 2.7145,
+        "min": 1.0,
+        "max": 12.0,
+        "q1": 4.0,
+        "q3": 8.0,
+        "skewness": 0.1926,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'Mo Sold' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Yr Sold": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 5,
+      "unique_pct": 0.17,
+      "sample_values": [
+        "2010",
+        "2010",
+        "2010",
+        "2010",
+        "2010",
+        "2010",
+        "2010",
+        "2010"
+      ],
+      "numeric_stats": {
+        "mean": 2007.7904,
+        "median": 2008.0,
+        "std": 1.3166,
+        "min": 2006.0,
+        "max": 2010.0,
+        "q1": 2007.0,
+        "q3": 2009.0,
+        "skewness": 0.1349,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical column with 5 categories.",
+      "business_interpretation": "Column 'Yr Sold' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Sale Type": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 10,
+      "unique_pct": 0.34,
+      "sample_values": [
+        "WD ",
+        "WD ",
+        "WD ",
+        "WD ",
+        "WD ",
+        "WD ",
+        "WD ",
+        "WD "
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "WD ": 2536,
+        "New": 239,
+        "COD": 87,
+        "ConLD": 26,
+        "CWD": 12,
+        "ConLI": 9,
+        "ConLw": 8,
+        "Oth": 7,
+        "Con": 5,
+        "VWD": 1
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical column with 10 categories.",
+      "business_interpretation": "Column 'Sale Type' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Sale Condition": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 6,
+      "unique_pct": 0.2,
+      "sample_values": [
+        "Normal",
+        "Normal",
+        "Normal",
+        "Normal",
+        "Normal",
+        "Normal",
+        "Normal",
+        "Normal"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Normal": 2413,
+        "Partial": 245,
+        "Abnorml": 190,
+        "Family": 46,
+        "Alloca": 24,
+        "AdjLand": 12
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical column with 6 categories.",
+      "business_interpretation": "Column 'Sale Condition' (categorical)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "SalePrice": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1032,
+      "unique_pct": 35.22,
+      "sample_values": [
+        "215000",
+        "105000",
+        "172000",
+        "244000",
+        "189900",
+        "195500",
+        "213500",
+        "191500"
+      ],
+      "numeric_stats": {
+        "mean": 180796.0601,
+        "median": 160000.0,
+        "std": 79886.6924,
+        "min": 12789.0,
+        "max": 755000.0,
+        "q1": 129500.0,
+        "q3": 213500.0,
+        "skewness": 1.7435,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "137 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 137,
+            "outlier_pct": 4.68,
+            "bounds": {
+              "low": 3500.0,
+              "high": 339500.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'SalePrice' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    }
+  },
+  "cross_column_issues": [],
+  "llm_discovered_issues": [],
+  "uncertainty_flags": [],
+  "recommended_cleaning_order": [
+    "Pool QC",
+    "Misc Feature",
+    "Alley",
+    "Fence",
+    "Mas Vnr Type",
+    "Fireplace Qu",
+    "Lot Frontage",
+    "Garage Yr Blt",
+    "Garage Finish",
+    "Garage Qual",
+    "Garage Cond",
+    "Garage Type",
+    "Central Air",
+    "Mas Vnr Area",
+    "Lot Area",
+    "Bsmt Exposure",
+    "BsmtFin Type 2",
+    "Bsmt Qual",
+    "Bsmt Cond",
+    "BsmtFin Type 1",
+    "Bsmt Full Bath",
+    "Bsmt Half Bath",
+    "BsmtFin SF 1",
+    "BsmtFin SF 2",
+    "Bsmt Unf SF",
+    "Total Bsmt SF",
+    "Electrical",
+    "Garage Cars",
+    "Garage Area",
+    "MS SubClass",
+    "Overall Qual",
+    "Overall Cond",
+    "Year Built",
+    "1st Flr SF",
+    "2nd Flr SF",
+    "Gr Liv Area",
+    "Full Bath",
+    "Bedroom AbvGr",
+    "TotRms AbvGrd",
+    "Fireplaces",
+    "Wood Deck SF",
+    "Open Porch SF",
+    "SalePrice"
+  ],
+  "etl_hints": {
+    "type_casting_targets": {},
+    "join_key_candidates": [],
+    "drop_candidates": [],
+    "recommended_output_format": "parquet",
+    "synonym_mappings": {}
+  },
+  "imputation_plan": {
+    "Lot Frontage": {
+      "strategy": "median"
+    },
+    "Alley": {
+      "strategy": "median"
+    },
+    "Mas Vnr Type": {
+      "strategy": "median"
+    },
+    "Mas Vnr Area": {
+      "strategy": "median"
+    },
+    "Bsmt Qual": {
+      "strategy": "median"
+    },
+    "Bsmt Cond": {
+      "strategy": "median"
+    },
+    "Bsmt Exposure": {
+      "strategy": "median"
+    },
+    "BsmtFin Type 1": {
+      "strategy": "median"
+    },
+    "BsmtFin SF 1": {
+      "strategy": "median"
+    },
+    "BsmtFin Type 2": {
+      "strategy": "median"
+    },
+    "BsmtFin SF 2": {
+      "strategy": "median"
+    },
+    "Bsmt Unf SF": {
+      "strategy": "median"
+    },
+    "Total Bsmt SF": {
+      "strategy": "median"
+    },
+    "Electrical": {
+      "strategy": "median"
+    },
+    "Bsmt Full Bath": {
+      "strategy": "median"
+    },
+    "Bsmt Half Bath": {
+      "strategy": "median"
+    },
+    "Fireplace Qu": {
+      "strategy": "median"
+    },
+    "Garage Type": {
+      "strategy": "median"
+    },
+    "Garage Yr Blt": {
+      "strategy": "median"
+    },
+    "Garage Finish": {
+      "strategy": "median"
+    },
+    "Garage Cars": {
+      "strategy": "median"
+    },
+    "Garage Area": {
+      "strategy": "median"
+    },
+    "Garage Qual": {
+      "strategy": "median"
+    },
+    "Garage Cond": {
+      "strategy": "median"
+    },
+    "Pool QC": {
+      "strategy": "median"
+    },
+    "Fence": {
+      "strategy": "median"
+    },
+    "Misc Feature": {
+      "strategy": "median"
+    }
+  },
+  "outlier_columns": [
+    "MS SubClass",
+    "Lot Frontage",
+    "Lot Area",
+    "Overall Qual",
+    "Overall Cond",
+    "Year Built",
+    "Mas Vnr Area",
+    "BsmtFin SF 1",
+    "Bsmt Unf SF",
+    "Total Bsmt SF",
+    "1st Flr SF",
+    "2nd Flr SF",
+    "Gr Liv Area",
+    "Bsmt Full Bath",
+    "Full Bath",
+    "Bedroom AbvGr",
+    "TotRms AbvGrd",
+    "Fireplaces",
+    "Garage Yr Blt",
+    "Garage Cars",
+    "Garage Area",
+    "Wood Deck SF",
+    "Open Porch SF",
+    "SalePrice"
+  ],
+  "agent_summary": "Analyzed 82 columns in 3 batches. Health score: 94.7%",
+  "recommendation_summary": "Found 1 type issues, 15749 missing values",
+  "metadata": {
+    "agent_version": "2.0.0",
+    "profiling_timestamp": "2026-10-22T20:22:00.596767+00:00",
+    "llm_model_used": "gemini-flash-latest",
+    "sandbox_executions": 0,
+    "llm_driven": true
+  }
+}

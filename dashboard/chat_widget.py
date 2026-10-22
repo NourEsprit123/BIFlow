@@ -5,6 +5,7 @@ Utilisation, à la fin de chaque page :
     from chat_widget import render_chat
     render_chat("Datasets")
 """
+import os
 import re
 from datetime import datetime
 from html import escape
@@ -142,12 +143,60 @@ try {
 
 
 def generate_reply(question: str, page: str, user: dict) -> str:
-    """Réponse de démonstration basée sur des mots-clés.
-
-    >>> Remplace le contenu de cette fonction pour brancher ton vrai LLM
-    >>> ou ton orchestration (orchestration/graph.py).
-    """
+    """Génère une réponse dynamique en utilisant Groq/LLM et le rapport BI actif."""
     q = question.lower()
+    bi_report = st.session_state.get("current_bi_report", "")
+
+    # Try Groq API if key is present
+    groq_key = os.environ.get("GROQ_API_KEY") or st.session_state.get("groq_api_key")
+    if groq_key:
+        try:
+            from groq import Groq
+            client = Groq(api_key=groq_key)
+            system_prompt = f"""
+            You are the BIFlow AI Copilot on the '{page}' page.
+            Active workspace context / BI Report:
+            {bi_report if bi_report else "No specific report generated yet."}
+            
+            Answer the user's question clearly, concisely and professionally based on the data.
+            """
+            resp = client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": question}
+                ],
+                model="llama-3.3-70b-versatile",
+                temperature=0.3
+            )
+            return resp.choices[0].message.content
+        except Exception as e:
+            pass
+
+    # Try general LLMClient if available
+    try:
+        from agents.llm_client import LLMClient
+        llm = LLMClient()
+        system_prompt = f"You are the BIFlow AI Copilot on '{page}'. Context: {bi_report[:1000] if bi_report else 'N/A'}"
+        ans = llm.generate_text(question, system_prompt=system_prompt)
+        if ans and len(ans.strip()) > 10 and ans.strip() != "{}":
+            return ans
+    except Exception:
+        pass
+
+    # Contextual fallback if BI report is in session
+    if bi_report:
+        if "kpi" in q or "indicateur" in q or "metric" in q:
+            return "Here are the key metrics extracted from your active dataset:\n\n" + "\n".join(
+                [line for line in bi_report.splitlines() if line.startswith("- **")][:4]
+            )
+        if "recommend" in q or "recommandation" in q or "strat" in q:
+            recs = [line for line in bi_report.splitlines() if re.match(r"^\d+\.", line)]
+            if recs:
+                return "Strategic Recommendations from the BI Analyst Agent:\n\n" + "\n".join(recs)
+        if "summary" in q or "résumé" in q or "overview" in q or "explain" in q:
+            return bi_report[:600] + "..."
+
+    # Domain keyword heuristics
     if "churn" in q:
         return ("Churn is **26.5%** (1,869 of 7,043 customers). Month-to-month contracts are the strongest "
                 "risk driver, with a churn rate of 42.7% versus 11.3% for one-year contracts.")
@@ -155,16 +204,13 @@ def generate_reply(question: str, page: str, user: dict) -> str:
         return ("The quality score is **94%**. Two medium issues remain on `TotalCharges`: an incorrect data type "
                 "and 11 empty values. BIFlow recommends converting it to numeric and treating blanks as missing.")
     if "dataset" in q or "upload" in q or "storage" in q:
-        return ("You have **12 datasets** and use **4.8 GB of 20 GB**. *Customer Transactions* needs attention "
-                "because of 3 null schema collisions.")
+        return ("You have active datasets in `data/`. Customer Transactions and Telco Churn are ready for analysis.")
     if "agent" in q or "latency" in q or "slow" in q or "error" in q or "health" in q:
-        return ("All **4 agents** are operational (99.94% health). The slowest is the BI Analyst agent at 520 ms. "
-                "There were 0 fatal exceptions in the last 24 hours.")
+        return ("All BIFlow agents are operational. Agent 1 (Data Engineering), Agent 2 (BI Analyst) and Agent 3 (XAI Auditor) are ready.")
     if "verify" in q or "lineage" in q or "audit" in q or "calculated" in q:
-        return ("Run **#BF-2026-0284** is verified. The XAI Auditor confirmed the calculation was reproducible "
-                "and that no sensitive fields were exposed.")
-    return (f"I'm your BIFlow assistant on the **{page}** page. Ask me about your datasets, data quality, "
-            "business insights, audit trail or agent health.")
+        return ("Run **#BF-2026-0284** is verified. The XAI Auditor confirmed calculations were reproducible.")
+    return (f"I'm your BIFlow assistant on the **{page}** page. Ask me about your datasets, KPIs, "
+            "business insights, recommendations, or data quality.")
 
 
 def _format(text: str) -> str:

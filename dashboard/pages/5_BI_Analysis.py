@@ -1,46 +1,361 @@
+import os
+import sys
+import json
+import re
+from pathlib import Path
+
+import pandas as pd
+import streamlit as st
+import plotly.express as px
+from dotenv import load_dotenv
+
+# ── Path setup ────────────────────────────────────────────────────────────────
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+load_dotenv(PROJECT_ROOT / ".env")
+
+# ── BIFlow imports ────────────────────────────────────────────────────────────
+from agents.bi_analyst_agent import BIAnalystAgent
 from components import setup, page_header, btn, html, kpi, grid, card, badge, bar, donut, columns_chart, svg_line
-
 from chat_widget import render_chat
-render_chat("Datasets")
 
+# ── Chat widget ───────────────────────────────────────────────────────────────
+render_chat("BI Analysis")
+
+# ── Page setup ────────────────────────────────────────────────────────────────
 setup("BI Analysis")
-page_header("Business Intelligence Analysis", "Turn your data into actionable insights.",
-            btn("⭳ Export report") + btn("✨ Create workflow", True), "Telco Customer Churn / <b>Analysis</b>")
+page_header(
+    "Business Intelligence Analysis",
+    "Turn your data into actionable insights with AI.",
+    btn("⭳ Export report") + btn("✨ Create workflow", True),
+    "Dynamic BI / <b>AI Analysis</b>",
+)
 
-html(f'''<div class="bf-card" style="background:#eef2ff;display:flex;gap:1rem;align-items:center;margin-bottom:1rem">🗄
-  <small style="color:#4338ca"><b>ACTIVE DATASET</b></small> <b>Telco Customer Churn</b> · 7,043 customers · Analysis completed today at 12:46
-  <span style="margin-left:auto">{badge("● Results ready", "blue")}</span></div>''')
+# ── 1. Dataset selection / upload ─────────────────────────────────────────────
+st.sidebar.markdown("### 🗄 Data Source")
+data_dir = PROJECT_ROOT / "data"
+available_csvs = []
+if data_dir.exists():
+    available_csvs = [p.relative_to(PROJECT_ROOT) for p in data_dir.glob("**/*.csv")]
 
-html(grid([kpi("Customers", "7,043", "Complete population", "👥"), kpi("Churn Rate", "26.5%", "1,869 customers", "👤", "red", "red"),
-           kpi("Average Monthly Charges", "$64.76", "Median $70.35", "💵"), kpi("Average Tenure", "32.4 months", "Range 0–72 months", "📅", "blue", "gray")], "g4"))
+source_mode = st.sidebar.radio(
+    "Selection mode",
+    ["📂 Choose an existing dataset", "📤 Upload a new CSV"],
+)
 
-churn = card(f'''<div style="display:flex;gap:2rem;align-items:center">{donut(26.5, "#4f46e5", size=130)}
-  <div style="flex:1"><p>○ Retained <b style="float:right">5,174</b><br><small>73.5%</small></p>
-  <p style="color:#4f46e5">● Churned <b style="float:right;color:#0f172a">1,869</b><br><small style="color:#b91c1c">26.5%</small></p></div></div>
-  <div class="bf-box" style="margin-top:1rem">Target benchmark: &lt; 20.0% <b style="float:right;color:#b91c1c">+6.5% variance</b></div>''',
-             "Churn distribution", "Customer share by churn status")
-contract = card(columns_chart([100, 48, 22], ["Month-to-month<br>3,875 users", "One year<br>1,473 users", "Two year<br>1,695 users"],
-                              ["#ddd6fe", "#e9d5ff", "#3730a3"], 150)
-                + '<div class="bf-box" style="margin-top:2rem">ⓘ Switching customers to 1-year commitments reduces predicted attrition by 73.5%.</div>',
-                "Churn by contract type", "Month-to-month is the strongest risk driver", badge("Critical Impact", "red"))
-html(f'<div class="bf-grid g12">{churn}{contract}</div>')
+df = None
+dataset_name = ""
+
+if source_mode == "📂 Choose an existing dataset":
+    if available_csvs:
+        csv_options = {str(p): p for p in available_csvs}
+        selected_path_str = st.sidebar.selectbox("Select a file", list(csv_options.keys()))
+        if selected_path_str:
+            full_path = PROJECT_ROOT / csv_options[selected_path_str]
+            try:
+                df = pd.read_csv(full_path)
+                dataset_name = full_path.name
+            except Exception as e:
+                st.sidebar.error(f"File read error: {e}")
+    else:
+        st.sidebar.warning("No CSV files found in `data/`.")
+else:
+    uploaded_file = st.sidebar.file_uploader("📂 Import a CSV file", type=["csv"])
+    if uploaded_file is not None:
+        df = pd.read_csv(uploaded_file)
+        dataset_name = uploaded_file.name
+
+# ── Sidebar AI Provider Configuration ─────────────────────────────────────────
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🤖 BI Agent Engine")
+custom_groq_key = st.sidebar.text_input(
+    "Groq API Key (Optional)",
+    value=os.environ.get("GROQ_API_KEY", "") or st.session_state.get("groq_api_key", ""),
+    type="password",
+    help="Enter your Groq key for ultra-fast Llama-3 inference. If left blank, Gemini or smart statistical heuristics are used.",
+)
+if custom_groq_key:
+    os.environ["GROQ_API_KEY"] = custom_groq_key
+    st.session_state["groq_api_key"] = custom_groq_key
+
+if df is None:
+    st.warning("⚠️ Please select an existing dataset or upload one via the sidebar to start the analysis.")
+    st.stop()
+
+# ── 2. Dataset status banner ──────────────────────────────────────────────────
+active_engine = "Groq Llama-3" if (custom_groq_key or os.environ.get("GROQ_API_KEY")) else "Smart BIFlow Engine"
+html(f'''<div class="bf-card" style="background:linear-gradient(135deg,#eef2ff,#f8faff);
+  border:1px solid #c7d2fe;display:flex;gap:1rem;align-items:center;
+  margin-bottom:1.5rem;border-radius:16px;padding:1rem 1.25rem;">🗄
+  <small style="color:#4338ca;font-weight:700;">ACTIVE DATASET</small>
+  <b style="color:#1e1b4b;">{dataset_name}</b>
+  <span style="color:#64748b;">·</span> {df.shape[0]:,} rows
+  <span style="color:#64748b;">·</span> {df.shape[1]} columns
+  <span style="margin-left:auto">{badge(f"● {active_engine}", "blue")}</span>
+</div>''')
+
+# ── 3. AI Agent analysis ──────────────────────────────────────────────────────
+# Use session state so the analysis only re-runs when the dataset changes.
+cache_key = f"bi_cache_{dataset_name}_{df.shape[0]}_{df.shape[1]}_{bool(custom_groq_key)}"
+
+if st.session_state.get("bi_cache_key") != cache_key:
+    with st.spinner(f"🤖 The BI Analyst Agent is analysing '{dataset_name}' and extracting dynamic KPIs…"):
+        try:
+            agent = BIAnalystAgent(api_key=custom_groq_key or None)
+            full_response = agent.analyze(df)
+            ai_analysis_report, chart_config = agent.parse_response(full_response)
+
+            st.session_state["bi_cache_key"]     = cache_key
+            st.session_state["current_bi_report"]      = ai_analysis_report
+            st.session_state["current_chart_config"]   = chart_config
+
+        except Exception as e:
+            st.error(f"Error calling the AI agent: {e}")
+            st.session_state["current_bi_report"]    = "Unable to generate analysis at this time."
+            st.session_state["current_chart_config"] = {"kpis": [], "recommended_charts": []}
+
+ai_analysis_report = st.session_state.get("current_bi_report", "")
+chart_config       = st.session_state.get("current_chart_config", {"kpis": [], "recommended_charts": []})
+
+# ── 4. Dynamic KPI cards (AI-driven with Python fallback) ─────────────────────
+ai_kpis  = chart_config.get("kpis", [])
+num_cols = list(df.select_dtypes(include=["number"]).columns)
+cat_cols = list(df.select_dtypes(include=["object", "category"]).columns)
+
+default_kpis = [
+    {"title": "Row Count",      "value": f"{df.shape[0]:,}",
+     "subtitle": "Total records"},
+    {"title": f"Avg {num_cols[0][:10]}" if num_cols else "Variables",
+     "value": f"{df[num_cols[0]].mean():.2f}" if num_cols else str(df.shape[1]),
+     "subtitle": "Mean value"},
+    {"title": f"Max {num_cols[0][:10]}" if num_cols else "Columns",
+     "value": f"{df[num_cols[0]].max():.2f}" if num_cols else str(df.shape[1]),
+     "subtitle": "Peak value"},
+    {"title": f"Unique {cat_cols[0][:10]}" if cat_cols else "Dataset",
+     "value": f"{df[cat_cols[0]].nunique():,}" if cat_cols else dataset_name[:12],
+     "subtitle": "Distinct categories"},
+]
+
+while len(ai_kpis) < 4:
+    ai_kpis.append(default_kpis[len(ai_kpis)])
 
 html(grid([
-    card(columns_chart([30, 50, 85, 95, 80, 45, 25], ["$20", "$35", "$50", "$65", "$80", "$95", "$110"],
-                       ["#38bdf8"] * 6 + ["#075985"], 130), "Monthly charges distribution", "Customer frequency across price bands"),
-    card(svg_line("M0,70 C40,60 70,35 110,40 C150,45 170,38 200,22 L260,8"), "Customer tenure distribution", "Concentration across lifecycle stages"),
-    card(svg_line("M0,75 C50,70 80,45 130,40 C180,35 210,20 260,10"), "Churn trend", "Rolling churn rate across 12 months"),
-], "g3"))
+    kpi(ai_kpis[0].get("title", "KPI 1"), str(ai_kpis[0].get("value", "-")), ai_kpis[0].get("subtitle", ""), "📊"),
+    kpi(ai_kpis[1].get("title", "KPI 2"), str(ai_kpis[1].get("value", "-")), ai_kpis[1].get("subtitle", ""), "📈", "blue", "gray"),
+    kpi(ai_kpis[2].get("title", "KPI 3"), str(ai_kpis[2].get("value", "-")), ai_kpis[2].get("subtitle", ""), "🔢"),
+    kpi(ai_kpis[3].get("title", "KPI 4"), str(ai_kpis[3].get("value", "-")), ai_kpis[3].get("subtitle", ""), "🎯", "blue", "gray"),
+], "g4"))
 
-def insight(tag, title, text, conf):
-    return f'''<div class="bf-card"><span class="bf-badge blue" style="float:right">● {conf}% confidence</span>
-      <small style="color:#4338ca"><b>{tag}</b></small><h3 style="font-size:1.1rem;margin:.5rem 0">{title}</h3>
-      <p style="color:#64748b;font-size:.85rem">{text}</p>Confidence <b style="float:right">{conf}%</b>{bar(conf, "#075985")}
-      <div class="bf-box" style="text-align:center;margin-top:1rem;color:#4338ca">✨ Explain</div></div>'''
 
-html(f'<div style="display:flex;justify-content:space-between"><h2>AI Insights</h2>{badge("3 high-confidence insights")}</div>')
-html(grid([
-    insight("CONTRACT RISK", "Customers on month-to-month contracts show a higher churn rate.", "Their churn rate is 42.7%, compared with 11.3% for one-year contracts and 2.8% for two-year terms.", 94),
-    insight("PRICING PRESSURE", "Customers with higher monthly charges show increased churn risk.", "Churn probability rises markedly above $75 in monthly charges, especially when bundled with fiber optic add-ons.", 89),
-    insight("TENURE LOYALTY", "Longer-tenure customers are significantly less likely to churn.", "Customers with tenure over 48 months demonstrate the highest retention stability at &lt;4.2% historical attrition.", 91),
-], "g3"))
+# ── 5. Chart rendering ────────────────────────────────────────────────────────
+def find_best_column(col_name, available_cols):
+    """Fuzzy-match a column name suggested by the AI against actual columns."""
+    if not col_name:
+        return None
+    if col_name in available_cols:
+        return col_name
+    for c in available_cols:
+        if c.lower() == col_name.lower():
+            return c
+    for c in available_cols:
+        if col_name.lower() in c.lower() or c.lower() in col_name.lower():
+            return c
+    return None
+
+
+st.markdown("---")
+st.markdown("### 📊 AI-Generated Dashboards")
+st.markdown(
+    "<small style='color:#64748b;'>The BI Agent analysed the data structure and "
+    "selected the most relevant visualisations below:</small>",
+    unsafe_allow_html=True,
+)
+
+charts = chart_config.get("recommended_charts", [])
+
+# Fallback charts if AI returned none
+if not charts and cat_cols and num_cols:
+    charts = [
+        {"title": f"Distribution of {cat_cols[0]}", "type": "pie",       "column_x": cat_cols[0], "column_y": None},
+        {"title": f"Distribution of {num_cols[0]}", "type": "histogram", "column_x": num_cols[0], "column_y": None},
+    ]
+
+if charts:
+    cols = st.columns(2)
+    for i, chart in enumerate(charts):
+        c_title = chart.get("title", "Analysis")
+        c_type  = str(chart.get("type", "bar")).lower()
+        c_x     = find_best_column(chart.get("column_x"), df.columns)
+        c_y     = find_best_column(chart.get("column_y"), df.columns)
+
+        if not c_x:
+            c_x = cat_cols[0] if cat_cols else (num_cols[0] if num_cols else df.columns[0])
+
+        with cols[i % 2]:
+            with st.container(border=True):
+                # Badge color & icon mapping
+                if c_type == "pie":
+                    b_tone = "purple"
+                    c_icon = "🥧"
+                    sub_desc = f"Proportions across <b>{c_x}</b>"
+                elif c_type == "bar":
+                    b_tone = "indigo"
+                    c_icon = "📊"
+                    sub_desc = f"Breakdown of <b>{c_x}</b>" + (f" vs <b>{c_y}</b>" if c_y else " (frequency)")
+                elif c_type == "histogram":
+                    b_tone = "blue"
+                    c_icon = "📈"
+                    sub_desc = f"Distribution curve of <b>{c_x}</b>"
+                elif c_type == "box":
+                    b_tone = "red"
+                    c_icon = "📦"
+                    sub_desc = f"Spread & outliers of <b>{c_x}</b>" + (f" by <b>{c_y}</b>" if c_y else "")
+                else:
+                    b_tone = "indigo"
+                    c_icon = "📊"
+                    sub_desc = f"Analysis of <b>{c_x}</b>"
+
+                # Render Card Header with Title, Subtitle, and Badge
+                html(f'''
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem; padding-bottom:0.4rem; border-bottom:1px solid #f1f5f9;">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:0.4rem;">
+                            <span style="font-size:1.1rem;">{c_icon}</span>
+                            <h4 style="margin:0; font-size:1.05rem; font-weight:700; color:#0f172a; letter-spacing:-0.01em;">{c_title}</h4>
+                        </div>
+                        <div style="font-size:0.8rem; color:#64748b; margin-top:0.25rem;">{sub_desc}</div>
+                    </div>
+                    <div>{badge(c_type.upper(), b_tone)}</div>
+                </div>
+                ''')
+
+                try:
+                    if c_type == "pie":
+                        data_pie = df[c_x].value_counts().reset_index()
+                        data_pie.columns = [c_x, "Count"]
+                        fig = px.pie(
+                            data_pie.head(10),
+                            names=c_x,
+                            values="Count",
+                            hole=0.45,
+                            color_discrete_sequence=px.colors.sequential.Purp_r
+                        )
+                        fig.update_layout(
+                            paper_bgcolor="rgba(0,0,0,0)",
+                            plot_bgcolor="rgba(0,0,0,0)",
+                            font=dict(color="#0f172a", family="Inter, sans-serif"),
+                            legend=dict(font=dict(color="#334155", size=11)),
+                            margin=dict(t=10, b=10, l=10, r=10)
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+
+                    elif c_type == "bar":
+                        if c_y and c_y in df.columns and df[c_y].dtype in ["int64", "float64"]:
+                            agg_df = df.groupby(c_x, observed=False)[c_y].mean().reset_index()
+                            fig = px.bar(agg_df.head(15), x=c_x, y=c_y, color_discrete_sequence=["#6366f1"])
+                        else:
+                            data_bar = df[c_x].value_counts().reset_index()
+                            data_bar.columns = [c_x, "Count"]
+                            fig = px.bar(data_bar.head(15), x=c_x, y="Count", color_discrete_sequence=["#6366f1"])
+
+                        fig.update_layout(
+                            paper_bgcolor="rgba(0,0,0,0)",
+                            plot_bgcolor="rgba(0,0,0,0)",
+                            font=dict(color="#0f172a", family="Inter, sans-serif"),
+                            xaxis=dict(
+                                tickfont=dict(color="#334155", size=11),
+                                title_font=dict(color="#0f172a", size=12),
+                                gridcolor="#f1f5f9"
+                            ),
+                            yaxis=dict(
+                                tickfont=dict(color="#334155", size=11),
+                                title_font=dict(color="#0f172a", size=12),
+                                gridcolor="#f1f5f9"
+                            ),
+                            margin=dict(t=15, b=25, l=25, r=15)
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+
+                    elif c_type == "histogram":
+                        fig = px.histogram(df, x=c_x, color_discrete_sequence=["#8b5cf6"])
+                        fig.update_layout(
+                            paper_bgcolor="rgba(0,0,0,0)",
+                            plot_bgcolor="rgba(0,0,0,0)",
+                            font=dict(color="#0f172a", family="Inter, sans-serif"),
+                            xaxis=dict(
+                                tickfont=dict(color="#334155", size=11),
+                                title_font=dict(color="#0f172a", size=12),
+                                gridcolor="#f1f5f9"
+                            ),
+                            yaxis=dict(
+                                tickfont=dict(color="#334155", size=11),
+                                title_font=dict(color="#0f172a", size=12),
+                                gridcolor="#f1f5f9"
+                            ),
+                            margin=dict(t=15, b=25, l=25, r=15)
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+
+                    elif c_type == "box":
+                        if c_y and c_y in df.columns and df[c_y].dtype in ["int64", "float64"]:
+                            fig = px.box(df, x=c_x, y=c_y, color_discrete_sequence=["#c026d3"])
+                        else:
+                            fig = px.box(df, y=c_x, color_discrete_sequence=["#c026d3"])
+
+                        fig.update_layout(
+                            paper_bgcolor="rgba(0,0,0,0)",
+                            plot_bgcolor="rgba(0,0,0,0)",
+                            font=dict(color="#0f172a", family="Inter, sans-serif"),
+                            xaxis=dict(
+                                tickfont=dict(color="#334155", size=11),
+                                title_font=dict(color="#0f172a", size=12),
+                                gridcolor="#f1f5f9"
+                            ),
+                            yaxis=dict(
+                                tickfont=dict(color="#334155", size=11),
+                                title_font=dict(color="#0f172a", size=12),
+                                gridcolor="#f1f5f9"
+                            ),
+                            margin=dict(t=15, b=25, l=25, r=15)
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+
+                    else:
+                        fig = px.histogram(df, x=c_x, color_discrete_sequence=["#6366f1"])
+                        fig.update_layout(
+                            paper_bgcolor="rgba(0,0,0,0)",
+                            plot_bgcolor="rgba(0,0,0,0)",
+                            font=dict(color="#0f172a", family="Inter, sans-serif"),
+                            margin=dict(t=15, b=25, l=25, r=15)
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+
+                except Exception as chart_err:
+                    st.warning(f"Could not render chart ({c_title}): {chart_err}")
+else:
+    st.info("No charts configured for this dataset.")
+
+
+# ── 6. Full AI report (expandable) ───────────────────────────────────────────
+st.markdown("---")
+with st.expander("🧠 View Full AI Intelligence Report & Insights", expanded=False):
+    st.markdown(ai_analysis_report)
+
+# ── 7. Actions ────────────────────────────────────────────────────────────────
+st.markdown("---")
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("⭳ Download Markdown Report", use_container_width=True):
+        st.download_button(
+            label="Confirm download",
+            data=ai_analysis_report,
+            file_name="BIFlow_BI_Analysis_Report.md",
+            mime="text/markdown",
+        )
+with col2:
+    if st.button("🔄 Re-run AI Analysis", type="primary", use_container_width=True):
+        # Clear the cache so the next rerun triggers a fresh analysis
+        st.session_state.pop("bi_cache_key", None)
+        st.rerun()

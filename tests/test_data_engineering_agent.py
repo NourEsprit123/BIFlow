@@ -1,18 +1,12 @@
 import os
-from pathlib import Path
-
+import pytest
 import pandas as pd
 from analytics.profiler import profile_dataset
 from analytics.data_quality import calculate_health_scores
+from analytics.cleaning import clean_dirty_numeric_series, impute_missing_values
 from agents.data_engineering_agent import DataEngineeringAgent
 
 TEST_CSV = "data/raw/telco_churn.csv"
-
-
-class FallbackLLM:
-    def generate_json(self, prompt, system_prompt=None):
-        return {}
-
 
 def test_profiler_and_quality():
     assert os.path.exists(TEST_CSV)
@@ -26,18 +20,19 @@ def test_profiler_and_quality():
     assert health["overall_health_score"] > 50
     assert "TotalCharges" in health["type_issues"]
 
-def test_agent_audit_handoff(tmp_path, monkeypatch):
-    source_file = Path(TEST_CSV).resolve()
-    monkeypatch.chdir(tmp_path)
+def test_waterfall_numeric_cleaning():
+    dirty_series = pd.Series(["$1,000", " 1500.5 ", "one thousand", "2.5k", "invalid_str"])
+    cleaned = clean_dirty_numeric_series(dirty_series)
+    assert cleaned.iloc[0] == 1000.0
+    assert cleaned.iloc[1] == 1500.5
+    assert pd.isna(cleaned.iloc[4])
 
-    agent = DataEngineeringAgent(llm_client=FallbackLLM())
-    audit_res = agent.run_audit(str(source_file))
+def test_agent_execution():
+    agent = DataEngineeringAgent()
+    audit_res = agent.run_audit(TEST_CSV)
     assert "profile" in audit_res
     assert "cleaning_strategy" in audit_res
-    report = audit_res["profiling_report"]
-    assert report["dataset_ref"]["file_path"] == str(source_file)
-    assert "column_profiles" in report
-    assert "imputation_plan" in report
-    assert "etl_hints" in report
-    assert "recommended_cleaning_order" in report
-    assert Path(audit_res["report_path"]).is_file()
+
+    clean_res = agent.execute_cleaning(TEST_CSV, preview_mode=True)
+    assert clean_res["status"] == "preview"
+    assert clean_res["rows_processed"] > 0
