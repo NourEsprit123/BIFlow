@@ -29,7 +29,8 @@ BIFlow vise à :
 
 # 🏗️ Architecture
 
-BIFlow repose sur une architecture composée de **4 agents principaux** :
+BIFlow sépare le profilage et le nettoyage dans **4 agents spécialisés**,
+coordonnés par l'orchestrateur :
 
 ```text
                          ┌──────────────────────┐
@@ -39,8 +40,14 @@ BIFlow repose sur une architecture composée de **4 agents principaux** :
                                     │
                                     ▼
                     ┌─────────────────────────────┐
-                    │   Data Engineering Agent   │
-                    │ Profiling • Quality • ETL  │
+                    │   Data Profiling Agent    │
+                    │ Profiling • Quality Audit │
+                    └─────────────┬───────────────┘
+                                  │
+                                  ▼
+                    ┌─────────────────────────────┐
+                    │    Data Cleaning Agent     │
+                    │ Cleaning • Validation • ETL│
                     └─────────────┬───────────────┘
                                   │
                                   ▼
@@ -60,12 +67,13 @@ BIFlow repose sur une architecture composée de **4 agents principaux** :
 
 ### 🤖 Agents
 
-| Agent                         | Responsabilité                                              |
-| ----------------------------- | ----------------------------------------------------------- |
-| 🧠 **Orchestrator Agent**     | Coordonne le workflow et l'exécution des agents             |
-| ⚙️ **Data Engineering Agent** | Profilage, qualité, nettoyage et transformation des données |
-| 📊 **BI Analyst Agent**       | KPI, tendances, anomalies, segmentation et insights         |
-| 🔍 **XAI / Auditor Agent**    | Explication, traçabilité et audit des résultats             |
+| Agent                         | Responsabilité                                      |
+| ----------------------------- | --------------------------------------------------- |
+| 🧠 **Orchestrator Agent**     | Coordonne le workflow et l'exécution des agents     |
+| 🔎 **Data Profiling Agent**   | Profilage, contrôles de qualité et rapport de profil|
+| 🧹 **Data Cleaning Agent**    | Nettoyage, validation, conversions et ETL            |
+| 📊 **BI Analyst Agent**       | KPI, tendances, anomalies, segmentation et insights  |
+| 🔍 **XAI / Auditor Agent**    | Explication, traçabilité et audit des résultats     |
 
 ---
 
@@ -301,6 +309,17 @@ L'interface est accessible depuis le navigateur à l'adresse indiquée par Strea
 http://localhost:8501
 ```
 
+## Tests
+
+Depuis le dossier `BIFlow`, lancez les tests hors ligne avec :
+
+```powershell
+python -m pytest -q
+```
+
+Le script manuel `python test_smoke.py` vérifie également la connexion à Ollama ;
+il nécessite un serveur Ollama actif et le modèle configuré dans `.env`.
+
 ## Comptes BIFlow
 
 Les boutons **Sign up** et **Sign in** utilisent une base SQLite locale.
@@ -334,50 +353,56 @@ L'application contient plusieurs espaces :
 
 ### 🏠 Overview
 
-Vue générale du système BIFlow.
-
-Elle permet notamment de :
-
-* charger un dataset ;
-* visualiser le pipeline BIFlow ;
-* consulter les différents agents ;
-* suivre l'état général du système.
+Vue générale du dataset actif : dimensions, score de qualité et activité des
+agents. **Run Data Profiling Agent** lance le profilage et les contrôles de
+qualité ; **Create analysis** ouvre l'analyse correspondante.
 
 ### 📁 Data
 
-Gestion et exploration des datasets.
+La page **Datasets** importe les fichiers CSV, Excel ou Parquet vers
+`data/raw/`, affiche leurs dimensions et permet de filtrer la liste. Le dataset
+actif se choisit dans la barre latérale et est utilisé par les autres pages.
+Les connecteurs de bases de données et de services cloud ne sont pas configurés
+dans cette version.
+
+### ⛓ Workflows
+
+Sélectionnez les tâches à lancer : profilage, audit qualité, nettoyage
+versionné, analyse KPI et vérification du rapport. **Run BIFlow Pipeline**
+exécute les tâches choisies sur le dataset actif. **Save as template** conserve
+la configuration dans la session Streamlit en cours.
+
+Le nettoyage écrit une copie versionnée sous `data/versions/dashboard/` et ne
+modifie pas le fichier source. La page permet de télécharger le rapport de
+profilage et, après nettoyage, le CSV résultant.
 
 ### 🧹 Data Quality
 
-Analyse de la qualité des données :
-
-* valeurs manquantes ;
-* doublons ;
-* valeurs incohérentes ;
-* colonnes problématiques ;
-* score de qualité.
+Les métriques et problèmes sont calculés sur le fichier actif. **Run quality
+audit** génère le rapport du Data Profiling Agent ; **Run safe cleaning**
+exécute les transformations permises par la politique de nettoyage et garde
+l'original intact.
 
 ### 📊 Analytics
 
-Espace dédié à l'analyse business :
-
-* KPI ;
-* tendances ;
-* anomalies ;
-* segmentation ;
-* insights.
+L'analyse affiche les statistiques descriptives et distributions calculées à
+partir des données actives. Un taux de churn est calculé uniquement si le
+dataset contient une colonne `Churn` ou `Is_Churn`. Les résultats peuvent être
+téléchargés en JSON.
 
 ### 🤖 AI Agents
 
-Visualisation et suivi des différents agents BIFlow.
+Les boutons d'agent dans la barre supérieure lancent réellement les fonctions
+disponibles sur le dataset actif :
 
-Depuis la barre horizontale en haut de l'application, ouvrez **Agent 1**
-et cochez les tâches souhaitées. La sélection est affichée dans le menu ;
-aucune tâche n'est exécutée à ce stade.
+* **Agent 1 · Data Profiling** : profilage, contrôles de qualité et rapport remis à l'agent de nettoyage ;
+* **Agent 2 · Data Cleaning** : transformations déterministes, validation et copie versionnée ;
+* **Agent 3 · BI Analyst** : statistiques descriptives et KPIs disponibles dans les données ;
+* **Agent 4 · XAI Auditor** : vérification de la provenance, des dimensions et du contenu du rapport sauvegardé.
 
-* **Agent 1 · Data Engineering** : Data Profiling, Data Quality et Data Cleaning ;
-* **Agent 2 · BI Analyst** : KPIs et Dashboards ;
-* **Agent 3 · XAI Auditor** : XAI.
+Le profilage utilise son mode déterministe local et ne requiert pas de service
+LLM. **Agent Ops** montre l'activité de la session courante ; aucun pool
+d'agents persistant ni connecteur de télémétrie n'est configuré.
 
 ### 🔍 Audit
 

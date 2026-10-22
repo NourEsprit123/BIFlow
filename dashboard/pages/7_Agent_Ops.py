@@ -1,43 +1,91 @@
-from components import setup, page_header, btn, html, kpi, grid, card, table, badge, svg_line
+import json
+from datetime import datetime, timezone
 
-from chat_widget import render_chat
-render_chat("Datasets")
+import streamlit as st
+
+from components import setup, page_header
+from workspace import (
+    ANALYSIS_STATE_KEY,
+    CLEANING_STATE_KEY,
+    PROFILE_STATE_KEY,
+    get_workspace_result,
+    load_selected_dataset,
+    profile_dataset_for_workspace,
+)
 
 setup("Agent Operations")
-page_header("Agent Health & Performance", "Real-time telemetry, resource metrics, and operational health of BIFlow's multi-agent system.",
-            badge("● ACTIVE CLUSTER") + btn("🕒 Last 24 Hours") + btn("● Auto-refresh: 15s") + btn("⟳ Restart Agent Pool") + btn("⭳ Export Telemetry Log", True))
+page_header(
+    "Agent Operations",
+    "View the local agent actions actually completed in this workspace session.",
+    crumbs="Workspace › **Agent Ops**",
+)
 
-html(grid([kpi("OVERALL SYSTEM HEALTH", "99.94%", "✔ All 4 agents operational · Target 99.90%", "♥"),
-           kpi("AVERAGE RESPONSE TIME", "342 ms", "vs. 370ms p95 baseline · p50 198ms · p99 610ms", "⏱"),
-           kpi("TASKS COMPLETED (24H)", "1,428 runs", "0 fatal exceptions · 3 auto-recovered", "✔"),
-           kpi("COMPUTE & TOKEN USAGE", "4.2k tokens/task", "Memory: 1.8 GB / 8 GB (22.5%)", "▤")], "g4"))
+path, frame = load_selected_dataset()
+if path is None or frame is None:
+    st.warning("Upload a dataset to run and monitor the agents.")
+    st.stop()
 
-def agent(name, ver, role, rows):
-    r = "".join(f'<div style="display:flex;justify-content:space-between;background:#f8fafc;padding:.4rem .6rem;margin-bottom:.2rem;border-radius:6px;font-size:.82rem"><span>{k}</span><b>{v}</b></div>' for k, v in rows)
-    return card(f'<span class="bf-badge blue" style="float:right">● Online</span><b style="font-size:1.1rem">{name}</b><br><small>{ver}</small>'
-                f'<div class="bf-box" style="margin:.6rem 0"><b style="font-size:.78rem;color:#3730a3">{role}</b></div>{r}'
-                f'{svg_line("M0,60 C30,40 50,70 80,50 C110,30 130,60 160,20 L200,50", h=70, w=200)}')
+profile_result = get_workspace_result(PROFILE_STATE_KEY, path)
+cleaning_result = get_workspace_result(CLEANING_STATE_KEY, path)
+analysis = get_workspace_result(ANALYSIS_STATE_KEY, path)
+current_profile = profile_result is not None
 
-html('<h2>⚛ Autonomous Core Agents <small class="mono" style="float:right;font-size:.8rem;font-weight:400">Cluster ID: cluster-biflow-prod-us-east-1</small></h2>')
-html(grid([
-    agent("Orchestrator", "v2.4.1", "Coordination & Task Management", [("Latency", "118 ms"), ("Tasks Routed", "1,428 (100%)"), ("Errors Handled", "0 crit · 2 retries"), ("Memory / CPU", "280 MB / 4.2%")]),
-    agent("Data Engineering", "v2.3.0", "Data Quality & ETL", [("Latency", "412 ms"), ("Datasets Active", "12 (7,043 rows)"), ("Schema Self-Heal", "1 non-fatal"), ("Memory / CPU", "640 MB / 18.4%")]),
-    agent("BI Analyst", "v2.4.0", "KPIs & Statistical Insights", [("Latency", "520 ms"), ("Insights Generated", "127 verified"), ("Errors Handled", "0 exceptions"), ("Memory / CPU", "512 MB / 12.1%")]),
-    agent("XAI / Auditor", "v2.4.2", "Explanation & Lineage Traceability", [("Latency", "318 ms"), ("Audited Decisions", "84 verified"), ("Hallucinations", "0 flagged"), ("Memory / CPU", "390 MB / 8.6%")]),
-], "g4"))
+if st.button("Run profiling health check", type="primary"):
+    profile_dataset_for_workspace(path, refresh=True)
+    st.rerun()
 
-ms = lambda v: f"<b style='color:#0369a1'>{v} ms</b>"
-lat = table(["SOURCE NODE", "TARGET NODE", "TRANSPORT", "LATENCY", "THROUGHPUT"], [
-    ["● Orchestrator", "Data Engineering", "<code>gRPC / Unix</code>", ms(42), "1,428 msg/day"],
-    ["● Data Engineering", "BI Analyst", "<code>Arrow Memory</code>", ms(65), "12.4 MB/s bulk"],
-    ["● BI Analyst", "XAI Auditor", "<code>Protobuf IPC</code>", ms(58), "420 msg/day"],
-    ["● XAI Auditor", "Results Bus", "<code>ZeroMQ Stream</code>", ms(24), "1,428 msg/day"]])
-lat += '<p class="mono" style="font-size:.8rem">Active Pipeline: Telco Customer Churn Pipeline (Run ID: #BF-2026-0284) <b style="float:right">Total Cycle: 942 ms</b></p>'
+agents = [
+    {
+        "Agent": "Data Profiling Agent",
+        "Status": "Completed" if current_profile else "Ready",
+        "Last result": (
+            f"{profile_result['profile']['rows']:,} rows profiled"
+            if current_profile else "No run in this session"
+        ),
+    },
+    {
+        "Agent": "Data Cleaning Agent",
+        "Status": "Completed" if cleaning_result else "Ready",
+        "Last result": (
+            f"{len(cleaning_result.change_log.successful_ops())} changes; "
+            f"validation {cleaning_result.validation.status.value}"
+            if cleaning_result else "No run in this session"
+        ),
+    },
+    {
+        "Agent": "BI Analyst",
+        "Status": "Completed" if analysis else "Ready",
+        "Last result": (
+            f"{analysis['rows']:,} rows analyzed"
+            if analysis else "No run in this session"
+        ),
+    },
+    {
+        "Agent": "XAI Auditor",
+        "Status": "Ready" if current_profile else "Waiting",
+        "Last result": "A profiling report is available for verification"
+        if current_profile else "Run profiling to create auditable evidence",
+    },
+]
 
-logs = [("12:44:48", "XAI Auditor", "Explanation trace complete for run #BF-2026-0284<br>Execution: 318ms · SHAP Convergence 99.4%", "Success"),
-        ("12:44:12", "BI Analyst", "Generated 3 high-confidence insights on Telco Customer Churn<br>Execution: 490ms · Auto-validated", "Success"),
-        ("12:43:39", "BI Analyst", "KPI calculation completed (Churn rate 26.5%)<br>Execution: 210ms · Cache hit", "Success"),
-        ("12:42:18", "Data Engineering", "Profiling completed (94% quality, 11 missing values flagged)", "Handled")]
-tele = "".join(f'<div class="bf-box"><span class="mono" style="font-size:.78rem">{t} [{a}]</span> <span class="bf-badge gray" style="float:right">{s}</span><br>{m}</div>' for t, a, m, s in logs)
-html(f'''<div class="bf-grid g12">{card(lat, "Agent Inter-Communication & Latency Matrix", "Bus transport telemetry across directed execution graph links", badge("● Zero Packet Loss"))}
-{card(tele, "Live Operational Telemetry", "Event stream, audits & self-healing triggers", badge("STREAMING", "gray"))}</div>''')
+st.subheader(f"Agent status · {path.name}")
+st.dataframe(agents, hide_index=True, use_container_width=True)
+
+telemetry = {
+    "generated_at": datetime.now(timezone.utc).isoformat(),
+    "dataset": str(path),
+    "agents": agents,
+}
+with st.expander("Session telemetry"):
+    st.json(telemetry)
+
+st.download_button(
+    "Export session telemetry",
+    data=json.dumps(telemetry, indent=2),
+    file_name="biflow_session_telemetry.json",
+    mime="application/json",
+)
+st.caption(
+    "This build runs agents on demand in the Streamlit process. There is no persistent "
+    "agent pool to restart and no 15-second telemetry stream configured."
+)

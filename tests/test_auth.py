@@ -136,6 +136,43 @@ def test_reset_code_expires(tmp_path, monkeypatch):
     assert not reset_password("ada@example.com", sent["code"], "A-new-password!")
 
 
+def test_password_reset_does_not_send_email_for_unknown_account(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setenv("BIFLOW_AUTH_DB", str(tmp_path / "auth.sqlite3"))
+    monkeypatch.setenv("BIFLOW_SMTP_HOST", "smtp.example.test")
+    monkeypatch.setenv("BIFLOW_SMTP_FROM", "no-reply@example.test")
+    sent = []
+    monkeypatch.setattr(
+        auth_service,
+        "_send_password_reset_email",
+        lambda *args: sent.append(args),
+    )
+
+    assert not request_password_reset("unknown@example.com")
+    assert sent == []
+
+
+def test_password_reset_limits_invalid_code_attempts(tmp_path, monkeypatch):
+    monkeypatch.setenv("BIFLOW_AUTH_DB", str(tmp_path / "auth.sqlite3"))
+    monkeypatch.setenv("BIFLOW_SMTP_HOST", "smtp.example.test")
+    monkeypatch.setenv("BIFLOW_SMTP_FROM", "no-reply@example.test")
+    sent = {}
+    monkeypatch.setattr(
+        auth_service,
+        "_send_password_reset_email",
+        lambda recipient, code, settings: sent.update(code=code),
+    )
+    register_user("Ada Lovelace", "ada@example.com", VALID_PASSWORD)
+    request_password_reset("ada@example.com")
+    wrong_code = "000000" if sent["code"] != "000000" else "000001"
+
+    for _ in range(auth_service.PASSWORD_RESET_MAX_ATTEMPTS):
+        assert not reset_password("ada@example.com", wrong_code, VALID_PASSWORD)
+
+    assert not reset_password("ada@example.com", sent["code"], "A-new-password!")
+
+
 def test_password_reset_requires_smtp_configuration(tmp_path, monkeypatch):
     monkeypatch.setenv("BIFLOW_AUTH_DB", str(tmp_path / "auth.sqlite3"))
     monkeypatch.delenv("BIFLOW_SMTP_HOST", raising=False)

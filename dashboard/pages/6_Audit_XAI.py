@@ -1,42 +1,71 @@
-from components import setup, page_header, btn, html, card, badge
+import streamlit as st
 
-from chat_widget import render_chat
-render_chat("Datasets")
+from components import setup, page_header
+from workspace import (
+    PROFILE_STATE_KEY,
+    get_workspace_result,
+    load_selected_dataset,
+    profile_dataset_for_workspace,
+    profiling_report_json,
+    verify_profiling_report,
+)
 
 setup("Audit & XAI")
-page_header("Audit & Explainability", "Understand how BIFlow generated its results and verify algorithmic decisions.",
-            btn("⭳ Export audit log") + btn("🛡 Verify result", True), "Workspace › <b>Audit & XAI</b>")
+page_header(
+    "Audit & Explainability",
+    "Inspect the profiling evidence and verify the report against the active dataset.",
+    crumbs="Workspace › **Audit & XAI**",
+)
 
-html(f'''<div class="bf-card" style="background:#eef2ff;display:flex;gap:1rem;align-items:center;margin-bottom:1rem">🔏
-  <div><b style="font-size:1.1rem">Audit run #BF-2026-0284</b> <span class="mono bf-badge gray">SHA-256: 8a4c…e92f</span><br>
-  <small>Telco Customer Churn · Completed today at 12:44 · 6 traceable events</small></div>
-  <span style="margin-left:auto">{badge("● Verified", "blue")}</span></div>''')
+path, frame = load_selected_dataset()
+if path is None or frame is None:
+    st.warning("Upload a dataset before generating an audit.")
+    st.stop()
 
-events = [("☁", "Dataset uploaded", "12:40:51", "Telco Customer Churn received and validated", 0),
-          ("⛓", "Orchestrator selected workflow", "12:41:04", "Profiling, quality, KPI, insight, and XAI tasks", 0),
-          ("🗄", "Data Engineering Agent analyzed quality", "12:42:18", "94% quality score; 2 issues identified", 0),
-          ("📊", "BI Analyst calculated KPIs", "12:43:39", "Churn rate = 26.5%; 7,043 customers analyzed", 1),
-          ("✨", "AI generated insight", "12:44:12", "Month-to-month contracts linked to higher churn", 0),
-          ("✔", "XAI Auditor generated explanation", "12:44:48", "Evidence, confidence, and sources verified", 0)]
-tl = "".join(f'<div class="bf-tl{" act" if a else ""}"><i>{i}</i><div style="flex:1"><span class="t">{t}</span><b>{n}</b><br><small>{d}</small></div></div>'
-             for i, n, t, d, a in events)
-timeline = card(tl, "Audit timeline", "A chronological record of every decision and transformation.", badge("Live Audit Log", "gray"))
+profile_result = get_workspace_result(PROFILE_STATE_KEY, path)
+has_current_report = profile_result is not None
 
-box = lambda k, v, r="": f'<div class="bf-box"><small>{k}</small><b style="font-size:1.05rem">{v}</b><span class="mono" style="float:right;font-size:.8rem">{r}</span></div>'
-details = card(
-    box("AGENT", "🤖 BI Analyst Agent", "model: gpt-4o-analytic-v2") + box("TASK", "Churn analysis")
-    + box("INPUT", "Telco Customer Churn", "7,043 rows × 21 cols") + box("OUTPUT", "Churn rate = 26.5%", "<span style='color:#0369a1'>Deterministic match</span>")
-    + '''<div class="bf-box" style="background:#dbe7ff"><b style="color:#3730a3">🧠 Explanation</b><p>The BI Analyst Agent counted customers marked “Yes”
-      in the Churn field and divided that total by all valid customer records. 1,869 of 7,043 customers churned, producing a rate of 26.53%, rounded to 26.5%.
-      No rows were excluded and the calculation was independently verified by the XAI Auditor.</p></div>''',
-    "AI Decision Details", "The exact inputs, logic, and output for the selected decision.", badge("● 92% confidence", "blue"))
+run_col, verify_col, export_col = st.columns(3)
+with run_col:
+    if st.button("Generate audit", type="primary", use_container_width=True):
+        profile_dataset_for_workspace(path, refresh=True)
+        st.rerun()
+with verify_col:
+    verify_clicked = st.button(
+        "Verify current report",
+        use_container_width=True,
+        disabled=not has_current_report,
+    )
+with export_col:
+    report_bytes = profiling_report_json() if has_current_report else None
+    if report_bytes:
+        st.download_button(
+            "Export audit JSON",
+            data=report_bytes,
+            file_name=f"{path.stem}_audit.json",
+            mime="application/json",
+            use_container_width=True,
+        )
 
-steps = [("🗄", "Dataset", "v1.4"), ("⇅", "Transformation", "Cleanse"), ("▦", "Analysis", "KPIs"),
-         ("⬚", "LLM", "Agentic"), ("💡", "Insight", "Synthesized"), ("🔍", "Explanation", "Verified")]
-trace = card('<div style="display:flex;gap:.5rem">' + "".join(
-    f'<div class="bf-box" style="flex:1;text-align:center;{"background:#bae6fd" if i == 5 else ""}">{ic}<br><b style="font-size:.75rem">{n}</b><br><small class="mono">{s}</small></div>'
-    for i, (ic, n, s) in enumerate(steps)) + '</div>', "Traceability", "Follow the lineage from source data to explanation.")
-gov = card('<div class="bf-grid g4">' + "".join(f'<div class="bf-box" style="min-height:110px">✔<br><b>{t}</b></div>' for t in
-           ["Source lineage complete", "Calculation reproducible", "Explanation grounded", "No sensitive fields exposed"]) + '</div>',
-           "Governance checks", "Controls applied automatically to this result.")
-html(f'<div class="bf-grid g12">{timeline}<div>{details}<br>{trace}<br>{gov}</div></div>')
+if verify_clicked and profile_result:
+    verification = verify_profiling_report(path, profile_result)
+    if verification["verified"]:
+        st.success(f"Verified saved report for {path.name}. SHA-256: {verification['sha256']}")
+    else:
+        st.error(f"Report verification failed: {verification['reason']}")
+
+if has_current_report and profile_result:
+    result = profile_result
+    report = result["profiling_report"]
+    verification = verify_profiling_report(path, profile_result)
+    st.subheader(f"Audit report · {path.name}")
+    st.write(
+        f"{result['profile']['rows']:,} rows × {result['profile']['columns']} columns · "
+        f"Quality score {result['health']['overall_health_score']}% · "
+        f"Report {'verified' if verification['verified'] else 'not verified'}"
+    )
+    st.write(report.get("agent_summary", "No narrative summary was produced."))
+    with st.expander("Profiling evidence"):
+        st.json(report)
+else:
+    st.info("No current audit report. Generate one to view evidence and enable verification/export.")

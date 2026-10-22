@@ -1,8 +1,23 @@
 """Blocs réutilisables : layout (sidebar/topbar/header) + petits composants HTML."""
 from html import escape
+from pathlib import Path
 
 import streamlit as st
 from style import load_css
+from workspace import (
+    ANALYSIS_STATE_KEY,
+    DATASET_STATE_KEY,
+    PROFILE_STATE_KEY,
+    analyze_dataframe,
+    clean_profiled_dataset,
+    dataset_label,
+    get_workspace_result,
+    list_datasets,
+    load_selected_dataset,
+    profile_dataset_for_workspace,
+    selected_dataset_path,
+    verify_profiling_report,
+)
 
 NAV = [
     ("Overview", "pages/1_Overview.py", "🏠"),
@@ -15,18 +30,10 @@ NAV = [
 ]
 
 AGENTS = [
-    ("Agent 1 · Data Engineering", "agent1", [
-        ("Data Profiling", "profiling"),
-        ("Data Quality", "quality"),
-        ("Data Cleaning", "cleaning"),
-    ]),
-    ("Agent 2 · BI Analyst", "agent2", [
-        ("KPIs", "kpis"),
-        ("Dashboards", "dashboards"),
-    ]),
-    ("Agent 3 · XAI Auditor", "agent3", [
-        ("XAI", "xai"),
-    ]),
+    ("Agent 1 · Data Profiling", "agent1", "Run profiling and quality audit"),
+    ("Agent 2 · Data Cleaning", "agent2", "Run safe cleaning plan"),
+    ("Agent 3 · BI Analyst", "agent3", "Run dataset analysis"),
+    ("Agent 4 · XAI Auditor", "agent4", "Verify profiling report"),
 ]
 
 
@@ -36,9 +43,6 @@ def html(s: str):
 
 def badge(text, tone="indigo"):
     return f'<span class="bf-badge {tone}">{text}</span>'
-
-def btn(label, primary=False):
-    return f'<span class="bf-btn{" primary" if primary else ""}">{label}</span>'
 
 def kpi(label, value, sub="", icon="📊", tone="indigo", sub_tone=""):  # Remplacé "▦" par un emoji valide
     return (f'<div class="bf-card bf-kpi"><div class="row"><span>{label}</span><i class="ico {tone}">{icon}</i></div>'
@@ -75,7 +79,12 @@ def svg_line(path, color="#4f46e5", w=260, h=90):
 # ---------- layout ----------
 def setup(title, hub="Enterprise Analytics Hub"):
     """À appeler en PREMIER dans chaque page."""
-    st.set_page_config(page_title=f"BIFlow · {title}", page_icon="📈", layout="wide")
+    st.set_page_config(
+        page_title=f"BIFlow · {title}",
+        page_icon="📈",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
     load_css()
     user = st.session_state.get("authenticated_user")
     if not user:
@@ -88,6 +97,24 @@ def setup(title, hub="Enterprise Analytics Hub"):
              '<div class="bf-nav-label">ANALYTICAL CORE</div>')
         for label, path, icon in NAV:
             st.page_link(path, label=label, icon=icon)
+        selected_dataset_path()
+        datasets = list_datasets()
+        if datasets:
+            current = st.session_state.get(DATASET_STATE_KEY)
+            options = [str(path) for path in datasets]
+            if current not in options:
+                current = options[0]
+                st.session_state[DATASET_STATE_KEY] = current
+            st.selectbox(
+                "Active dataset",
+                options,
+                index=options.index(current),
+                format_func=lambda value: dataset_label(Path(value)),
+                key=DATASET_STATE_KEY,
+            )
+        else:
+            st.info("Upload a dataset to get started.")
+
         full_name = escape(user["full_name"])
         initials = escape("".join(part[0] for part in user["full_name"].split()[:2]).upper())
         html(f'<div class="bf-user"><div class="av">{initials}</div><div><b>{full_name}</b>'
@@ -96,18 +123,71 @@ def setup(title, hub="Enterprise Analytics Hub"):
             st.session_state.pop("authenticated_user", None)
             st.switch_page("app.py")
     agent_columns = st.columns(len(AGENTS))
-    for column, (agent, key_prefix, tasks) in zip(agent_columns, AGENTS):
+    for column, (agent, key_prefix, action_label) in zip(agent_columns, AGENTS):
         with column:
             with st.popover(agent, use_container_width=True):
-                selected_tasks = [
-                    label for label, task in tasks
-                    if st.checkbox(label, key=f"{key_prefix}_{task}")
-                ]
-                if selected_tasks:
-                    st.caption("Sélection : " + " + ".join(selected_tasks))
-    html(f'''<div class="bf-top"><div class="crumb">Workspace › <b>{hub}</b></div>
-      <div class="bf-search"><span>🔍 Search BIFlow...</span><span>⌘ K</span></div><span>🔔</span>
-      <div class="bf-org">Northstar Labs <span class="bf-badge">Enterprise</span></div><div class="bf-avatar">👤</div></div>''')
+                st.caption(action_label)
+                if st.button(action_label, key=f"{key_prefix}_run", type="primary"):
+                    path, frame = load_selected_dataset()
+                    if path is None or frame is None:
+                        st.error("Upload a dataset before running an agent.")
+                    elif key_prefix == "agent1":
+                        result = profile_dataset_for_workspace(path, refresh=True)
+                        st.success(
+                            f"Profiling complete: {result['profile']['rows']:,} rows, "
+                            f"{result['profile']['columns']} columns."
+                        )
+                    elif key_prefix == "agent2":
+                        cleaning = clean_profiled_dataset(path)
+                        st.success(
+                            f"Cleaning run complete: {len(cleaning.change_log.successful_ops())} "
+                            "changes applied; original data preserved."
+                        )
+                    elif key_prefix == "agent3":
+                        result = analyze_dataframe(frame, path)
+                        st.success(
+                            f"Analysis complete: {result['rows']:,} rows and "
+                            f"{result['numeric_columns']} numeric columns."
+                        )
+                    else:
+                        profile_result = get_workspace_result(PROFILE_STATE_KEY, path)
+                        if profile_result is None:
+                            st.warning("Run Data Profiling first to create an auditable report.")
+                        else:
+                            verification = verify_profiling_report(path, profile_result)
+                            if verification["verified"]:
+                                st.success(
+                                    f"Report verified. SHA-256: {verification['sha256']}"
+                                )
+                            else:
+                                st.error(verification["reason"])
+
+    top = st.columns([1.4, 2.6, 0.7, 1.3, 0.7], vertical_alignment="center")
+    with top[0]:
+        st.markdown(f"Workspace › **{escape(hub)}**")
+    with top[1]:
+        st.text_input("Search datasets", key="workspace_search_query", placeholder="Search datasets...")
+    with top[2]:
+        with st.popover("🔔", help="Recent workspace activity"):
+            active_path = selected_dataset_path()
+            if active_path and get_workspace_result(PROFILE_STATE_KEY, active_path):
+                st.write("Latest dataset profiling is complete.")
+            if active_path and get_workspace_result(ANALYSIS_STATE_KEY, active_path):
+                st.write("Latest dataset analysis is complete.")
+            if not active_path or not any(
+                get_workspace_result(key, active_path)
+                for key in (PROFILE_STATE_KEY, ANALYSIS_STATE_KEY)
+            ):
+                st.caption("No analysis activity yet.")
+    with top[3]:
+        user_name = escape(user["full_name"])
+        st.caption(f"**{user_name}**")
+    with top[4]:
+        with st.popover("👤", help="Account"):
+            st.write(user["email"])
+            if st.button("Sign out", key="workspace_sign_out", use_container_width=True):
+                st.session_state.pop("authenticated_user", None)
+                st.switch_page("app.py")
 
 def page_header(title, subtitle="", actions="", crumbs=""):
     html(f'''{f'<div class="bf-crumbs">{crumbs}</div>' if crumbs else ''}

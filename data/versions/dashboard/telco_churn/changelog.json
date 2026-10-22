@@ -1,0 +1,362 @@
+{
+  "log_id": "4a22eb15-7cc6-4269-af3d-11b4f8525843",
+  "dataset_id": "telco_churn",
+  "entries": [
+    {
+      "change_id": "d9cec0ba",
+      "step_id": "16b503b7",
+      "operation": "clean_numeric_string",
+      "columns": [
+        "TotalCharges"
+      ],
+      "source_version": "V1",
+      "result_version": "V2",
+      "parameters": {
+        "errors": "coerce",
+        "column": "TotalCharges"
+      },
+      "rationale": "type_mismatch / dirty numeric strings on 'TotalCharges'",
+      "affected_rows": 335,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-10-22T20:10:06.497637Z",
+      "approval_obtained": false,
+      "metadata": {}
+    },
+    {
+      "change_id": "2849f709",
+      "step_id": "dcc5a87c",
+      "operation": "handle_missing_values",
+      "columns": [
+        "TotalCharges"
+      ],
+      "source_version": "V2",
+      "result_version": "V3",
+      "parameters": {
+        "strategy": "fill_median",
+        "columns": [
+          "TotalCharges"
+        ]
+      },
+      "rationale": "Missing 0.16% in 'TotalCharges'",
+      "affected_rows": 11,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-10-22T20:10:06.639544Z",
+      "approval_obtained": false,
+      "metadata": {}
+    },
+    {
+      "change_id": "6abaeb2d",
+      "step_id": "076cad60",
+      "operation": "clean_numeric_string",
+      "columns": [
+        "customerID"
+      ],
+      "source_version": "V3",
+      "result_version": "V4",
+      "parameters": {
+        "errors": "coerce",
+        "column": "customerID"
+      },
+      "rationale": "type_mismatch / dirty numeric strings on 'customerID'",
+      "affected_rows": 7043,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-10-22T20:10:06.767106Z",
+      "approval_obtained": false,
+      "metadata": {}
+    },
+    {
+      "change_id": "da2c9eae",
+      "step_id": "4ea1c494",
+      "operation": "normalize_values",
+      "columns": [
+        "Partner"
+      ],
+      "source_version": "V4",
+      "result_version": "V5",
+      "parameters": {
+        "mapping": {
+          "yes": "true",
+          "no": "false",
+          "Yes": "true",
+          "No": "false",
+          "YES": "true",
+          "NO": "false",
+          "Y": "true",
+          "N": "false",
+          "1": "true",
+          "0": "false",
+          "true": "true",
+          "false": "false"
+        },
+        "case": "lower",
+        "strip_whitespace": true,
+        "column": "Partner"
+      },
+      "rationale": "Boolean flag stored as text in 'Partner'",
+      "affected_rows": 7043,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-10-22T20:10:06.903194Z",
+      "approval_obtained": false,
+      "metadata": {}
+    },
+    {
+      "change_id": "563ba994",
+      "step_id": "a452844a",
+      "operation": "convert_data_types",
+      "columns": [
+        "Partner"
+      ],
+      "source_version": "V5",
+      "result_version": "V6",
+      "parameters": {
+        "target_type": "boolean",
+        "errors": "coerce",
+        "column": "Partner"
+      },
+      "rationale": "Cast normalized 'Partner' to boolean",
+      "affected_rows": 0,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-10-22T20:10:07.029435Z",
+      "approval_obtained": false,
+      "metadata": {}
+    },
+    {
+      "change_id": "a9a66673",
+      "step_id": "4b2bbc42",
+      "operation": "normalize_values",
+      "columns": [
+        "Dependents"
+      ],
+      "source_version": "V6",
+      "result_version": "V7",
+      "parameters": {
+        "mapping": {
+          "yes": "true",
+          "no": "false",
+          "Yes": "true",
+          "No": "false",
+          "YES": "true",
+          "NO": "false",
+          "Y": "true",
+          "N": "false",
+          "1": "true",
+          "0": "false",
+          "true": "true",
+          "false": "false"
+        },
+        "case": "lower",
+        "strip_whitespace": true,
+        "column": "Dependents"
+      },
+      "rationale": "Boolean flag stored as text in 'Dependents'",
+      "affected_rows": 7043,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-10-22T20:10:07.142616Z",
+      "approval_obtained": false,
+      "metadata": {}
+    },
+    {
+      "change_id": "72c96e2c",
+      "step_id": "cbe8236e",
+      "operation": "convert_data_types",
+      "columns": [
+        "Dependents"
+      ],
+      "source_version": "V7",
+      "result_version": "V8",
+      "parameters": {
+        "target_type": "boolean",
+        "errors": "coerce",
+        "column": "Dependents"
+      },
+      "rationale": "Cast normalized 'Dependents' to boolean",
+      "affected_rows": 0,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-10-22T20:10:07.310829Z",
+      "approval_obtained": false,
+      "metadata": {}
+    },
+    {
+      "change_id": "ed91f8da",
+      "step_id": "d769850f",
+      "operation": "normalize_values",
+      "columns": [
+        "PhoneService"
+      ],
+      "source_version": "V8",
+      "result_version": "V9",
+      "parameters": {
+        "mapping": {
+          "yes": "true",
+          "no": "false",
+          "Yes": "true",
+          "No": "false",
+          "YES": "true",
+          "NO": "false",
+          "Y": "true",
+          "N": "false",
+          "1": "true",
+          "0": "false",
+          "true": "true",
+          "false": "false"
+        },
+        "case": "lower",
+        "strip_whitespace": true,
+        "column": "PhoneService"
+      },
+      "rationale": "Boolean flag stored as text in 'PhoneService'",
+      "affected_rows": 7043,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-10-22T20:10:07.544482Z",
+      "approval_obtained": false,
+      "metadata": {}
+    },
+    {
+      "change_id": "0c196132",
+      "step_id": "a36d2312",
+      "operation": "convert_data_types",
+      "columns": [
+        "PhoneService"
+      ],
+      "source_version": "V9",
+      "result_version": "V10",
+      "parameters": {
+        "target_type": "boolean",
+        "errors": "coerce",
+        "column": "PhoneService"
+      },
+      "rationale": "Cast normalized 'PhoneService' to boolean",
+      "affected_rows": 0,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-10-22T20:10:07.761498Z",
+      "approval_obtained": false,
+      "metadata": {}
+    },
+    {
+      "change_id": "99e4884e",
+      "step_id": "9a14f4b5",
+      "operation": "normalize_values",
+      "columns": [
+        "PaperlessBilling"
+      ],
+      "source_version": "V10",
+      "result_version": "V11",
+      "parameters": {
+        "mapping": {
+          "yes": "true",
+          "no": "false",
+          "Yes": "true",
+          "No": "false",
+          "YES": "true",
+          "NO": "false",
+          "Y": "true",
+          "N": "false",
+          "1": "true",
+          "0": "false",
+          "true": "true",
+          "false": "false"
+        },
+        "case": "lower",
+        "strip_whitespace": true,
+        "column": "PaperlessBilling"
+      },
+      "rationale": "Boolean flag stored as text in 'PaperlessBilling'",
+      "affected_rows": 7043,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-10-22T20:10:07.974830Z",
+      "approval_obtained": false,
+      "metadata": {}
+    },
+    {
+      "change_id": "c2b40433",
+      "step_id": "51b505e5",
+      "operation": "convert_data_types",
+      "columns": [
+        "PaperlessBilling"
+      ],
+      "source_version": "V11",
+      "result_version": "V12",
+      "parameters": {
+        "target_type": "boolean",
+        "errors": "coerce",
+        "column": "PaperlessBilling"
+      },
+      "rationale": "Cast normalized 'PaperlessBilling' to boolean",
+      "affected_rows": 0,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-10-22T20:10:08.148459Z",
+      "approval_obtained": false,
+      "metadata": {}
+    },
+    {
+      "change_id": "75d421f5",
+      "step_id": "49c9922c",
+      "operation": "normalize_values",
+      "columns": [
+        "Churn"
+      ],
+      "source_version": "V12",
+      "result_version": "V13",
+      "parameters": {
+        "mapping": {
+          "yes": "true",
+          "no": "false",
+          "Yes": "true",
+          "No": "false",
+          "YES": "true",
+          "NO": "false",
+          "Y": "true",
+          "N": "false",
+          "1": "true",
+          "0": "false",
+          "true": "true",
+          "false": "false"
+        },
+        "case": "lower",
+        "strip_whitespace": true,
+        "column": "Churn"
+      },
+      "rationale": "Boolean flag stored as text in 'Churn'",
+      "affected_rows": 7043,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-10-22T20:10:08.307984Z",
+      "approval_obtained": false,
+      "metadata": {}
+    },
+    {
+      "change_id": "eef9324b",
+      "step_id": "19b2179e",
+      "operation": "convert_data_types",
+      "columns": [
+        "Churn"
+      ],
+      "source_version": "V13",
+      "result_version": "V14",
+      "parameters": {
+        "target_type": "boolean",
+        "errors": "coerce",
+        "column": "Churn"
+      },
+      "rationale": "Cast normalized 'Churn' to boolean",
+      "affected_rows": 0,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-10-22T20:10:08.422835Z",
+      "approval_obtained": false,
+      "metadata": {}
+    }
+  ],
+  "created_at": "2026-10-22T20:10:06.331872Z"
+}

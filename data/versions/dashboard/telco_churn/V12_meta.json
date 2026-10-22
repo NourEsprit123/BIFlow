@@ -1,0 +1,38 @@
+{
+  "dataset_id": "telco_churn",
+  "version": "V12",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\telco_churn\\V12_transform.csv",
+  "format": "csv",
+  "row_count": 7043,
+  "column_count": 21,
+  "columns": [
+    "customerID",
+    "gender",
+    "SeniorCitizen",
+    "Partner",
+    "Dependents",
+    "tenure",
+    "PhoneService",
+    "MultipleLines",
+    "InternetService",
+    "OnlineSecurity",
+    "OnlineBackup",
+    "DeviceProtection",
+    "TechSupport",
+    "StreamingTV",
+    "StreamingMovies",
+    "Contract",
+    "PaperlessBilling",
+    "PaymentMethod",
+    "MonthlyCharges",
+    "TotalCharges",
+    "Churn"
+  ],
+  "created_at": "2026-10-22T20:10:08.146950Z",
+  "parent_version": "V11",
+  "status": "working",
+  "metadata": {
+    "agent1_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\telco_churn.csv",
+    "user_request": "Improve data quality for BI analysis while preserving the uploaded original."
+  }
+}

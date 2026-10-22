@@ -18,6 +18,7 @@ BIFLOW_SANDBOX_VERBOSE   1 to enable verbose session logs
 from __future__ import annotations
 
 import os
+import math
 import shutil
 import subprocess
 import sys
@@ -150,11 +151,11 @@ def _build_security_policy():
         return None
 
 
-def _open_session(backend: str):
+def _open_session(backend: str, timeout: Optional[float] = None):
     """Create an llm-sandbox SandboxSession for the given backend."""
     from llm_sandbox import SandboxSession
 
-    timeout = _timeout()
+    timeout = _timeout() if timeout is None else timeout
     verbose = _verbose()
     if backend in ("docker", "podman", "micromamba", "kubernetes"):
         return SandboxSession(
@@ -194,6 +195,7 @@ def run_code(
     libraries: Optional[List[str]] = None,
     backend: Optional[str] = None,
     check_safety: bool = True,
+    timeout: Optional[float] = None,
     input_files: Optional[Dict[Path, str]] = None,
     output_files: Optional[List[str]] = None,
     work_dir: Optional[Path] = None,
@@ -220,18 +222,22 @@ def run_code(
     """
     backend = backend or detect_backend()
     libraries = libraries or ["pandas", "numpy"]
+    timeout = _timeout() if timeout is None else timeout
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise ValueError("Sandbox timeout must be a positive finite number.")
 
     if backend == "fallback":
         return _run_fallback(
             code,
             libraries=libraries,
+            timeout=timeout,
             input_files=input_files,
             output_files=output_files,
             work_dir=work_dir,
         )
 
     try:
-        session = _open_session(backend)
+        session = _open_session(backend, timeout=timeout)
     except Exception as e:
         return SandboxResult(
             success=False,
@@ -385,6 +391,7 @@ def run_dataframe_transform(
 def _run_fallback(
     code: str,
     libraries: Optional[List[str]] = None,
+    timeout: Optional[float] = None,
     input_files: Optional[Dict[Path, str]] = None,
     output_files: Optional[List[str]] = None,
     work_dir: Optional[Path] = None,
@@ -393,6 +400,7 @@ def _run_fallback(
     Execute on the host in a subprocess. Use only when no real sandbox backend
     is available (CI / restricted environments). Marked clearly in results.
     """
+    timeout = _timeout() if timeout is None else timeout
     with tempfile.TemporaryDirectory(prefix="biflow_fallback_") as tmp:
         temp_dir = Path(tmp)
         script = temp_dir / "run.py"
@@ -425,7 +433,7 @@ def _run_fallback(
                 [sys.executable, str(script)],
                 capture_output=True,
                 text=True,
-                timeout=_timeout(),
+                timeout=timeout,
                 cwd=temp_dir,
             )
             retrieved: Dict[str, str] = {}
@@ -454,7 +462,7 @@ def _run_fallback(
             return SandboxResult(
                 success=False,
                 backend="fallback",
-                error=f"Timeout after {_timeout()}s",
+                error=f"Timeout after {timeout}s",
                 exit_code=-1,
             )
         except Exception as e:

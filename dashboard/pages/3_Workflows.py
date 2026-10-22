@@ -1,40 +1,142 @@
-from components import setup, page_header, btn, html, badge
+import streamlit as st
+
+from components import setup, page_header
+from workspace import (
+    CLEANING_STATE_KEY,
+    PROFILE_STATE_KEY,
+    load_selected_dataset,
+    profile_dataset_for_workspace,
+    clean_profiled_dataset,
+    analyze_dataframe,
+    load_dataset,
+    profiling_report_json,
+    get_workspace_result,
+    verify_profiling_report,
+)
 
 setup("Workflows")
-page_header("Create Analysis Workflow", "Configure autonomous multi-agent pipeline tasks and intelligence parameters for your dataset.",
-            badge("● Draft workflow", "gray"))
+page_header(
+    "Analysis Workflow",
+    "Run the profiling, quality, cleaning, and KPI tools against the active dataset.",
+    "Workspace › **Workflows**",
+)
 
-html('''<div class="bf-card" style="display:flex;gap:2rem;align-items:center;margin-bottom:1rem">
-  <b style="color:#4338ca">✔ Dataset</b> › <b>② Tasks</b> › <span style="color:#64748b">③ Preferences</span>
-  <span class="mono" style="margin-left:auto;font-size:.8rem">⏱ Estimated runtime: <b>2-4 min</b></span></div>''')
+path, frame = load_selected_dataset()
+if path is None or frame is None:
+    st.warning("Upload a dataset before creating a workflow.")
+    st.stop()
 
-tasks = [("Data Profiling", "Understand structure, data distributions, and column cardinality", "Core Agent", "~30 sec", 1),
-         ("Data Quality", "Detect missing, invalid, or duplicate records & anomalies", "Auditor", "~45 sec", 1),
-         ("Data Cleaning", "Standardize categorical values and impute sparse metrics", "ETL Agent", "Optional", 0),
-         ("KPI Analysis", "Calculate enterprise churn velocity, revenue risk, and LTV", "BI Engine", "~40 sec", 1),
-         ("Trend Analysis", "Reveal movement and temporal churn shifts across rolling cohorts", "Temporal", "Optional", 0),
-         ("Anomaly Detection", "Surface statistical outliers and abrupt churn pattern spikes", "ML Detector", "Optional", 0),
-         ("Segmentation", "Discover meaningful customer clusters based on service behavior", "Clustering", "Optional", 0),
-         ("AI Insights", "Generate actionable natural language business findings and trends", "LLM Analyst", "~50 sec", 1),
-         ("XAI / Audit", "Explain and trace every mathematical calculation and heuristic", "Transparency", "~30 sec", 1)]
-cards = "".join(f'''<div class="bf-task{" on" if on else ""}"><span class="chk"></span><span>⚙</span><h4>{t}</h4><p>{d}</p>
-  <span class="bf-badge gray mono">{a}</span> <small>{r}</small></div>''' for t, d, a, r, on in tasks)
+st.info(f"Active dataset: **{path.name}** · {len(frame):,} rows · {len(frame.columns)} columns")
 
-def section(n, title, sub, body):
-    return f'''<div style="display:grid;grid-template-columns:1fr 3fr;gap:1.5rem;margin-bottom:1.5rem">
-      <div><b style="background:#4338ca;color:#fff;border-radius:50%;padding:.1rem .5rem">{n}</b> <b>{title}</b><br><small style="color:#64748b">{sub}</small></div>
-      <div>{body}</div></div>'''
+st.subheader("Tasks")
+task_options = {
+    "Data profiling": True,
+    "Data quality audit": True,
+    "Data cleaning (versioned copy)": False,
+    "KPI analysis": True,
+    "Audit report verification": False,
+}
+selected = {
+    task: st.checkbox(task, value=default, key=f"workflow_task_{index}")
+    for index, (task, default) in enumerate(task_options.items())
+}
+explain = st.checkbox("Include agent reasoning in the run summary", value=True)
 
-dataset = '''<div class="bf-card" style="background:#eef2ff;display:flex;gap:1rem;align-items:center">🗄
-  <div><b>Telco Customer Churn</b> <span class="bf-badge blue">CSV Data Source</span><br><small>7,043 rows · 21 columns · <b style="color:#4338ca">Quality 94%</b></small></div>
-  <span style="margin-left:auto"><span class="bf-badge">Selected</span> <b style="color:#4338ca">Change ⇄</b></span></div>'''
-pref = lambda t, d, r: f'<div class="bf-card" style="margin-bottom:.7rem;display:flex;justify-content:space-between"><div><b>{t}</b><br><small>{d}</small></div>{r}</div>'
-prefs = (pref("Execution priority", "Standard balances speed and autonomous compute cluster usage.", btn("Standard") + btn("Fast"))
-         + pref("AI explanation", "Explain step-by-step how each business insight and metric was generated.", badge("ENABLED ●"))
-         + pref("Generate recommendations", "Add prescriptive strategic playbooks and actions to key findings.", badge("ENABLED ●")))
+saved_template = st.session_state.get("workflow_template")
+if saved_template:
+    st.caption(f"Saved template: {saved_template['name']} · {len(saved_template['tasks'])} tasks")
 
-html(section(1, "Select dataset", "Choose your data source", dataset))
-html(section(2, "Analysis tasks", "5 of 9 selected", f'<div class="bf-grid g2">{cards}</div>'))
-html(section(3, "Preferences", "Configure this run", prefs))
-html(f'''<div class="bf-card" style="display:flex;gap:1rem;align-items:center">{badge("5 tasks")} Telco Customer Churn · Explainability ON
-  <span style="margin-left:auto">Save as Template &nbsp; {btn("▷ Run BIFlow Pipeline", True)}</span></div>''')
+save_col, run_col = st.columns([1, 2])
+with save_col:
+    if st.button("Save as template"):
+        st.session_state["workflow_template"] = {
+            "name": f"{path.stem} workflow",
+            "tasks": [name for name, enabled in selected.items() if enabled],
+            "include_reasoning": explain,
+        }
+        st.success("Workflow settings saved for this session.")
+with run_col:
+    run_clicked = st.button(
+        "Run BIFlow Pipeline",
+        type="primary",
+        use_container_width=True,
+        disabled=not any(selected.values()),
+    )
+
+if run_clicked:
+    with st.status("Running selected workflow tasks...", expanded=True) as status:
+        profile_result = get_workspace_result(PROFILE_STATE_KEY, path)
+        if (
+            selected["Data profiling"]
+            or selected["Data quality audit"]
+            or selected["Audit report verification"]
+            or (selected["Data cleaning (versioned copy)"] and profile_result is None)
+        ):
+            st.write("Data Profiling Agent: inspecting the selected dataset...")
+            profile_result = profile_dataset_for_workspace(path, refresh=True)
+            st.write("Profiling and deterministic quality checks complete.")
+
+        if selected["Data cleaning (versioned copy)"]:
+            st.write("Data Cleaning Agent: creating a versioned working copy...")
+            cleaning_result = clean_profiled_dataset(path)
+            st.write(
+                f"Cleaning completed with {len(cleaning_result.change_log.successful_ops())} "
+                "successful transformation(s)."
+            )
+
+        if selected["KPI analysis"]:
+            analysis = analyze_dataframe(frame, path)
+            st.write(
+                f"BI Analyst: analyzed {analysis['rows']:,} rows, "
+                f"{analysis['numeric_columns']} numeric columns, and "
+                f"{analysis['categorical_columns']} categorical columns."
+            )
+
+        if selected["Audit report verification"]:
+            if profile_result is None:
+                st.warning("Run Data Profiling before verifying the audit report.")
+            else:
+                verification = verify_profiling_report(path, profile_result)
+                if verification["verified"]:
+                    st.write(f"XAI Auditor: report verified, SHA-256 {verification['sha256']}")
+                else:
+                    st.error(f"XAI Auditor: {verification['reason']}")
+
+        if explain and profile_result:
+            summary = profile_result["profiling_report"].get("agent_summary")
+            if summary:
+                st.write(summary)
+        status.update(label="Workflow finished", state="complete")
+
+profile_result = get_workspace_result(PROFILE_STATE_KEY, path)
+if profile_result:
+    report_bytes = profiling_report_json()
+    if report_bytes is None:
+        st.error("The profiling report is not available for download.")
+    else:
+        st.download_button(
+            "Download profiling report",
+            data=report_bytes,
+            file_name=f"{path.stem}_profiling_report.json",
+            mime="application/json",
+        )
+
+cleaning_result = get_workspace_result(CLEANING_STATE_KEY, path)
+if cleaning_result:
+    st.subheader("Latest cleaning run")
+    st.write(
+        f"{cleaning_result.final_dataset.version}: "
+        f"{len(cleaning_result.change_log.successful_ops())} successful change(s); "
+        f"validation {cleaning_result.validation.status.value}."
+    )
+    if cleaning_result.unresolved_issues:
+        st.warning("Some changes require review or approval.")
+        for issue in cleaning_result.unresolved_issues:
+            st.write(f"- {issue}")
+    cleaned = load_dataset(cleaning_result.final_dataset.path)
+    st.download_button(
+        "Download cleaned CSV",
+        data=cleaned.to_csv(index=False).encode("utf-8"),
+        file_name=f"{path.stem}_cleaned.csv",
+        mime="text/csv",
+    )

@@ -1,36 +1,74 @@
-from components import setup, page_header, btn, html, card, table, badge, bar
+from pathlib import Path
 
-from chat_widget import render_chat
-render_chat("Datasets")
+import pandas as pd
+import streamlit as st
+
+from components import setup, page_header
+from workspace import RAW_DATA, dataset_label, list_datasets, load_dataset, save_uploaded_dataset
 
 setup("Datasets")
-page_header("Datasets", "Manage, inspect, and streamline your business intelligence assets and data ingest pipelines.",
-            btn("⟳ Refresh") + btn("☁ + Upload dataset", True), "Workspace › <b>Datasets</b>")
+page_header(
+    "Datasets",
+    "Upload, select, and inspect the data files used by your BIFlow agents.",
+    crumbs="Workspace › <b>Datasets</b>",
+)
 
-def fmt(t): return f'<span class="mono" style="color:#166534;background:#dcfce7;padding:.1rem .4rem;border-radius:6px">{t}</span>'
-rows = [
-    ("Telco Customer Churn", "Added by Sarah Chen · Production", "CSV", "7,043", "21", 94, "#10b981", "Today, 12:43", badge("● Ready", "green")),
-    ("Sales Performance", "Added by Alex Mercer · Q3 Regional Sync", "XLSX", "25,430", "18", 91, "#10b981", "Yesterday", badge("● Ready", "green")),
-    ("Customer Transactions", "3 null schema collisions detected", "CSV", "54,820", "27", 87, "#f59e0b", "2 days ago", badge("● Needs attention", "amber")),
-    ("Marketing Campaigns", "Automated ingest from Ads Manager", "CSV", "12,904", "16", None, "", "Not analyzed", badge("● Processing", "blue")),
-    ("Product Catalog & Inventory", "PostgreSQL · Multi-region read replica", "SQL", "108,200", "34", 96, "#10b981", "3 days ago", badge("● Ready", "green")),
-]
-trs = [[f"<b>{n}</b><small>{d}</small>", fmt(f), r, c, (f"<b>{q}%</b> {bar(q, col)}" if q else "<i>— Auditing</i>"), la, s]
-       for n, d, f, r, c, q, col, la, s in rows]
+with st.expander("Upload a dataset", expanded=False):
+    uploaded = st.file_uploader(
+        "Choose a CSV, Excel, or Parquet file",
+        type=["csv", "xlsx", "xls", "parquet"],
+        key="dataset_upload",
+    )
+    if st.button("Import dataset", type="primary", disabled=uploaded is None):
+        if uploaded is not None:
+            destination = save_uploaded_dataset(uploaded)
+            st.session_state["workspace_new_dataset_path"] = str(destination)
+            st.success(f"Imported {destination.name}.")
+            st.rerun()
 
-filters = "".join(f'<span class="bf-chip{" on" if i == 0 else ""}">{t}</span>' for i, t in
-                  enumerate(["All 12", "● Ready 9", "● Needs attention 2", "● Processing 1"]))
-html(card(f'<div style="display:flex;gap:1rem;align-items:center"><div class="bf-search" style="flex:.7">🔍 Search datasets by title, tag, or owner<span>⌘ F</span></div><div>{filters}</div></div>'))
-html("<br>")
-html(card(table(["DATASET", "FORMAT", "ROWS", "COLUMNS", "QUALITY SCORE", "LAST ANALYSIS", "STATUS"], trs)
-          + '<div style="display:flex;justify-content:space-between;margin-top:1rem;color:#475569">Showing <b>5</b> of <b>12</b> datasets'
-            '<span><span class="bf-chip">Previous</span><span class="bf-chip on">1</span><span class="bf-chip">2</span><span class="bf-chip">Next</span></span></div>'))
-html("<br>")
-storage = f'''<div class="ch"><div><h3>Workspace storage</h3><div class="subt">Real-time analytical cache & blob storage limit</div></div>{badge("Healthy", "green")}</div>
-  <div style="font-size:2.2rem;font-weight:700">4.8 GB <small style="font-size:1rem;color:#64748b">/ 20 GB</small>
-  <span style="float:right;font-size:.9rem;color:#4338ca">24% capacity used</span></div>{bar(24, "#4f46e5")}
-  <p style="color:#64748b;font-size:.85rem">15.2 GB remaining <b style="float:right;color:#0f172a">Manage quota →</b></p>'''
-sources = f'''<div class="ch"><div><h3>Connected sources</h3><div class="subt">Active connections & streaming endpoints</div></div>{btn("+ Add source")}</div>
-  <div style="font-size:2.2rem;font-weight:700">3 active {badge("● All connectors synced", "blue")}</div>
-  <div class="bf-box" style="margin-top:.8rem">📄 CSV uploads · PostgreSQL · Google Sheets · Snow...</div>'''
-html(f'<div class="bf-grid g2">{card(storage)}{card(sources)}</div>')
+left, right = st.columns([3, 1])
+with left:
+    query = st.session_state.get("workspace_search_query", "").casefold()
+    st.caption(
+        f"Search filter: {query}" if query else "Use the Search datasets field in the top bar to filter."
+    )
+with right:
+    st.write("")
+    st.write("")
+    if st.button("Refresh list", use_container_width=True):
+        st.rerun()
+
+datasets = list_datasets()
+rows = []
+for path in datasets:
+    if query and query not in path.name.casefold():
+        continue
+    frame = load_dataset(str(path))
+    rows.append({
+        "Dataset": dataset_label(path),
+        "File": path.name,
+        "Format": path.suffix.lstrip(".").upper(),
+        "Rows": len(frame),
+        "Columns": len(frame.columns),
+        "Missing cells": int(frame.isna().sum().sum()),
+        "Size": f"{path.stat().st_size / 1024:,.1f} KB",
+        "Selected": str(path) == st.session_state.get("workspace_dataset_path"),
+    })
+
+if rows:
+    st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+    active = st.session_state.get("workspace_dataset_path")
+    if active:
+        st.caption(f"Active dataset: {Path(active).name}")
+else:
+    st.info("No matching datasets. Upload a CSV, Excel, or Parquet file to begin.")
+
+total_bytes = sum(path.stat().st_size for path in datasets)
+st.subheader("Local workspace")
+storage, sources = st.columns(2)
+with storage:
+    st.metric("Dataset files", len(datasets))
+    st.caption(f"{total_bytes / (1024 * 1024):,.2f} MB stored under `{RAW_DATA}`.")
+with sources:
+    st.metric("Available formats", ", ".join(sorted({p.suffix.lstrip(".").upper() for p in datasets})) or "None")
+    st.caption("Connected database and cloud connectors are not configured in this build.")

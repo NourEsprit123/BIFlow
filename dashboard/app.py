@@ -10,9 +10,13 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from auth import (
+    EmailConfigurationError,
+    EmailDeliveryError,
     UserAlreadyExistsError,
     authenticate_user,
     register_user,
+    request_password_reset,
+    reset_password,
     validate_email,
     validate_password,
 )
@@ -26,35 +30,42 @@ st.set_page_config(
     page_title="BIFlow · Your data, in focus",
     page_icon="📈",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 style.load_css()
 
 LANDING_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
-section[data-testid='stSidebar'],[data-testid='collapsedControl'],header[data-testid='stHeader']{display:none}
-.stApp{background:#070b1f;font-family:'Inter',sans-serif}
-.block-container{padding:0!important;max-width:100%!important}
+body:has(.bf2-hero) header[data-testid='stHeader']{display:none}
+body:has(.bf2-hero) section[data-testid='stSidebar'],
+body:has(.bf2-hero) section[data-testid='stSidebar'] [data-testid='stSidebarContent']{
+  background:#0b1020;border-right:1px solid rgba(255,255,255,.08)}
+.bf2-sidebar-brand{display:flex;align-items:center;gap:10px;padding:.6rem .4rem 1rem;color:#fff}
+.bf2-sidebar-brand .bf2-logo{width:38px;height:38px;font-size:1.1rem}
+.bf2-sidebar-brand b{display:block;color:#fff;font-size:1rem}
+.bf2-sidebar-brand small{display:block;color:#94a3b8;font-size:.6rem;letter-spacing:.1em}
+.stApp:has(.bf2-hero){background:#070b1f;font-family:'Inter',sans-serif}
+.block-container:has(.bf2-hero){padding:0!important;max-width:100%!important}
 
 /* ---------- Top bar (Streamlit buttons) ---------- */
-.block-container>div[data-testid="stHorizontalBlock"]:first-child{
+.block-container:has(.bf2-hero)>div[data-testid="stHorizontalBlock"]:first-child{
   position:sticky;top:0;z-index:50;min-height:76px;align-items:center;
   padding:14px clamp(1rem,5vw,4rem);
   background:rgba(7,11,31,.72)!important;backdrop-filter:blur(14px);
   border-bottom:1px solid rgba(255,255,255,.07)}
-.stButton button{border-radius:12px;font-weight:600;font-family:'Inter',sans-serif;transition:all .25s ease}
-.block-container>div[data-testid="stHorizontalBlock"]:first-child button[kind="secondary"],
-.block-container>div[data-testid="stHorizontalBlock"]:first-child button[kind="secondary"] p{
+.stApp:has(.bf2-hero) .stButton button{border-radius:12px;font-weight:600;font-family:'Inter',sans-serif;transition:all .25s ease}
+.block-container:has(.bf2-hero)>div[data-testid="stHorizontalBlock"]:first-child button[kind="secondary"],
+.block-container:has(.bf2-hero)>div[data-testid="stHorizontalBlock"]:first-child button[kind="secondary"] p{
   background:transparent!important;color:#e2e8f0!important;border-color:rgba(255,255,255,.18)!important}
-.block-container>div[data-testid="stHorizontalBlock"]:first-child button[kind="secondary"]:hover{
+.block-container:has(.bf2-hero)>div[data-testid="stHorizontalBlock"]:first-child button[kind="secondary"]:hover{
   border-color:#818cf8!important;background:rgba(129,140,248,.12)!important}
 .block-container>div[data-testid="stHorizontalBlock"]:first-child button[kind="primary"],
-.stButton button[kind="primary"]{
+.stApp:has(.bf2-hero) .stButton button[kind="primary"]{
   background:linear-gradient(135deg,#6366f1,#8b5cf6)!important;color:#fff!important;border:0!important;
   box-shadow:0 8px 24px rgba(99,102,241,.35)}
-.block-container>div[data-testid="stHorizontalBlock"]:first-child button[kind="primary"] p{color:#fff!important}
-.stButton button[kind="primary"]:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(99,102,241,.5)}
+.block-container:has(.bf2-hero)>div[data-testid="stHorizontalBlock"]:first-child button[kind="primary"] p{color:#fff!important}
+.stApp:has(.bf2-hero) .stButton button[kind="primary"]:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(99,102,241,.5)}
 
 /* ---------- Brand ---------- */
 .bf2-brand{display:flex;align-items:center;gap:12px}
@@ -173,7 +184,7 @@ section[data-testid='stSidebar'],[data-testid='collapsedControl'],header[data-te
   .bf2-features{padding:70px 24px 40px}.bf2-metrics{padding:0 24px}
   .bf2-cta{margin:60px 20px 20px}.bf2-foot{padding:20px 24px 32px}
   .bf2-card{transform:none}
-  .block-container>div[data-testid="stHorizontalBlock"]:first-child{padding:12px 16px}
+  .block-container:has(.bf2-hero)>div[data-testid="stHorizontalBlock"]:first-child{padding:12px 16px}
 }
 </style>
 """
@@ -191,6 +202,7 @@ def show_login_dialog():
             placeholder="you@company.com",
             help="Enter a valid email address.",
         )
+        email = email or ""
         password = st.text_input("Password", placeholder="Enter your password", type="password")
         submitted = st.form_submit_button(
             "Sign in to BIFlow", type="primary", use_container_width=True
@@ -205,8 +217,80 @@ def show_login_dialog():
             else:
                 st.session_state.pop("signup_complete", None)
                 st.session_state.pop("login_email_value", None)
+                st.session_state.pop("password_reset_complete", None)
                 st.session_state["authenticated_user"] = user
                 st.switch_page("pages/1_Overview.py")
+
+    if st.checkbox("Forgot your password?", key="show_password_reset"):
+        if st.session_state.get("password_reset_complete"):
+            st.success("Your password has been reset. Sign in with your new password.")
+        else:
+            with st.form("password_reset_request_form"):
+                reset_email = st.text_input(
+                    "Account email",
+                    value=st.session_state.get(
+                        "password_reset_email",
+                        st.session_state.get("login_email_value", ""),
+                    ),
+                    key="password_reset_email_input",
+                )
+                reset_email = reset_email or ""
+                reset_requested = st.form_submit_button(
+                    "Send reset code", use_container_width=True
+                )
+            if reset_requested:
+                try:
+                    request_password_reset(reset_email)
+                except (
+                    EmailConfigurationError,
+                    EmailDeliveryError,
+                    ValueError,
+                ) as error:
+                    st.error(str(error))
+                else:
+                    st.session_state["password_reset_email"] = reset_email.strip()
+                    st.success(
+                        "If an account exists for that address, a reset code has been sent."
+                    )
+
+            if "password_reset_email" in st.session_state:
+                with st.form("password_reset_complete_form"):
+                    reset_code = st.text_input("Six-digit reset code")
+                    new_password = st.text_input(
+                        "New password", type="password"
+                    )
+                    confirm_new_password = st.text_input(
+                        "Confirm new password", type="password"
+                    )
+                    reset_code = reset_code or ""
+                    new_password = new_password or ""
+                    confirm_new_password = confirm_new_password or ""
+                    reset_submitted = st.form_submit_button(
+                        "Reset password", use_container_width=True
+                    )
+                if reset_submitted:
+                    if new_password != confirm_new_password:
+                        st.error("The passwords do not match.")
+                    else:
+                        try:
+                            completed = reset_password(
+                                st.session_state["password_reset_email"],
+                                reset_code,
+                                new_password,
+                            )
+                        except ValueError as error:
+                            st.error(str(error))
+                        else:
+                            if completed:
+                                st.session_state["login_email_value"] = (
+                                    st.session_state.pop("password_reset_email")
+                                )
+                                st.session_state["password_reset_complete"] = True
+                                st.success(
+                                    "Your password has been reset. Sign in with your new password."
+                                )
+                            else:
+                                st.error("The reset code is invalid or expired.")
 
 
 @st.dialog("Create your BIFlow account")
@@ -252,6 +336,14 @@ def show_signup_dialog():
                 st.session_state["login_email_value"] = email.strip()
                 st.session_state["open_login_after_signup"] = True
                 st.rerun()
+
+
+with st.sidebar:
+    html("""<div class="bf2-sidebar-brand"><span class="bf2-logo">B</span>
+<span><b>BIFlow</b><small>YOUR DATA, IN FOCUS</small></span></div>""")
+    st.caption("Sign in to open your BIFlow workspace.")
+    if st.button("Sign in", use_container_width=True, key="sidebar_sign_in"):
+        show_login_dialog()
 
 
 # ---------- Top bar ----------

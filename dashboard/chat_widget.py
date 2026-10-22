@@ -11,15 +11,24 @@ from html import escape
 
 import streamlit as st
 import streamlit.components.v1 as components
+from workspace import (
+    CLEANING_STATE_KEY,
+    PROFILE_STATE_KEY,
+    analyze_dataframe,
+    get_workspace_result,
+    list_datasets,
+    load_selected_dataset,
+    quality_summary,
+)
 
 # Suggestions rapides affichées dans le chat selon la page
 SUGGESTIONS = {
-    "Overview": ["Summarize my workspace", "Which dataset needs attention?", "What are the top insights?"],
-    "Datasets": ["Which datasets need attention?", "How do I upload a dataset?", "What is the storage usage?"],
-    "Data Quality": ["Why is quality 94%?", "What does the cleaning rule do?", "Explain the TotalCharges issue"],
-    "BI Analysis": ["Why is churn at 26.5%?", "Which contract type is riskiest?", "Explain the pricing insight"],
-    "Audit & XAI": ["How was churn calculated?", "Is this result verified?", "Show the lineage"],
-    "Agent Operations": ["Are all agents healthy?", "Which agent is slowest?", "Any errors in the last 24h?"],
+    "Overview": ["Summarize the selected dataset", "What is its data quality score?", "How many missing values?"],
+    "Datasets": ["Which dataset is selected?", "How many local datasets are available?", "What formats can I upload?"],
+    "Data Quality": ["What is the quality score?", "How many duplicate rows?", "What cleaning result is available?"],
+    "BI Analysis": ["Summarize the selected dataset", "What is the churn rate?", "How many numeric columns?"],
+    "Audit & XAI": ["Is there a profiling report?", "What dataset does the report cover?", "What does the audit verify?"],
+    "Agent Operations": ["Which agents have run?", "What was the latest profiling result?", "How many clean changes were applied?"],
 }
 
 CHAT_CSS = """
@@ -141,30 +150,65 @@ try {
 """
 
 
-def generate_reply(question: str, page: str, user: dict) -> str:
-    """Réponse de démonstration basée sur des mots-clés.
+def generate_reply(question: str) -> str:
+    """Answer supported questions from the selected dataset and current agent results."""
+    path, frame = load_selected_dataset()
+    if path is None or frame is None:
+        return "Upload a CSV, Excel, or Parquet dataset before asking about data."
 
-    >>> Remplace le contenu de cette fonction pour brancher ton vrai LLM
-    >>> ou ton orchestration (orchestration/graph.py).
-    """
-    q = question.lower()
-    if "churn" in q:
-        return ("Churn is **26.5%** (1,869 of 7,043 customers). Month-to-month contracts are the strongest "
-                "risk driver, with a churn rate of 42.7% versus 11.3% for one-year contracts.")
-    if "quality" in q or "totalcharges" in q or "clean" in q:
-        return ("The quality score is **94%**. Two medium issues remain on `TotalCharges`: an incorrect data type "
-                "and 11 empty values. BIFlow recommends converting it to numeric and treating blanks as missing.")
-    if "dataset" in q or "upload" in q or "storage" in q:
-        return ("You have **12 datasets** and use **4.8 GB of 20 GB**. *Customer Transactions* needs attention "
-                "because of 3 null schema collisions.")
-    if "agent" in q or "latency" in q or "slow" in q or "error" in q or "health" in q:
-        return ("All **4 agents** are operational (99.94% health). The slowest is the BI Analyst agent at 520 ms. "
-                "There were 0 fatal exceptions in the last 24 hours.")
-    if "verify" in q or "lineage" in q or "audit" in q or "calculated" in q:
-        return ("Run **#BF-2026-0284** is verified. The XAI Auditor confirmed the calculation was reproducible "
-                "and that no sensitive fields were exposed.")
-    return (f"I'm your BIFlow assistant on the **{page}** page. Ask me about your datasets, data quality, "
-            "business insights, audit trail or agent health.")
+    query = question.casefold()
+    if any(term in query for term in ("dataset", "upload", "format", "available", "workspace")):
+        names = ", ".join(dataset.name for dataset in list_datasets())
+        return (
+            f"The selected dataset is `{path.name}`. "
+            f"There are {len(list_datasets())} supported local dataset(s): {names or 'none'}."
+        )
+    if any(term in query for term in ("quality", "missing", "duplicate", "clean", "issue")):
+        quality = quality_summary(frame)
+        answer = (
+            f"`{path.name}` has a data quality score of **{quality['overall_health_score']}%**, "
+            f"{quality['missing_info']['total_missing_cells']:,} missing values, "
+            f"{quality['duplicate_info']['count']:,} duplicate rows, and "
+            f"{len(quality['type_issues'])} detected type/identifier issue(s)."
+        )
+        cleaning = get_workspace_result(CLEANING_STATE_KEY, path)
+        if cleaning:
+            answer += (
+                f" The latest cleaning run applied {len(cleaning.change_log.successful_ops())} "
+                "successful change(s) to a versioned copy."
+            )
+        return answer
+    if any(term in query for term in ("churn", "kpi", "analysis", "summarize", "numeric")):
+        analysis = analyze_dataframe(frame, path)
+        answer = (
+            f"`{path.name}` contains {analysis['rows']:,} rows, {analysis['columns']} columns, "
+            f"{analysis['numeric_columns']} numeric columns, and "
+            f"{analysis['categorical_columns']} categorical columns."
+        )
+        if analysis["churn_rate"] is not None:
+            answer += (
+                f" The measured churn rate is {analysis['churn_rate']:.2f}% "
+                f"({analysis['churn_count']:,} positive records)."
+            )
+        elif "churn" in query:
+            answer += " It has no Churn or Is_Churn column, so churn rate is not available."
+        return answer
+    if any(term in query for term in ("agent", "profile", "audit", "verify", "lineage")):
+        profile = get_workspace_result(PROFILE_STATE_KEY, path)
+        if profile:
+            report = profile["profiling_report"]
+            return (
+                f"A profiling report exists for `{path.name}`. "
+                f"It covers {profile['profile']['rows']:,} rows and "
+                f"{profile['profile']['columns']} columns. "
+                f"Summary: {report.get('agent_summary', 'No narrative summary was generated.')}"
+            )
+        return "No profiling report exists for the selected dataset yet. Run the Data Profiling Agent first."
+    return (
+        f"I can report measured statistics for `{path.name}`, its quality checks, "
+        "profiling report, and completed cleaning run. This assistant uses local deterministic "
+        "answers; it is not connected to an LLM."
+    )
 
 
 def _format(text: str) -> str:
@@ -257,14 +301,14 @@ def render_chat(page: str) -> None:
                     )
                 with send_col:
                     sent = st.form_submit_button("➤")
-            st.markdown('<div class="bfc-foot">Powered by BIFlow agents · Demo responses</div>',
+            st.markdown('<div class="bfc-foot">Data-aware local responses · no external LLM</div>',
                         unsafe_allow_html=True)
 
         question = pending or (text.strip() if sent else "")
         if question:
             now = datetime.now().strftime("%H:%M")
             history.append({"role": "user", "content": question, "time": now})
-            history.append({"role": "assistant", "content": generate_reply(question, page, user), "time": now})
+            history.append({"role": "assistant", "content": generate_reply(question), "time": now})
 
         with messages_box:
             last_index = len(history) - 1

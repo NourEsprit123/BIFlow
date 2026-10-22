@@ -1,33 +1,111 @@
-from components import setup, page_header, btn, html, kpi, grid, card, table, badge, bar, donut, columns_chart
+import pandas as pd
+import streamlit as st
 
-from chat_widget import render_chat
-render_chat("Datasets")
+from components import setup, page_header
+from workspace import (
+    CLEANING_STATE_KEY,
+    PROFILE_STATE_KEY,
+    clean_profiled_dataset,
+    cross_column_issues,
+    get_workspace_result,
+    load_selected_dataset,
+    profile_dataset_for_workspace,
+    quality_summary,
+)
 
 setup("Data Quality")
-page_header("Data Quality", "Monitor, understand, and improve the reliability of Telco Customer Churn.",
-            btn("✨ Apply recommended cleaning", True), "Telco Customer Churn › <b>Data Quality</b>")
+page_header(
+    "Data Quality",
+    "Run measurable quality checks against the selected dataset and review cleaning results.",
+    "Workspace › **Data Quality**",
+)
 
-html(grid([kpi("Quality Score", "94%", "● Excellent data health", "🛡"),
-           kpi("Missing Values", "11", "0.16% of total cells", "⚠", "blue", "gray"),
-           kpi("Duplicates", "0", "● No duplicates found", "⧉", "blue"),
-           kpi("Type Issues", "1", "1 column: TotalCharges", "{}")], "g4"))
+path, frame = load_selected_dataset()
+if path is None or frame is None:
+    st.warning("Upload a dataset before running data quality checks.")
+    st.stop()
 
-dims = [("Completeness", 99.8, "#38bdf8"), ("Validity", 98.6, "#4f46e5"), ("Uniqueness", 100, "#075985"), ("Consistency", 89.4, "#6d28d9")]
-dim_html = "".join(f'<div style="margin-bottom:1rem"><div style="display:flex;justify-content:space-between"><span>{n}</span><span class="mono">{v}%</span></div>{bar(v, c)}</div>' for n, v, c in dims)
-overview = card(f'<div style="display:flex;gap:2rem;align-items:center">{donut(94, "#4f46e5", size=190)}<div style="flex:1">{dim_html}</div></div>',
-                "Quality overview", "Weighted health score across four primary quality dimensions.")
-severity = card(columns_chart([20, 100, 18], ["Low", "Medium", "High"], ["#dbeafe", "#38bdf8", "#dbeafe"], 150)
-                + f'<div style="display:flex;gap:.4rem;margin-top:1rem">{badge("High · 0", "red")}{badge("Medium · 2", "blue")}{badge("Low · 0", "gray")}</div>',
-                "Issues by severity", "2 actionable issues detected.")
-html(f'<div class="bf-grid g21">{overview}{severity}</div>')
+st.caption(f"Dataset: {path.name} · {len(frame):,} rows × {len(frame.columns)} columns")
+run_col, clean_col = st.columns(2)
+with run_col:
+    if st.button("Run quality audit", type="primary", use_container_width=True):
+        result = profile_dataset_for_workspace(path, refresh=True)
+        st.success(
+            f"Profiling and quality audit finished. Report created for "
+            f"{result['profile']['rows']:,} rows."
+        )
+with clean_col:
+    if st.button("Run safe cleaning", use_container_width=True):
+        cleaning = clean_profiled_dataset(path)
+        st.success(
+            f"Cleaning finished in {cleaning.final_dataset.version}; "
+            f"{len(cleaning.change_log.successful_ops())} changes applied to a working copy."
+        )
 
-issues = table(["SEVERITY", "COLUMN", "ISSUE", "DETECTED VALUES", "RECOMMENDATION"], [
-    [badge("● Medium", "blue"), "<span class='mono'>TotalCharges</span>", "Incorrect data type", "99.84% numeric-compatible values", "Convert to numeric (<code>Float64</code>) ›"],
-    [badge("● Medium", "blue"), "<span class='mono'>TotalCharges</span>", "Empty values", "11 blank entries", "Impute with column median / treat as missing ›"]])
-html(card(issues, "Detected issues", "Review each issue and apply the recommended remediation.",
-          f'<div>{badge("All · 2")} {badge("High · 0", "gray")} {badge("Medium · 2", "gray")} {badge("Low · 0", "gray")}</div>'))
-html("<br>")
-html(f'''<div class="bf-card" style="background:#eef2ff;display:flex;gap:1rem;align-items:center">🪄
-  <div style="flex:1"><b style="font-size:1.1rem">BIFlow recommends one safe cleaning rule</b> {badge("AI Profiler")}<br>
-  Convert <code>TotalCharges</code> to numeric and treat 11 empty values as missing. Your original dataset will be preserved.</div>
-  {btn("Preview changes")} {btn("✨ Apply recommended cleaning", True)}</div>''')
+health = quality_summary(frame)
+missing = health["missing_info"]
+duplicates = health["duplicate_info"]
+issues = health["type_issues"]
+cols = st.columns(4)
+cols[0].metric("Health score", f"{health['overall_health_score']}%")
+cols[1].metric("Missing values", int(missing["total_missing_cells"]))
+cols[2].metric("Duplicate rows", int(duplicates["count"]))
+cols[3].metric("Type issues", len(issues))
+
+dimensions = pd.DataFrame(
+    [
+        {"Dimension": "Completeness", "Score": health["completeness"]},
+        {"Dimension": "Validity", "Score": health["validity"]},
+        {"Dimension": "Uniqueness", "Score": health["uniqueness"]},
+        {"Dimension": "Consistency", "Score": health["consistency"]},
+    ]
+)
+st.subheader("Quality dimensions")
+st.bar_chart(dimensions.set_index("Dimension"))
+
+issue_rows = []
+for column, count in missing["columns"].items():
+    if count:
+        issue_rows.append({
+            "Column": str(column),
+            "Issue": "Missing values",
+            "Count": int(count),
+            "Recommendation": "Review the profiling report and cleaning plan.",
+        })
+for column, details in issues.items():
+    issue_rows.append({
+        "Column": str(column),
+        "Issue": details.get("issue", "Type mismatch") if isinstance(details, dict) else "Type mismatch",
+        "Count": details.get("count", "—") if isinstance(details, dict) else "—",
+        "Recommendation": "Review the profiling report and cleaning plan.",
+    })
+for item in cross_column_issues(frame):
+    issue_rows.append({
+        "Column": ", ".join(map(str, item.get("columns", []))) or "Multiple columns",
+        "Issue": item.get("issue", "Cross-column check"),
+        "Count": item.get("count", "—"),
+        "Recommendation": item.get("recommendation", "Investigate related values."),
+    })
+
+st.subheader("Detected issues")
+if issue_rows:
+    st.dataframe(pd.DataFrame(issue_rows), hide_index=True, use_container_width=True)
+else:
+    st.success("No missing-value, type, duplicate-row, or supported cross-column issues detected.")
+
+profile_result = get_workspace_result(PROFILE_STATE_KEY, path)
+if profile_result:
+    report = profile_result["profiling_report"]
+    with st.expander("Profiling agent findings"):
+        st.write(report.get("agent_summary", "No narrative summary was produced."))
+        st.json(report.get("recommended_cleaning_order", []))
+
+cleaning = get_workspace_result(CLEANING_STATE_KEY, path)
+if cleaning:
+    st.subheader("Latest cleaning validation")
+    st.write(f"Version: {cleaning.final_dataset.version}")
+    st.write(f"Validation: {cleaning.validation.status.value}")
+    if cleaning.unresolved_issues:
+        st.warning("The cleaner left items unresolved for review.")
+        for issue in cleaning.unresolved_issues:
+            st.write(f"- {issue}")
