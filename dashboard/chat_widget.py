@@ -5,19 +5,27 @@ Utilisation, à la fin de chaque page :
     from chat_widget import render_chat
     render_chat("Datasets")
 """
+import os
 import re
 from datetime import datetime
 from html import escape
 
 import streamlit as st
 import streamlit.components.v1 as components
+from dotenv import load_dotenv
+from groq import Groq
+from pathlib import Path
+
+# Chargement de l'environnement
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+load_dotenv(PROJECT_ROOT / ".env")
 
 # Suggestions rapides affichées dans le chat selon la page
 SUGGESTIONS = {
     "Overview": ["Summarize my workspace", "Which dataset needs attention?", "What are the top insights?"],
     "Datasets": ["Which datasets need attention?", "How do I upload a dataset?", "What is the storage usage?"],
     "Data Quality": ["Why is quality 94%?", "What does the cleaning rule do?", "Explain the TotalCharges issue"],
-    "BI Analysis": ["Why is churn at 26.5%?", "Which contract type is riskiest?", "Explain the pricing insight"],
+    "BI Analysis": ["Why is churn at 26.5%?", "Quelles sont les recommandations stratégiques ?", "Explique-moi les KPI principaux"],
     "Audit & XAI": ["How was churn calculated?", "Is this result verified?", "Show the lineage"],
     "Agent Operations": ["Are all agents healthy?", "Which agent is slowest?", "Any errors in the last 24h?"],
 }
@@ -125,7 +133,6 @@ CHAT_CSS = """
 </style>
 """
 
-# Fait défiler la zone de messages vers le bas (best effort : sans effet si la structure change)
 SCROLL_JS = """
 <script>
 try {
@@ -140,35 +147,42 @@ try {
 </script>
 """
 
-
 def generate_reply(question: str, page: str, user: dict) -> str:
-    """Réponse de démonstration basée sur des mots-clés.
+    """Génère une réponse dynamique en utilisant l'API Groq et le rapport BI de la session."""
+    api_key = os.environ.get("GROQ_API_KEY")
+    if not api_key:
+        return "⚠️ Clé API Groq introuvable dans le fichier `.env`."
 
-    >>> Remplace le contenu de cette fonction pour brancher ton vrai LLM
-    >>> ou ton orchestration (orchestration/graph.py).
-    """
-    q = question.lower()
-    if "churn" in q:
-        return ("Churn is **26.5%** (1,869 of 7,043 customers). Month-to-month contracts are the strongest "
-                "risk driver, with a churn rate of 42.7% versus 11.3% for one-year contracts.")
-    if "quality" in q or "totalcharges" in q or "clean" in q:
-        return ("The quality score is **94%**. Two medium issues remain on `TotalCharges`: an incorrect data type "
-                "and 11 empty values. BIFlow recommends converting it to numeric and treating blanks as missing.")
-    if "dataset" in q or "upload" in q or "storage" in q:
-        return ("You have **12 datasets** and use **4.8 GB of 20 GB**. *Customer Transactions* needs attention "
-                "because of 3 null schema collisions.")
-    if "agent" in q or "latency" in q or "slow" in q or "error" in q or "health" in q:
-        return ("All **4 agents** are operational (99.94% health). The slowest is the BI Analyst agent at 520 ms. "
-                "There were 0 fatal exceptions in the last 24 hours.")
-    if "verify" in q or "lineage" in q or "audit" in q or "calculated" in q:
-        return ("Run **#BF-2026-0284** is verified. The XAI Auditor confirmed the calculation was reproducible "
-                "and that no sensitive fields were exposed.")
-    return (f"I'm your BIFlow assistant on the **{page}** page. Ask me about your datasets, data quality, "
-            "business insights, audit trail or agent health.")
+    try:
+        client = Groq(api_key=api_key)
+        
+        # Récupération du rapport BI généré sur la page s'il existe
+        bi_report = st.session_state.get("current_bi_report", "Aucun rapport spécifique n'a encore été généré.")
+
+        system_prompt = f"""
+        Tu es l'assistant virtuel expert de la plateforme BIFlow sur la page '{page}'.
+        Tu aides l'utilisateur à comprendre ses données, ses analyses et ses KPIs.
+        
+        Voici le contexte du rapport BI de la session actuelle :
+        {bi_report}
+        
+        Réponds de manière précise, utile et professionnelle en français, en t'appuyant sur ce contexte si la question concerne l'analyse.
+        """
+
+        response = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question}
+            ],
+            model="openai/gpt-oss-120b", # ou un autre modèle actif supporté
+            temperature=0.3
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Erreur de communication avec l'assistant IA : {e}"
 
 
 def _format(text: str) -> str:
-    """Convertit un mini-markdown (gras, italique, code) en HTML sûr."""
     safe = escape(text)
     safe = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", safe)
     safe = re.sub(r"`(.+?)`", r"<code>\1</code>", safe)
@@ -214,13 +228,11 @@ def render_chat(page: str) -> None:
 
     st.markdown(CHAT_CSS, unsafe_allow_html=True)
 
-    # ---------- Chat fermé : simple bouton flottant ----------
     if not st.session_state.get("bf_chat_open", False):
         with st.container(key="bf_chat_fab"):
             st.button("💬 Ask BIFlow", key="bf_chat_open_btn", on_click=_open_chat)
         return
 
-    # ---------- Chat ouvert ----------
     with st.container(key="bf_chat_panel"):
         st.markdown(
             f'<div class="bfc-head"><span class="av">✨</span>'
@@ -234,7 +246,6 @@ def render_chat(page: str) -> None:
                 st.button("🗑", key="bf_chat_clear_btn", on_click=_clear_chat, args=(history_key,),
                           help="Clear conversation")
 
-        # Zone des messages (remplie après le traitement de la nouvelle question)
         messages_box = st.container(height=310, border=False, key="bf_chat_msgs")
 
         pending = None
@@ -257,7 +268,7 @@ def render_chat(page: str) -> None:
                     )
                 with send_col:
                     sent = st.form_submit_button("➤")
-            st.markdown('<div class="bfc-foot">Powered by BIFlow agents · Demo responses</div>',
+            st.markdown('<div class="bfc-foot">Powered by BIFlow agents · Groq API</div>',
                         unsafe_allow_html=True)
 
         question = pending or (text.strip() if sent else "")

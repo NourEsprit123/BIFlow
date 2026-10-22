@@ -1,46 +1,226 @@
-from components import setup, page_header, btn, html, kpi, grid, card, badge, bar, donut, columns_chart, svg_line
+import os
+import sys
+import json
+import re
+from pathlib import Path
+import pandas as pd
+import streamlit as st
+import plotly.express as px
+from dotenv import load_dotenv
 
+# Gestion des chemins (monte de 2 niveaux pour atteindre la racine BIFlow)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+load_dotenv(PROJECT_ROOT / ".env")
+
+from agents.bi_analyst_agent import BIAnalystAgent
+from components import setup, page_header, btn, html, kpi, grid, card, badge, bar, donut, columns_chart, svg_line
 from chat_widget import render_chat
-render_chat("Datasets")
+
+# Connexion du widget de chat flottant
+render_chat("BI Analysis")
 
 setup("BI Analysis")
-page_header("Business Intelligence Analysis", "Turn your data into actionable insights.",
-            btn("⭳ Export report") + btn("✨ Create workflow", True), "Telco Customer Churn / <b>Analysis</b>")
+page_header(
+    "Business Intelligence Analysis", 
+    "Turn your data into actionable insights with AI.",
+    btn("⭳ Export report") + btn("✨ Create workflow", True), 
+    "Dynamic BI / <b>AI Analysis</b>"
+)
 
-html(f'''<div class="bf-card" style="background:#eef2ff;display:flex;gap:1rem;align-items:center;margin-bottom:1rem">🗄
-  <small style="color:#4338ca"><b>ACTIVE DATASET</b></small> <b>Telco Customer Churn</b> · 7,043 customers · Analysis completed today at 12:46
+# --- 1. Sélection ou Importation du Dataset ---
+st.sidebar.markdown("### 🗄 Source de Données")
+data_dir = PROJECT_ROOT / "data"
+available_csvs = []
+if data_dir.exists():
+    available_csvs = [p.relative_to(PROJECT_ROOT) for p in data_dir.glob("**/*.csv")]
+
+source_mode = st.sidebar.radio("Mode de sélection", ["📁 Choisir un dataset existant", "📤 Uploader un nouveau CSV"])
+
+df = None
+dataset_name = ""
+
+if source_mode == "📁 Choisir un dataset existant":
+    if available_csvs:
+        csv_options = {str(p): p for p in available_csvs}
+        selected_path_str = st.sidebar.selectbox("Sélectionner un fichier", list(csv_options.keys()))
+        if selected_path_str:
+            full_path = PROJECT_ROOT / csv_options[selected_path_str]
+            try:
+                df = pd.read_csv(full_path)
+                dataset_name = full_path.name
+            except Exception as e:
+                st.sidebar.error(f"Erreur de lecture du fichier : {e}")
+    else:
+        st.sidebar.warning("Aucun fichier CSV trouvé dans le dossier `data/`.")
+else:
+    uploaded_file = st.sidebar.file_uploader("📂 Importer un fichier CSV", type=["csv"])
+    if uploaded_file is not None:
+        df = pd.read_csv(uploaded_file)
+        dataset_name = uploaded_file.name
+
+if df is None:
+    st.warning("⚠️ Veuillez sélectionner un dataset existant ou en importer un via la barre latérale pour lancer l'analyse.")
+    st.stop()
+
+# --- 2. En-tête de Statut du Dataset ---
+html(f'''<div class="bf-card" style="background:linear-gradient(135deg, #eef2ff, #f8faff); border: 1px solid #c7d2fe; display:flex; gap:1rem; align-items:center; margin-bottom:1.5rem; border-radius: 16px; padding: 1rem 1.25rem;">🗄
+  <small style="color:#4338ca; font-weight: 700;">ACTIVE DATASET</small> <b style="color: #1e1b4b;">{dataset_name}</b> <span style="color:#64748b">·</span> {df.shape[0]:,} lignes <span style="color:#64748b">·</span> {df.shape[1]} colonnes
   <span style="margin-left:auto">{badge("● Results ready", "blue")}</span></div>''')
 
-html(grid([kpi("Customers", "7,043", "Complete population", "👥"), kpi("Churn Rate", "26.5%", "1,869 customers", "👤", "red", "red"),
-           kpi("Average Monthly Charges", "$64.76", "Median $70.35", "💵"), kpi("Average Tenure", "32.4 months", "Range 0–72 months", "📅", "blue", "gray")], "g4"))
 
-churn = card(f'''<div style="display:flex;gap:2rem;align-items:center">{donut(26.5, "#4f46e5", size=130)}
-  <div style="flex:1"><p>○ Retained <b style="float:right">5,174</b><br><small>73.5%</small></p>
-  <p style="color:#4f46e5">● Churned <b style="float:right;color:#0f172a">1,869</b><br><small style="color:#b91c1c">26.5%</small></p></div></div>
-  <div class="bf-box" style="margin-top:1rem">Target benchmark: &lt; 20.0% <b style="float:right;color:#b91c1c">+6.5% variance</b></div>''',
-             "Churn distribution", "Customer share by churn status")
-contract = card(columns_chart([100, 48, 22], ["Month-to-month<br>3,875 users", "One year<br>1,473 users", "Two year<br>1,695 users"],
-                              ["#ddd6fe", "#e9d5ff", "#3730a3"], 150)
-                + '<div class="bf-box" style="margin-top:2rem">ⓘ Switching customers to 1-year commitments reduces predicted attrition by 73.5%.</div>',
-                "Churn by contract type", "Month-to-month is the strongest risk driver", badge("Critical Impact", "red"))
-html(f'<div class="bf-grid g12">{churn}{contract}</div>')
+# --- 3. Analyse Dynamique via l'Agent Groq ---
+with st.spinner(f"🤖 L'Agent BI Analyst analyse '{dataset_name}' et extrait les KPI dynamiques..."):
+    try:
+        agent = BIAnalystAgent()
+        full_response = agent.analyze(df)
+        
+        chart_config = {"kpis": [], "recommended_charts": []}
+        json_match = re.search(r'```(?:json)?\s*(.*?)\s*```', full_response, re.DOTALL)
+        if json_match:
+            try:
+                chart_config = json.loads(json_match.group(1))
+            except:
+                pass
+        
+        ai_analysis_report = re.sub(r'```(?:json)?.*?\s*```', '', full_response, flags=re.DOTALL).strip()
+
+        st.session_state["current_bi_report"] = ai_analysis_report
+        st.session_state["current_chart_config"] = chart_config
+        
+    except Exception as e:
+        st.error(f"Erreur lors de l'appel à l'API Groq : {e}")
+        ai_analysis_report = "Impossible de générer l'analyse pour le moment."
+        chart_config = {"kpis": [], "recommended_charts": []}
+
+
+# --- 4. Affichage des KPIs Dynamiques décidés par l'IA (avec Fallback Python) ---
+ai_kpis = chart_config.get("kpis", [])
+
+# Fallback statistique calculé par Python si l'IA n'a pas renvoyé assez de KPIs
+num_cols = list(df.select_dtypes(include=['number']).columns)
+cat_cols = list(df.select_dtypes(include=['object', 'category']).columns)
+
+default_kpis = [
+    {"title": "Volume Lignes", "value": f"{df.shape[0]:,}", "subtitle": "Enregistrements totaux"},
+    {"title": f"Moy. ({num_cols[0][:8]})" if num_cols else "Variables", "value": f"{df[num_cols[0]].mean():.2f}" if num_cols else str(df.shape[1]), "subtitle": "Indicateur moyen"},
+    {"title": f"Max ({num_cols[0][:8]})" if num_cols else "Colonnes", "value": f"{df[num_cols[0]].max():.2f}" if num_cols else str(df.shape[1]), "subtitle": "Pic maximal"},
+    {"title": f"Uniques ({cat_cols[0][:8]})" if cat_cols else "Dataset", "value": f"{df[cat_cols[0]].nunique():,}" if cat_cols else dataset_name[:12], "subtitle": "Catégories distinctes"}
+]
+
+while len(ai_kpis) < 4:
+    ai_kpis.append(default_kpis[len(ai_kpis)])
 
 html(grid([
-    card(columns_chart([30, 50, 85, 95, 80, 45, 25], ["$20", "$35", "$50", "$65", "$80", "$95", "$110"],
-                       ["#38bdf8"] * 6 + ["#075985"], 130), "Monthly charges distribution", "Customer frequency across price bands"),
-    card(svg_line("M0,70 C40,60 70,35 110,40 C150,45 170,38 200,22 L260,8"), "Customer tenure distribution", "Concentration across lifecycle stages"),
-    card(svg_line("M0,75 C50,70 80,45 130,40 C180,35 210,20 260,10"), "Churn trend", "Rolling churn rate across 12 months"),
-], "g3"))
+    kpi(ai_kpis[0].get("title", "KPI 1"), str(ai_kpis[0].get("value", "-")), ai_kpis[0].get("subtitle", ""), "📊"), 
+    kpi(ai_kpis[1].get("title", "KPI 2"), str(ai_kpis[1].get("value", "-")), ai_kpis[1].get("subtitle", ""), "📈", "blue", "gray"),
+    kpi(ai_kpis[2].get("title", "KPI 3"), str(ai_kpis[2].get("value", "-")), ai_kpis[2].get("subtitle", ""), "⚡"), 
+    kpi(ai_kpis[3].get("title", "KPI 4"), str(ai_kpis[3].get("value", "-")), ai_kpis[3].get("subtitle", ""), "🏷️", "blue", "gray")
+], "g4"))
 
-def insight(tag, title, text, conf):
-    return f'''<div class="bf-card"><span class="bf-badge blue" style="float:right">● {conf}% confidence</span>
-      <small style="color:#4338ca"><b>{tag}</b></small><h3 style="font-size:1.1rem;margin:.5rem 0">{title}</h3>
-      <p style="color:#64748b;font-size:.85rem">{text}</p>Confidence <b style="float:right">{conf}%</b>{bar(conf, "#075985")}
-      <div class="bf-box" style="text-align:center;margin-top:1rem;color:#4338ca">✨ Explain</div></div>'''
 
-html(f'<div style="display:flex;justify-content:space-between"><h2>AI Insights</h2>{badge("3 high-confidence insights")}</div>')
-html(grid([
-    insight("CONTRACT RISK", "Customers on month-to-month contracts show a higher churn rate.", "Their churn rate is 42.7%, compared with 11.3% for one-year contracts and 2.8% for two-year terms.", 94),
-    insight("PRICING PRESSURE", "Customers with higher monthly charges show increased churn risk.", "Churn probability rises markedly above $75 in monthly charges, especially when bundled with fiber optic add-ons.", 89),
-    insight("TENURE LOYALTY", "Longer-tenure customers are significantly less likely to churn.", "Customers with tenure over 48 months demonstrate the highest retention stability at &lt;4.2% historical attrition.", 91),
-], "g3"))
+# --- Fonction utilitaire pour trouver une colonne de manière intelligente (Fuzzy Matching) ---
+def find_best_column(col_name, available_cols):
+    if not col_name:
+        return None
+    if col_name in available_cols:
+        return col_name
+    for c in available_cols:
+        if c.lower() == col_name.lower():
+            return c
+    for c in available_cols:
+        if col_name.lower() in c.lower() or c.lower() in col_name.lower():
+            return c
+    return None
+
+
+# --- 5. Rendu Automatique et Robuste des Graphiques ---
+st.markdown("---")
+st.markdown("### 📈 Tableaux de Bord Générés par l'IA")
+st.markdown("<small style='color: #64748b;'>L'Agent BI a analysé la structure des données et sélectionné les visualisations pertinentes ci-dessous :</small>", unsafe_allow_html=True)
+
+charts = chart_config.get("recommended_charts", [])
+
+if not charts and cat_cols and num_cols:
+    charts = [
+        {"title": f"Répartition de {cat_cols[0]}", "type": "pie", "column_x": cat_cols[0], "column_y": None},
+        {"title": f"Distribution de {num_cols[0]}", "type": "histogram", "column_x": num_cols[0], "column_y": None}
+    ]
+
+if charts:
+    cols = st.columns(2)
+    for i, chart in enumerate(charts):
+        c_title = chart.get("title", "Analyse")
+        c_type = chart.get("type", "bar")
+        
+        c_x = find_best_column(chart.get("column_x"), df.columns)
+        c_y = find_best_column(chart.get("column_y"), df.columns)
+
+        if not c_x:
+            c_x = cat_cols[0] if cat_cols else (num_cols[0] if num_cols else df.columns[0])
+
+        with cols[i % 2]:
+            st.markdown(f"<div style='background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:1rem; margin-bottom:1.0rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);'>", unsafe_allow_html=True)
+            try:
+                if c_type == "pie":
+                    data_pie = df[c_x].value_counts().reset_index()
+                    data_pie.columns = [c_x, 'Count']
+                    fig = px.pie(data_pie.head(10), names=c_x, values='Count', title=c_title, hole=0.4, color_discrete_sequence=px.colors.sequential.Purp_r)
+                    fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(t=40, b=20, l=20, r=20))
+                    st.plotly_chart(fig, use_container_width=True)
+
+                elif c_type == "bar":
+                    if c_y and c_y in df.columns and df[c_y].dtype in ['int64', 'float64']:
+                        agg_df = df.groupby(c_x, observed=False)[c_y].mean().reset_index()
+                        fig = px.bar(agg_df.head(15), x=c_x, y=c_y, title=c_title, color_discrete_sequence=["#6366f1"])
+                    else:
+                        data_bar = df[c_x].value_counts().reset_index()
+                        data_bar.columns = [c_x, 'Count']
+                        fig = px.bar(data_bar.head(15), x=c_x, y='Count', title=c_title, color_discrete_sequence=["#6366f1"])
+                    fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(t=40, b=20, l=20, r=20))
+                    st.plotly_chart(fig, use_container_width=True)
+
+                elif c_type == "histogram":
+                    fig = px.histogram(df, x=c_x, title=c_title, color_discrete_sequence=["#8b5cf6"])
+                    fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(t=40, b=20, l=20, r=20))
+                    st.plotly_chart(fig, use_container_width=True)
+
+                elif c_type == "box":
+                    if c_y and c_y in df.columns and df[c_y].dtype in ['int64', 'float64']:
+                        fig = px.box(df, x=c_x, y=c_y, title=c_title, color_discrete_sequence=["#c026d3"])
+                    else:
+                        fig = px.box(df, y=c_x, title=c_title, color_discrete_sequence=["#c026d3"])
+                    fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(t=40, b=20, l=20, r=20))
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    fig = px.histogram(df, x=c_x, title=c_title, color_discrete_sequence=["#6366f1"])
+                    fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(t=40, b=20, l=20, r=20))
+                    st.plotly_chart(fig, use_container_width=True)
+            except Exception as chart_err:
+                st.warning(f"Impossible de rendre ce graphique ({c_title}) : {chart_err}")
+            st.markdown("</div>", unsafe_allow_html=True)
+else:
+    st.info("Aucun graphique configuré pour ce dataset.")
+
+
+# --- 6. Affichage du Rapport dans un Expander (Cliquable) ---
+st.markdown("---")
+with st.expander("🧠 Afficher le Rapport d'Intelligence Artificielle & Insights complet", expanded=False):
+    st.markdown(ai_analysis_report)
+
+# Section d'export ou d'action
+st.markdown("---")
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("📥 Télécharger le rapport Markdown", use_container_width=True):
+        st.download_button(
+            label="Confirmer le téléchargement",
+            data=ai_analysis_report,
+            file_name="BIFlow_BI_Analysis_Report.md",
+            mime="text/markdown"
+        )
+with col2:
+    if st.button("✨ Relancer l'analyse Agent", type="primary", use_container_width=True):
+        st.rerun()

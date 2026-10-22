@@ -1,0 +1,52 @@
+{
+    "pipeline": "BIFlow Data Engineering ETL",
+    "status": "FAILED",
+    "start_time": "2026-10-09T03:31:18",
+    "end_time": "2026-10-09T03:31:21",
+    "duration_seconds": 3.26,
+    "steps": {
+        "raw_dataset_check": "SUCCESS",
+        "profiling": "SUCCESS",
+        "initial_quality_checks": "SUCCESS",
+        "cleaning": "SUCCESS"
+    },
+    "errors": [
+        {
+            "type": "ValueError",
+            "message": "Data-quality validation failed. Check the quality report before continuing."
+        }
+    ],
+    "raw_dataset": {
+        "path": "data\\raw\\telco_churn.csv",
+        "rows": 7043,
+        "columns": 21,
+        "column_names": [
+            "customerID",
+            "gender",
+            "SeniorCitizen",
+            "Partner",
+            "Dependents",
+            "tenure",
+            "PhoneService",
+            "MultipleLines",
+            "InternetService",
+            "OnlineSecurity",
+            "OnlineBackup",
+            "DeviceProtection",
+            "TechSupport",
+            "StreamingTV",
+            "StreamingMovies",
+            "Contract",
+            "PaperlessBilling",
+            "PaymentMethod",
+            "MonthlyCharges",
+            "TotalCharges",
+            "Churn"
+        ]
+    },
+    "cleaned_dataset": {
+        "path": "data\\cleaned\\telco_churn_clean.csv",
+        "rows": 7043,
+        "columns": 21
+    }
+}
