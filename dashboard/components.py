@@ -1,6 +1,4 @@
-"""Blocs réutilisables : layout (sidebar/topbar/header) + petits composants HTML."""
 from html import escape
-
 import streamlit as st
 from style import load_css
 
@@ -29,7 +27,6 @@ AGENTS = [
     ]),
 ]
 
-
 # ---------- helpers HTML ----------
 def html(s: str):
     st.markdown("\n".join(l.strip() for l in s.splitlines() if l.strip()), unsafe_allow_html=True)
@@ -40,7 +37,7 @@ def badge(text, tone="indigo"):
 def btn(label, primary=False):
     return f'<span class="bf-btn{" primary" if primary else ""}">{label}</span>'
 
-def kpi(label, value, sub="", icon="📊", tone="indigo", sub_tone=""):  # Remplacé "▦" par un emoji valide
+def kpi(label, value, sub="", icon="📊", tone="indigo", sub_tone=""):
     return (f'<div class="bf-card bf-kpi"><div class="row"><span>{label}</span><i class="ico {tone}">{icon}</i></div>'
             f'<div class="val">{value}</div><div class="sub {sub_tone}">{sub}</div></div>')
 
@@ -71,12 +68,12 @@ def svg_line(path, color="#4f46e5", w=260, h=90):
     return (f'<svg viewBox="0 0 {w} {h}" width="100%" height="{h}"><path d="{path} L{w},{h} L0,{h} Z" fill="{color}" opacity=".08"/>'
             f'<path d="{path}" fill="none" stroke="{color}" stroke-width="2.5"/></svg>')
 
-
 # ---------- layout ----------
 def setup(title, hub="Enterprise Analytics Hub"):
     """À appeler en PREMIER dans chaque page."""
     st.set_page_config(page_title=f"BIFlow · {title}", page_icon="📈", layout="wide")
     load_css()
+    
     user = st.session_state.get("authenticated_user")
     if not user:
         st.warning("Connectez-vous pour accéder à votre espace BIFlow.")
@@ -95,6 +92,7 @@ def setup(title, hub="Enterprise Analytics Hub"):
         if st.button("Sign out", use_container_width=True):
             st.session_state.pop("authenticated_user", None)
             st.switch_page("app.py")
+
     agent_columns = st.columns(len(AGENTS))
     for column, (agent, key_prefix, tasks) in zip(agent_columns, AGENTS):
         with column:
@@ -105,6 +103,7 @@ def setup(title, hub="Enterprise Analytics Hub"):
                 ]
                 if selected_tasks:
                     st.caption("Sélection : " + " + ".join(selected_tasks))
+                    
     html(f'''<div class="bf-top"><div class="crumb">Workspace › <b>{hub}</b></div>
       <div class="bf-search"><span>🔍 Search BIFlow...</span><span>⌘ K</span></div><span>🔔</span>
       <div class="bf-org">Northstar Labs <span class="bf-badge">Enterprise</span></div><div class="bf-avatar">👤</div></div>''')
