@@ -1,274 +1,775 @@
-"""
-BI Analysis — dashboard entièrement généré par le LLM.
-
-Le dataset reçu est déjà nettoyé par l'Agent 1 (Data Engineering).
-Cet agent se concentre uniquement sur :
-  1. Profiler le dataset
-  2. Demander au LLM de planifier KPIs + graphiques
-  3. Exécuter le plan et afficher les résultats
-"""
 import os
 import sys
-from html import escape
+import json
+import hashlib
+import traceback
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 
-# ── path ─────────────────────────────────────────────────────────────────────
-current_dir = os.path.dirname(os.path.abspath(__file__))
-root_dir    = os.path.abspath(os.path.join(current_dir, "../../"))
-if root_dir not in sys.path:
-    sys.path.append(root_dir)
+# ============================================================
+# Configuration des chemins
+# ============================================================
 
-from components              import setup, page_header, btn, html, badge
-from chat_widget             import render_chat
+ROOT_DIR = Path(__file__).resolve().parents[2]
+
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 from agents.bi_analyst_agent import BIAnalystAgent
-from dashboard_view          import render_kpis, render_chart_grid, insight_component
+from dashboard_view import render_kpis, render_chart_grid, insight_component
+from components import setup, page_header, btn, html
+from chat_widget import render_chat
 
-# ── setup ────────────────────────────────────────────────────────────────────
-render_chat("Datasets")
-setup("BI Analysis")
 
-CLEANED_DIR = "data/cleaned_dataset/"
-os.makedirs(CLEANED_DIR, exist_ok=True)
+# ============================================================
+# Configuration de la page
+# ============================================================
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Helpers
-# ─────────────────────────────────────────────────────────────────────────────
-def read_csv_safe(path: str) -> pd.DataFrame:
-    for enc in ("utf-8", "latin-1"):
+st.set_page_config(
+    page_title="BI Analysis | BIFlow",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+setup(title="Business Intelligence Analysis")
+
+
+# ============================================================
+# Style de l'interface
+# ============================================================
+
+st.markdown(
+    """
+    <style>
+        .block-container {
+            padding-top: 1.5rem;
+            padding-bottom: 3rem;
+            max-width: 1500px;
+        }
+
+        .section-title {
+            font-size: 1.45rem;
+            font-weight: 700;
+            margin-top: 1.6rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .section-description {
+            color: #8b949e;
+            font-size: 0.95rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .insight-card {
+            border: 1px solid rgba(128, 128, 128, 0.25);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 12px;
+            height: 100%;
+        }
+
+        .insight-card h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+        }
+
+        .insight-card p {
+            margin-bottom: 8px;
+            line-height: 1.55;
+        }
+
+        .insight-tag {
+            display: inline-block;
+            border-radius: 6px;
+            padding: 3px 8px;
+            margin-bottom: 9px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: rgba(100, 149, 237, 0.15);
+        }
+
+        .empty-state {
+            border: 1px dashed rgba(128, 128, 128, 0.4);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            color: #8b949e;
+        }
+
+        div[data-testid="stMetric"] {
+            border: 1px solid rgba(128, 128, 128, 0.22);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        div[data-testid="stTabs"] button {
+            font-weight: 600;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# Utilitaires
+# ============================================================
+
+def safe_text(value, default=""):
+    """Convertit une valeur en texte affichable sans erreur."""
+    if value is None:
+        return default
+
+    if isinstance(value, float) and pd.isna(value):
+        return default
+
+    if isinstance(value, (dict, list, tuple)):
+        return default
+
+    text = str(value).strip()
+    return text if text else default
+
+
+def get_dataset_directory():
+    """Retourne le dossier des datasets nettoyés."""
+    return ROOT_DIR / "data" / "cleaned_dataset"
+
+
+def list_datasets():
+    """Liste les fichiers de données disponibles."""
+    directory = get_dataset_directory()
+
+    if not directory.exists():
+        return []
+
+    extensions = {".csv", ".xlsx", ".xls", ".parquet"}
+
+    return sorted(
+        [
+            file.name
+            for file in directory.iterdir()
+            if file.is_file() and file.suffix.lower() in extensions
+        ],
+        key=str.lower,
+    )
+
+
+def load_dataframe(file_path):
+    """Charge un dataset avec gestion des formats courants."""
+    extension = Path(file_path).suffix.lower()
+
+    if extension == ".csv":
         try:
-            return pd.read_csv(path, encoding=enc)
+            return pd.read_csv(file_path, low_memory=False)
         except UnicodeDecodeError:
+            return pd.read_csv(
+                file_path,
+                encoding="latin-1",
+                low_memory=False,
+            )
+
+    if extension in {".xlsx", ".xls"}:
+        return pd.read_excel(file_path)
+
+    if extension == ".parquet":
+        return pd.read_parquet(file_path)
+
+    raise ValueError("Format de fichier non pris en charge.")
+
+
+def normalize_items(value):
+    """Normalise une valeur en liste."""
+    if value is None:
+        return []
+
+    if isinstance(value, list):
+        return value
+
+    if isinstance(value, tuple):
+        return list(value)
+
+    if isinstance(value, dict):
+        return [value]
+
+    return []
+
+
+def normalize_dashboard_result(result):
+    """
+    Normalise la réponse de l'agent.
+    Cette fonction évite d'afficher les objets techniques directement.
+    """
+    if not isinstance(result, dict):
+        return {
+            "dashboards": [],
+            "kpis": [],
+            "charts": [],
+            "insights": [],
+        }
+
+    dashboards = normalize_items(result.get("dashboards"))
+
+    # Compatibilité avec les anciennes versions de l'agent :
+    # les KPIs et graphiques peuvent être à la racine.
+    if not dashboards:
+        dashboards = [
+            {
+                "title": result.get("title", "Vue d'ensemble"),
+                "description": result.get("description", ""),
+                "kpis": result.get("kpis", []),
+                "charts": result.get("charts", []),
+                "insights": result.get("insights", []),
+            }
+        ]
+
+    normalized_dashboards = []
+
+    for index, dashboard in enumerate(dashboards):
+        if not isinstance(dashboard, dict):
             continue
-    return pd.read_csv(path, encoding="cp1252", encoding_errors="replace")
+
+        normalized_dashboards.append(
+            {
+                **dashboard,
+                "title": safe_text(
+                    dashboard.get("title"),
+                    f"Dashboard {index + 1}",
+                ),
+                "description": safe_text(
+                    dashboard.get("description"),
+                    "",
+                ),
+                "kpis": normalize_items(dashboard.get("kpis")),
+                "charts": normalize_items(dashboard.get("charts")),
+                "insights": normalize_items(dashboard.get("insights")),
+            }
+        )
+
+    primary = normalized_dashboards[0] if normalized_dashboards else {}
+
+    return {
+        "dashboards": normalized_dashboards,
+        "kpis": normalize_items(result.get("kpis")) or primary.get("kpis", []),
+        "charts": normalize_items(result.get("charts")) or primary.get("charts", []),
+        "insights": normalize_items(result.get("insights")) or primary.get("insights", []),
+        "summary": safe_text(
+            result.get("executive_summary")
+            or result.get("summary")
+            or primary.get("executive_summary")
+            or primary.get("summary"),
+            "",
+        ),
+    }
+
+
+def collect_all_insights(result):
+    """Récupère et déduplique les insights de tous les dashboards."""
+    collected = []
+    seen = set()
+
+    all_sources = [result.get("insights", [])]
+
+    for dashboard in result.get("dashboards", []):
+        all_sources.append(dashboard.get("insights", []))
+
+    for source in all_sources:
+        for insight in normalize_items(source):
+            if isinstance(insight, str):
+                insight = {"description": insight}
+
+            if not isinstance(insight, dict):
+                continue
+
+            title = safe_text(
+                insight.get("title")
+                or insight.get("name")
+                or insight.get("headline"),
+                "Observation",
+            )
+
+            description = safe_text(
+                insight.get("description")
+                or insight.get("insight")
+                or insight.get("text")
+                or insight.get("finding")
+                or insight.get("summary"),
+                "",
+            )
+
+            recommendation = safe_text(
+                insight.get("recommendation")
+                or insight.get("action")
+                or insight.get("recommended_action")
+                or insight.get("suggestion"),
+                "",
+            )
+
+            category = safe_text(
+                insight.get("category")
+                or insight.get("type")
+                or insight.get("priority"),
+                "Analyse",
+            )
+
+            if not description and not recommendation:
+                continue
+
+            key = (
+                title.casefold(),
+                description.casefold(),
+                recommendation.casefold(),
+            )
+
+            if key in seen:
+                continue
+
+            seen.add(key)
+
+            collected.append(
+                {
+                    "title": title,
+                    "description": description,
+                    "recommendation": recommendation,
+                    "category": category,
+                }
+            )
+
+    return collected
+
+
+def display_insight_card(insight):
+    """Affiche une carte d'insight lisible, sans JSON."""
+    title = insight["title"]
+    description = insight["description"]
+    recommendation = insight["recommendation"]
+    category = insight["category"]
+
+    # Échappement minimal du HTML injecté dans les cartes.
+    import html as html_escape
+
+    title_html = html_escape.escape(title)
+    description_html = html_escape.escape(description)
+    recommendation_html = html_escape.escape(recommendation)
+    category_html = html_escape.escape(category)
+
+    recommendation_block = ""
+
+    if recommendation_html:
+        recommendation_block = (
+            '<p><strong>Recommandation</strong></p>'
+            f"<p>{recommendation_html}</p>"
+        )
+
+    st.markdown(
+        f"""
+        <div class="insight-card">
+            <span class="insight-tag">{category_html}</span>
+            <h4>{title_html}</h4>
+            <p>{description_html}</p>
+            {recommendation_block}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_insights(insights):
+    """Affiche les AI Insights et les recommandations."""
+    if not insights:
+        st.markdown(
+            """
+            <div class="empty-state">
+                <strong>Aucun insight disponible pour le moment.</strong>
+                <p>
+                    Relancez l'analyse ou vérifiez que l'agent BI
+                    génère des insights et des recommandations.
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        return
+
+    for start in range(0, len(insights), 2):
+        columns = st.columns(2)
+
+        for offset, column in enumerate(columns):
+            index = start + offset
+
+            if index >= len(insights):
+                break
+
+            with column:
+                display_insight_card(insights[index])
+
+
+# ============================================================
+# Exécution et mise en cache de l'analyse
+# ============================================================
 
 
 @st.cache_data(show_spinner=False)
-def run_agent(file_path: str, mtime: float, language: str, currency) -> dict:
-    """Lance l'agent BI et met le résultat en cache (clé = fichier + mtime + langue + devise)."""
-    df = read_csv_safe(file_path)
-    return BIAnalystAgent().build_dashboard(df, language=language, currency=currency)
+def run_agent(file_path, modified_time, language, currency):
+    """Charge le dataset et transmet un DataFrame à l'agent BI."""
+
+    # modified_time sert à invalider le cache si le fichier change.
+    _ = modified_time
+
+    # Chargement du dataset en DataFrame pandas.
+    df_raw = load_dataframe(file_path)
+
+    # Initialisation de l'agent.
+    agent = BIAnalystAgent()
+
+    # build_dashboard attend df_raw, pas le chemin du fichier.
+    result = agent.build_dashboard(
+        df_raw=df_raw,
+        language=language,
+        currency=currency,
+    )
+
+    if not isinstance(result, dict):
+        raise ValueError(
+            "L'agent BI n'a pas retourné un résultat exploitable."
+        )
+
+    return result
 
 
-def dataset_cache_key(filename: str, mtime: float, language: str, currency) -> str:
-    return f"{filename}|{mtime}|{language}|{currency}"
+# ============================================================
+# En-tête
+# ============================================================
+
+dataset_files = list_datasets()
+
+selected_dataset = None
+
+if dataset_files:
+    default_index = 0
+
+    previous_dataset = st.session_state.get("selected_bi_dataset")
+
+    if previous_dataset in dataset_files:
+        default_index = dataset_files.index(previous_dataset)
+
+    selected_dataset = st.selectbox(
+        "📂 Dataset à analyser",
+        options=dataset_files,
+        index=default_index,
+        key="bi_dataset_selector",
+    )
+
+    st.session_state["selected_bi_dataset"] = selected_dataset
+
+    if st.button("🔄 Actualiser l'analyse"):
+        run_agent.clear()
+        st.session_state.pop("bi_analysis_result", None)
+        st.rerun()
+
+else:
+    st.info(
+        "Ajoutez un fichier CSV, Excel ou Parquet dans "
+        "data/cleaned_dataset."
+    )
+    selected_dataset = None
+
+page_header(
+    "Business Intelligence Analysis",
+    "Explorez vos données, visualisez les indicateurs clés "
+    "et découvrez des recommandations générées par l'IA.",
+    btn("⭳ Export report") + btn("✨ Create workflow", True),
+    "BIFlow / Business Intelligence / Analysis",
+)
+
+# Le chat reste accessible sans afficher de données techniques.
+try:
+    render_chat("Datasets")
+except Exception:
+    # Une erreur du widget de chat ne doit pas bloquer le dashboard.
+    pass
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 1. Sélection du dataset + paramètres
-# ─────────────────────────────────────────────────────────────────────────────
-files = sorted(f for f in os.listdir(CLEANED_DIR) if f.endswith(".csv"))
-if not files:
-    st.warning(
-        f"⚠️ Aucun dataset trouvé dans `{CLEANED_DIR}`. "
-        "Importez et nettoyez un fichier via la page **Datasets**."
+# ============================================================
+# Vérification du dataset
+# ============================================================
+
+if not dataset_files or selected_dataset is None:
+    st.markdown(
+        """
+        <div class="empty-state">
+            <h3>📂 Aucun dataset disponible</h3>
+            <p>
+                Placez un fichier CSV, Excel ou Parquet dans
+                <code>data/cleaned_dataset</code>, puis rechargez la page.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
     st.stop()
 
-if st.session_state.get("active_dataset_filename") not in files:
-    st.session_state.pop("active_dataset_filename", None)
 
-col_sel, col_lang, col_cur, col_run = st.columns([4, 2, 2, 1])
+dataset_path = get_dataset_directory() / selected_dataset
 
-with col_sel:
-    st.markdown("**Dataset à analyser**")
-    selected_filename = st.selectbox(
-        "Dataset", files,
-        key="active_dataset_filename",
-        label_visibility="collapsed",
+if not dataset_path.exists():
+    st.error("Le fichier sélectionné n'existe plus. Actualisez la page.")
+    st.stop()
+
+
+# ============================================================
+# Chargement et analyse
+# ============================================================
+
+try:
+    modified_time = dataset_path.stat().st_mtime
+
+    with st.spinner("Analyse des données en cours..."):
+        raw_result = run_agent(
+            str(dataset_path),
+            modified_time,
+            "fr",
+            "TND",
+        )
+
+    result = normalize_dashboard_result(raw_result)
+
+    if not result["dashboards"]:
+        st.warning(
+            "L'analyse est terminée, mais aucun dashboard exploitable "
+            "n'a été généré. Vérifiez la configuration de l'agent BI."
+        )
+        st.stop()
+
+    st.session_state["bi_analysis_result"] = result
+
+except Exception:
+    st.error(
+        "L'analyse n'a pas pu être terminée. "
+        "Vérifiez la configuration de l'agent BI et réessayez."
     )
 
-with col_lang:
-    st.markdown("**Langue**")
-    language = st.selectbox(
-        "Langue",
-        ["English", "French", "Arabic", "Spanish", "German"],
-        key="bi_language",
-        label_visibility="collapsed",
-    )
+    # Pas de traceback ou de JSON brut dans l'interface utilisateur.
+    with st.expander("Détails techniques pour le développeur"):
+        st.code(traceback.format_exc())
 
-with col_cur:
-    st.markdown("**Devise (optionnel)**")
-    currency = st.text_input(
-        "Devise", value="", placeholder="ex. $, €, £ …",
-        key="bi_currency", label_visibility="collapsed",
-    ).strip() or None
+    st.stop()
 
-with col_run:
-    st.markdown("&nbsp;", unsafe_allow_html=True)
-    if st.button("🔄", help="Effacer le cache et relancer l'analyse"):
-        run_agent.clear()
-        st.session_state.pop("bi_dashboard",   None)
-        st.session_state.pop("bi_dataset_key", None)
-        st.rerun()
 
-file_path    = os.path.join(CLEANED_DIR, selected_filename)
-mtime        = os.path.getmtime(file_path)
-current_key  = dataset_cache_key(selected_filename, mtime, language, currency)
-dataset_name = selected_filename.replace(".csv", "").replace("_", " ").title()
+# ============================================================
+# Préparation des données
+# ============================================================
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 2. Lancement automatique dès que le dataset / la langue change
-# ─────────────────────────────────────────────────────────────────────────────
-is_cached = (
-    st.session_state.get("bi_dataset_key") == current_key
-    and "bi_dashboard" in st.session_state
-)
+dashboards = result["dashboards"]
+primary_dashboard = dashboards[0]
 
-if not is_cached:
-    with st.spinner(f"🤖 L'agent BI analyse **{selected_filename}** et conçoit le dashboard…"):
-        try:
-            dash = run_agent(file_path, mtime, language, currency)
-        except Exception as e:
-            st.error(f"❌ L'agent BI a échoué : {e}")
-            st.info("💡 Vérifiez votre clé API dans `.env` et le nom du modèle LLM.")
-            st.stop()
+kpis = result["kpis"] or primary_dashboard.get("kpis", [])
+all_insights = collect_all_insights(result)
 
-    st.session_state["bi_dashboard"]   = dash
-    st.session_state["bi_dataset_key"] = current_key
-    st.rerun()   # re-render propre sans le spinner
-else:
-    dash = st.session_state["bi_dashboard"]
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 3. Partager le contexte avec le chat widget
-# ─────────────────────────────────────────────────────────────────────────────
+# Contexte destiné au chat.
 st.session_state["dashboard_context"] = {
-    "file":            selected_filename,
-    "filters":         [],                   # dataset déjà nettoyé, pas de filtres
-    "derived_columns": dash["derived_columns"],
-    "kpis": [
-        {"title": k["title"], "value": k.get("value_text") or round(k["value"], 2)}
-        for k in dash["kpis"]
-    ],
+    "dataset": selected_dataset,
+    "dataset_path": str(dataset_path),
+    "dashboard": primary_dashboard,
+    "kpis": kpis,
+    "insights": all_insights,
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 4. En-tête
-# ─────────────────────────────────────────────────────────────────────────────
-page_header(
-    "Business Intelligence Analysis",
-    "KPIs et dashboards générés automatiquement par le LLM.",
-    btn("⭳ Export report") + btn("✨ Create workflow", True),
-    f"{dataset_name} / <b>Analysis</b>",
+
+# ============================================================
+# 1. KPI CARDS — EN HAUT
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">📌 Indicateurs clés</div>',
+    unsafe_allow_html=True,
 )
 
-cache_badge = badge("● Résultat en cache", "indigo") if is_cached else badge("● Nouvelle analyse", "blue")
-html(f'''<div class="bf-card" style="background:#eef2ff;display:flex;gap:1rem;align-items:center;margin-bottom:1rem">
-  🗄 <small style="color:#4338ca"><b>DATASET ACTIF</b></small>
-  <b>{escape(dataset_name)}</b> ·
-  {dash["total_rows"]:,} lignes · langue : <b>{escape(language)}</b>
-  {f"· devise : <b>{escape(currency)}</b>" if currency else ""}
-  <span style="margin-left:auto">{cache_badge}</span>
-</div>''')
+st.markdown(
+    f'<div class="section-description">'
+    f'Dataset analysé : <strong>{selected_dataset}</strong>'
+    f"</div>",
+    unsafe_allow_html=True,
+)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 5. Vue injectée depuis le chat
-# ─────────────────────────────────────────────────────────────────────────────
-view = st.session_state.get("injected_view")
-if view and view.get("file") != selected_filename:
-    view = None
+if kpis:
+    try:
+        render_kpis(kpis)
+    except Exception:
+        # Repli si le format des KPI ne correspond pas au composant.
+        columns = st.columns(min(len(kpis), 4))
 
-show_default = not (view and view.get("placement") == "replace")
+        for index, kpi in enumerate(kpis):
+            if not isinstance(kpi, dict):
+                continue
 
-if view:
-    with st.container(border=True):
-        left, right = st.columns([6, 1], vertical_alignment="center")
-        with left:
-            st.markdown(f"### ✨ {view['title']}")
-            st.caption(f"Demandé dans le chat : « {view['question']} »")
-        with right:
-            label = "↩ Dashboard principal" if not show_default else "✕ Fermer"
-            if st.button(label, key=f"close_view_{view['id']}"):
-                st.session_state.pop("injected_view", None)
-                st.rerun()
-        render_kpis(view["kpis"])
-        render_chart_grid(view["charts"])
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 6. Dashboard principal
-# ─────────────────────────────────────────────────────────────────────────────
-if show_default:
-
-    # Résumé exécutif
-    if dash.get("summary"):
-        st.info(f"📋 **Résumé :** {dash['summary']}")
-
-    # Raisonnement de l'agent (collapsé par défaut)
-    with st.expander("🧠 Raisonnement de l'agent BI", expanded=False):
-        st.markdown(f"**Contexte métier :** {dash['business_context']}")
-
-        if dash["derived_columns"]:
-            st.markdown("**Colonnes calculées par l'agent :**")
-            for d in dash["derived_columns"]:
-                st.markdown(
-                    f"- `{d.get('name')}` = "
-                    f"{d.get('operation')}({', '.join(d.get('columns', []))}) "
-                    f"— {d.get('reasoning', '')}"
-                )
-        else:
-            st.caption("Aucune colonne dérivée (toutes les métriques sont calculées directement).")
-
-        if dash["repair_attempts"]:
-            st.caption(
-                f"ℹ️ Le plan a été auto-corrigé **{dash['repair_attempts']} fois** "
-                "après des erreurs d'exécution."
+            label = safe_text(
+                kpi.get("label")
+                or kpi.get("title")
+                or kpi.get("name"),
+                f"KPI {index + 1}",
             )
 
-    # Erreurs non-fatales
-    if dash["errors"]:
-        with st.expander(
-            f"⚠️ {len(dash['errors'])} élément(s) non produits",
-            expanded=False,
-        ):
-            for e in dash["errors"]:
-                st.markdown(f"- {e}")
+            value = (
+                kpi.get("value")
+                if kpi.get("value") is not None
+                else kpi.get("formatted_value", "—")
+            )
 
-    # ── KPIs ─────────────────────────────────────────────────────────────────
-    if dash["kpis"]:
-        st.markdown("### 📊 Indicateurs clés de performance")
-        render_kpis(dash["kpis"])
-    else:
-        st.warning("⚠️ L'agent n'a produit aucun KPI pour ce dataset.")
+            with columns[index % len(columns)]:
+                st.metric(label=label, value=str(value))
+else:
+    st.info("Aucun indicateur clé n'a été généré pour ce dataset.")
 
-    st.divider()
 
-    # ── Graphiques ────────────────────────────────────────────────────────────
-    if dash["charts"]:
-        st.markdown("### 📈 Visualisations")
-        render_chart_grid(dash["charts"])
-    else:
-        st.warning("⚠️ L'agent n'a produit aucun graphique pour ce dataset.")
+# ============================================================
+# Résumé exécutif — texte lisible uniquement
+# ============================================================
 
-    st.divider()
-
-    # ── Insights IA ───────────────────────────────────────────────────────────
-    insights = dash["insights"]
-    if insights:
-        html(
-            f'<div style="display:flex;justify-content:space-between;align-items:center">'
-            f'<h3 style="margin:0">🔎 AI Insights</h3>'
-            f'{badge(f"{len(insights)} insights fondés sur les données calculées")}'
-            f'</div>'
+if result.get("summary"):
+    with st.container():
+        st.markdown(
+            '<div class="section-title">📝 Résumé exécutif</div>',
+            unsafe_allow_html=True,
         )
-        st.markdown("")
-        for i in range(0, len(insights), 3):
-            row = insights[i:i + 3]
-            for col, ins in zip(st.columns(len(row)), row):
-                with col:
-                    html(insight_component(
-                        ins.get("tag", "INSIGHT"),
-                        ins.get("title", ""),
-                        ins.get("text", ""),
-                        ins.get("confidence", 90),
-                    ))
+        st.write(result["summary"])
 
-    # Footer
-    st.divider()
-    st.caption(
-        f"Dashboard généré par **BIFlow Agent BI** · "
-        f"`{selected_filename}` · {dash['total_rows']:,} lignes · {language}"
-        + (f" · devise : {currency}" if currency else "")
-        + (f" · {dash['repair_attempts']} réparation(s) auto" if dash["repair_attempts"] else "")
+
+# ============================================================
+# 2. DASHBOARDS — AU MILIEU
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">📊 Dashboards</div>',
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    '<div class="section-description">'
+    'Explorez les visualisations générées à partir de vos données.'
+    '</div>',
+    unsafe_allow_html=True,
+)
+
+tab_overview, tab_comparison, tab_trends = st.tabs(
+    [
+        "Vue d'ensemble",
+        "Analyse comparative",
+        "Tendances et patterns",
+    ]
+)
+
+
+def render_dashboard_charts(dashboard, title):
+    """Affiche les graphiques d'un dashboard."""
+    charts = normalize_items(dashboard.get("charts"))
+
+    if not charts:
+        st.markdown(
+            '<div class="empty-state">'
+            "Aucun graphique disponible dans cette section."
+            "</div>",
+            unsafe_allow_html=True,
+        )
+        return
+
+    try:
+        render_chart_grid(charts)
+    except Exception:
+        st.warning(
+            "Certains graphiques n'ont pas pu être affichés. "
+            "Vérifiez leur configuration dans l'agent BI."
+        )
+
+
+with tab_overview:
+    overview_dashboard = dashboards[0]
+
+    if overview_dashboard.get("description"):
+        st.caption(overview_dashboard["description"])
+
+    render_dashboard_charts(
+        overview_dashboard,
+        "Vue d'ensemble",
     )
+
+with tab_comparison:
+    # On utilise le deuxième dashboard si l'agent en a généré un.
+    comparison_dashboard = (
+        dashboards[1]
+        if len(dashboards) > 1
+        else None
+    )
+
+    if comparison_dashboard:
+        if comparison_dashboard.get("description"):
+            st.caption(comparison_dashboard["description"])
+
+        render_dashboard_charts(
+            comparison_dashboard,
+            "Analyse comparative",
+        )
+    else:
+        st.info(
+            "Aucun dashboard comparatif distinct n'a été généré. "
+            "Ajoutez des graphiques comparant plusieurs catégories "
+            "ou groupes dans la configuration de l'agent BI."
+        )
+
+with tab_trends:
+    trends_dashboard = (
+        dashboards[2]
+        if len(dashboards) > 2
+        else None
+    )
+
+    if trends_dashboard:
+        if trends_dashboard.get("description"):
+            st.caption(trends_dashboard["description"])
+
+        render_dashboard_charts(
+            trends_dashboard,
+            "Tendances et patterns",
+        )
+    else:
+        st.info(
+            "Aucun dashboard de tendances distinct n'a été généré. "
+            "L'agent doit produire des graphiques adaptés aux séries "
+            "temporelles ou aux distributions."
+        )
+
+
+# ============================================================
+# 3. AI INSIGHTS & RECOMMENDATIONS — EN BAS
+# ============================================================
+
+st.markdown("---")
+
+st.markdown(
+    '<div class="section-title">🤖 AI Insights & Recommendations</div>',
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    '<div class="section-description">'
+    "Les principaux constats de l'analyse et les actions recommandées."
+    '</div>',
+    unsafe_allow_html=True,
+)
+
+render_insights(all_insights)
+
+
+# ============================================================
+# Pied de page discret
+# ============================================================
+
+st.markdown("---")
+
+st.caption(
+    f"BIFlow · Analyse de {selected_dataset} · "
+    f"{len(dashboards)} dashboard(s) disponible(s)"
+)

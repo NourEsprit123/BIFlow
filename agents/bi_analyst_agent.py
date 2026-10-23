@@ -1,13 +1,14 @@
-
 """
 Agent BI autonome.
 
-Le dataset reçu est déjà nettoyé (travail de l'Agent 1 Data Engineering).
-Boucle : PROFIL des données -> le LLM PLANIFIE (colonnes dérivées, KPIs, graphiques)
--> le moteur EXÉCUTE -> si erreur, le LLM CORRIGE son plan (jusqu'à MAX_REPAIRS fois)
--> le LLM rédige les INSIGHTS à partir des résultats réellement calculés.
+Pipeline :
+1. Profilage du dataset.
+2. Planification des KPIs et graphiques par le LLM.
+3. Exécution du plan par dashboard_engine.
+4. Réparation limitée du plan si nécessaire.
+5. Génération des insights, avec fallback Python si le LLM échoue.
 
-Rien n'est codé en dur sur un dataset : ni colonnes, ni types de graphiques, ni nombre de KPIs.
+Le dataset est supposé déjà nettoyé par l'Agent Data Engineering.
 """
 
 import os
@@ -25,45 +26,117 @@ load_dotenv()
 
 PLAN_SCHEMA = """
 {
-  "business_context": "<what this dataset is, one row represents, business domain>",
-  "derived_columns": [{"name":"<new col>","operation":"<op>","columns":["<col>"],"reasoning":"<why>"}],
+  "business_context": "<dataset domain and one row meaning>",
+  "derived_columns": [
+    {
+      "name": "<new column>",
+      "operation": "<operation>",
+      "columns": ["<existing column>"],
+      "reasoning": "<reason>"
+    }
+  ],
   "kpis": [
-    {"title":"<title>","kind":"aggregate","column":"<col>","aggregation":"<agg>","filters":[],"format":"integer|decimal|currency|percent","unit":"<unit or empty>","subtitle":"<short>","icon":"<emoji>"},
-    {"title":"<title>","kind":"ratio","numerator":{"column":"<col>","aggregation":"<agg>","filters":[]},"denominator":{"column":"<col>","aggregation":"<agg>","filters":[]},"scale":1,"format":"<fmt>","unit":"<unit>","subtitle":"<sub>","icon":"<emoji>"},
-    {"title":"<title>","kind":"top_item","dimension":"<cat col>","column":"<num col or null>","aggregation":"<agg>","top_n":1,"filters":[],"format":"<fmt>","unit":"<unit>","subtitle":"<sub>","icon":"<emoji>"}
+    {
+      "title": "<title>",
+      "kind": "aggregate",
+      "column": "<column>",
+      "aggregation": "<aggregation>",
+      "filters": [],
+      "format": "integer|decimal|currency|percent",
+      "unit": "",
+      "subtitle": "<short description>",
+      "icon": "<emoji>"
+    },
+    {
+      "title": "<title>",
+      "kind": "ratio",
+      "numerator": {
+        "column": "<column>",
+        "aggregation": "<aggregation>",
+        "filters": []
+      },
+      "denominator": {
+        "column": "<column>",
+        "aggregation": "<aggregation>",
+        "filters": []
+      },
+      "scale": 1,
+      "format": "<format>",
+      "unit": "<unit>",
+      "subtitle": "<short description>",
+      "icon": "<emoji>"
+    },
+    {
+      "title": "<title>",
+      "kind": "top_item",
+      "dimension": "<categorical column>",
+      "column": "<numeric column or null>",
+      "aggregation": "<aggregation>",
+      "top_n": 1,
+      "filters": [],
+      "format": "<format>",
+      "unit": "<unit>",
+      "subtitle": "<short description>",
+      "icon": "<emoji>"
+    }
   ],
   "charts": [
-    {"title":"<title>","type":"bar|line|area|donut|histogram|scatter|table","x":"<col>","y":"<col or null>","aggregation":"<agg>","series":null,"time_grain":"month","top_n":10,"sort":"desc|asc|x","filters":[],"subtitle":"<short>","reasoning":"<why>"}
+    {
+      "title": "<title>",
+      "type": "bar|line|area|donut|histogram|scatter|table",
+      "x": "<column>",
+      "y": "<column or null>",
+      "aggregation": "<aggregation>",
+      "series": null,
+      "time_grain": null,
+      "top_n": 10,
+      "sort": "desc|asc|x",
+      "filters": [],
+      "subtitle": "<short description>",
+      "reasoning": "<reason>"
+    }
   ]
 }
 """
 
 
 PLAN_RULES = """
-RULES (follow strictly):
-1. Use ONLY columns from the profile or from "derived_columns". Never invent a column.
-2. Dataset is already clean — no cleaning filters. Focus on KPIs and charts only.
-3. Produce 3-5 KPIs and 4-7 charts. Do not pad with redundant items.
-4. Chart types: time series -> line/area; ranking -> bar; share (few cats) -> donut; distribution -> histogram; correlation -> scatter; detail -> table. Never two charts with same x+y+aggregation.
-5. Prefer aggregating a numeric measure over counting rows. Create derived columns if needed.
-6. Never sum/average non-additive columns (prices, rates, IDs) — use mean/median or nunique.
-7. sort="x" is REQUIRED for time axes (months, years) and any naturally ordered x.
-8. KPI kinds: "aggregate"=single number; "ratio"=rate/average per entity (scale=100 for %, scale=1 otherwise); "top_item"=best dimension value. Never use format="percent" on a raw count.
-9. Donut only for dimensions with <10 categories where top values cover >=60% of total.
-10. Ratio: numerator and denominator must cover the SAME rows (matching filters).
-11. {currency_hint}
-12. Only use time_grain when x is a datetime column.
-13. Allowed chart types: {chart_types}
-14. Allowed aggregations: {aggs}
-15. Allowed filter operators: {ops}
-16. Allowed derived operations: {derived}
-17. Titles and subtitles in {language}. Return ONLY valid compact JSON, no markdown.
+RULES:
+1. Use only columns present in the profile or derived_columns.
+2. The dataset is already clean. Do not add cleaning logic.
+3. Generate 3-5 meaningful KPIs when the available columns permit.
+4. Generate at least 4 useful charts when the available data permits.
+   Prefer 4-7 charts, covering different analytical questions.
+5. Never return an empty charts array if at least one valid chart
+   can be created from the available columns.
+6. Before returning the plan, verify that every chart has:
+   - a valid existing x column;
+   - a valid y column when required;
+   - an appropriate aggregation;
+   - a supported chart type;
+   - a meaningful analytical purpose.
+7. Choose charts based on the actual dataset profile, not generic templates.
+8. Time series: line/area with a valid date column.
+   Rankings: bar. Shares: donut when appropriate.
+   Numeric distributions: histogram. Numeric relationships: scatter.
+   Details: table when useful.
+9. Prefer useful numeric aggregations over row counts when possible.
+10. Do not sum identifiers, rates, or non-additive measures.
+11. Use sort="x" for chronological axes.
+12. KPI kinds: aggregate, ratio, top_item.
+13. Never use percent formatting for a raw count.
+14. Ratio numerator and denominator must use comparable rows.
+15. {currency_hint}
+16. Allowed aggregations: {aggs}
+17. Allowed filter operators: {ops}
+18. Allowed derived operations: {derived}
+19. Titles and subtitles must be in {language}.
+20. Return compact valid JSON only, without Markdown.
 """
 
 
-
 class BIAnalystAgent:
-    MAX_REPAIRS = 2
+    MAX_REPAIRS = 1
 
     def __init__(self):
         provider = os.getenv("LLM_PROVIDER", "gemini").lower()
@@ -81,7 +154,9 @@ class BIAnalystAgent:
                     "https://generativelanguage.googleapis.com/v1beta/openai/"
                 ),
             )
-            self.model = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+            self.model = os.getenv(
+                "GEMINI_MODEL", "gemini-3.8-flash"
+            )
 
         elif provider == "groq":
             api_key = os.getenv("GROQ_API_KEY")
@@ -110,6 +185,7 @@ class BIAnalystAgent:
                 api_key=api_key,
             )
             self.model = os.getenv("OPENROUTER_MODEL")
+
             if not self.model:
                 raise ValueError(
                     "OPENROUTER_MODEL doit être défini dans le fichier .env"
@@ -121,47 +197,62 @@ class BIAnalystAgent:
                 "Valeurs possibles : gemini, groq, openrouter."
             )
 
-    # ------------------------------------------------------------------
-    # LLM
-    # ------------------------------------------------------------------
+    # ---------------------------------------------------------
+    # Appels LLM et JSON
+    # ---------------------------------------------------------
 
     @staticmethod
     def _parse_json(text: str) -> dict:
+        """Parse un objet JSON, même si le LLM ajoute des balises Markdown."""
+
+        if not isinstance(text, str) or not text.strip():
+            raise ValueError("La réponse du LLM est vide.")
+
         text = re.sub(
-            r"^```(?:json)?|```$",
+            r"^\s*```(?:json)?\s*|\s*```\s*$",
             "",
-            (text or "").strip(),
-            flags=re.MULTILINE,
+            text.strip(),
+            flags=re.IGNORECASE | re.MULTILINE,
         ).strip()
 
         try:
-            return json.loads(text)
+            data = json.loads(text)
         except json.JSONDecodeError:
             start = text.find("{")
             end = text.rfind("}")
 
-            if start != -1 and end > start:
-                return json.loads(text[start:end + 1])
+            if start < 0 or end <= start:
+                raise ValueError("La réponse du LLM ne contient pas de JSON.")
 
-            raise ValueError("réponse du LLM non JSON")
+            data = json.loads(text[start:end + 1])
+
+        if not isinstance(data, dict):
+            raise ValueError("Le JSON du LLM doit être un objet.")
+
+        return data
 
     def _chat_json(
         self,
         system: str,
         user: str,
-        temperature: float = 0.2,
-        retries: int = 3,
-        max_tokens: int = 750,
+        temperature: float = 0.1,
+        retries: int = 1,
+        max_tokens: int = 850,
     ) -> dict:
         """
-        Appel robuste :
-        - max_tokens élevé + reasoning_effort faible pour les modèles gpt-oss.
-        - si le mode JSON strict est rejeté, retente sans ce mode et parse le JSON.
+        Appel LLM à consommation contrôlée.
+
+        Une erreur 429, 401 ou 403 arrête immédiatement les tentatives.
+        Si le fournisseur refuse le mode JSON, une tentative sans ce mode
+        est autorisée si une tentative supplémentaire est disponible.
         """
+
         last_err = None
         use_json_mode = True
+        attempt = 0
+        max_attempts = retries + 1
 
-        for _ in range(retries + 1):
+        while attempt < max_attempts:
             kwargs = {
                 "model": self.model,
                 "messages": [
@@ -172,40 +263,61 @@ class BIAnalystAgent:
                 "max_tokens": max_tokens,
             }
 
-            if "gpt-oss" in self.model:
-                kwargs["extra_body"] = {"reasoning_effort": "low"}
+            if "gpt-oss" in self.model.lower():
+                kwargs["extra_body"] = {
+                    "reasoning_effort": "low"
+                }
 
             if use_json_mode:
-                kwargs["response_format"] = {"type": "json_object"}
+                kwargs["response_format"] = {
+                    "type": "json_object"
+                }
 
             try:
-                resp = self.client.chat.completions.create(**kwargs)
-                content = resp.choices[0].message.content
+                response = self.client.chat.completions.create(**kwargs)
+                content = response.choices[0].message.content
                 return self._parse_json(content)
 
-            except BadRequestError as e:
-                last_err = e
-                use_json_mode = False
+            except BadRequestError as exc:
+                last_err = exc
 
-            except ValueError as e:
-                last_err = e
+                if use_json_mode and attempt + 1 < max_attempts:
+                    use_json_mode = False
+                    attempt += 1
+                    continue
 
-        raise ValueError(
-            f"Le LLM n'a pas renvoyé de JSON valide après "
-            f"{retries + 1} essais : {last_err}"
-        )
+                break
+
+            except ValueError as exc:
+                last_err = exc
+                break
+
+            except Exception as exc:
+                last_err = exc
+                status_code = getattr(exc, "status_code", None)
+
+                if status_code in (401, 403, 429):
+                    break
+
+                attempt += 1
+                if attempt >= max_attempts:
+                    break
+                continue
+
+        raise RuntimeError(
+            f"Échec de l'appel LLM ({self.model}) : {last_err}"
+        ) from last_err
 
     def _rules(self, language: str, currency: str = None) -> str:
         if currency:
             hint = (
-                f"The currency of monetary values is {currency}: "
-                "use it as the KPI unit."
+                f"The currency is {currency}. Use it as the unit "
+                "for relevant monetary KPIs."
             )
         else:
             hint = (
-                "Use a currency symbol as unit only if the data clearly "
-                "implies it (e.g. a dominant country); otherwise leave "
-                "unit empty."
+                "Use a currency unit only when the dataset clearly "
+                "supports it; otherwise leave the unit empty."
             )
 
         return PLAN_RULES.format(
@@ -217,35 +329,148 @@ class BIAnalystAgent:
             language=language,
         )
 
-    # ---------------------------------------------------------------
-    # Étapes de planification
-    # ---------------------------------------------------------------
+    # ---------------------------------------------------------
+    # Planification
+    # ---------------------------------------------------------
 
     def _plan(
         self,
         profile: dict,
         language: str,
         currency: str = None,
+        dashboard_focus: str = "overview",
     ) -> dict:
+        """Génère le plan LLM d'un dashboard spécialisé."""
+
+        focus_instructions = {
+            "overview": (
+                "Create an executive overview: high-level KPIs, "
+                "overall performance and the most important indicators."
+            ),
+            "comparison": (
+                "Create a comparative analysis: compare categories, "
+                "segments or groups using only available columns."
+            ),
+            "trends": (
+                "Create a trends and patterns dashboard. Use time analysis "
+                "if a valid date column exists. Otherwise analyze distributions, "
+                "relationships or other useful patterns."
+            ),
+        }
+
+        focus_instruction = focus_instructions.get(
+            dashboard_focus,
+            focus_instructions["overview"],
+        )
+
         system = (
-            "You are an autonomous senior BI analyst who designs "
-            "dashboards by reasoning on the data. "
-            "The dataset has already been cleaned by a Data Engineering agent — "
-            "do NOT add any cleaning or filtering logic."
+            "You are a senior Business Intelligence analyst. "
+            "Build a dashboard from the supplied dataset profile. "
+            "Never invent column names, data, KPIs or results. "
+            "Select only charts supported by the actual dataset. "
+            "Return valid JSON matching the required schema."
         )
 
         user = (
-            "Here is the statistical profile of a pre-cleaned dataset:\n"
-            + json.dumps(profile, default=str)
-            + "\n\nDesign the best KPI dashboard for it. "
-            "Focus only on derived columns, KPIs and charts. "
-            "Return JSON with exactly this structure:\n"
+            "DATASET PROFILE:\n"
+            + json.dumps(
+                profile,
+                default=str,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            + "\n\nDASHBOARD OBJECTIVE:\n"
+            + focus_instruction
+            + "\n\n"
+            + "Generate 3 to 5 relevant KPIs and at least 4 useful charts "
+            "when the available columns permit them. "
+            + "Choose chart types and columns according to the data. "
+            + "Do not repeat the same analysis across dashboards. "
+            + "If the data does not support a chart, do not invent one. "
+            + "\n\nReturn this JSON structure:\n"
             + PLAN_SCHEMA
             + "\n"
             + self._rules(language, currency)
         )
 
-        return self._chat_json(system, user)
+        return self._chat_json(
+            system,
+            user,
+            temperature=0.1,
+            retries=0,
+            max_tokens=350,
+        )
+
+    def _complete_missing_charts(
+        self,
+        profile: dict,
+        plan: dict,
+        language: str,
+        currency: str = None,
+    ) -> dict:
+        """Demande au LLM de compléter un plan sans graphiques."""
+
+        if plan.get("charts"):
+            return plan
+
+        system = (
+            "You are a senior BI analyst. Generate useful charts "
+            "from the supplied dataset profile. "
+            "Use only existing columns and valid aggregations. "
+            "Never return an empty charts array if a valid chart "
+            "can be created."
+        )
+
+        user = (
+            "The previous dashboard plan contains no charts. "
+            "Generate 3 to 5 relevant KPIs and at least 4 useful charts. "
+            "Analyze the dataset schema and select at least 4 meaningful charts. "
+            "Use different chart types when appropriate, such as bar, line, area, ""donut, scatter, or histogram. "
+            "Choose only columns that exist in the dataset. "
+            "Do not invent column names. "
+            "Each chart must have a clear analytical purpose and should not duplicate "
+            "another chart. "
+            "Return the chart specifications in the required JSON format. "
+            "Choose different analytical questions based on the actual "
+            "columns, data types, and statistics. Do not invent columns. "
+            "Return a complete JSON object with business_context, "
+            "derived_columns, kpis, and charts. Preserve the existing "
+            "plan fields and KPI definitions.\n\n"
+            "Dataset profile:\n"
+            + json.dumps(
+                profile,
+                default=str,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            + "\n\nPrevious plan:\n"
+            + json.dumps(
+                plan,
+                default=str,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            + "\n\nRequired JSON structure:\n"
+            + PLAN_SCHEMA
+            + "\n"
+            + self._rules(language, currency)
+        )
+
+        completed = self._chat_json(
+            system,
+            user,
+            temperature=0.1,
+            retries=0,
+            max_tokens=850,
+        )
+
+        if not isinstance(completed.get("charts"), list):
+            return plan
+
+        if not completed["charts"]:
+            return plan
+
+        return completed
 
     def _repair(
         self,
@@ -255,25 +480,51 @@ class BIAnalystAgent:
         language: str,
         currency: str = None,
     ) -> dict:
+        """Répare le plan une seule fois au maximum."""
+
         system = (
-            "You are an autonomous senior BI analyst. "
-            "Your previous dashboard plan failed on some items."
+            "You are a senior BI analyst. Correct the dashboard plan. "
+            "Preserve valid items, use existing columns only, and return JSON."
         )
+
+        compact_plan = {
+            "business_context": plan.get("business_context", ""),
+            "derived_columns": plan.get("derived_columns", []),
+            "kpis": plan.get("kpis", []),
+            "charts": plan.get("charts", []),
+        }
+
+        compact_errors = [str(error)[:200] for error in errors[:5]]
 
         user = (
             "Dataset profile:\n"
-            + json.dumps(profile, default=str)
-            + "\n\nYour previous plan:\n"
-            + json.dumps(plan, default=str)
-            + "\n\nErrors raised when executing it:\n- "
-            + "\n- ".join(errors)
-            + "\n\nReturn the FULL corrected plan (same JSON structure). "
-            "Fix or replace only what is broken, keep what works."
-            + "\n"
+            + json.dumps(
+                profile, default=str, ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            + "\nPrevious plan:\n"
+            + json.dumps(
+                compact_plan, default=str, ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            + "\nExecution errors:\n"
+            + json.dumps(compact_errors, ensure_ascii=False)
+            + "\nCorrect invalid items while preserving valid ones. "
+            "Return the complete corrected JSON plan.\n"
             + self._rules(language, currency)
         )
 
-        return self._chat_json(system, user)
+        return self._chat_json(
+            system,
+            user,
+            temperature=0.1,
+            retries=0,
+            max_tokens=900,
+        )
+
+    # ---------------------------------------------------------
+    # Insights
+    # ---------------------------------------------------------
 
     def _insights(
         self,
@@ -282,99 +533,258 @@ class BIAnalystAgent:
         language: str,
     ) -> dict:
         system = (
-            "You are an analyst who explains computed results with precision "
-            "and provides actionable recommendations."
+            "You are a BI analyst. Explain computed results accurately "
+            "and provide practical recommendations. Never invent numbers."
         )
+
+        digest = eng.results_digest(result)
 
         user = (
             "Business context: "
             + str(plan.get("business_context", ""))
-            + "\n\nComputed results (the ONLY source of numbers you may use):\n"
-            + json.dumps(eng.results_digest(result), default=str)
-            + "\n\nWrite 3 to 5 insights a decision maker would care about "
-            "(concentration, trend, anomaly, opportunity, risk...). "
-            "Every number you cite must appear in the results above. "
-            "IMPORTANT: Each insight must include a clear, actionable "
-            "recommendation for the business. "
-            "Do NOT do any arithmetic yourself: use only the pre-computed "
-            "fields (value, share_pct, total_all_categories, shown_total, "
-            "shown_share_pct, distribution_stats, highest, lowest). "
-            "A histogram bin labelled 'a – b' covers values from a to b: "
-            "never call a bin negative unless both bounds are below 0 "
-            "(use distribution_stats for negatives). "
-            "Qualify something as 'high' or 'low' only if the shares justify it. "
-            "Use the KPI units as given. "
-            "Beware of partial periods (the last time bucket may be incomplete). "
-            f"\nWrite in {language}. Return JSON: "
-            '{"summary": "<one-sentence executive summary>", '
-            '"insights": [{"tag": "<SHORT UPPERCASE CATEGORY>", '
-            '"title": "<title>", '
-            '"text": "<2 sentences max, including a clear business recommendation>", '
-            '"confidence": <0-100, how strongly the computed data supports this insight>}]}'
+            + "\nComputed results (the only source of numbers):\n"
+            + json.dumps(
+                digest, default=str, ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            + "\nWrite 3 concise, useful insights when the data permits. "
+            "Every numeric claim must appear in the supplied results. "
+            "Each insight should include a practical recommendation. "
+            "Do not calculate new statistics. "
+            "Be cautious about incomplete time periods. "
+            f"Write in {language}. Return JSON only with this structure: "
+            '{"summary":"<one-sentence summary>",'
+            '"insights":[{"tag":"<CATEGORY>","title":"<title>",'
+            '"text":"<recommendation>","confidence":0}]}'
         )
 
-        return self._chat_json(system, user, temperature=0.3, max_tokens=750)
-
-    # -----------------------------------------------------------
-    # Orchestration et normalisation
-    # -----------------------------------------------------------
+        return self._chat_json(
+            system,
+            user,
+            temperature=0.2,
+            retries=0,
+            max_tokens=750,
+        )
 
     @staticmethod
-    def _as_text(x) -> str:
-        if isinstance(x, str):
-            return x
-        if x is None:
+    def _as_text(value) -> str:
+        if isinstance(value, str):
+            return value
+        if value is None:
             return ""
-        return json.dumps(x, default=str, ensure_ascii=False)
+        return json.dumps(value, default=str, ensure_ascii=False)
 
     @staticmethod
-    def _as_str_list(x) -> list:
-        if x is None:
-            return []
+    def _normalize_insights(insights) -> dict:
+        """Normalise la réponse JSON des insights."""
 
-        if isinstance(x, str):
-            return [x]
+        if isinstance(insights, list):
+            insights = {"insights": insights}
 
-        if isinstance(x, list):
-            return [BIAnalystAgent._as_text(i) for i in x]
-
-        return [BIAnalystAgent._as_text(x)]
-
-    @staticmethod
-    def _normalize_insights(ins) -> dict:
-        """Tolère un JSON d'insights mal formé."""
-        if isinstance(ins, list):
-            ins = {"insights": ins}
-
-        if not isinstance(ins, dict):
+        if not isinstance(insights, dict):
             return {"summary": "", "insights": []}
 
-        items = ins.get("insights")
+        items = insights.get("insights", [])
 
         if isinstance(items, dict):
             items = [items]
 
-        items = [
-            item
-            for item in (items if isinstance(items, list) else [])
-            if isinstance(item, dict)
-        ]
+        if not isinstance(items, list):
+            items = []
+
+        valid_items = []
+
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+
+            title = item.get("title")
+            text = item.get("text")
+
+            if not title or not text:
+                continue
+
+            try:
+                confidence = float(item.get("confidence", 0))
+            except (TypeError, ValueError):
+                confidence = 0
+
+            item["confidence"] = max(0, min(100, confidence))
+            item["tag"] = str(item.get("tag") or "ANALYSE")
+            valid_items.append(item)
 
         return {
-            "summary": BIAnalystAgent._as_text(ins.get("summary")),
-            "insights": items,
+            "summary": BIAnalystAgent._as_text(
+                insights.get("summary")
+            ),
+            "insights": valid_items,
         }
 
+    @staticmethod
+    def _fallback_insights(
+        result: dict,
+        language: str = "English",
+    ) -> dict:
+        """
+        Produit des insights prudents sans nouvel appel LLM.
+        Ils décrivent les résultats présents sans inventer de tendances.
+        """
+
+        kpis = result.get("kpis") or []
+        charts = result.get("charts") or []
+
+        def get_field(item, *names):
+            if not isinstance(item, dict):
+                return None
+
+            for name in names:
+                value = item.get(name)
+                if value is not None and value != "":
+                    return value
+
+            return None
+
+        french = str(language).lower().startswith("fr")
+        insights = []
+
+        for kpi in kpis[:3]:
+            title = get_field(kpi, "title", "label", "name")
+            value = get_field(kpi, "value", "formatted_value")
+
+            if not title:
+                continue
+
+            if french:
+                if value is not None:
+                    message = (
+                        f"La valeur calculée pour « {title} » est "
+                        f"{value}. Suivez cet indicateur dans le temps "
+                        "pour évaluer son évolution."
+                    )
+                else:
+                    message = (
+                        f"L'indicateur « {title} » est disponible. "
+                        "Suivez son évolution pour repérer les changements."
+                    )
+            else:
+                if value is not None:
+                    message = (
+                        f"The computed value for '{title}' is {value}. "
+                        "Track this indicator over time to assess changes."
+                    )
+                else:
+                    message = (
+                        f"The '{title}' indicator is available. "
+                        "Track it over time to identify changes."
+                    )
+
+            insights.append({
+                "tag": "INDICATOR",
+                "title": str(title),
+                "text": message,
+                "confidence": 100,
+            })
+
+        chart_titles = []
+
+        for chart in charts:
+            title = get_field(chart, "title", "name", "label")
+            if title:
+                chart_titles.append(str(title))
+
+        if chart_titles and len(insights) < 5:
+            if french:
+                message = (
+                    "Consultez les graphiques "
+                    + ", ".join(chart_titles[:3])
+                    + " pour explorer les répartitions ou évolutions "
+                    "visibles. Vérifiez les axes et les périodes "
+                    "avant de prendre une décision."
+                )
+                title = "Analyses disponibles"
+            else:
+                message = (
+                    "Review the charts "
+                    + ", ".join(chart_titles[:3])
+                    + " to explore the displayed distributions or trends. "
+                    "Check axes and periods before making decisions."
+                )
+                title = "Available analyses"
+
+            insights.append({
+                "tag": "ANALYSIS",
+                "title": title,
+                "text": message,
+                "confidence": 100,
+            })
+
+        if french:
+            summary = (
+                f"{len(kpis)} KPI(s) et {len(charts)} graphique(s) "
+                "ont été générés. Les insights détaillés du modèle "
+                "ne sont pas disponibles pour cette exécution."
+            )
+        else:
+            summary = (
+                f"{len(kpis)} KPI(s) and {len(charts)} chart(s) "
+                "were generated. Detailed model insights are unavailable "
+                "for this run."
+            )
+
+        return {
+            "summary": summary,
+            "insights": insights,
+        }
+
+    # ---------------------------------------------------------
+    # Exécution du plan
+    # ---------------------------------------------------------
+
     def _execute(self, df, raw_plan):
-        """Normalise puis exécute le plan ; retourne (plan, résultat, erreurs)."""
-        plan, norm_errors = eng.normalize_plan(raw_plan)
-        result, errors = eng.run_plan(df, plan)
+        """Normalise puis exécute le plan BI avec traces de diagnostic."""
 
-        return plan, result, norm_errors + errors
+        print("\n[BI TRACE] ===== DIAGNOSTIC DASHBOARD =====")
 
-    # -----------------------------------------------------------
+        raw_charts = raw_plan.get("charts") or []
+        print("[BI TRACE] Graphiques proposés par le LLM :", len(raw_charts))
+
+        for chart in raw_charts:
+            print("[BI TRACE] Graphique brut :", chart)
+
+        plan, normalization_errors = eng.normalize_plan(raw_plan)
+
+        normalized_charts = plan.get("charts") or []
+        print("[BI TRACE] Graphiques après normalisation :", len(normalized_charts))
+
+        if normalization_errors:
+            print("[BI TRACE] Erreurs de normalisation :", normalization_errors)
+
+        result, execution_errors = eng.run_plan(df, plan)
+
+        result_charts = result.get("charts") or []
+        print("[BI TRACE] Graphiques réellement calculés :", len(result_charts))
+
+        for chart in result_charts:
+            print(
+                "[BI TRACE] Résultat graphique :",
+                chart.get("title", "Sans titre")
+                if isinstance(chart, dict)
+                else str(chart),
+            )
+
+        if execution_errors:
+            print("[BI TRACE] Erreurs d'exécution :", execution_errors)
+
+        print("[BI TRACE] ===== FIN DIAGNOSTIC =====\n")
+
+        errors = list(normalization_errors or [])
+        errors.extend(list(execution_errors or []))
+
+        return plan, result, errors
+
+    # ---------------------------------------------------------
     # Construction du dashboard
-    # -----------------------------------------------------------
+    # ---------------------------------------------------------
 
     def build_dashboard(
         self,
@@ -382,47 +792,213 @@ class BIAnalystAgent:
         language: str = "English",
         currency: str = None,
     ) -> dict:
-        # Dataset is already clean — just coerce types for the engine
+        """Construit trois dashboards spécialisés avec le LLM."""
+
+        if not isinstance(df_raw, pd.DataFrame):
+            raise TypeError("df_raw doit être un pandas DataFrame.")
+
+        if df_raw.empty:
+            raise ValueError("Le dataset est vide.")
+
         df = eng.coerce_types(df_raw)
-        # Compact profile: max 4 cat values, 2 examples — keeps input tokens small
         profile = eng.profile_dataset(df, max_cat_values=4)
 
-        raw_plan = self._plan(profile, language, currency)
-        plan, result, errors = self._execute(df, raw_plan)
+        dashboard_specs = [
+            {
+                "id": "overview",
+                "title": "Vue d'ensemble",
+                "focus": "overview",
+            },
+            {
+                "id": "comparison",
+                "title": "Analyse comparative",
+                "focus": "comparison",
+            },
+            {
+                "id": "trends",
+                "title": "Tendances et patterns",
+                "focus": "trends",
+            },
+        ]
 
-        attempts = 0
+        dashboards = []
+        all_errors = []
+        repair_attempts = []
 
-        while errors and attempts < self.MAX_REPAIRS:
-            attempts += 1
+        for spec in dashboard_specs:
+            print(
+                f"\n[BI TRACE] Génération du dashboard : "
+                f"{spec['title']}"
+            )
+
+            dashboard_errors = []
+            plan = {}
+            result = {"kpis": [], "charts": []}
 
             try:
-                raw_plan = self._repair(
-                    profile,
-                    raw_plan,
-                    errors,
-                    language,
-                    currency,
+                raw_plan = self._plan(
+                    profile=profile,
+                    language=language,
+                    currency=currency,
+                    dashboard_focus=spec["focus"],
                 )
-            except Exception:
-                break
 
-            plan, result, errors = self._execute(df, raw_plan)
+                if not isinstance(raw_plan, dict):
+                    raise ValueError(
+                        "Le LLM n'a pas retourné un plan JSON valide."
+                    )
 
-        try:
-            insights = self._normalize_insights(
-                self._insights(result, plan, language)
-            )
-        except Exception:
-            insights = {"summary": "", "insights": []}
+                if not raw_plan.get("charts"):
+                    print(
+                        "[BI TRACE] Aucun graphique proposé. "
+                        "Tentative de complétion par le LLM."
+                    )
+
+                    completed = self._complete_missing_charts(
+                        profile,
+                        raw_plan,
+                        language,
+                        currency,
+                    )
+
+                    if isinstance(completed, dict):
+                        raw_plan = completed
+
+                plan, result, errors = self._execute(df, raw_plan)
+                dashboard_errors.extend(errors or [])
+
+                if dashboard_errors:
+                    try:
+                        repaired_plan = self._repair(
+                            profile,
+                            raw_plan,
+                            dashboard_errors,
+                            language,
+                            currency,
+                        )
+
+                        new_plan, new_result, new_errors = self._execute(
+                            df,
+                            repaired_plan,
+                        )
+
+                        old_chart_count = len(result.get("charts") or [])
+                        new_chart_count = len(new_result.get("charts") or [])
+
+                        if (
+                            new_chart_count >= old_chart_count
+                            and len(new_errors or [])
+                            <= len(dashboard_errors)
+                        ):
+                            plan = new_plan
+                            result = new_result
+                            dashboard_errors = list(new_errors or [])
+
+                        repair_attempts.append({
+                            "dashboard": spec["title"],
+                            "errors": list(dashboard_errors),
+                        })
+
+                    except Exception as repair_exc:
+                        dashboard_errors.append(
+                            f"Réparation impossible : {repair_exc}"
+                        )
+
+                try:
+                    generated = self._insights(
+                        result,
+                        plan,
+                        language,
+                    )
+                    normalized = self._normalize_insights(generated)
+
+                    if (
+                        not normalized.get("summary")
+                        or not normalized.get("insights")
+                    ):
+                        fallback = self._fallback_insights(
+                            result,
+                            language,
+                        )
+
+                        if not normalized.get("summary"):
+                            normalized["summary"] = fallback.get(
+                                "summary", ""
+                            )
+
+                        if not normalized.get("insights"):
+                            normalized["insights"] = fallback.get(
+                                "insights", []
+                            )
+
+                except Exception as insight_exc:
+                    print(
+                        "[BI TRACE] Échec des insights :",
+                        repr(insight_exc),
+                    )
+                    normalized = self._fallback_insights(
+                        result,
+                        language,
+                    )
+
+                dashboard = {
+                    "id": spec["id"],
+                    "title": spec["title"],
+                    "focus": spec["focus"],
+                    "summary": normalized.get("summary", ""),
+                    "insights": normalized.get("insights", []),
+                    "kpis": result.get("kpis") or [],
+                    "charts": result.get("charts") or [],
+                    "errors": dashboard_errors,
+                    "business_context": plan.get(
+                        "business_context", ""
+                    ),
+                    "derived_columns": plan.get(
+                        "derived_columns", []
+                    ),
+                }
+
+                dashboards.append(dashboard)
+                all_errors.extend(
+                    f"{spec['title']} : {error}"
+                    for error in dashboard_errors
+                )
+
+                print(
+                    f"[BI TRACE] {spec['title']} : "
+                    f"{len(dashboard['kpis'])} KPIs, "
+                    f"{len(dashboard['charts'])} graphiques."
+                )
+
+            except Exception as exc:
+                message = f"{spec['title']} : {exc}"
+                print("[BI TRACE] Erreur :", message)
+                all_errors.append(message)
+
+                dashboards.append({
+                    "id": spec["id"],
+                    "title": spec["title"],
+                    "focus": spec["focus"],
+                    "summary": "",
+                    "insights": [],
+                    "kpis": [],
+                    "charts": [],
+                    "errors": [str(exc)],
+                    "business_context": "",
+                    "derived_columns": [],
+                })
+
+        primary = dashboards[0]
 
         return {
-            "business_context": self._as_text(plan.get("business_context")),
-            "derived_columns":  plan.get("derived_columns") or [],
-            "total_rows":       result["rows_before"],
-            "kpis":             result["kpis"],
-            "charts":           result["charts"],
-            "summary":          insights["summary"],
-            "insights":         insights["insights"],
-            "errors":           errors,
-            "repair_attempts":  attempts,
+            "dashboards": dashboards,
+            "summary": primary["summary"],
+            "insights": primary["insights"],
+            "kpis": primary["kpis"],
+            "charts": primary["charts"],
+            "errors": all_errors,
+            "business_context": primary["business_context"],
+            "derived_columns": primary["derived_columns"],
+            "repair_attempts": repair_attempts,
+            "total_rows": len(df),
         }

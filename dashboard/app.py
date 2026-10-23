@@ -26,13 +26,14 @@ st.set_page_config(
     page_title="BIFlow · Your data, in focus",
     page_icon="📈",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 style.load_css()
 
 LANDING_CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+section[data-testid='stSidebar'],[data-testid='collapsedControl'],header[data-testid='stHeader']{display:none}
 .stApp{background:#070b1f;font-family:'Inter',sans-serif}
 .block-container{padding:0!important;max-width:100%!important}
 

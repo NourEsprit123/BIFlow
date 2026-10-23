@@ -1,0 +1,777 @@
+import os
+import sys
+import json
+import hashlib
+import traceback
+from pathlib import Path
+
+import pandas as pd
+import streamlit as st
+
+# ============================================================
+# Configuration des chemins
+# ============================================================
+
+ROOT_DIR = Path(__file__).resolve().parents[2]
+
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from agents.bi_analyst_agent import BIAnalystAgent
+from dashboard_view import render_kpis, render_chart_grid, insight_component
+from components import setup, page_header, btn, html
+from chat_widget import render_chat
+
+
+# ============================================================
+# Configuration de la page
+# ============================================================
+
+st.set_page_config(
+    page_title="BI Analysis | BIFlow",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+setup(title="Business Intelligence Analysis")
+
+
+# ============================================================
+# Style de l'interface
+# ============================================================
+
+st.markdown(
+    """
+    <style>
+        .block-container {
+            padding-top: 1.5rem;
+            padding-bottom: 3rem;
+            max-width: 1500px;
+        }
+
+        .section-title {
+            font-size: 1.45rem;
+            font-weight: 700;
+            margin-top: 1.6rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .section-description {
+            color: #8b949e;
+            font-size: 0.95rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .insight-card {
+            border: 1px solid rgba(128, 128, 128, 0.25);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 12px;
+            height: 100%;
+        }
+
+        .insight-card h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+        }
+
+        .insight-card p {
+            margin-bottom: 8px;
+            line-height: 1.55;
+        }
+
+        .insight-tag {
+            display: inline-block;
+            border-radius: 6px;
+            padding: 3px 8px;
+            margin-bottom: 9px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: rgba(100, 149, 237, 0.15);
+        }
+
+        .empty-state {
+            border: 1px dashed rgba(128, 128, 128, 0.4);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            color: #8b949e;
+        }
+
+        div[data-testid="stMetric"] {
+            border: 1px solid rgba(128, 128, 128, 0.22);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        div[data-testid="stTabs"] button {
+            font-weight: 600;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# Utilitaires
+# ============================================================
+
+def safe_text(value, default=""):
+    """Convertit une valeur en texte affichable sans erreur."""
+    if value is None:
+        return default
+
+    if isinstance(value, float) and pd.isna(value):
+        return default
+
+    if isinstance(value, (dict, list, tuple)):
+        return default
+
+    text = str(value).strip()
+    return text if text else default
+
+
+def get_dataset_directory():
+    """Retourne le dossier des datasets nettoyés."""
+    return ROOT_DIR / "data" / "cleaned_dataset"
+
+
+def list_datasets():
+    """Liste les fichiers de données disponibles."""
+    directory = get_dataset_directory()
+
+    if not directory.exists():
+        return []
+
+    extensions = {".csv", ".xlsx", ".xls", ".parquet"}
+
+    return sorted(
+        [
+            file.name
+            for file in directory.iterdir()
+            if file.is_file() and file.suffix.lower() in extensions
+        ],
+        key=str.lower,
+    )
+
+
+def load_dataframe(file_path):
+    """Charge un dataset avec gestion des formats courants."""
+    extension = Path(file_path).suffix.lower()
+
+    if extension == ".csv":
+        try:
+            return pd.read_csv(file_path, low_memory=False)
+        except UnicodeDecodeError:
+            return pd.read_csv(
+                file_path,
+                encoding="latin-1",
+                low_memory=False,
+            )
+
+    if extension in {".xlsx", ".xls"}:
+        return pd.read_excel(file_path)
+
+    if extension == ".parquet":
+        return pd.read_parquet(file_path)
+
+    raise ValueError("Format de fichier non pris en charge.")
+
+
+def normalize_items(value):
+    """Normalise une valeur en liste."""
+    if value is None:
+        return []
+
+    if isinstance(value, list):
+        return value
+
+    if isinstance(value, tuple):
+        return list(value)
+
+    if isinstance(value, dict):
+        return [value]
+
+    return []
+
+
+def normalize_dashboard_result(result):
+    """
+    Normalise la réponse de l'agent.
+    Cette fonction évite d'afficher les objets techniques directement.
+    """
+    if not isinstance(result, dict):
+        return {
+            "dashboards": [],
+            "kpis": [],
+            "charts": [],
+            "insights": [],
+        }
+
+    dashboards = normalize_items(result.get("dashboards"))
+
+    # Compatibilité avec les anciennes versions de l'agent :
+    # les KPIs et graphiques peuvent être à la racine.
+    if not dashboards:
+        dashboards = [
+            {
+                "title": result.get("title", "Vue d'ensemble"),
+                "description": result.get("description", ""),
+                "kpis": result.get("kpis", []),
+                "charts": result.get("charts", []),
+                "insights": result.get("insights", []),
+            }
+        ]
+
+    normalized_dashboards = []
+
+    for index, dashboard in enumerate(dashboards):
+        if not isinstance(dashboard, dict):
+            continue
+
+        normalized_dashboards.append(
+            {
+                **dashboard,
+                "title": safe_text(
+                    dashboard.get("title"),
+                    f"Dashboard {index + 1}",
+                ),
+                "description": safe_text(
+                    dashboard.get("description"),
+                    "",
+                ),
+                "kpis": normalize_items(dashboard.get("kpis")),
+                "charts": normalize_items(dashboard.get("charts")),
+                "insights": normalize_items(dashboard.get("insights")),
+            }
+        )
+
+    primary = normalized_dashboards[0] if normalized_dashboards else {}
+
+    return {
+        "dashboards": normalized_dashboards,
+        "kpis": normalize_items(result.get("kpis")) or primary.get("kpis", []),
+        "charts": normalize_items(result.get("charts")) or primary.get("charts", []),
+        "insights": normalize_items(result.get("insights")) or primary.get("insights", []),
+        "summary": safe_text(
+            result.get("executive_summary")
+            or result.get("summary")
+            or primary.get("executive_summary")
+            or primary.get("summary"),
+            "",
+        ),
+    }
+
+
+def collect_all_insights(result):
+    """Récupère et déduplique les insights de tous les dashboards."""
+    collected = []
+    seen = set()
+
+    all_sources = [result.get("insights", [])]
+
+    for dashboard in result.get("dashboards", []):
+        all_sources.append(dashboard.get("insights", []))
+
+    for source in all_sources:
+        for insight in normalize_items(source):
+            if isinstance(insight, str):
+                insight = {"description": insight}
+
+            if not isinstance(insight, dict):
+                continue
+
+            title = safe_text(
+                insight.get("title")
+                or insight.get("name")
+                or insight.get("headline"),
+                "Observation",
+            )
+
+            description = safe_text(
+                insight.get("description")
+                or insight.get("insight")
+                or insight.get("text")
+                or insight.get("finding")
+                or insight.get("summary"),
+                "",
+            )
+
+            recommendation = safe_text(
+                insight.get("recommendation")
+                or insight.get("action")
+                or insight.get("recommended_action")
+                or insight.get("suggestion"),
+                "",
+            )
+
+            category = safe_text(
+                insight.get("category")
+                or insight.get("type")
+                or insight.get("priority"),
+                "Analyse",
+            )
+
+            if not description and not recommendation:
+                continue
+
+            key = (
+                title.casefold(),
+                description.casefold(),
+                recommendation.casefold(),
+            )
+
+            if key in seen:
+                continue
+
+            seen.add(key)
+
+            collected.append(
+                {
+                    "title": title,
+                    "description": description,
+                    "recommendation": recommendation,
+                    "category": category,
+                }
+            )
+
+    return collected
+
+
+def display_insight_card(insight):
+    """Affiche une carte d'insight lisible, sans JSON."""
+    title = insight["title"]
+    description = insight["description"]
+    recommendation = insight["recommendation"]
+    category = insight["category"]
+
+    # Échappement minimal du HTML injecté dans les cartes.
+    import html as html_escape
+
+    title_html = html_escape.escape(title)
+    description_html = html_escape.escape(description)
+    recommendation_html = html_escape.escape(recommendation)
+    category_html = html_escape.escape(category)
+
+    recommendation_block = ""
+
+    if recommendation_html:
+        recommendation_block = (
+            '<p><strong>Recommandation</strong></p>'
+            f"<p>{recommendation_html}</p>"
+        )
+
+    st.markdown(
+        f"""
+        <div class="insight-card">
+            <span class="insight-tag">{category_html}</span>
+            <h4>{title_html}</h4>
+            <p>{description_html}</p>
+            {recommendation_block}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_insights(insights):
+    """Affiche les AI Insights et les recommandations."""
+    if not insights:
+        st.markdown(
+            """
+            <div class="empty-state">
+                <strong>Aucun insight disponible pour le moment.</strong>
+                <p>
+                    Relancez l'analyse ou vérifiez que l'agent BI
+                    génère des insights et des recommandations.
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        return
+
+    for start in range(0, len(insights), 2):
+        columns = st.columns(2)
+
+        for offset, column in enumerate(columns):
+            index = start + offset
+
+            if index >= len(insights):
+                break
+
+            with column:
+                display_insight_card(insights[index])
+
+
+# ============================================================
+# Exécution et mise en cache de l'analyse
+# ============================================================
+
+
+@st.cache_data(show_spinner=False)
+def run_agent(file_path, modified_time, language, currency):
+    """Charge le dataset et transmet un DataFrame à l'agent BI."""
+
+    # modified_time sert à invalider le cache si le fichier change.
+    _ = modified_time
+
+    # Chargement du dataset en DataFrame pandas.
+    df_raw = load_dataframe(file_path)
+
+    # Initialisation de l'agent.
+    agent = BIAnalystAgent()
+
+    # build_dashboard attend df_raw, pas le chemin du fichier.
+    result = agent.build_dashboard(
+        df_raw=df_raw,
+        language=language,
+        currency=currency,
+    )
+
+    if not isinstance(result, dict):
+        raise ValueError(
+            "L'agent BI n'a pas retourné un résultat exploitable."
+        )
+
+    return result
+
+
+# ============================================================
+# En-tête
+# ============================================================
+
+dataset_files = list_datasets()
+
+selected_dataset = None
+
+if dataset_files:
+    default_index = 0
+
+    previous_dataset = st.session_state.get("selected_bi_dataset")
+
+    if previous_dataset in dataset_files:
+        default_index = dataset_files.index(previous_dataset)
+
+    selected_dataset = st.sidebar.selectbox(
+        "Dataset à analyser",
+        options=dataset_files,
+        index=default_index,
+        key="bi_dataset_selector",
+    )
+
+    st.session_state["selected_bi_dataset"] = selected_dataset
+
+    if st.sidebar.button(
+        "🔄 Actualiser l'analyse",
+        use_container_width=True,
+    ):
+        run_agent.clear()
+        st.session_state.pop("bi_analysis_result", None)
+        st.rerun()
+
+else:
+    st.sidebar.info(
+        "Ajoutez un fichier CSV, Excel ou Parquet dans "
+        "data/cleaned_dataset."
+    )
+
+page_header(
+    "Business Intelligence Analysis",
+    "Explorez vos données, visualisez les indicateurs clés "
+    "et découvrez des recommandations générées par l'IA.",
+    btn("⭳ Export report") + btn("✨ Create workflow", True),
+    "BIFlow / Business Intelligence / Analysis",
+)
+
+# Le chat reste accessible sans afficher de données techniques.
+try:
+    render_chat("Datasets")
+except Exception:
+    # Une erreur du widget de chat ne doit pas bloquer le dashboard.
+    pass
+
+
+# ============================================================
+# Vérification du dataset
+# ============================================================
+
+if not dataset_files or selected_dataset is None:
+    st.markdown(
+        """
+        <div class="empty-state">
+            <h3>📂 Aucun dataset disponible</h3>
+            <p>
+                Placez un fichier CSV, Excel ou Parquet dans
+                <code>data/cleaned_dataset</code>, puis rechargez la page.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.stop()
+
+
+dataset_path = get_dataset_directory() / selected_dataset
+
+if not dataset_path.exists():
+    st.error("Le fichier sélectionné n'existe plus. Actualisez la page.")
+    st.stop()
+
+
+# ============================================================
+# Chargement et analyse
+# ============================================================
+
+try:
+    modified_time = dataset_path.stat().st_mtime
+
+    with st.spinner("Analyse des données en cours..."):
+        raw_result = run_agent(
+            str(dataset_path),
+            modified_time,
+            "fr",
+            "TND",
+        )
+
+    result = normalize_dashboard_result(raw_result)
+
+    if not result["dashboards"]:
+        st.warning(
+            "L'analyse est terminée, mais aucun dashboard exploitable "
+            "n'a été généré. Vérifiez la configuration de l'agent BI."
+        )
+        st.stop()
+
+    st.session_state["bi_analysis_result"] = result
+
+except Exception:
+    st.error(
+        "L'analyse n'a pas pu être terminée. "
+        "Vérifiez la configuration de l'agent BI et réessayez."
+    )
+
+    # Pas de traceback ou de JSON brut dans l'interface utilisateur.
+    with st.expander("Détails techniques pour le développeur"):
+        st.code(traceback.format_exc())
+
+    st.stop()
+
+
+# ============================================================
+# Préparation des données
+# ============================================================
+
+dashboards = result["dashboards"]
+primary_dashboard = dashboards[0]
+
+kpis = result["kpis"] or primary_dashboard.get("kpis", [])
+all_insights = collect_all_insights(result)
+
+# Contexte destiné au chat.
+st.session_state["dashboard_context"] = {
+    "dataset": selected_dataset,
+    "dataset_path": str(dataset_path),
+    "dashboard": primary_dashboard,
+    "kpis": kpis,
+    "insights": all_insights,
+}
+
+
+# ============================================================
+# 1. KPI CARDS — EN HAUT
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">📌 Indicateurs clés</div>',
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    f'<div class="section-description">'
+    f'Dataset analysé : <strong>{selected_dataset}</strong>'
+    f"</div>",
+    unsafe_allow_html=True,
+)
+
+if kpis:
+    try:
+        render_kpis(kpis)
+    except Exception:
+        # Repli si le format des KPI ne correspond pas au composant.
+        columns = st.columns(min(len(kpis), 4))
+
+        for index, kpi in enumerate(kpis):
+            if not isinstance(kpi, dict):
+                continue
+
+            label = safe_text(
+                kpi.get("label")
+                or kpi.get("title")
+                or kpi.get("name"),
+                f"KPI {index + 1}",
+            )
+
+            value = (
+                kpi.get("value")
+                if kpi.get("value") is not None
+                else kpi.get("formatted_value", "—")
+            )
+
+            with columns[index % len(columns)]:
+                st.metric(label=label, value=str(value))
+else:
+    st.info("Aucun indicateur clé n'a été généré pour ce dataset.")
+
+
+# ============================================================
+# Résumé exécutif — texte lisible uniquement
+# ============================================================
+
+if result.get("summary"):
+    with st.container():
+        st.markdown(
+            '<div class="section-title">📝 Résumé exécutif</div>',
+            unsafe_allow_html=True,
+        )
+        st.write(result["summary"])
+
+
+# ============================================================
+# 2. DASHBOARDS — AU MILIEU
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">📊 Dashboards</div>',
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    '<div class="section-description">'
+    'Explorez les visualisations générées à partir de vos données.'
+    '</div>',
+    unsafe_allow_html=True,
+)
+
+tab_overview, tab_comparison, tab_trends = st.tabs(
+    [
+        "Vue d'ensemble",
+        "Analyse comparative",
+        "Tendances et patterns",
+    ]
+)
+
+
+def render_dashboard_charts(dashboard, title):
+    """Affiche les graphiques d'un dashboard."""
+    charts = normalize_items(dashboard.get("charts"))
+
+    if not charts:
+        st.markdown(
+            '<div class="empty-state">'
+            "Aucun graphique disponible dans cette section."
+            "</div>",
+            unsafe_allow_html=True,
+        )
+        return
+
+    try:
+        render_chart_grid(charts)
+    except Exception:
+        st.warning(
+            "Certains graphiques n'ont pas pu être affichés. "
+            "Vérifiez leur configuration dans l'agent BI."
+        )
+
+
+with tab_overview:
+    overview_dashboard = dashboards[0]
+
+    if overview_dashboard.get("description"):
+        st.caption(overview_dashboard["description"])
+
+    render_dashboard_charts(
+        overview_dashboard,
+        "Vue d'ensemble",
+    )
+
+with tab_comparison:
+    # On utilise le deuxième dashboard si l'agent en a généré un.
+    comparison_dashboard = (
+        dashboards[1]
+        if len(dashboards) > 1
+        else None
+    )
+
+    if comparison_dashboard:
+        if comparison_dashboard.get("description"):
+            st.caption(comparison_dashboard["description"])
+
+        render_dashboard_charts(
+            comparison_dashboard,
+            "Analyse comparative",
+        )
+    else:
+        st.info(
+            "Aucun dashboard comparatif distinct n'a été généré. "
+            "Ajoutez des graphiques comparant plusieurs catégories "
+            "ou groupes dans la configuration de l'agent BI."
+        )
+
+with tab_trends:
+    trends_dashboard = (
+        dashboards[2]
+        if len(dashboards) > 2
+        else None
+    )
+
+    if trends_dashboard:
+        if trends_dashboard.get("description"):
+            st.caption(trends_dashboard["description"])
+
+        render_dashboard_charts(
+            trends_dashboard,
+            "Tendances et patterns",
+        )
+    else:
+        st.info(
+            "Aucun dashboard de tendances distinct n'a été généré. "
+            "L'agent doit produire des graphiques adaptés aux séries "
+            "temporelles ou aux distributions."
+        )
+
+
+# ============================================================
+# 3. AI INSIGHTS & RECOMMENDATIONS — EN BAS
+# ============================================================
+
+st.markdown("---")
+
+st.markdown(
+    '<div class="section-title">🤖 AI Insights & Recommendations</div>',
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    '<div class="section-description">'
+    "Les principaux constats de l'analyse et les actions recommandées."
+    '</div>',
+    unsafe_allow_html=True,
+)
+
+render_insights(all_insights)
+
+
+# ============================================================
+# Pied de page discret
+# ============================================================
+
+st.markdown("---")
+
+st.caption(
+    f"BIFlow · Analyse de {selected_dataset} · "
+    f"{len(dashboards)} dashboard(s) disponible(s)"
+)

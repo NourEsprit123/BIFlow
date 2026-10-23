@@ -218,17 +218,45 @@ def _require_col(df, col, role):
         raise ValueError(f"{role} column '{col}' does not exist")
 
 
+
 def _values_for(d, y, agg):
+    """Prépare les valeurs et l'agrégation utilisées par les graphiques."""
+
     if agg not in AGGREGATIONS:
-        raise ValueError(f"unknown aggregation '{agg}' (allowed: {AGGREGATIONS})")
-    if agg == "count" or y is None:
-        return pd.Series(1, index=d.index), "sum"
+        raise ValueError(
+            f"unknown aggregation '{agg}' (allowed: {AGGREGATIONS})"
+        )
+
+    # Sans colonne y, seule l'agrégation count est valide.
+    if y is None:
+        if agg != "count":
+            raise ValueError(
+                f"aggregation '{agg}' requires a y column; "
+                "use aggregation='count' when y is null"
+            )
+        return pd.Series(1, index=d.index, dtype="int64"), "sum"
+
+    if y not in d.columns:
+        raise ValueError(f"column '{y}' does not exist")
+
+    # Compte uniquement les valeurs non nulles de la colonne y.
+    if agg == "count":
+        return d[y].notna().astype("int64"), "sum"
+
+    # Compte les valeurs distinctes.
     if agg == "nunique":
         return d[y], "nunique"
+
+    # Les autres agrégations nécessitent une colonne numérique.
     vals = pd.to_numeric(d[y], errors="coerce")
+
     if vals.notna().sum() == 0:
-        raise ValueError(f"column '{y}' is not numeric, cannot apply '{agg}'")
+        raise ValueError(
+            f"column '{y}' is not numeric, cannot apply '{agg}'"
+        )
+
     return vals, agg
+
 
 
 def _int_like(s: pd.Series) -> pd.Series:
