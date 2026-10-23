@@ -204,7 +204,9 @@ class ImputationPlanEntry(BaseModel):
 class Agent1Metadata(BaseModel):
     agent_version: Optional[str] = None
     profiling_timestamp: Optional[str] = None
+    llm_provider: Optional[str] = None
     llm_model_used: Optional[str] = None
+    llm_status: str = "fallback"
     sandbox_executions: int = 0
     llm_driven: bool = False
 

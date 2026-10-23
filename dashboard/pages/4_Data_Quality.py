@@ -10,6 +10,7 @@ from workspace import (
     get_workspace_result,
     load_selected_dataset,
     profile_dataset_for_workspace,
+    profiling_execution_status,
     quality_summary,
 )
 
@@ -34,13 +35,29 @@ with run_col:
             f"Profiling and quality audit finished. Report created for "
             f"{result['profile']['rows']:,} rows."
         )
+        used_llm, message = profiling_execution_status(result)
+        (st.info if used_llm else st.warning)(message)
 with clean_col:
     if st.button("Run safe cleaning", use_container_width=True):
         cleaning = clean_profiled_dataset(path)
-        st.success(
+        summary = (
             f"Cleaning finished in {cleaning.final_dataset.version}; "
-            f"{len(cleaning.change_log.successful_ops())} changes applied to a working copy."
+            f"{len(cleaning.change_log.successful_ops())} changes applied in "
+            f"{cleaning.metadata.get('mode', 'unknown')} mode to a working copy."
         )
+        if (
+            cleaning.metadata.get("mode") == "llm"
+            and not cleaning.unresolved_issues
+            and cleaning.validation.status.value == "passed"
+        ):
+            st.success(summary)
+        elif cleaning.metadata.get("mode") == "llm":
+            st.warning(
+                f"{summary} {len(cleaning.unresolved_issues)} unresolved issue(s); "
+                f"validation {cleaning.validation.status.value}."
+            )
+        else:
+            st.warning(summary + " Configure Groq to enable LLM tool-calling.")
 
 health = quality_summary(frame)
 missing = health["missing_info"]

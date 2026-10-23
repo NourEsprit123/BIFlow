@@ -161,8 +161,14 @@ class DataEngineeringAgent:
                 "is_all_null": bool(series.isna().all()),
             }
 
-            # Numeric stats
-            if pd.api.types.is_numeric_dtype(series) and len(non_null) > 0:
+            is_boolean = pd.api.types.is_bool_dtype(series)
+
+            # Boolean columns are categorical, not interpolated numeric data.
+            if (
+                pd.api.types.is_numeric_dtype(series)
+                and not is_boolean
+                and len(non_null) > 0
+            ):
                 col_ev["numeric_stats"] = {
                     "mean":   round(float(non_null.mean()), 4),
                     "median": round(float(non_null.median()), 4),
@@ -177,7 +183,11 @@ class DataEngineeringAgent:
                 }
 
             # Categorical: top value counts + unique values (for synonym detection)
-            if series.dtype == "object" or str(series.dtype) == "category":
+            if (
+                series.dtype == "object"
+                or str(series.dtype) == "category"
+                or is_boolean
+            ):
                 n_unique = series.nunique(dropna=True)
                 if n_unique <= 50:
                     col_ev["unique_values"] = (
@@ -245,10 +255,19 @@ class DataEngineeringAgent:
 
         system_prompt = (
             "You are a Data Engineer. Analyze columns and return JSON with:\n"
-            "1. column_reasoning: {col: {severity: HIGH|MEDIUM|LOW|NONE, agent_reasoning: brief text, imputation_strategy: median|mean|mode|drop}}\n"
+            "1. column_reasoning: {col: {severity: HIGH|MEDIUM|LOW|NONE, "
+            "agent_reasoning: brief text, business_interpretation: brief text, "
+            "python_agreement: agree|disagree|uncertain, uncertainty: LOW|MEDIUM|HIGH, "
+            "imputation_strategy: median|mean|mode|drop, etl_cast_to: target dtype or none, "
+            "drop_recommended: boolean, needs_custom_check: boolean, "
+            "custom_check_description: string}}\n"
             "2. agent_summary: 2 sentences\n"
-            "3. numeric_waterfall_columns: [cols needing numeric cleaning]\n"
-            "4. outlier_columns: [cols with outliers]\n"
+            "3. recommendation_summary: concise summary of recommended work\n"
+            "4. numeric_waterfall_columns: [cols needing numeric cleaning]\n"
+            "5. outlier_columns: [cols with outliers]\n"
+            "Set needs_custom_check only when the supplied evidence is insufficient "
+            "for a concrete, read-only validation; describe the uncertainty precisely. "
+            "Do not request code for checks already answered by the supplied evidence.\n"
             "Be brief and decisive."
         )
 
@@ -261,10 +280,14 @@ class DataEngineeringAgent:
         )
 
         result = self.llm_client.generate_json(user_prompt, system_prompt)
-        if not result or "column_reasoning" not in result:
+        if (
+            not isinstance(result, dict)
+            or not isinstance(result.get("column_reasoning"), dict)
+        ):
             logger.warning("LLM reasoning failed — using rule-based fallback")
             result = self._fallback_llm_report(health, profile, column_evidence)
         else:
+            result["_llm_status"] = "llm"
             logger.info(
                 "LLM reasoned over %d columns, flagged %d for custom checks, "
                 "discovered %d new issues",
@@ -424,7 +447,19 @@ class DataEngineeringAgent:
             sandbox_issues = []
             if sandbox and not sandbox.get("skipped") and sandbox.get("result"):
                 r = sandbox["result"]
-                if r.get("passed") is False:
+                if r.get("error"):
+                    sandbox_issues.append({
+                        "issue_id":   "sandbox_check_not_completed",
+                        "source":     "sandbox",
+                        "severity":   "LOW",
+                        "description": "The custom check did not complete.",
+                        "evidence":   {
+                            "check_name": sandbox.get("check_description", ""),
+                            "error": r["error"],
+                            "details": r.get("details", ""),
+                        },
+                    })
+                elif r.get("passed") is False:
                     sandbox_issues.append({
                         "issue_id":   "sandbox_check_failed",
                         "source":     "sandbox",
@@ -504,6 +539,15 @@ class DataEngineeringAgent:
             1 for r in sandbox_results.values() if not r.get("skipped", True)
         )
 
+        llm_status = llm_report.get("_llm_status", "fallback")
+        llm_provider = getattr(self.llm_client, "provider", None)
+        llm_model = getattr(self.llm_client, "model_name", None)
+        model_used = (
+            f"{llm_provider}:{llm_model}"
+            if llm_status in ("llm", "mixed") and llm_provider and llm_model
+            else None
+        )
+
         return {
             "schema_version": "2.1",
             "dataset_ref": {
@@ -533,9 +577,11 @@ class DataEngineeringAgent:
             "metadata": {
                 "agent_version":       _AGENT_VERSION,
                 "profiling_timestamp": datetime.now(timezone.utc).isoformat(),
-                "llm_model_used":      "gemini-flash-latest",
+                "llm_provider":        llm_provider if model_used else None,
+                "llm_model_used":      model_used,
+                "llm_status":          llm_status,
                 "sandbox_executions":  sandbox_count,
-                "llm_driven":          True,
+                "llm_driven":          llm_status == "llm",
             },
         }
 
@@ -675,6 +721,7 @@ class DataEngineeringAgent:
             "drop_candidates":           [],
             "recommended_output_format": "parquet",
             "uncertainty_flags":         [],
+            "_llm_status":               "fallback",
         }
 
     def _llm_reason_batched(
@@ -694,6 +741,7 @@ class DataEngineeringAgent:
         
         merged_reasoning = {}
         all_discovered_issues = []
+        batch_statuses = []
         
         for batch_idx, batch_cols in enumerate(batches):
             logger.info(f"Processing batch {batch_idx + 1}/{len(batches)} ({len(batch_cols)} columns)")
@@ -706,11 +754,20 @@ class DataEngineeringAgent:
             # Merge results
             merged_reasoning.update(batch_result.get("column_reasoning", {}))
             all_discovered_issues.extend(batch_result.get("llm_discovered_issues", []))
+            batch_statuses.append(batch_result.get("_llm_status", "fallback"))
         
         # Generate final summary based on all batches
+        llm_status = (
+            "llm"
+            if all(status == "llm" for status in batch_statuses)
+            else "fallback"
+            if all(status == "fallback" for status in batch_statuses)
+            else "mixed"
+        )
         return {
             "column_reasoning": merged_reasoning,
             "llm_discovered_issues": all_discovered_issues,
+            "_llm_status": llm_status,
             "agent_summary": f"Analyzed {len(all_cols)} columns in {len(batches)} batches. Health score: {health['overall_health_score']}%",
             "recommendation_summary": f"Found {len(health['type_issues'])} type issues, {health['missing_info']['total_missing_cells']} missing values",
             "numeric_waterfall_columns": list(health["type_issues"].keys()),

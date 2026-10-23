@@ -5,13 +5,13 @@ import streamlit as st
 
 from components import setup, page_header
 from workspace import (
-    ANALYSIS_STATE_KEY,
     CLEANING_STATE_KEY,
     PROFILE_STATE_KEY,
     get_workspace_result,
     list_datasets,
     load_selected_dataset,
     profile_dataset_for_workspace,
+    profiling_execution_status,
     quality_summary,
 )
 
@@ -30,7 +30,6 @@ if path is None or frame is None:
 
 health = quality_summary(frame)
 profile_result = get_workspace_result(PROFILE_STATE_KEY, path)
-analysis = get_workspace_result(ANALYSIS_STATE_KEY, path)
 cleaning = get_workspace_result(CLEANING_STATE_KEY, path)
 current_profile = profile_result is not None
 
@@ -49,6 +48,8 @@ with profile_col:
             f"Profile completed: {result['profile']['rows']:,} rows, "
             f"{result['profile']['columns']} columns."
         )
+        used_llm, message = profiling_execution_status(result)
+        (st.info if used_llm else st.warning)(message)
 with analysis_col:
     if st.button("Create analysis", use_container_width=True):
         st.switch_page("pages/5_BI_Analysis.py")
@@ -57,27 +58,31 @@ st.subheader("Agent activity")
 agent_rows = [
     {
         "Agent": "Data Profiling Agent",
-        "Status": "Completed" if current_profile else "Ready",
-        "Latest work":         f"{profile_result['profile']['rows']:,} rows profiled"
-        if current_profile else "Run a profile to create a report",
+        "Status": (
+            "Completed" if profiling_execution_status(profile_result)[0] else "Fallback"
+        ) if current_profile else "Ready",
+        "Latest work": (
+            f"{profile_result['profile']['rows']:,} rows profiled · "
+            f"{profiling_execution_status(profile_result)[1]}"
+            if current_profile else "Run a profile to create a report"
+        ),
     },
     {
         "Agent": "Data Cleaning Agent",
-        "Status": "Completed" if cleaning else "Ready",
-        "Latest work": f"{len(cleaning.change_log.successful_ops())} changes applied to a versioned copy"
-        if cleaning else "No cleaning run in this session",
-    },
-    {
-        "Agent": "BI Analyst",
-        "Status": "Completed" if analysis else "Ready",
-        "Latest work": f"{analysis['rows']:,} rows analyzed"
-        if analysis else "No analysis run in this session",
-    },
-    {
-        "Agent": "XAI Auditor",
-        "Status": "Waiting" if current_profile else "Ready",
-        "Latest work": "Profiling evidence available on Audit & XAI"
-        if current_profile else "Run profiling to create an audit report",
+        "Status": (
+            "Completed"
+            if cleaning.metadata.get("mode") == "llm"
+            and not cleaning.unresolved_issues
+            and cleaning.validation.status.value == "passed"
+            else "Needs review"
+            if cleaning.metadata.get("mode") == "llm"
+            else "Fallback"
+        ) if cleaning else "Ready",
+        "Latest work": (
+            f"{len(cleaning.change_log.successful_ops())} changes; "
+            f"{cleaning.metadata.get('mode', 'unknown')} mode; versioned copy"
+            if cleaning else "No cleaning run in this session"
+        ),
     },
 ]
 st.dataframe(agent_rows, hide_index=True, use_container_width=True)

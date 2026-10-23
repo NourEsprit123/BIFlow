@@ -8,15 +8,14 @@ from workspace import (
     ANALYSIS_STATE_KEY,
     DATASET_STATE_KEY,
     PROFILE_STATE_KEY,
-    analyze_dataframe,
     clean_profiled_dataset,
     dataset_label,
     get_workspace_result,
     list_datasets,
     load_selected_dataset,
     profile_dataset_for_workspace,
+    profiling_execution_status,
     selected_dataset_path,
-    verify_profiling_report,
 )
 
 NAV = [
@@ -32,8 +31,6 @@ NAV = [
 AGENTS = [
     ("Agent 1 · Data Profiling", "agent1", "Run profiling and quality audit"),
     ("Agent 2 · Data Cleaning", "agent2", "Run safe cleaning plan"),
-    ("Agent 3 · BI Analyst", "agent3", "Run dataset analysis"),
-    ("Agent 4 · XAI Auditor", "agent4", "Verify profiling report"),
 ]
 
 
@@ -97,6 +94,9 @@ def setup(title, hub="Enterprise Analytics Hub"):
              '<div class="bf-nav-label">ANALYTICAL CORE</div>')
         for label, path, icon in NAV:
             st.page_link(path, label=label, icon=icon)
+        st.caption("AGENT 1 · DATA ENGINEERING")
+        st.page_link("pages/A1_Profiling.py", label="Profiling", icon="🔎")
+        st.page_link("pages/A1_Quality.py", label="Quality Check", icon="✅")
         selected_dataset_path()
         datasets = list_datasets()
         if datasets:
@@ -137,30 +137,33 @@ def setup(title, hub="Enterprise Analytics Hub"):
                             f"Profiling complete: {result['profile']['rows']:,} rows, "
                             f"{result['profile']['columns']} columns."
                         )
+                        used_llm, message = profiling_execution_status(result)
+                        (st.info if used_llm else st.warning)(message)
                     elif key_prefix == "agent2":
                         cleaning = clean_profiled_dataset(path)
-                        st.success(
-                            f"Cleaning run complete: {len(cleaning.change_log.successful_ops())} "
-                            "changes applied; original data preserved."
-                        )
-                    elif key_prefix == "agent3":
-                        result = analyze_dataframe(frame, path)
-                        st.success(
-                            f"Analysis complete: {result['rows']:,} rows and "
-                            f"{result['numeric_columns']} numeric columns."
-                        )
-                    else:
-                        profile_result = get_workspace_result(PROFILE_STATE_KEY, path)
-                        if profile_result is None:
-                            st.warning("Run Data Profiling first to create an auditable report.")
+                        mode = cleaning.metadata.get("mode")
+                        if (
+                            mode == "llm"
+                            and not cleaning.unresolved_issues
+                            and cleaning.validation.status.value == "passed"
+                        ):
+                            st.success(
+                                f"LLM cleaning complete: "
+                                f"{len(cleaning.change_log.successful_ops())} changes; "
+                                "original data preserved."
+                            )
+                        elif mode == "llm":
+                            st.warning(
+                                f"LLM cleaning finished with unresolved issues: "
+                                f"{len(cleaning.unresolved_issues)}; validation "
+                                f"{cleaning.validation.status.value}."
+                            )
                         else:
-                            verification = verify_profiling_report(path, profile_result)
-                            if verification["verified"]:
-                                st.success(
-                                    f"Report verified. SHA-256: {verification['sha256']}"
-                                )
-                            else:
-                                st.error(verification["reason"])
+                            st.warning(
+                                f"Deterministic fallback completed with "
+                                f"{len(cleaning.change_log.successful_ops())} changes. "
+                                "Configure the Groq LLM to enable tool-calling reasoning."
+                            )
 
     top = st.columns([1.4, 2.6, 0.7, 1.3, 0.7], vertical_alignment="center")
     with top[0]:

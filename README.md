@@ -33,47 +33,30 @@ BIFlow sépare le profilage et le nettoyage dans **4 agents spécialisés**,
 coordonnés par l'orchestrateur :
 
 ```text
-                         ┌──────────────────────┐
-                         │  Orchestrator Agent  │
-                         │  Workflow & Routing  │
-                         └──────────┬───────────┘
-                                    │
-                                    ▼
                     ┌─────────────────────────────┐
                     │   Data Profiling Agent    │
-                    │ Profiling • Quality Audit │
+                    │ LLM reasoning • checks    │
                     └─────────────┬───────────────┘
-                                  │
+                                  │ ProfilingReport 2.1
                                   ▼
                     ┌─────────────────────────────┐
                     │    Data Cleaning Agent     │
-                    │ Cleaning • Validation • ETL│
-                    └─────────────┬───────────────┘
-                                  │
-                                  ▼
-                    ┌─────────────────────────────┐
-                    │      BI Analyst Agent       │
-                    │ KPI • Trends • Anomalies   │
-                    │       • Insights            │
-                    └─────────────┬───────────────┘
-                                  │
-                                  ▼
-                    ┌─────────────────────────────┐
-                    │      XAI / Auditor Agent    │
-                    │ Explainability • Traceability│
-                    │          • Audit             │
+                    │ LLM tools • versions       │
                     └─────────────────────────────┘
 ```
 
 ### 🤖 Agents
 
-| Agent                         | Responsabilité                                      |
-| ----------------------------- | --------------------------------------------------- |
-| 🧠 **Orchestrator Agent**     | Coordonne le workflow et l'exécution des agents     |
-| 🔎 **Data Profiling Agent**   | Profilage, contrôles de qualité et rapport de profil|
-| 🧹 **Data Cleaning Agent**    | Nettoyage, validation, conversions et ETL            |
-| 📊 **BI Analyst Agent**       | KPI, tendances, anomalies, segmentation et insights  |
-| 🔍 **XAI / Auditor Agent**    | Explication, traçabilité et audit des résultats     |
+| Agent | Responsabilité |
+| --- | --- |
+| 🔎 **Data Profiling Agent** | Profilage déterministe, interprétation LLM et rapport de profil validé |
+| 🧹 **Data Cleaning Agent** | Interprétation du rapport, choix d'outils LLM, nettoyage versionné et validation |
+
+The two agents keep separate LLM clients and control loops. Agent 1 hands Agent
+2 a validated `ProfilingReport` (schema 2.1); Agent 1 uses an Ollama or Gemini
+JSON client, while Agent 2 uses Groq function calling and registered tools.
+Both can request custom, read-only checks whose generated Python runs only
+through the isolated sandbox runner.
 
 ---
 
@@ -395,14 +378,14 @@ téléchargés en JSON.
 Les boutons d'agent dans la barre supérieure lancent réellement les fonctions
 disponibles sur le dataset actif :
 
-* **Agent 1 · Data Profiling** : profilage, contrôles de qualité et rapport remis à l'agent de nettoyage ;
-* **Agent 2 · Data Cleaning** : transformations déterministes, validation et copie versionnée ;
-* **Agent 3 · BI Analyst** : statistiques descriptives et KPIs disponibles dans les données ;
-* **Agent 4 · XAI Auditor** : vérification de la provenance, des dimensions et du contenu du rapport sauvegardé.
+* **Agent 1 · Data Profiling** : statistiques et contrôles déterministes, interprétation LLM, et rapport remis à l'agent de nettoyage ;
+* **Agent 2 · Data Cleaning** : le LLM sélectionne les outils de nettoyage enregistrés, demande des contrôles personnalisés en sandbox si nécessaire, et conserve une copie versionnée.
 
-Le profilage utilise son mode déterministe local et ne requiert pas de service
-LLM. **Agent Ops** montre l'activité de la session courante ; aucun pool
-d'agents persistant ni connecteur de télémétrie n'est configuré.
+Les modes de secours déterministes sont indiqués explicitement ; ils ne sont pas
+présentés comme des exécutions LLM. Les contrôles de qualité, KPIs, exports et
+vérifications d'audit des autres pages sont des fonctions de l'application, pas
+des agents supplémentaires. **Agent Ops** montre l'activité de la session
+courante ; aucun pool d'agents persistant ni connecteur de télémétrie n'est configuré.
 
 ### 🔍 Audit
 
@@ -519,13 +502,21 @@ Les clés API et informations sensibles ne doivent **jamais être directement é
 Utiliser un fichier `.env` local :
 
 ```text
+LLM_PROVIDER=ollama
+OLLAMA_HOST=http://localhost:11434
+OLLAMA_MODEL=qwen2.5:7b
+GEMINI_MODEL=gemini-3.6-flash
 GEMINI_API_KEY=your_api_key
 GROQ_API_KEY=your_groq_api_key
 GROQ_MODEL=llama-3.3-70b-versatile
 ```
 
 Le fichier `.env` est ignoré par Git grâce au `.gitignore`.
-L'agent de nettoyage utilise `GROQ_API_KEY`; `GROQ_MODEL` est facultatif.
+L'agent de profilage utilise `LLM_PROVIDER=ollama` ou `LLM_PROVIDER=gemini`;
+Ollama est le choix par défaut. Les erreurs du fournisseur de profilage sont
+remontées au lieu d'être transformées en réponses JSON vides. L'agent de
+nettoyage détecte `GROQ_API_KEY` (ou `BIFLOW_LLM_API_KEY`) et `GROQ_MODEL` est
+facultatif ; sans clé, son mode déterministe est affiché comme mode de secours.
 
 Pour partager la structure des variables nécessaires avec l'équipe, utiliser plutôt :
 

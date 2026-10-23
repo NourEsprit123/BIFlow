@@ -9,6 +9,7 @@ from uuid import uuid4
 
 import pandas as pd
 
+from analytics.data_quality import run_sandboxed_check
 from .cleaning import (
     apply_and_commit,
     clean_numeric_string,
@@ -73,6 +74,16 @@ TOOL_SCHEMAS = [
         "Inspect common formats and inconsistent values in one column.",
         {"column": _STRING},
         ["column"],
+    ),
+    _tool(
+        "run_custom_check",
+        "Run an LLM-generated, read-only column check in the isolated sandbox.",
+        {
+            "column": _STRING,
+            "description": _STRING,
+            "code": {"type": "string", "maxLength": 8000},
+        },
+        ["column", "description", "code"],
     ),
     _tool(
         "trim_whitespace",
@@ -200,6 +211,7 @@ class ToolExecutor:
             "inspect_column": self._inspect_column,
             "inspect_duplicates": self._inspect_duplicates,
             "check_value_patterns": self._check_value_patterns,
+            "run_custom_check": self._run_custom_check,
             "trim_whitespace": self._trim_whitespace,
             "normalize_values": self._normalize_values,
             "convert_data_types": self._convert_data_types,
@@ -296,6 +308,38 @@ class ToolExecutor:
             column=args["column"],
             manager=self.state.manager,
         )
+
+    def _run_custom_check(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        column = args["column"]
+        description = str(args["description"]).strip()
+        code = args["code"]
+        if not description:
+            raise ValueError("A custom check description is required.")
+        if not isinstance(code, str) or not code.strip():
+            raise ValueError("Custom check code must be a non-empty string.")
+
+        df = self.state.manager.load(self.state.current_ref)
+        if column not in df.columns:
+            raise ValueError(f"Column not found: {column}")
+
+        sample = df[column].head(500)
+        result = run_sandboxed_check(code, sample, timeout_sec=8)
+        execution_succeeded = result.get("error") is None
+        if not execution_succeeded:
+            self.state.unresolved.append(
+                f"Custom check for '{column}' was not completed: "
+                f"{result.get('error') or result['details']}"
+            )
+        return {
+            "success": execution_succeeded,
+            "column": column,
+            "description": description,
+            "sample_size": len(sample),
+            "check_passed": result["passed"] if execution_succeeded else None,
+            "details": result["details"],
+            "backend": result.get("backend"),
+            "error": result.get("error"),
+        }
 
     def _trim_whitespace(self, args: Dict[str, Any]) -> Dict[str, Any]:
         columns = args.get("columns", [])

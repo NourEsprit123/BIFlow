@@ -18,7 +18,11 @@ class LLMClient:
     def __init__(self):
         self.provider = os.getenv("LLM_PROVIDER", "ollama").lower()
         self.ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-        self.model_name = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+        self.model_name = (
+            os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+            if self.provider == "gemini"
+            else os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+        )
         self.gemini_api_key = os.getenv("GEMINI_API_KEY", "")
 
     def generate_json(self, prompt: str, system_prompt: Optional[str] = None) -> Dict[str, Any]:
@@ -34,10 +38,9 @@ class LLMClient:
         """
         if self.provider == "ollama":
             return self._call_ollama(prompt, system_prompt)
-        elif self.provider == "gemini":
+        if self.provider == "gemini":
             return self._call_gemini(prompt, system_prompt)
-        else:
-            return self._call_ollama(prompt, system_prompt)
+        raise ValueError(f"Unsupported LLM_PROVIDER: {self.provider}")
 
     def _call_ollama(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         """
@@ -56,30 +59,35 @@ class LLMClient:
         try:
             response = requests.post(url, json=payload, timeout=180)
             response.raise_for_status()
-            data = response.json()
-            return data.get("response", "")
-        except Exception as e:
-            logger.warning(f"Ollama call failed ({e}). Returning fallback JSON.")
-            return "{}"
+        except requests.RequestException as error:
+            logger.exception("Ollama request failed")
+            raise RuntimeError(f"Ollama request failed: {error}") from error
+
+        data = response.json()
+        generated = data.get("response")
+        if not isinstance(generated, str) or not generated.strip():
+            raise ValueError("Ollama returned an empty response.")
+        return generated
 
     def _call_gemini(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         """
         Calls Google Gemini API.
         """
         if not self.gemini_api_key:
-            logger.warning("GEMINI_API_KEY not set in .env")
-            return "{}"
+            raise RuntimeError("GEMINI_API_KEY is not configured.")
 
-        try:
-            import google.generativeai as genai
-            genai.configure(api_key=self.gemini_api_key)
-            model = genai.GenerativeModel("gemini-1.5-flash")
-            full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
-            response = model.generate_content(full_prompt)
-            return response.text
-        except Exception as e:
-            logger.error(f"Gemini API call failed: {e}")
-            return "{}"
+        from google import genai
+
+        client = genai.Client(api_key=self.gemini_api_key)
+        full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
+        response = client.models.generate_content(
+            model=self.model_name,
+            contents=full_prompt,
+        )
+        generated = response.text
+        if not isinstance(generated, str) or not generated.strip():
+            raise ValueError("Gemini returned an empty response.")
+        return generated
 
     def _extract_json(self, text: str) -> Dict[str, Any]:
         """

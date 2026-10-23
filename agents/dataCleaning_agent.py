@@ -59,6 +59,7 @@ def _report_context(report: ProfilingReport, max_chars: int = 12000) -> str:
         "recommended_cleaning_order": report.recommended_cleaning_order,
         "imputation_plan": {k: v.model_dump() for k, v in report.imputation_plan.items()},
         "etl_hints": report.etl_hints.model_dump(),
+        "metadata": report.metadata.model_dump(),
         "agent_summary": report.agent_summary,
         "recommendation_summary": report.recommendation_summary,
         "columns": {},
@@ -282,9 +283,11 @@ class DataCleaningAgent:
             "1. Reason briefly about the main issues.",
             "2. Use inspection tools if you need more evidence.",
             "3. Apply cleaning tools in a sensible order (see recommended_cleaning_order).",
-            "4. Use request_approval for high-risk or ambiguous actions.",
-            "5. Call validate_dataset when major columns are cleaned.",
-            "6. Call finish with a summary when done or blocked.",
+            "4. Use run_custom_check only when a specific uncertain column needs a "
+            "read-only check that the registered tools cannot answer.",
+            "5. Use request_approval for high-risk or ambiguous actions.",
+            "6. Call validate_dataset when major columns are cleaned.",
+            "7. Call finish with a summary when done or blocked.",
         ]
         if self.approve_all:
             parts.append(

@@ -23,14 +23,6 @@ CLEANING_STATE_KEY = "workspace_cleaning_result"
 ANALYSIS_STATE_KEY = "workspace_analysis_result"
 
 
-class _RuleBasedLLM:
-    """Keep dashboard actions local and deterministic when no LLM is configured."""
-
-    def generate_json(self, prompt: str, system_prompt: str | None = None) -> dict[str, Any]:
-        _ = prompt, system_prompt
-        return {}
-
-
 def list_datasets() -> list[Path]:
     RAW_DATA.mkdir(parents=True, exist_ok=True)
     return sorted(
@@ -102,10 +94,24 @@ def profile_dataset_for_workspace(path: Path, *, refresh: bool = False) -> dict[
     if not refresh and cached and cached.get("signature") == signature:
         return cached["result"]
 
-    result = DataEngineeringAgent(llm_client=_RuleBasedLLM()).run_audit(str(path))
+    result = DataEngineeringAgent().run_audit(str(path))
     st.session_state[PROFILE_STATE_KEY] = {"signature": signature, "result": result}
     st.session_state.pop(CLEANING_STATE_KEY, None)
     return result
+
+
+def profiling_execution_status(result: dict[str, Any]) -> tuple[bool, str]:
+    metadata = result["profiling_report"]["metadata"]
+    status = metadata.get("llm_status")
+    if status == "llm":
+        model = metadata.get("llm_model_used")
+        model_suffix = f" ({model})" if model else ""
+        return True, f"LLM reasoning used{model_suffix}."
+    if status == "mixed":
+        return False, "Some profiling batches used rule-based fallback instead of the LLM."
+    if status == "fallback":
+        return False, "The LLM did not produce usable reasoning; rule-based fallback was used."
+    return False, "Profiling LLM execution status is not recorded."
 
 
 def dataset_signature(path: Path) -> tuple[str, int, int]:
@@ -175,16 +181,14 @@ def analyze_dataframe(df: pd.DataFrame, path: Path) -> dict[str, Any]:
 
 
 def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = None) -> Any:
-    profile_state = st.session_state.get(PROFILE_STATE_KEY)
-    if not profile_state or profile_state.get("signature", (None,))[0] != str(path.resolve()):
+    result = get_workspace_result(PROFILE_STATE_KEY, path)
+    if result is None:
         result = profile_dataset_for_workspace(path)
-    else:
-        result = profile_state["result"]
 
     agent = DataCleaningAgent(
         data_root=ROOT / "data" / "versions" / "dashboard",
         search_roots=[RAW_DATA, ROOT / "data"],
-        use_llm=False,
+        use_llm=None,
     )
     cleaning = agent.run(
         result["profiling_report"],

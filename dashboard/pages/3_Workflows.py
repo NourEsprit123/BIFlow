@@ -12,6 +12,7 @@ from workspace import (
     profiling_report_json,
     get_workspace_result,
     verify_profiling_report,
+    profiling_execution_status,
 )
 
 setup("Workflows")
@@ -74,20 +75,22 @@ if run_clicked:
         ):
             st.write("Data Profiling Agent: inspecting the selected dataset...")
             profile_result = profile_dataset_for_workspace(path, refresh=True)
-            st.write("Profiling and deterministic quality checks complete.")
+            used_llm, message = profiling_execution_status(profile_result)
+            (st.write if used_llm else st.warning)(message)
 
         if selected["Data cleaning (versioned copy)"]:
             st.write("Data Cleaning Agent: creating a versioned working copy...")
             cleaning_result = clean_profiled_dataset(path)
             st.write(
-                f"Cleaning completed with {len(cleaning_result.change_log.successful_ops())} "
+                f"Cleaning ran in {cleaning_result.metadata.get('mode', 'unknown')} "
+                f"mode with {len(cleaning_result.change_log.successful_ops())} "
                 "successful transformation(s)."
             )
 
         if selected["KPI analysis"]:
             analysis = analyze_dataframe(frame, path)
             st.write(
-                f"BI Analyst: analyzed {analysis['rows']:,} rows, "
+                f"KPI analysis: analyzed {analysis['rows']:,} rows, "
                 f"{analysis['numeric_columns']} numeric columns, and "
                 f"{analysis['categorical_columns']} categorical columns."
             )
@@ -98,7 +101,7 @@ if run_clicked:
             else:
                 verification = verify_profiling_report(path, profile_result)
                 if verification["verified"]:
-                    st.write(f"XAI Auditor: report verified, SHA-256 {verification['sha256']}")
+                    st.write(f"Report verified, SHA-256 {verification['sha256']}")
                 else:
                     st.error(f"XAI Auditor: {verification['reason']}")
 

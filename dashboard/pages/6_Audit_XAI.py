@@ -6,6 +6,7 @@ from workspace import (
     get_workspace_result,
     load_selected_dataset,
     profile_dataset_for_workspace,
+    profiling_execution_status,
     profiling_report_json,
     verify_profiling_report,
 )
@@ -57,6 +58,7 @@ if verify_clicked and profile_result:
 if has_current_report and profile_result:
     result = profile_result
     report = result["profiling_report"]
+    used_llm, llm_message = profiling_execution_status(result)
     verification = verify_profiling_report(path, profile_result)
     st.subheader(f"Audit report · {path.name}")
     st.write(
@@ -64,6 +66,7 @@ if has_current_report and profile_result:
         f"Quality score {result['health']['overall_health_score']}% · "
         f"Report {'verified' if verification['verified'] else 'not verified'}"
     )
+    (st.info if used_llm else st.warning)(llm_message)
     st.write(report.get("agent_summary", "No narrative summary was produced."))
     with st.expander("Profiling evidence"):
         st.json(report)
