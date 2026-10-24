@@ -40,6 +40,7 @@ from dataCleaningTools.models import (
 from dataCleaningTools.policy import apply_policy, requires_approval
 from dataCleaningTools.sandbox import sandbox_status
 from dataCleaningTools.tool_registry import TOOL_SCHEMAS, AgentSessionState, ToolExecutor
+from dataCleaningTools.experiments import TRANSFORM_SIGNATURE_ERROR
 from dataCleaningTools.versioning import DatasetVersionManager
 from dataCleaningTools.llm_client import chat_with_tools, default_model, llm_configured, positive_setting
 
@@ -260,6 +261,7 @@ class DataCleaningAgent:
         empty_responses = 0
         incomplete_finishes = 0
         repeated_calls = {}
+        transform_signature_failures = 0
 
         for turn in range(1, self.max_turns + 1):
             if state.finished:
@@ -345,6 +347,16 @@ class DataCleaningAgent:
             messages.append(assistant_msg)
 
             if not tool_calls:
+                if transform_signature_failures >= 2:
+                    state.stop_reason = "invalid_experiment_signature"
+                    state.finish_summary = (
+                        "Stopped after the generated cleaning method failed the required "
+                        "transform(df) signature twice and the agent did not choose a "
+                        "registered cleaning tool."
+                    )
+                    state.unresolved.append(state.finish_summary)
+                    state.finished = True
+                    break
                 empty_responses += 1
                 state.persist_trace()
                 if empty_responses >= 3:
@@ -374,6 +386,16 @@ class DataCleaningAgent:
                     state.unresolved.append(state.finish_summary)
                     state.finished = True
                     break
+                if name == "experiment_cleaning_method" and transform_signature_failures >= 2:
+                    state.stop_reason = "invalid_experiment_signature"
+                    state.finish_summary = (
+                        "Stopped after the generated cleaning method failed the required "
+                        "transform(df) signature twice and the agent attempted another "
+                        "experiment instead of using a registered cleaning tool."
+                    )
+                    state.unresolved.append(state.finish_summary)
+                    state.finished = True
+                    break
                 signature = (state.current_ref.version, name, json.dumps({k: v for k, v in args.items() if k not in {"rationale", "evidence_ids", "step_id"}}, sort_keys=True))
                 repeated_calls[signature] = repeated_calls.get(signature, 0) + 1
                 if name != "finish" and repeated_calls[signature] >= 3:
@@ -385,6 +407,7 @@ class DataCleaningAgent:
                 logger.info("Tool call: %s(%s)", name, json.dumps(args)[:200])
                 result_str = executor.execute(name, args)
                 logger.info("Tool result: %s", result_str[:400])
+                tool_result = json.loads(result_str)
                 state.step_log.append(
                     {
                         "turn": turn,
@@ -400,6 +423,22 @@ class DataCleaningAgent:
                         "content": _tool_feedback(result_str),
                     }
                 )
+                if name == "experiment_cleaning_method" and tool_result.get("error") == TRANSFORM_SIGNATURE_ERROR:
+                    transform_signature_failures += 1
+                    if transform_signature_failures == 1:
+                        messages.append({"role": "user", "content": (
+                            "The experiment was rejected before execution because its function "
+                            "signature is invalid. Define exactly one top-level `def transform(df):` "
+                            "function that returns the DataFrame. Your function must not be named "
+                            "`clean_data`. Correct the name and make one corrected experiment attempt."
+                        )})
+                    else:
+                        messages.append({"role": "user", "content": (
+                            "The corrected experiment was also rejected for its function signature. "
+                            "Do not call experiment_cleaning_method again. Use suitable registered "
+                            "cleaning tools for the remaining issues, or call finish with explicit "
+                            "unresolved reasons if they cannot be safely resolved."
+                        )})
                 if name == "finish":
                     finish_args = args
             if finish_args is not None:

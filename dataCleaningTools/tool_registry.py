@@ -187,8 +187,8 @@ TOOL_SCHEMAS = [
 
 TOOL_SCHEMAS.extend([
     _tool("experiment_cleaning_method",
-          "Test a generated transform(df) function in isolated Docker on disjoint sample and holdout copies. No working-data changes. Return a candidate ID and measured effects. Preserve rows, index, columns and unselected values.",
-          {"code": {"type": "string", "maxLength": 8000, "description": "Python defining transform(df) -> DataFrame. pd, np, re, math are provided; installed pandas/numpy/sklearn can be imported. No host files/network."},
+          "Test generated Python in isolated Docker on disjoint sample and holdout copies. The code must define exactly one top-level function named transform with one df argument. Example:\ndef transform(df):\n    df['amount'] = pd.to_numeric(df['amount'], errors='coerce')\n    return df\nNo working-data changes; return a candidate ID and measured effects. Preserve rows, index, columns and unselected values.",
+          {"code": {"type": "string", "maxLength": 8000, "description": "Python source defining exactly one top-level `def transform(df): ...` function that returns a DataFrame. Do not name it clean_data or another name. Example:\ndef transform(df):\n    df['amount'] = pd.to_numeric(df['amount'], errors='coerce')\n    return df\npd, np, re, math are provided; installed pandas/numpy/sklearn can be imported. No host files/network."},
            "columns": _STRING_LIST, "rationale": _STRING, "expected_effect": _STRING,
            "evidence_ids": _STRING_LIST, "sample_size": {"type": "integer", "minimum": 1, "maximum": 500},
            "checks": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": False,

@@ -1,0 +1,31 @@
+{
+  "dataset_id": "dirty_sales_test",
+  "version": "V1",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\0ae49b607280\\dirty_sales_test\\V1_working.csv",
+  "format": "csv",
+  "row_count": 30,
+  "column_count": 9,
+  "columns": [
+    "OrderID",
+    "CustomerName",
+    "Revenue",
+    "MonthlyCost",
+    "Quantity",
+    "Region",
+    "SignupDate",
+    "IsActive",
+    "Segment"
+  ],
+  "created_at": "2026-10-24T20:38:11.438166Z",
+  "parent_version": "V0",
+  "status": "failed",
+  "metadata": {
+    "agent1_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\dirty_sales_test.csv",
+    "user_request": "Improve data quality for BI analysis while preserving the uploaded original. This is an academic experimentation run: propose and test a generated cleaning method with experiment_cleaning_method, inspect the trial results, and promote only a passing candidate with apply_experimental_method. If the isolated runtime is unavailable or the method fails, explain that result and use registered tools where appropriate.",
+    "source_signature": [
+      "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\dirty_sales_test.csv",
+      1792693418574325600,
+      2207
+    ]
+  }
+}

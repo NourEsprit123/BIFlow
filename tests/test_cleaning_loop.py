@@ -121,6 +121,60 @@ def test_repeated_inspection_on_unchanged_data_stops_as_stalled(tmp_path, monkey
     assert not result.change_log.entries
 
 
+def test_repeated_invalid_experiment_signature_gets_one_retry_then_stops(tmp_path, monkeypatch):
+    invalid_experiment = action(
+        "experiment_cleaning_method",
+        code="def clean_data(df):\n    return df\n",
+        columns=["TotalCharges"],
+    )
+    responses = iter([invalid_experiment, invalid_experiment, invalid_experiment])
+    prompts = []
+
+    def respond(messages, *args, **kwargs):
+        prompts.append([message.get("content", "") for message in messages if message["role"] == "user"])
+        return next(responses)
+
+    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
+    result = DataCleaningAgent(data_root=tmp_path, use_llm=True, max_turns=12).run(telco_report())
+
+    assert len(prompts) == 3
+    assert "Correct the name and make one corrected experiment attempt." in prompts[1][-1]
+    assert "Do not call experiment_cleaning_method again." in prompts[2][-1]
+    assert result.metadata["stop_reason"] == "invalid_experiment_signature"
+    assert result.metadata["turns_used"] == 3
+    assert "transform(df) signature" in result.metadata["finish_summary"]
+    assert len([event for event in result.metadata["events"]
+                if event["tool"] == "experiment_cleaning_method"]) == 2
+    assert "max_turns reached" not in result.unresolved_issues
+
+
+def test_invalid_experiment_signature_falls_back_to_registered_tools(tmp_path, monkeypatch):
+    source = tmp_path / "flags.csv"
+    pd.DataFrame({"flag": ["Yes", "No"]}).to_csv(source, index=False)
+    report = {
+        "dataset_ref": {"file_path": str(source), "file_name": source.name, "rows": 2, "columns": 1},
+        "column_profiles": {"flag": {"dtype": "str", "etl_cast_to": "boolean"}},
+    }
+    responses = iter([
+        action("experiment_cleaning_method", code="def clean_data(df):\n    return df\n", columns=["flag"]),
+        action("experiment_cleaning_method", code="def clean_data(df):\n    return df\n", columns=["flag"]),
+        action("convert_data_types", column="flag", target_type="boolean"),
+        action("finish", summary="Converted flag using a registered tool"),
+    ])
+    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", lambda *a, **k: next(responses))
+
+    result = DataCleaningAgent(data_root=tmp_path / "runs", use_llm=True).run(report)
+
+    assert result.validation.all_passed
+    assert result.metadata["stop_reason"] == "completed"
+    assert result.metadata["turns_used"] == 4
+    assert [event["tool"] for event in result.metadata["events"]][-3:] == [
+        "convert_data_types",
+        "finish",
+        "validate_dataset",
+    ]
+
+
 def test_independent_tools_can_be_batched_in_a_single_model_turn(tmp_path, monkeypatch):
     source = tmp_path / "flags.csv"
     pd.DataFrame({"a": ["Yes", "No"], "b": ["No", "Yes"]}).to_csv(source, index=False)

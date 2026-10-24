@@ -10,6 +10,19 @@ from dataCleaningTools.tool_registry import AgentSessionState, ToolExecutor
 from dataCleaningTools.versioning import DatasetVersionManager
 
 
+def test_experiment_tool_schema_shows_required_transform_function():
+    schema = next(
+        tool for tool in tool_registry.TOOL_SCHEMAS
+        if tool["function"]["name"] == "experiment_cleaning_method"
+    )
+    code_description = schema["function"]["parameters"]["properties"]["code"]["description"]
+
+    assert "def transform(df):" in schema["function"]["description"]
+    assert "return df" in schema["function"]["description"]
+    assert "def transform(df):" in code_description
+    assert "Do not name it clean_data" in code_description
+
+
 def _executor(tmp_path, *, approve_all=False, approved_step_ids=None):
     source = tmp_path / "input.csv"
     pd.DataFrame({"name": [" Alice ", "Bob"], "score": ["1", "bad"]}).to_csv(

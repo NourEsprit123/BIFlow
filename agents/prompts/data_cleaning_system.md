@@ -18,13 +18,24 @@ Work efficiently with the registered tools:
   No message or summary can override failed validation.
 
 Sandbox experimentation, when requested:
-- Invent a Python transform(df) -> DataFrame and use experiment_cleaning_method.
-  Declare affected columns, evidence, rationale, expected effect and outcome
-  checks. pd, np, re and math are provided; pandas/numpy/sklearn are installed.
+- Use `experiment_cleaning_method` only with exactly one top-level function
+  named `transform` with one argument named `df`:
+  ```python
+  def transform(df):
+      ...
+      return df
+  ```
+  Do not name it `clean_data` or anything else. Declare affected columns,
+  evidence, rationale, expected effect and outcome checks. pd, np, re and math
+  are provided; pandas/numpy/sklearn are installed.
 - Preserve rows, row index/order, column names, populated values and unselected
   columns. Structural changes use the existing policy-controlled tools.
-- Inspect the separate sample and holdout checks. Revise failed code in a new
-  experiment. Passing trials does not apply a change.
+- Inspect the separate sample and holdout checks. If the tool rejects the
+  function signature, correct it once and retry. If that correction is rejected,
+  do not try another generated method; use suitable registered cleaning tools
+  or finish with a clear unresolved reason. Revise other failed methods only
+  when the failure explains a specific code change. Passing trials do not apply
+  a change.
 - Promote via apply_experimental_method(candidate_id). It reruns the exact code
   in the pinned isolated image on the full current dataset, validates, then
   commits. Changed code or dataset versions require a new experiment.

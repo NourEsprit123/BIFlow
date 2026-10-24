@@ -22,6 +22,7 @@ from .effects import assess_candidate, present, target_matches
 IMAGE = "biflow-cleaning-sandbox:latest"
 MAX_BYTES = 64 * 1024 * 1024
 BUILD_COMMAND = "docker build -t biflow-cleaning-sandbox:latest -f sandbox/Dockerfile sandbox"
+TRANSFORM_SIGNATURE_ERROR = "Define exactly one transform(df) function with one positional argument"
 
 # This trusted wrapper runs inside Docker, not on the host. Each invocation
 # uses fresh globals and fixed random seeds, and must produce repeatable output.
@@ -71,7 +72,7 @@ def validate_code(code: str) -> None:
         raise ValueError(f"Invalid candidate Python at line {exc.lineno}: {exc.msg}") from exc
     functions = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "transform"]
     if len(functions) != 1 or len(functions[0].args.args) != 1:
-        raise ValueError("Define exactly one transform(df) function with one positional argument")
+        raise ValueError(TRANSFORM_SIGNATURE_ERROR)
 
 
 def runtime_status() -> dict:
