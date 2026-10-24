@@ -11,6 +11,8 @@ Responsibilities:
 
 from __future__ import annotations
 
+from .contracts import canonical_type
+
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -353,7 +355,7 @@ def propose_initial_steps(
                 TransformationStep(
                     operation="convert_data_types",
                     columns=[col],
-                    parameters={"target_type": target, "errors": "coerce"},
+                    parameters={"target_type": canonical_type(target), "errors": "coerce"},
                     rationale=f"etl_hints.type_casting_targets['{col}'] = {target}",
                     risk_level=RiskLevel.MODERATE,
                     requires_approval=False,

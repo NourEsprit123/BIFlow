@@ -5,7 +5,7 @@ AGENTS = [
     ("orchestrator", "Orchestrator", "⌘", False),
     ("profiler", "Data Profiling", "⌕", True),
     ("cleaner", "Data Cleaning", "✦", True),
-    ("etl", "ETL / Engineering", "⇄", False),
+    ("etl", "ETL / Engineering", "⇄", True),
     ("semantic", "Semantic & KPI", "∑", False),
     ("analyst", "BI Analyst", "↗", False),
     ("dashboard", "Dashboard", "▥", False),
@@ -21,6 +21,8 @@ def pipeline_state(profile=None, cleaning=None, running=None):
         state, detail = "locked", "Team integration pending"
         if available:
             state, detail = "ready", "Ready"
+            if key == "etl":
+                detail = "Handled by Cleaning Agent"
             if key == "profiler" and (profile or cleaning):
                 fallback = (profile or {}).get("profiling_report", {}).get("metadata", {}).get("llm_status") in {"fallback", "mixed"}
                 state, detail = "complete", "Fallback report" if fallback else "Profile ready" if profile else "Profile supplied"
@@ -30,12 +32,17 @@ def pipeline_state(profile=None, cleaning=None, running=None):
                 state = "review" if key == "cleaner" and cleaning and not running else "current"
             if key == running:
                 state, detail = "current", "Running"
+            if key == "etl" and cleaning:
+                state, detail = (("complete", "Shared run validated") if validated
+                                 else ("review", "Shared run needs review"))
+            if key == "etl" and running == "cleaner":
+                state, detail = "current", "Running with Cleaning Agent"
         result.append({"key": key, "label": label, "icon": icon, "available": available,
                        "state": state, "detail": detail, "current": key == current})
     if running:
         summary = next(a["label"] for a in result if a["key"] == running) + " · running"
     elif validated:
-        summary = "Cleaning validated · awaiting ETL integration"
+        summary = "Cleaning & ETL validated · awaiting Semantic & KPI integration"
     elif cleaning:
         summary = "Data Cleaning · review required"
     else:

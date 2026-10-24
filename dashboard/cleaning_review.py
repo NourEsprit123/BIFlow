@@ -78,6 +78,12 @@ def render_event(event: dict, evidence: dict | None = None) -> None:
                 st.dataframe(effect["changed_examples"], hide_index=True, use_container_width=True)
             if not effect["accepted"]:
                 st.warning("Candidate rejected. The working dataset stayed at the previous version. Measurements above describe the rejected candidate.")
+        if result.get("normalized_arguments"):
+            st.caption("Type alias translated to supported tool arguments")
+            st.json(result["normalized_arguments"])
+        if result.get("recovery"):
+            st.write("Recovery guidance")
+            st.json(result["recovery"])
         if result.get("error"):
             st.error(str(result["error"]))
         if not effect and result.get("rules"):

@@ -32,6 +32,7 @@ from .effects import assess_candidate, snapshot, present, target_matches
 from .policy import requires_approval
 from .versioning import DatasetVersionManager
 from .experiments import experiment, promote
+from .contracts import canonical_type
 
 
 def _tool(
@@ -106,7 +107,7 @@ TOOL_SCHEMAS = [
     ),
     _tool(
         "convert_data_types",
-        "Convert a column to a supported dtype.",
+        "Convert a column to a supported dtype. Use canonical types; profiling aliases such as float64/int64 are normalized by the executor.",
         {
             "column": _STRING,
             "target_type": {
@@ -126,9 +127,9 @@ TOOL_SCHEMAS = [
     ),
     _tool(
         "handle_missing_values",
-        "Handle missing values using an explicit strategy.",
+        "Handle missing values in explicit columns. Mean/median require numeric columns; inspect and convert numeric strings first. Choose separately justified strategies for text/date columns.",
         {
-            "columns": _STRING_LIST,
+            "columns": {**_STRING_LIST, "minItems": 1},
             "strategy": {
                 "type": "string",
                 "enum": [
@@ -142,7 +143,7 @@ TOOL_SCHEMAS = [
             },
             "fill_value": {},
         },
-        ["strategy"],
+        ["columns", "strategy"],
     ),
     _tool(
         "remove_duplicates",
@@ -272,10 +273,26 @@ class ToolExecutor:
         if self.state.on_event:
             self.state.on_event({"phase": f"running {name} on {source_version}"})
         started = time.monotonic()
-        result = json.loads(self._dispatch(name, arguments))
-        if name in _MUTATIONS and not result.get("success") and not result.get("approval_required") and "accepted" not in result:
-            columns = arguments.get("columns") or ([arguments["column"]] if arguments.get("column") else list(self.state.current_ref.columns))
-            self.state.failed_actions[f"{name}:{columns}"] = f"Failed {name}: {result.get('error', 'Unknown error')}"
+        def operation_args(args):
+            return {k: v for k, v in args.items() if k not in {"rationale", "evidence_ids", "step_id"}}
+        previous = next((event for event in reversed(self.state.events)
+                         if event["tool"] == name and event["source_version"] == source_version
+                         and operation_args(event["arguments"]) == operation_args(arguments)
+                         and not event["result"].get("success")
+                         and not event["result"].get("approval_required")), None) if name in _MUTATIONS else None
+        if previous:
+            result = {**previous["result"], "repeat_skipped": True,
+                      "message": "Identical failed operation on unchanged data was not executed again. Correct the arguments or choose another method."}
+        else:
+            result = json.loads(self._dispatch(name, arguments))
+        if name in _MUTATIONS and not result.get("success") and not result.get("approval_required"):
+            columns = arguments.get("columns") or ([arguments["column"]] if arguments.get("column") else [])
+            result["recovery"] = {
+                "instruction": "Do not repeat this call unchanged. Inspect the named columns, correct the arguments, or test a new transform(df) with experiment_cleaning_method. If no justified repair is possible, finish with explicit unresolved items. Never coerce populated values to missing to pass validation.",
+                "next_actions": [{"tool": "inspect_column", "arguments": {"column": c}} for c in columns],
+                "missing_value_contract": "Explicit nonempty columns required. fill_mean/fill_median require numeric columns. Text/date imputation needs a separately justified strategy; do not invent replacement values.",
+                "supported_types": ["numeric", "integer", "float", "string", "boolean", "datetime"],
+            }
         event_id = f"event-{len(self.state.events) + 1}"
         if name.startswith("inspect_") or name in ("check_value_patterns", "run_custom_check"):
             self.state.evidence[event_id] = {
@@ -497,13 +514,29 @@ class ToolExecutor:
         return self._clean("normalize_values", normalize_values, args, [args["column"]])
 
     def _convert_data_types(self, args: Dict[str, Any]) -> Dict[str, Any]:
-        return self._clean("convert_data_types", convert_data_types, args, [args["column"]])
+        effective = {**args, "target_type": canonical_type(args["target_type"])}
+        if effective["target_type"] not in {"numeric", "integer", "float", "string", "boolean", "datetime"}:
+            raise ValueError("Unsupported target_type. Use numeric, integer, float, string, boolean or datetime.")
+        result = self._clean("convert_data_types", convert_data_types, effective, [args["column"]])
+        if effective != args:
+            result["normalized_arguments"] = effective
+        return result
 
     def _clean_numeric_string(self, args: Dict[str, Any]) -> Dict[str, Any]:
         return self._clean("clean_numeric_string", clean_numeric_string, args, [args["column"]])
 
     def _handle_missing_values(self, args: Dict[str, Any]) -> Dict[str, Any]:
         columns = args.get("columns", [])
+        if not isinstance(columns, list) or not columns or any(not isinstance(c, str) for c in columns):
+            raise ValueError("Specify a nonempty columns list; choose columns and a strategy using profiling or inspection evidence.")
+        frame = self.state.manager.load(self.state.current_ref)
+        unknown = [c for c in columns if c not in frame]
+        if unknown:
+            raise ValueError(f"Unknown columns: {unknown}")
+        if args.get("strategy") in {"fill_mean", "fill_median"}:
+            invalid = [c for c in columns if not pd.api.types.is_numeric_dtype(frame[c]) or pd.api.types.is_bool_dtype(frame[c])]
+            if invalid:
+                raise ValueError(f"{args['strategy']} requires numeric columns; incompatible columns: {invalid}. Inspect and convert numeric strings first. Choose a justified separate strategy for text/date columns.")
         step = TransformationStep(
             operation="handle_missing_values",
             columns=columns,

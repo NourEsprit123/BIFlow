@@ -10,6 +10,8 @@ baseline for offline comparisons.
 
 from __future__ import annotations
 
+from dataCleaningTools.contracts import canonical_type
+
 import json
 import logging
 import math
@@ -61,7 +63,7 @@ def _report_context(report: ProfilingReport, max_chars: int = 6000) -> str:
     for name, prof in report.column_profiles.items():
         column = {"dtype": prof.dtype}
         if prof.etl_cast_to and prof.etl_cast_to.lower() != "none":
-            column["target"] = prof.etl_cast_to
+            column["target"] = canonical_type(prof.etl_cast_to)
         if prof.missing_count:
             column["missing"] = prof.missing_count
         if prof.issues:
@@ -71,7 +73,7 @@ def _report_context(report: ProfilingReport, max_chars: int = 6000) -> str:
     compact = {"dataset": report.dataset_ref.file_name, "rows": report.dataset_ref.rows,
                "columns": columns, "cleaning_order": report.recommended_cleaning_order,
                "imputation_plan": {k: v.model_dump() for k, v in report.imputation_plan.items()},
-               "cast_targets": report.etl_hints.type_casting_targets,
+               "cast_targets": {c: canonical_type(t) for c, t in report.etl_hints.type_casting_targets.items()},
                "recommendations": report.recommendation_summary[:400]}
     if len(json.dumps(compact, default=str)) > max_chars:
         for column in columns.values():
@@ -367,7 +369,7 @@ class DataCleaningAgent:
                     break
                 messages.append({"role": "user", "content": (
                     "No tool was called. Cleaning is not complete merely because a response ended. "
-                    "Continue with registered tools, or call finish with explicit unresolved items if blocked."
+                    "Call inspect_column with column set to a profiling column name, or handle_missing_values with explicit columns and a compatible strategy (median/mean only for numeric data). For messy formats use check_value_patterns then a justified experiment_cleaning_method. Use canonical types numeric/integer/float/string/boolean/datetime. Follow the last tool recovery feedback; never repeat a rejected call unchanged. Call finish with explicit unresolved items if blocked."
                 )})
                 continue
             empty_responses = 0

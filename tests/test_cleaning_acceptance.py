@@ -31,12 +31,50 @@ def test_lossy_conversion_is_rejected_without_changing_working_version(tmp_path)
     result = json.loads(executor.execute("convert_data_types", {"column": "score", "target_type": "numeric"}))
     assert not result["accepted"]
     assert state.current_ref.version == "V1"
+
     assert state.manager.load(state.current_ref)["score"].tolist() == ["1", "bad"]
     assert any(r["rule_name"] == "no_new_missing:score" and not r["passed"] for r in result["effect"]["rules"])
     record = state.manager.get_changelog("test").entries[-1]
     assert not record.success and record.source_version == record.result_version
     assert open(state.source_ref.path, "rb").read() == original_bytes
     assert not json.loads(executor.execute("finish", {"summary": "Done"}))["success"]
+
+
+def test_repeated_rejected_conversion_is_not_executed_again(tmp_path):
+    state, executor = session(tmp_path)
+    args = {"column": "score", "target_type": "numeric"}
+    executor.execute("convert_data_types", args)
+    count = len(state.manager.get_changelog("test").entries)
+    result = json.loads(executor.execute("convert_data_types", {**args, "rationale": "try again"}))
+    assert result["repeat_skipped"] and result["recovery"]
+    assert len(state.manager.get_changelog("test").entries) == count
+
+
+def test_dtype_alias_is_normalized_and_trace_keeps_requested_type(tmp_path):
+    state, executor = session(tmp_path)
+    executor.execute("normalize_values", {"column": "score", "mapping": {"bad": "2"}})
+    result = json.loads(executor.execute("convert_data_types", {"column": "score", "target_type": "float64"}))
+    assert result["accepted"]
+    assert result["normalized_arguments"]["target_type"] == "float"
+    assert state.events[-1]["arguments"]["target_type"] == "float64"
+
+
+def test_missing_columns_returns_actionable_feedback_without_poisoning_validation(tmp_path):
+    state, executor = session(tmp_path)
+    result = json.loads(executor.execute("handle_missing_values", {"strategy": "fill_median"}))
+    assert not result["success"] and "nonempty columns" in result["error"]
+    assert result["recovery"] and state.current_ref.version == "V1"
+    assert not state.failed_actions
+
+
+def test_median_on_text_requires_explicit_repair_and_lossy_cast_stays_rejected(tmp_path):
+    state, executor = session(tmp_path)
+    result = json.loads(executor.execute("handle_missing_values", {"columns": ["score"], "strategy": "fill_median"}))
+    assert not result["success"] and "requires numeric" in result["error"]
+    assert result["recovery"]["next_actions"] == [{"tool": "inspect_column", "arguments": {"column": "score"}}]
+    result = json.loads(executor.execute("convert_data_types", {"column": "score", "target_type": "float64"}))
+    assert not result["accepted"] and result["recovery"]
+    assert state.current_ref.version == "V1"
 
 
 def test_inspection_evidence_and_effect_are_saved_with_action(tmp_path):

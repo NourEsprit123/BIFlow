@@ -96,7 +96,7 @@ def setup(title, hub="Enterprise Analytics Hub"):
                   use_container_width=True, help="The BI Analyst is being developed by your teammates.")
         st.button("Explainability · Locked", key="locked_xai", icon="🔒", disabled=True,
                   use_container_width=True, help="The Auditor / XAI agent is being developed by your teammates.")
-        html('<div class="bf-team-note"><i></i><div><b>Academic workspace</b><small>2 agents integrated · 6 in development</small></div></div>')
+        html('<div class="bf-team-note"><i></i><div><b>Academic workspace</b><small>2 agents cover Profiling, Cleaning & ETL · 5 stages pending</small></div></div>')
         full_name = escape(user["full_name"])
         initials = escape("".join(part[0] for part in user["full_name"].split()[:2]).upper())
         html(f'<div class="bf-user"><div class="av">{initials}</div><div><b>{full_name}</b><small>{escape(user["email"])}</small></div></div>')
@@ -175,5 +175,5 @@ def page_header(title, subtitle="", actions="", crumbs=""):
 
 def locked_feature(name):
     page_header(f"{escape(name)} · Locked", "This agent is being developed by your teammates and is not integrated yet.")
-    st.info("Available now: Data Profiling and Data Cleaning. Use the pipeline above to run them and review their results.")
+    st.info("Available now: Data Profiling and Data Cleaning / ETL. The Cleaning Agent handles both cleaning and engineering transformations in one validated run.")
     st.stop()
