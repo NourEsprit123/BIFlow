@@ -68,3 +68,9 @@ data/biflow_auth.sqlite3*
 data/cleaned/
 data/processed/
 data/reports/
+
+# Sandbox outputs & temporaires (on ne garde que la structure)
+sandbox/reports_output/*
+!sandbox/reports_output/.gitkeep
+sandbox/data_input/*
+!sandbox/data_input/.gitkeep
