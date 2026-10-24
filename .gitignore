@@ -67,3 +67,4 @@ data/biflow_auth.sqlite3*
 # Ignore automated data pipeline outputs
 data/cleaned/
 data/processed/
+data/reports/
