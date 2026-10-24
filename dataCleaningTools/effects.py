@@ -57,7 +57,7 @@ def assess_candidate(before: pd.DataFrame, after: pd.DataFrame, operation: str,
           f"Rows: {len(before)} → {len(after)}")
     expected = [c for c in before if c not in affected] if operation == "drop_column" else list(before)
     if operation == "handle_missing_values" and strategy == "drop_columns":
-        expected = [c for c in before if c not in affected or not before[c].isna().any()]
+        expected = [c for c in before if c not in affected or present(before[c]).all()]
     check("columns", list(after) == expected if column_removal else list(after) == list(before),
           "Only explicitly requested columns may be removed")
     changed_cells = None

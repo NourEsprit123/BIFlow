@@ -18,6 +18,7 @@ import pandas as pd
 
 from .models import ChangeRecord, DatasetReference
 from .versioning import DatasetVersionManager
+from .effects import present
 
 ErrorMode = Literal["coerce", "raise", "ignore"]
 DuplicateKeep = Literal["first", "last", False]
@@ -82,11 +83,14 @@ def handle_missing_values(
     if missing:
         return CleaningResult(False, error=f"Columns not found: {missing}")
 
-    before_nulls = int(df[cols].isna().sum().sum())
+    # Use the same missing-value definition as profiling/acceptance validation.
+    work = df.copy()
+    for c in cols:
+        work[c] = work[c].mask(~present(work[c]))
+    before_nulls = int(work[cols].isna().sum().sum())
     if before_nulls == 0:
         return CleaningResult(True, df=df.copy(), affected_rows=0, message="No missing values")
 
-    work = df.copy()
     affected = 0
 
     try:

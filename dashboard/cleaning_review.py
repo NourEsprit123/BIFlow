@@ -116,6 +116,7 @@ def render_cleaning_result(cleaning, *, key: str = "cleaning_review") -> None:
     if inference:
         with st.expander("Local model timing"):
             st.dataframe([{"Model turn": s["turn"], "Model": s.get("model"),
+                           "Tool call format": s.get("tool_call_source", "not recorded"),
                            "Request seconds": round(s["timing"]["request_seconds"], 2),
                            "Model load seconds": s["timing"].get("load_seconds"),
                            "Prompt processing seconds": s["timing"].get("prompt_seconds"),

@@ -44,6 +44,7 @@ from dataCleaningTools.sandbox import sandbox_status
 from dataCleaningTools.tool_registry import TOOL_SCHEMAS, AgentSessionState, ToolExecutor
 from dataCleaningTools.experiments import TRANSFORM_SIGNATURE_ERROR
 from dataCleaningTools.versioning import DatasetVersionManager
+from dataCleaningTools.effects import present, target_matches
 from dataCleaningTools.llm_client import chat_with_tools, default_model, llm_configured, positive_setting
 
 logger = logging.getLogger("biflow.agent2")
@@ -324,6 +325,7 @@ class DataCleaningAgent:
                 state.llm_model = response.get("model")
             state.step_log.append({"turn": turn, "provider": response.get("provider"), "model": response.get("model"),
                                    "response_finish_reason": response.get("finish_reason"),
+                                   "tool_call_source": response.get("tool_call_source"),
                                    "usage": response.get("usage"), "timing": response.get("timing"),
                                    "options": response.get("options")})
             content = response.get("content") or ""
@@ -367,10 +369,18 @@ class DataCleaningAgent:
                     state.finish_summary = "Stopped after three consecutive responses without a tool call."
                     state.unresolved.append(state.finish_summary)
                     break
+                frame = state.manager.load(state.current_ref)
+                pending = {
+                    "type_targets": {c: canonical_type(t) for c, t in state.required_targets.items()
+                                     if c not in frame or not target_matches(frame[c], t)},
+                    "missing_counts": {c: int((~present(frame[c])).sum()) for c in state.required_missing
+                                       if c in frame and not present(frame[c]).all()},
+                }
                 messages.append({"role": "user", "content": (
                     "No tool was called. Cleaning is not complete merely because a response ended. "
+                    'Prefer a native tool call. If unavailable, return ONLY a JSON object {"name":"inspect_schema","arguments":{}} (replace with the appropriate registered tool and all its required arguments). No prose or planned actions. '
                     "Call inspect_column with column set to a profiling column name, or handle_missing_values with explicit columns and a compatible strategy (median/mean only for numeric data). For messy formats use check_value_patterns then a justified experiment_cleaning_method. Use canonical types numeric/integer/float/string/boolean/datetime. Follow the last tool recovery feedback; never repeat a rejected call unchanged. Call finish with explicit unresolved items if blocked."
-                )})
+                ) + " Current unmet requirements: " + json.dumps(pending)})
                 continue
             empty_responses = 0
 

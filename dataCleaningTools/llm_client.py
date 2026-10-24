@@ -11,6 +11,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import httpx
+from jsonschema import Draft202012Validator
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
@@ -87,6 +88,38 @@ def _ollama_messages(messages):
     return translated
 
 
+def _json_tool_calls(content, tools):
+    """Accept only a complete JSON call envelope, never extract calls from prose."""
+    text = content.strip()
+    if text.startswith("```json\n") and text.endswith("\n```"):
+        text = text[8:-4].strip()
+    try:
+        value = json.loads(text)
+    except (ValueError, TypeError):
+        return []
+    if isinstance(value, dict) and set(value) == {"tool_calls"}:
+        value = value["tool_calls"]
+    entries = value if isinstance(value, list) else [value]
+    if not entries or len(entries) > 8:
+        return []
+    schemas = {t["function"]["name"]: t["function"]["parameters"] for t in tools}
+    calls = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            return []
+        if set(entry) == {"function"}:
+            entry = entry["function"]
+        if not isinstance(entry, dict) or set(entry) != {"name", "arguments"}:
+            return []
+        name, arguments = entry["name"], entry["arguments"]
+        if not isinstance(name, str) or name not in schemas or not isinstance(arguments, dict):
+            return []
+        if not Draft202012Validator(schemas[name]).is_valid(arguments):
+            return []
+        calls.append({"function": {"name": name, "arguments": arguments}})
+    return calls
+
+
 def chat_with_tools(messages, tools, *, model=None, temperature=0.1, on_provider_event=None, timeout=None):
     """One local inference request; cloud environment variables are ignored."""
     host = (os.environ.get("BIFLOW_CLEANING_OLLAMA_HOST") or os.environ.get("OLLAMA_HOST") or "http://localhost:11434").rstrip("/")
@@ -118,7 +151,12 @@ def chat_with_tools(messages, tools, *, model=None, temperature=0.1, on_provider
         raise ToolResponseError("Ollama returned no structured message")
     allowed = {tool["function"]["name"] for tool in tools}
     calls = []
-    for call in message.get("tool_calls") or []:
+    raw_calls = message.get("tool_calls") or []
+    call_source = "native"
+    if not raw_calls and data.get("done_reason") != "length":
+        raw_calls = _json_tool_calls(message.get("content") or "", tools)
+        call_source = "validated_json" if raw_calls else "none"
+    for call in raw_calls:
         function = call.get("function", {})
         name = function.get("name")
         if name not in allowed:
@@ -139,6 +177,7 @@ def chat_with_tools(messages, tools, *, model=None, temperature=0.1, on_provider
     tokens = data.get("eval_count")
     return {"content": message.get("content") or "", "tool_calls": calls, "raw_role": "assistant",
             "provider": "ollama", "model": model, "finish_reason": data.get("done_reason"),
+            "tool_call_source": call_source,
             "usage": {"prompt_tokens": data.get("prompt_eval_count"), "completion_tokens": tokens},
             "timing": {"request_seconds": time.monotonic() - started, "load_seconds": seconds("load_duration"),
                        "prompt_seconds": seconds("prompt_eval_duration"), "generation_seconds": generated_seconds,

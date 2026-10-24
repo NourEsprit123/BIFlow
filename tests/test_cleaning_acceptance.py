@@ -59,6 +59,27 @@ def test_dtype_alias_is_normalized_and_trace_keeps_requested_type(tmp_path):
     assert state.events[-1]["arguments"]["target_type"] == "float64"
 
 
+def test_imputation_recognizes_blank_and_marker_missing_values():
+    from dataCleaningTools.cleaning import handle_missing_values
+    frame = pd.DataFrame({"name": ["Alice", " ", "?", "Bob"], "other": [" "] * 4})
+    result = handle_missing_values(frame, columns=["name"], strategy="fill_constant", fill_value="Unknown")
+    assert result.success
+    assert result.df["name"].tolist() == ["Alice", "Unknown", "Unknown", "Bob"]
+    assert result.df["other"].equals(frame["other"])
+    assert frame["name"].tolist() == ["Alice", " ", "?", "Bob"]
+
+
+def test_blank_numeric_conversion_preserves_missing_count_and_can_be_filled():
+    from dataCleaningTools.cleaning import convert_data_types, handle_missing_values
+    frame = pd.DataFrame({"TotalCharges": ["10", " ", "30"]})
+    converted = convert_data_types(frame, "TotalCharges", "float", errors="coerce")
+    effect = assess_candidate(frame, converted.df, "convert_data_types", ["TotalCharges"], {"target_type": "float"})
+    assert effect["accepted"]
+    assert effect["before"]["missing"]["TotalCharges"] == effect["after"]["missing"]["TotalCharges"] == 1
+    filled = handle_missing_values(converted.df, ["TotalCharges"], "fill_median")
+    assert filled.df["TotalCharges"].tolist() == [10, 20, 30]
+
+
 def test_missing_columns_returns_actionable_feedback_without_poisoning_validation(tmp_path):
     state, executor = session(tmp_path)
     result = json.loads(executor.execute("handle_missing_values", {"strategy": "fill_median"}))

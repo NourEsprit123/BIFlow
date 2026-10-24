@@ -71,6 +71,35 @@ def test_malformed_tool_name_is_rejected(monkeypatch):
         llm_client.chat_with_tools([], TOOLS)
 
 
+@pytest.mark.parametrize("content", [
+    '{"name":"inspect_schema","arguments":{}}',
+    '```json\n{"tool_calls":[{"function":{"name":"inspect_schema","arguments":{}}}]}\n```',
+])
+def test_complete_json_calls_are_recovered_and_labeled(monkeypatch, content):
+    mock_local(monkeypatch, {"message": {"content": content}})
+    result = llm_client.chat_with_tools([], TOOLS)
+    assert result["tool_calls"][0]["name"] == "inspect_schema"
+    assert result["tool_call_source"] == "validated_json"
+
+
+@pytest.mark.parametrize("content", [
+    'I plan to call {"name":"inspect_schema","arguments":{}}',
+    '{"name":"not_registered","arguments":{}}',
+    '{"name":"inspect_column","arguments":{}}',
+    '{"name":"inspect_column","arguments":{"column":42}}',
+    '[{"name":"inspect_schema","arguments":{}},{"name":"not_registered","arguments":{}}]',
+])
+def test_ambiguous_or_invalid_json_is_never_partially_executed(monkeypatch, content):
+    from dataCleaningTools.tool_registry import TOOL_SCHEMAS
+    mock_local(monkeypatch, {"message": {"content": content}})
+    assert llm_client.chat_with_tools([], TOOL_SCHEMAS)["tool_calls"] == []
+
+
+def test_truncated_json_response_is_not_recovered(monkeypatch):
+    mock_local(monkeypatch, {"message": {"content": '{"name":"inspect_schema","arguments":{}}'}, "done_reason": "length"})
+    assert not llm_client.chat_with_tools([], TOOLS)["tool_calls"]
+
+
 def test_request_deadline_returns_without_waiting_for_stuck_model(monkeypatch):
     release = threading.Event()
     def delayed_post(*args, **kwargs):
