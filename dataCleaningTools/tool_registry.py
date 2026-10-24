@@ -268,6 +268,21 @@ class ToolExecutor:
     def __init__(self, state: AgentSessionState):
         self.state = state
 
+    def progress(self):
+        """Measure outstanding requirements against the persisted working data."""
+        frame = self.state.manager.load(self.state.current_ref)
+        targets = {c: canonical_type(t) for c, t in self.state.required_targets.items()}
+        return {
+            "version": self.state.current_ref.version,
+            "pending_types": {c: t for c, t in targets.items()
+                              if c not in frame or not target_matches(frame[c], t)},
+            "completed_types": [c for c, t in targets.items()
+                                if c in frame and target_matches(frame[c], t)],
+            "pending_missing": {c: int((~present(frame[c])).sum()) if c in frame else "column absent"
+                                for c in self.state.required_missing
+                                if c not in frame or not present(frame[c]).all()},
+        }
+
     def execute(self, name: str, arguments: Dict[str, Any]) -> str:
         source_version = self.state.current_ref.version
         if self.state.on_event:
@@ -405,6 +420,20 @@ class ToolExecutor:
         action_key = f"{name}:{selected}"
         if accepted:
             self.state.failed_actions.pop(action_key, None)
+            # CSV persistence discards extension dtype distinctions (bool versus
+            # nullable boolean). Recasting identical persisted values is no work.
+            same_values = (before.equals(result.df) or (
+                before.index.equals(result.df.index)
+                and before.columns.equals(result.df.columns)
+                and before.astype("string").equals(result.df.astype("string"))))
+            if same_values:
+                if name in ("convert_data_types", "clean_numeric_string"):
+                    self.state.required_targets.setdefault(function_arguments["column"], function_arguments.get("target_type", "numeric"))
+                return {**result.to_dict(), "success": True, "accepted": True,
+                        "no_op": True, "effect": assessment, "evidence_ids": evidence_ids,
+                        "rationale": rationale, "version": self.state.current_ref.version,
+                        "message": "No persisted values changed; no new version created. Choose an unmet requirement.",
+                        "progress": self.progress()}
             new_ref, record = self.state.manager.commit_transformation(
                 self.state.current_ref, result.df, operation=name, columns=selected,
                 parameters=function_arguments, rationale=rationale, step_id=step_id,

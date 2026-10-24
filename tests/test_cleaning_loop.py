@@ -29,6 +29,33 @@ def telco_report():
                    ["Partner", "Dependents", "PhoneService", "PaperlessBilling", "Churn"]}}}
 
 
+def test_telco_progress_survives_alternating_noops_and_guides_remaining_batch(tmp_path, monkeypatch):
+    responses = [action("convert_data_types", column="TotalCharges", target_type="float")]
+    for column in ["Partner", "Dependents", "Partner", "Dependents"]:
+        responses.append(action("convert_data_types", column=column, target_type="boolean"))
+    batch = [action("convert_data_types", column=c, target_type="boolean")["tool_calls"][0]
+             for c in ["PhoneService", "PaperlessBilling", "Churn"]]
+    responses += [{"content": None, "tool_calls": batch},
+                  action("handle_missing_values", columns=["TotalCharges"], strategy="fill_median"),
+                  action("finish", summary="Completed outstanding requirements")]
+    iterator = iter(responses)
+    progress = []
+    def respond(messages, *args, **kwargs):
+        text = messages[-1]["content"]
+        prefix = "Authoritative progress measured on the current working dataset: "
+        progress.append(json.JSONDecoder().raw_decode(text[len(prefix):])[0])
+        return next(iterator)
+    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
+    result = DataCleaningAgent(data_root=tmp_path, use_llm=True).run(telco_report())
+    assert result.validation.all_passed
+    events = result.metadata["events"]
+    assert events[3]["result"]["no_op"] and events[4]["result"]["no_op"]
+    assert events[3]["source_version"] == events[3]["version"] == events[4]["version"]
+    assert set(progress[5]["pending_types"]) == {"PhoneService", "PaperlessBilling", "Churn"}
+    assert progress[5]["pending_missing"] == {"TotalCharges": 11}
+    assert not progress[-1]["pending_types"] and not progress[-1]["pending_missing"]
+
+
 def test_telco_continues_after_narrative_at_turn_four_and_cleans_remaining_columns(tmp_path, monkeypatch):
     responses = [action("inspect_schema"), action("inspect_column", column="TotalCharges"),
                  action("trim_whitespace", columns=["TotalCharges"], rationale="Trim numeric text"),
@@ -138,8 +165,8 @@ def test_repeated_invalid_experiment_signature_gets_one_retry_then_stops(tmp_pat
     result = DataCleaningAgent(data_root=tmp_path, use_llm=True, max_turns=12).run(telco_report())
 
     assert len(prompts) == 3
-    assert "Correct the name and make one corrected experiment attempt." in prompts[1][-1]
-    assert "Do not call experiment_cleaning_method again." in prompts[2][-1]
+    assert any("Correct the name and make one corrected experiment attempt." in text for text in prompts[1])
+    assert any("Do not call experiment_cleaning_method again." in text for text in prompts[2])
     assert result.metadata["stop_reason"] == "invalid_experiment_signature"
     assert result.metadata["turns_used"] == 3
     assert "transform(df) signature" in result.metadata["finish_summary"]

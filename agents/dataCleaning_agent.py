@@ -287,7 +287,13 @@ class DataCleaningAgent:
                     if remaining <= 0:
                         raise TimeoutError("Cleaning run budget expired")
                     response = chat_with_tools(
-                        _request_context(messages, state), TOOL_SCHEMAS, model=self.model, temperature=0.1,
+                        _request_context(messages, state) + [{"role": "user", "content": (
+                            "Authoritative progress measured on the current working dataset: "
+                            + json.dumps(executor.progress())
+                            + f". Turn {turn}/{self.max_turns}. Work on pending requirements; do not reconvert completed columns. "
+                            "Batch independent conversions for remaining columns in one response. After numeric conversion, resolve pending missing values with an evidence-supported strategy. "
+                            "If a strategy is ambiguous, finish with explicit unresolved items instead of repeating completed work."
+                        )}], TOOL_SCHEMAS, model=self.model, temperature=0.1,
                         on_provider_event=state.on_event, timeout=remaining,
                     )
                     for error in state.provider_errors:

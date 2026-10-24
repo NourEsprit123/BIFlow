@@ -94,7 +94,7 @@ def test_changed_code_or_input_requires_a_new_experiment(session, monkeypatch, c
     if change == "code":
         Path(state.experiments[trial["candidate_id"]]["code_path"]).write_text(CODE + "\n# changed", encoding="utf-8")
     elif change == "version":
-        executor.execute("trim_whitespace", {"columns": ["customer"]})
+        executor.execute("normalize_values", {"column": "customer", "case": "upper"})
     else:
         with Path(state.current_ref.path).open("a", encoding="utf-8") as stream:
             stream.write("e,$50\n")

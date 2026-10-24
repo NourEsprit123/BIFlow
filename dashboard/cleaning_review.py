@@ -7,7 +7,7 @@ import streamlit as st
 def render_event(event: dict, evidence: dict | None = None) -> None:
     result = event["result"]
     evidence = evidence or event.get("evidence", {})
-    outcome = (("Trials passed" if result.get("tested") else "Trial failed") if event["tool"] == "experiment_cleaning_method" and "tested" in result else "Awaiting approval" if result.get("approval_required") or result.get("approved") is False
+    outcome = ("No change" if result.get("no_op") else ("Trials passed" if result.get("tested") else "Trial failed") if event["tool"] == "experiment_cleaning_method" and "tested" in result else "Awaiting approval" if result.get("approval_required") or result.get("approved") is False
                else "Rejected" if result.get("accepted") is False
                else "Failed" if result.get("success") is False
                else "Accepted" if result.get("accepted") else "Completed")
@@ -17,6 +17,9 @@ def render_event(event: dict, evidence: dict | None = None) -> None:
             st.caption(f"Tool execution: {event['duration_seconds']:.2f}s")
         if result.get("rationale"):
             st.write(result["rationale"])
+        if result.get("no_op"):
+            st.info(result["message"])
+            st.json(result.get("progress", {}))
         st.write("Requested action")
         if event["arguments"].get("code"):
             st.code(event["arguments"]["code"], language="python")
