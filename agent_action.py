@@ -1,4 +1,4 @@
-﻿import os
+import os
 import requests
 import json
 import subprocess
@@ -22,10 +22,40 @@ def executer_commande_git(arguments_git: str) -> str:
     except subprocess.CalledProcessError as e:
         return f"[SYSTEME] Erreur Git :\n{e.stderr}"
 
+def lire_fichier(nom_fichier: str) -> str:
+    try:
+        with open(nom_fichier, "r", encoding="utf-8") as f:
+            contenu = f.read()
+        return f"[SYSTEME] Contenu du fichier '{nom_fichier}':\n{contenu}"
+    except FileNotFoundError:
+        return f"[SYSTEME] Erreur : Le fichier '{nom_fichier}' n'a pas été trouvé."
+    except Exception as e:
+        return f"[SYSTEME] Erreur : {str(e)}"
+
+def modifier_fichier(nom_fichier: str, nouvelle_contenu: str) -> str:
+    try:
+        with open(nom_fichier, "w", encoding="utf-8") as f:
+            f.write(nouvelle_contenu)
+        return f"[SYSTEME] Fichier '{nom_fichier}' modifié avec succès."
+    except Exception as e:
+        return f"[SYSTEME] Erreur : {str(e)}"
+
+def supprimer_fichier(nom_fichier: str) -> str:
+    try:
+        os.remove(nom_fichier)
+        return f"[SYSTEME] Fichier '{nom_fichier}' supprimé avec succès."
+    except FileNotFoundError:
+        return f"[SYSTEME] Erreur : Le fichier '{nom_fichier}' n'a pas été trouvé."
+    except Exception as e:
+        return f"[SYSTEME] Erreur : {str(e)}"
+
 # Dictionnaire de mapping pour exécuter dynamiquement la fonction demandée par le LLM
 CARTOGRAPHIE_FONCTIONS = {
     "creer_fichier_local": creer_fichier_local,
-    "executer_commande_git": executer_commande_git
+    "executer_commande_git": executer_commande_git,
+    "lire_fichier": lire_fichier,
+    "modifier_fichier": modifier_fichier,
+    "supprimer_fichier": supprimer_fichier
 }
 
 # --- 2. DÉFINITION DES OUTILS POUR OLLAMA ---
@@ -58,6 +88,49 @@ OUTILS_BIFLOW = [
                 "required": ["arguments_git"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "lire_fichier",
+            "description": "Lit le contenu d'un fichier existant.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "nom_fichier": {"type": "string"}
+                },
+                "required": ["nom_fichier"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "modifier_fichier",
+            "description": "Modifie le contenu d'un fichier existant.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "nom_fichier": {"type": "string"},
+                    "nouvelle_contenu": {"type": "string"}
+                },
+                "required": ["nom_fichier", "nouvelle_contenu"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "supprimer_fichier",
+            "description": "Supprime un fichier existant.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "nom_fichier": {"type": "string"}
+                },
+                "required": ["nom_fichier"]
+            }
+        }
     }
 ]
 
@@ -75,7 +148,7 @@ def executer_agent(prompt_utilisateur: str):
     
     print(f"[AGENT] Demande utilisateur : '{prompt_utilisateur}'")
     try:
-        response = requests.post(url, json=payload, timeout=30)
+        response = requests.post(url, json=payload, timeout=300)
         reponse_json = response.json()
         message_ia = reponse_json.get("message", {})
         
@@ -119,3 +192,21 @@ if __name__ == "__main__":
     # Test 2 : Demander la création d'un fichier
     print("=== TEST ACTION 2 ===")
     executer_agent("Crée un fichier nommé 'documentation_pipeline.txt' contenant le texte 'Pipeline BIFlow validé par l'agent.'")
+    
+    print("\n" + "="*30 + "\n")
+    
+    # Test 3 : Lire le contenu d'un fichier
+    print("=== TEST ACTION 3 ===")
+    executer_agent("Quel est le contenu du fichier 'documentation_pipeline.txt'?")
+    
+    print("\n" + "="*30 + "\n")
+    
+    # Test 4 : Modifier le contenu d'un fichier
+    print("=== TEST ACTION 4 ===")
+    executer_agent("Modifie le fichier 'documentation_pipeline.txt' pour qu'il contienne maintenant le texte 'Nouveau contenu pour la documentation.'")
+    
+    print("\n" + "="*30 + "\n")
+    
+    # Test 5 : Supprimer un fichier
+    print("=== TEST ACTION 5 ===")
+    executer_agent("Supprime le fichier 'documentation_pipeline.txt'.")
