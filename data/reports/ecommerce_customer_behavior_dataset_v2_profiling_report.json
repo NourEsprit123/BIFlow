@@ -1,0 +1,903 @@
+{
+  "schema_version": "2.1",
+  "dataset_ref": {
+    "file_path": "C:\\Users\\SONIC\\Desktop\\BiFlow\\BIFlow\\data\\raw\\ecommerce_customer_behavior_dataset_v2.csv",
+    "file_name": "ecommerce_customer_behavior_dataset_v2.csv",
+    "rows": 17049,
+    "columns": 18,
+    "size_bytes": 1959560
+  },
+  "health_scores": {
+    "overall": 94.0,
+    "completeness": 100.0,
+    "validity": 90.0,
+    "uniqueness": 100.0,
+    "consistency": 80.0
+  },
+  "column_profiles": {
+    "Order_ID": {
+      "dtype": "str",
+      "inferred_role": "primary_key",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 17049,
+      "unique_pct": 100.0,
+      "sample_values": [
+        "ORD_000001-1",
+        "ORD_000001-2",
+        "ORD_000001-3",
+        "ORD_000002-1",
+        "ORD_000002-2",
+        "ORD_000003-1",
+        "ORD_000003-2",
+        "ORD_000004-1"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "NONE",
+          "description": "Pseudo-ID column (near-unique string \u2014 likely an identifier or key)",
+          "evidence": {
+            "detected": "17049 unique values out of 17049 rows (100.0%)",
+            "recommendation": "Exclude from ML features; consider as join key or primary key",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        }
+      ],
+      "agent_reasoning": "Unique order identifier key with 100% uniqueness across 17,049 records.",
+      "business_interpretation": "Primary key representing individual customer transactions.",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "drop",
+      "etl_cast_to": "string",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Customer_ID": {
+      "dtype": "str",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 5000,
+      "unique_pct": 29.33,
+      "sample_values": [
+        "CUST_00001",
+        "CUST_00001",
+        "CUST_00001",
+        "CUST_00002",
+        "CUST_00002",
+        "CUST_00003",
+        "CUST_00003",
+        "CUST_00004"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical identifier representing unique customers.",
+      "business_interpretation": "Foreign key grouping transactions per customer account.",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "drop",
+      "etl_cast_to": "string",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Date": {
+      "dtype": "str",
+      "inferred_role": "timestamp",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 450,
+      "unique_pct": 2.64,
+      "sample_values": [
+        "2023-05-29",
+        "2023-10-12",
+        "2023-12-05",
+        "2023-05-11",
+        "2023-06-16",
+        "2023-02-27",
+        "2024-01-03",
+        "2024-02-13"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Date/time values stored as plain text (not parsed as datetime)",
+          "evidence": {
+            "detected": "~100% of sampled values match date patterns",
+            "recommendation": "Parse with pd.to_datetime() to enable time-series operations",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        }
+      ],
+      "agent_reasoning": "ISO date formatted string requiring timestamp parsing for temporal analysis.",
+      "business_interpretation": "Transaction timestamp indicating when the order was placed.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "drop",
+      "etl_cast_to": "datetime64[ns]",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Age": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 57,
+      "unique_pct": 0.33,
+      "sample_values": [
+        "40",
+        "40",
+        "40",
+        "33",
+        "33",
+        "42",
+        "42",
+        "53"
+      ],
+      "numeric_stats": {
+        "mean": 34.9457,
+        "median": 35.0,
+        "std": 11.0469,
+        "min": 18.0,
+        "max": 75.0,
+        "q1": 26.0,
+        "q3": 42.0,
+        "skewness": 0.3205,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "50 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 50,
+            "outlier_pct": 0.29,
+            "bounds": {
+              "low": 2.0,
+              "high": 66.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Numeric customer age within valid demographic bounds (18 to 75).",
+      "business_interpretation": "Customer age in years.",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "int64",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Gender": {
+      "dtype": "str",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 3,
+      "unique_pct": 0.02,
+      "sample_values": [
+        "Male",
+        "Male",
+        "Male",
+        "Male",
+        "Male",
+        "Male",
+        "Male",
+        "Male"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical attribute with 3 unique discrete values.",
+      "business_interpretation": "Demographic gender designation of the customer.",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "string",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "City": {
+      "dtype": "str",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 10,
+      "unique_pct": 0.06,
+      "sample_values": [
+        "Ankara",
+        "Ankara",
+        "Ankara",
+        "Istanbul",
+        "Istanbul",
+        "Konya",
+        "Konya",
+        "Izmir"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical geographical field containing 10 unique cities.",
+      "business_interpretation": "Customer location or delivery city.",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "string",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Product_Category": {
+      "dtype": "str",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 8,
+      "unique_pct": 0.05,
+      "sample_values": [
+        "Books",
+        "Home & Garden",
+        "Sports",
+        "Food",
+        "Beauty",
+        "Toys",
+        "Home & Garden",
+        "Fashion"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean categorical column with 8 unique product segments.",
+      "business_interpretation": "High-level classification of the purchased item.",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "string",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Unit_Price": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 14711,
+      "unique_pct": 86.29,
+      "sample_values": [
+        "29.18",
+        "644.4",
+        "332.82",
+        "69.3",
+        "178.15",
+        "198.28",
+        "526.85",
+        "96.2"
+      ],
+      "numeric_stats": {
+        "mean": 447.9017,
+        "median": 174.68,
+        "std": 722.3197,
+        "min": 5.05,
+        "max": 7900.01,
+        "q1": 73.26,
+        "q3": 494.57,
+        "skewness": 3.6457,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "1757 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 1757,
+            "outlier_pct": 10.31,
+            "bounds": {
+              "low": -558.705,
+              "high": 1126.535
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Continuous numeric field with extreme upper outliers (max 7,900.01 vs mean 447.90).",
+      "business_interpretation": "Listing price per product unit.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "float64",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Quantity": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 5,
+      "unique_pct": 0.03,
+      "sample_values": [
+        "1",
+        "1",
+        "5",
+        "5",
+        "3",
+        "2",
+        "5",
+        "5"
+      ],
+      "numeric_stats": {
+        "mean": 3.0114,
+        "median": 3.0,
+        "std": 1.417,
+        "min": 1.0,
+        "max": 5.0,
+        "q1": 2.0,
+        "q3": 4.0,
+        "skewness": -0.0119,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Discrete integer count ranging from 1 to 5 units per order.",
+      "business_interpretation": "Number of units purchased in the order.",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "int64",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Discount_Amount": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 5526,
+      "unique_pct": 32.41,
+      "sample_values": [
+        "0.0",
+        "138.05",
+        "0.0",
+        "71.05",
+        "0.0",
+        "0.0",
+        "0.0",
+        "97.78"
+      ],
+      "numeric_stats": {
+        "mean": 69.7881,
+        "median": 0.0,
+        "std": 240.7047,
+        "min": 0.0,
+        "max": 6538.29,
+        "q1": 0.0,
+        "q3": 32.71,
+        "skewness": 8.6403,
+        "zeros_count": 10572,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "2789 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 2789,
+            "outlier_pct": 16.36,
+            "bounds": {
+              "low": -49.065,
+              "high": 81.775
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Continuous numeric field with high right-skew and high upper outliers (max 6,538.29).",
+      "business_interpretation": "Monetary discount applied to the transaction.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "float64",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Total_Amount": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 15929,
+      "unique_pct": 93.43,
+      "sample_values": [
+        "29.18",
+        "506.35",
+        "1664.1",
+        "275.45",
+        "534.45",
+        "396.56",
+        "2634.25",
+        "383.22"
+      ],
+      "numeric_stats": {
+        "mean": 1277.4387,
+        "median": 455.85,
+        "std": 2358.4364,
+        "min": 6.21,
+        "max": 37852.05,
+        "q1": 172.97,
+        "q3": 1267.75,
+        "skewness": 4.5848,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "1943 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 1943,
+            "outlier_pct": 11.4,
+            "bounds": {
+              "low": -1469.2,
+              "high": 2909.92
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Calculated continuous numeric metric with heavy upper tail outliers (max 37,852.05).",
+      "business_interpretation": "Net financial total paid for the order.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "float64",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Payment_Method": {
+      "dtype": "str",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 5,
+      "unique_pct": 0.03,
+      "sample_values": [
+        "Digital Wallet",
+        "Credit Card",
+        "Credit Card",
+        "Digital Wallet",
+        "Credit Card",
+        "Credit Card",
+        "Digital Wallet",
+        "Credit Card"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Categorical string column with 5 distinct payment types.",
+      "business_interpretation": "Payment channel utilized by the customer.",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "string",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Device_Type": {
+      "dtype": "str",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 3,
+      "unique_pct": 0.02,
+      "sample_values": [
+        "Mobile",
+        "Desktop",
+        "Mobile",
+        "Desktop",
+        "Mobile",
+        "Tablet",
+        "Desktop",
+        "Desktop"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Categorical string column with 3 distinct device platforms.",
+      "business_interpretation": "Device platform used to place the order.",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "string",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Session_Duration_Minutes": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 23,
+      "unique_pct": 0.13,
+      "sample_values": [
+        "14",
+        "14",
+        "15",
+        "16",
+        "14",
+        "10",
+        "11",
+        "16"
+      ],
+      "numeric_stats": {
+        "mean": 14.5356,
+        "median": 15.0,
+        "std": 2.9255,
+        "min": 4.0,
+        "max": 26.0,
+        "q1": 13.0,
+        "q3": 17.0,
+        "skewness": -0.0085,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "85 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 85,
+            "outlier_pct": 0.5,
+            "bounds": {
+              "low": 7.0,
+              "high": 23.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Integer duration values in a plausible range (4 to 26 minutes).",
+      "business_interpretation": "E-commerce platform browsing session duration.",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "int64",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Pages_Viewed": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 18,
+      "unique_pct": 0.11,
+      "sample_values": [
+        "9",
+        "8",
+        "10",
+        "13",
+        "7",
+        "9",
+        "8",
+        "15"
+      ],
+      "numeric_stats": {
+        "mean": 9.0031,
+        "median": 9.0,
+        "std": 2.26,
+        "min": 1.0,
+        "max": 18.0,
+        "q1": 7.0,
+        "q3": 11.0,
+        "skewness": -0.0335,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "1 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 1,
+            "outlier_pct": 0.01,
+            "bounds": {
+              "low": 1.0,
+              "high": 17.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Discrete integer count ranging between 1 and 18 pages.",
+      "business_interpretation": "Number of webpage views during the shopping session.",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "int64",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Is_Returning_Customer": {
+      "dtype": "bool",
+      "inferred_role": "boolean",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 2,
+      "unique_pct": 0.01,
+      "sample_values": [
+        "True",
+        "True",
+        "True",
+        "True",
+        "True",
+        "False",
+        "True",
+        "False"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "True": 15039,
+        "False": 2010
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Clean boolean flag indicating customer repeat status.",
+      "business_interpretation": "Flag indicating if the user has ordered previously.",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "boolean",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Delivery_Time_Days": {
+      "dtype": "int64",
+      "inferred_role": "timestamp",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 25,
+      "unique_pct": 0.15,
+      "sample_values": [
+        "13",
+        "6",
+        "9",
+        "4",
+        "6",
+        "6",
+        "6",
+        "4"
+      ],
+      "numeric_stats": {
+        "mean": 6.5036,
+        "median": 6.0,
+        "std": 3.4888,
+        "min": 1.0,
+        "max": 25.0,
+        "q1": 4.0,
+        "q3": 8.0,
+        "skewness": 1.1326,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "475 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 475,
+            "outlier_pct": 2.79,
+            "bounds": {
+              "low": -2.0,
+              "high": 14.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Integer count representing duration in days (1 to 25); role mislabeled as timestamp in metadata.",
+      "business_interpretation": "Fulfillment duration from order placement to delivery.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "int64",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Customer_Rating": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 5,
+      "unique_pct": 0.03,
+      "sample_values": [
+        "4",
+        "2",
+        "4",
+        "4",
+        "4",
+        "2",
+        "5",
+        "5"
+      ],
+      "numeric_stats": {
+        "mean": 3.8994,
+        "median": 4.0,
+        "std": 1.1288,
+        "min": 1.0,
+        "max": 5.0,
+        "q1": 3.0,
+        "q3": 5.0,
+        "skewness": -0.9303,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Ordinal integer score bounded on standard 1-5 rating scale.",
+      "business_interpretation": "Customer satisfaction score for the purchase.",
+      "severity": "NONE",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "int64",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    }
+  },
+  "cross_column_issues": [],
+  "llm_discovered_issues": [],
+  "uncertainty_flags": [],
+  "recommended_cleaning_order": [
+    "Date",
+    "Unit_Price",
+    "Discount_Amount",
+    "Total_Amount",
+    "Delivery_Time_Days",
+    "Order_ID",
+    "Age",
+    "Session_Duration_Minutes",
+    "Pages_Viewed"
+  ],
+  "etl_hints": {
+    "type_casting_targets": {
+      "Order_ID": "string",
+      "Customer_ID": "string",
+      "Date": "datetime64[ns]",
+      "Age": "int64",
+      "Gender": "string",
+      "City": "string",
+      "Product_Category": "string",
+      "Unit_Price": "float64",
+      "Quantity": "int64",
+      "Discount_Amount": "float64",
+      "Total_Amount": "float64",
+      "Payment_Method": "string",
+      "Device_Type": "string",
+      "Session_Duration_Minutes": "int64",
+      "Pages_Viewed": "int64",
+      "Is_Returning_Customer": "boolean",
+      "Delivery_Time_Days": "int64",
+      "Customer_Rating": "int64"
+    },
+    "join_key_candidates": [],
+    "drop_candidates": [],
+    "recommended_output_format": "parquet",
+    "synonym_mappings": {}
+  },
+  "imputation_plan": {},
+  "outlier_columns": [
+    "Unit_Price",
+    "Discount_Amount",
+    "Total_Amount"
+  ],
+  "agent_summary": "The dataset contains 17,049 records across 18 columns with no missing values and zero structural schema failures. Primary data engineering tasks involve casting string date values to datetime and addressing heavy upper-tail monetary outliers.",
+  "recommendation_summary": "Cast `Date` to datetime64, validate math consistency (`Total_Amount` == `Unit_Price` * `Quantity` - `Discount_Amount`), and apply log scaling or winsorization on monetary outlier fields (`Unit_Price`, `Discount_Amount`, `Total_Amount`).",
+  "metadata": {
+    "agent_version": "2.0.0",
+    "profiling_timestamp": "2026-10-24T18:16:15.072724+00:00",
+    "llm_provider": "gemini",
+    "llm_model_used": "gemini:gemini-3.6-flash",
+    "llm_status": "llm",
+    "sandbox_executions": 0,
+    "llm_driven": true
+  }
+}

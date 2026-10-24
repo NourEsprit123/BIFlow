@@ -13,6 +13,8 @@ from agents.data_engineering_agent import DataEngineeringAgent
 from analytics.data_quality import calculate_health_scores, detect_cross_column_issues
 from analytics.profiler import load_dataset as _load_dataset
 from agents.dataCleaning_agent import DataCleaningAgent
+from dataCleaningTools.models import CleaningResult
+from dataCleaningTools.agent1_adapter import parse_profiling_report
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DATA = ROOT / "data" / "raw"
@@ -123,6 +125,23 @@ def get_workspace_result(key: str, path: Path) -> Any | None:
     state = st.session_state.get(key)
     if isinstance(state, dict) and state.get("signature") == dataset_signature(path):
         return state.get("result")
+    if key == CLEANING_STATE_KEY:
+        # Recover the latest matching run after a browser refresh or app restart.
+        candidates = (ROOT / "data" / "versions" / "dashboard").glob(f"*/{path.stem}/cleaning_result.json")
+        for candidate in sorted(candidates, key=lambda p: p.stat().st_mtime_ns, reverse=True):
+            try:
+                result = CleaningResult.model_validate_json(candidate.read_text(encoding="utf-8"))
+                profile = st.session_state.get(PROFILE_STATE_KEY)
+                if profile and profile.get("signature") == dataset_signature(path):
+                    report = parse_profiling_report(profile["result"]["profiling_report"])
+                    fingerprint = hashlib.sha256(json.dumps(report.model_dump(mode="json"), sort_keys=True).encode()).hexdigest()
+                    if result.metadata.get("profiling_report_hash") != fingerprint:
+                        continue
+                if result.metadata.get("source_signature") == list(dataset_signature(path)):
+                    st.session_state[key] = {"signature": dataset_signature(path), "result": result}
+                    return result
+            except (ValueError, OSError):
+                continue
     return None
 
 
@@ -180,7 +199,7 @@ def analyze_dataframe(df: pd.DataFrame, path: Path) -> dict[str, Any]:
     return result
 
 
-def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = None) -> Any:
+def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = None, on_event=None) -> Any:
     result = get_workspace_result(PROFILE_STATE_KEY, path)
     if result is None:
         result = profile_dataset_for_workspace(path)
@@ -190,10 +209,19 @@ def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = 
         search_roots=[RAW_DATA, ROOT / "data"],
         use_llm=None,
     )
+    objective = "Improve data quality for BI analysis while preserving the uploaded original."
+    if st.session_state.get("prefer_generated_methods", True):
+        objective += (
+            " This is an academic experimentation run: propose and test a generated cleaning method "
+            "with experiment_cleaning_method, inspect the trial results, and promote only a passing "
+            "candidate with apply_experimental_method. If the isolated runtime is unavailable or "
+            "the method fails, explain that result and use registered tools where appropriate."
+        )
     cleaning = agent.run(
         result["profiling_report"],
         approved_step_ids=approved_step_ids or [],
-        user_request="Improve data quality for BI analysis while preserving the uploaded original.",
+        user_request=objective,
+        on_event=on_event,
     )
     st.session_state[CLEANING_STATE_KEY] = {
         "signature": dataset_signature(path),

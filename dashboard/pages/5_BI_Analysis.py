@@ -2,10 +2,11 @@ import json
 
 import streamlit as st
 
-from components import setup, page_header
+from components import setup, page_header, locked_feature
 from workspace import analyze_dataframe, load_selected_dataset
 
 setup("BI Analysis")
+locked_feature("BI Analysis")
 page_header(
     "Business Intelligence Analysis",
     "Explore metrics and distributions calculated from the active dataset.",

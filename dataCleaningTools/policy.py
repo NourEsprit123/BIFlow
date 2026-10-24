@@ -30,6 +30,7 @@ OP_RISK: Dict[str, RiskLevel] = {
     "remove_duplicates": RiskLevel.MODERATE,
     "drop_column": RiskLevel.HIGH,
     "run_sandbox_code": RiskLevel.HIGH,
+    "apply_experimental_method": RiskLevel.MODERATE,
 }
 
 

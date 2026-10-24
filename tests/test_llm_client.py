@@ -9,6 +9,8 @@ from dataCleaningTools.llm_client import default_model, get_client, llm_configur
 def test_groq_client_requires_api_key(monkeypatch):
     monkeypatch.delenv("GROQ_API_KEY", raising=False)
     monkeypatch.delenv("BIFLOW_LLM_API_KEY", raising=False)
+    monkeypatch.setenv("BIFLOW_OLLAMA_FALLBACK", "false")
+    monkeypatch.setenv("BIFLOW_CLEANING_PROVIDER", "auto")
 
     assert not llm_configured()
     with pytest.raises(RuntimeError, match="GROQ_API_KEY"):
@@ -55,3 +57,6 @@ def test_chat_with_tools_normalizes_groq_tool_calls(monkeypatch):
         {"id": "call-1", "name": "inspect_schema", "arguments": {}}
     ]
     assert completions.kwargs["model"] == "test-model"
+    assert completions.kwargs["tool_choice"] == "required"
+    assert completions.kwargs["parallel_tool_calls"] is False
+    assert completions.kwargs["max_completion_tokens"] == 2048

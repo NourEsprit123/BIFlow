@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional, Set
 from uuid import uuid4
 
 import pandas as pd
 
 from analytics.data_quality import run_sandboxed_check
 from .cleaning import (
-    apply_and_commit,
     clean_numeric_string,
     convert_data_types,
     drop_column,
@@ -26,9 +25,12 @@ from .inspection import (
     inspect_duplicates,
     inspect_schema,
 )
-from .models import DatasetReference, TransformationStep
+from .models import (DatasetReference, TransformationStep, ValidationReport,
+                     ValidationRuleResult, ValidationStatus)
+from .effects import assess_candidate, snapshot, present, target_matches
 from .policy import requires_approval
 from .versioning import DatasetVersionManager
+from .experiments import experiment, promote
 
 
 def _tool(
@@ -168,10 +170,9 @@ TOOL_SCHEMAS = [
     ),
     _tool(
         "validate_dataset",
-        "Validate that the current dataset is non-empty and selected columns are parseable.",
+        "Validate required schema, target types, missing values and unresolved actions on the current version. All populated numeric values must parse.",
         {
             "numeric_columns": _STRING_LIST,
-            "min_parseable_ratio": {"type": "number", "minimum": 0, "maximum": 1},
         },
     ),
     _tool(
@@ -181,6 +182,37 @@ TOOL_SCHEMAS = [
         ["summary"],
     ),
 ]
+
+
+TOOL_SCHEMAS.extend([
+    _tool("experiment_cleaning_method",
+          "Test a generated transform(df) function in isolated Docker on disjoint sample and holdout copies. No working-data changes. Return a candidate ID and measured effects. Preserve rows, index, columns and unselected values.",
+          {"code": {"type": "string", "maxLength": 8000, "description": "Python defining transform(df) -> DataFrame. pd, np, re, math are provided; installed pandas/numpy/sklearn can be imported. No host files/network."},
+           "columns": _STRING_LIST, "rationale": _STRING, "expected_effect": _STRING,
+           "evidence_ids": _STRING_LIST, "sample_size": {"type": "integer", "minimum": 1, "maximum": 500},
+           "checks": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": False,
+                      "properties": {"column": _STRING, "kind": {"type": "string", "enum": ["no_missing", "numeric", "integer", "boolean", "datetime", "string", "non_negative", "unique"]}},
+                      "required": ["column", "kind"]}}},
+          ["code", "columns", "rationale", "expected_effect", "evidence_ids", "checks"]),
+    _tool("apply_experimental_method",
+          "Apply an unchanged, successfully tested candidate to the full CURRENT dataset inside its pinned sandbox image. Recheck full output before committing a new version. No code argument is accepted.",
+          {"candidate_id": _STRING}, ["candidate_id"]),
+])
+
+
+# Shared decision metadata is exposed on every mutation tool.
+_MUTATIONS = {"trim_whitespace", "normalize_values", "convert_data_types",
+              "clean_numeric_string", "handle_missing_values", "remove_duplicates", "drop_column", "apply_experimental_method"}
+for _schema in TOOL_SCHEMAS:
+    if _schema["function"]["name"] in _MUTATIONS - {"apply_experimental_method"}:
+        _params = _schema["function"]["parameters"]
+        _params["properties"].update({
+            "step_id": _STRING,
+            "rationale": {"type": "string", "description": "Why this action follows from the evidence"},
+            "evidence_ids": {"type": "array", "items": _STRING,
+                             "description": "IDs of relevant profiling findings or inspection observations"},
+        })
+        _params["required"] = list(dict.fromkeys(_params["required"] + ["rationale", "evidence_ids"]))
 
 
 @dataclass
@@ -195,8 +227,34 @@ class AgentSessionState:
     pending_approvals: List[str] = field(default_factory=list)
     unresolved: List[str] = field(default_factory=list)
     step_log: List[Dict[str, Any]] = field(default_factory=list)
+    events: List[Dict[str, Any]] = field(default_factory=list)
+    evidence: Dict[str, Any] = field(default_factory=dict)
+    experiments: Dict[str, Any] = field(default_factory=dict)
+    failed_actions: Dict[str, str] = field(default_factory=dict)
+    required_targets: Dict[str, str] = field(default_factory=dict)
+    required_missing: List[str] = field(default_factory=list)
+    expected_columns: Optional[List[str]] = None
+    validation: Optional[ValidationReport] = None
+    on_event: Optional[Callable[[Dict[str, Any]], None]] = None
     finished: bool = False
     finish_summary: str = ""
+    llm_provider: Optional[str] = None
+    llm_model: Optional[str] = None
+    provider_switches: List[Dict[str, Any]] = field(default_factory=list)
+    stop_reason: str = "running"
+    provider_errors: List[Dict[str, Any]] = field(default_factory=list)
+
+    def persist_trace(self) -> None:
+        path = self.manager.root / self.dataset_id / "execution_trace.json"
+        payload = {"current_dataset": self.current_ref.model_dump(mode="json"),
+                   "stop_reason": self.stop_reason, "finish_summary": self.finish_summary,
+                   "llm_provider": self.llm_provider, "llm_model": self.llm_model, "provider_switches": self.provider_switches,
+                   "events": self.events, "evidence": self.evidence, "experiments": self.experiments,
+                   "step_log": self.step_log, "provider_errors": self.provider_errors,
+                   "unresolved": self.unresolved, "pending_approvals": self.pending_approvals}
+        temporary = path.with_suffix(".tmp")
+        temporary.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
+        temporary.replace(path)
 
 
 class ToolExecutor:
@@ -206,6 +264,30 @@ class ToolExecutor:
         self.state = state
 
     def execute(self, name: str, arguments: Dict[str, Any]) -> str:
+        source_version = self.state.current_ref.version
+        if self.state.on_event:
+            self.state.on_event({"phase": f"running {name} on {source_version}"})
+        result = json.loads(self._dispatch(name, arguments))
+        if name in _MUTATIONS and not result.get("success") and not result.get("approval_required") and "accepted" not in result:
+            columns = arguments.get("columns") or ([arguments["column"]] if arguments.get("column") else list(self.state.current_ref.columns))
+            self.state.failed_actions[f"{name}:{columns}"] = f"Failed {name}: {result.get('error', 'Unknown error')}"
+        event_id = f"event-{len(self.state.events) + 1}"
+        if name.startswith("inspect_") or name in ("check_value_patterns", "run_custom_check"):
+            self.state.evidence[event_id] = {
+                "source": "inspection", "tool": name, "arguments": arguments,
+                "version": source_version, "result": result,
+            }
+        event = {"event_id": event_id, "tool": name, "arguments": arguments,
+                 "source_version": source_version, "version": self.state.current_ref.version,
+                 "result": result,
+                 "evidence": {key: self.state.evidence[key] for key in result.get("evidence_ids", [])}}
+        self.state.events.append(event)
+        self.state.persist_trace()
+        if self.state.on_event:
+            self.state.on_event(event)
+        return self._json({**result, "event_id": event_id})
+
+    def _dispatch(self, name: str, arguments: Dict[str, Any]) -> str:
         handlers = {
             "inspect_schema": self._inspect_schema,
             "inspect_column": self._inspect_column,
@@ -222,6 +304,8 @@ class ToolExecutor:
             "request_approval": self._request_approval,
             "validate_dataset": self._validate_dataset,
             "finish": self._finish,
+            "experiment_cleaning_method": self._experiment_cleaning_method,
+            "apply_experimental_method": self._apply_experimental_method,
         }
         handler = handlers.get(name)
         if handler is None:
@@ -261,28 +345,83 @@ class ToolExecutor:
                 "message": message,
             }
 
-        function_arguments = {
-            key: value
-            for key, value in arguments.items()
-            if key not in ("step_id", "rationale")
-        }
-        new_ref, record, result = apply_and_commit(
-            self.state.manager,
-            self.state.current_ref,
-            function,
-            operation_name=name,
-            affected_columns=columns,
-            rationale=step.rationale,
-            step_id=step_id,
-            approval_obtained=requires_approval(step),
-            **function_arguments,
+        function_arguments = {key: value for key, value in arguments.items()
+                              if key not in ("step_id", "rationale", "evidence_ids")}
+        before = self.state.manager.load(self.state.current_ref)
+        selected = columns or list(before.columns)
+        evidence_ids = list(arguments.get("evidence_ids") or [])
+        if not evidence_ids:
+            evidence_ids = [key for key, item in self.state.evidence.items()
+                            if item.get("column") in selected
+                            or item.get("arguments", {}).get("column") in selected
+                            or item.get("tool") in ("inspect_schema", "inspect_duplicates")]
+        unknown = [key for key in evidence_ids if key not in self.state.evidence]
+        if unknown:
+            return {"success": False, "error": f"Unknown evidence IDs: {unknown}"}
+        if not evidence_ids:
+            evidence_id = f"before-{step_id}"
+            self.state.evidence[evidence_id] = {
+                "source": "pre-transformation measurement", "columns": selected,
+                "version": self.state.current_ref.version, "snapshot": snapshot(before),
+            }
+            evidence_ids = [evidence_id]
+        rationale = step.rationale or f"Apply {name} to {', '.join(map(str, selected))}; verify its measured effect."
+        result = function(before.copy(), **function_arguments)
+        assessment = assess_candidate(before, result.df, name, columns, function_arguments) if result.success and result.df is not None else None
+        accepted = bool(assessment and assessment["accepted"])
+        error = result.error
+        if assessment and not accepted:
+            error = "; ".join(r["rule_name"] + ": " + r["message"] for r in assessment["rules"] if not r["passed"])
+        metadata = {"evidence_ids": evidence_ids, "effect": assessment, "accepted": accepted,
+                    "rationale_origin": "agent" if step.rationale else "executor default"}
+        if name == "apply_experimental_method":
+            metadata["experiment"] = result.details
+        action_key = f"{name}:{selected}"
+        if accepted:
+            self.state.failed_actions.pop(action_key, None)
+            new_ref, record = self.state.manager.commit_transformation(
+                self.state.current_ref, result.df, operation=name, columns=selected,
+                parameters=function_arguments, rationale=rationale, step_id=step_id,
+                affected_rows=result.affected_rows, approval_obtained=requires_approval(step),
+                metadata=metadata,
+            )
+            self.state.current_ref = new_ref
+            self.state.validation = None
+            if name == "drop_column" or (name == "handle_missing_values" and function_arguments.get("strategy") == "drop_columns"):
+                if self.state.expected_columns is not None:
+                    self.state.expected_columns = list(result.df.columns)
+                for column in before.columns.difference(result.df.columns):
+                    self.state.required_targets.pop(column, None)
+                    self.state.required_missing = [c for c in self.state.required_missing if c != column]
+            if name in ("convert_data_types", "clean_numeric_string"):
+                self.state.required_targets.setdefault(function_arguments["column"], function_arguments.get("target_type", "numeric"))
+        else:
+            self.state.failed_actions[action_key] = f"Rejected {name} on {selected}: {error or result.message}"
+            record = self.state.manager.record_rejected(
+                self.state.current_ref, operation=name, columns=selected, parameters=function_arguments,
+                rationale=rationale, step_id=step_id, error_message=error or result.message,
+                metadata=metadata,
+            )
+        return {**result.to_dict(), "success": accepted, "error": error,
+                "accepted": accepted, "effect": assessment, "evidence_ids": evidence_ids,
+                "rationale": rationale, "change_id": record.change_id,
+                "version": self.state.current_ref.version}
+
+    def _experiment_cleaning_method(self, args):
+        return experiment(self.state, args)
+
+    def _apply_experimental_method(self, args):
+        candidate_id = args["candidate_id"]
+        candidate = self.state.experiments.get(candidate_id)
+        if candidate is None:
+            raise ValueError("Unknown candidate ID; run experiment_cleaning_method first")
+        return self._clean(
+            "apply_experimental_method",
+            lambda df, candidate_id: promote(self.state, candidate_id, df),
+            {"candidate_id": candidate_id, "rationale": candidate["rationale"],
+             "evidence_ids": list(dict.fromkeys(candidate["evidence_ids"] + [candidate_id]))},
+            candidate["columns"],
         )
-        self.state.current_ref = new_ref
-        return {
-            **result.to_dict(),
-            "change_id": record.change_id,
-            "version": new_ref.version,
-        }
 
     def _inspect_schema(self, _: Dict[str, Any]) -> Dict[str, Any]:
         return inspect_schema(self.state.current_ref, self.state.manager)
@@ -417,46 +556,45 @@ class ToolExecutor:
 
     def _validate_dataset(self, args: Dict[str, Any]) -> Dict[str, Any]:
         df = self.state.manager.load(self.state.current_ref)
-        minimum = args.get("min_parseable_ratio", 0.5)
-        rules = [
-            {
-                "rule": "non_empty",
-                "passed": not df.empty,
-                "message": f"rows={len(df)}",
-            }
-        ]
+        rules = []
+        def check(name, passed, message):
+            rules.append(ValidationRuleResult(rule_name=name, passed=bool(passed), message=message))
+        check("non_empty", not df.empty, f"rows={len(df)}")
+        if self.state.expected_columns is not None:
+            check("expected_columns", list(df.columns) == self.state.expected_columns,
+                  "Required columns must be preserved unless removal was approved")
         for column in args.get("numeric_columns", []):
-            if column not in df.columns:
-                rules.append(
-                    {
-                        "rule": f"numeric_parseable:{column}",
-                        "passed": False,
-                        "message": "column not found",
-                    }
-                )
-                continue
-            ratio = float(pd.to_numeric(df[column], errors="coerce").notna().mean())
-            rules.append(
-                {
-                    "rule": f"numeric_parseable:{column}",
-                    "passed": ratio >= minimum,
-                    "message": f"parseable_ratio={ratio:.2f}",
-                }
-            )
-        return {
-            "success": all(rule["passed"] for rule in rules),
-            "version": self.state.current_ref.version,
-            "rules": rules,
-        }
+            self.state.required_targets.setdefault(column, "numeric")
+        targets = self.state.required_targets
+        for column, target in targets.items():
+            check(f"target_type:{column}", column in df and target_matches(df[column], target),
+                  f"All populated values in {column} must match {target}")
+        for column in self.state.required_missing:
+            check(f"missing_resolved:{column}", column in df and present(df[column]).all(),
+                  f"Reported missing values in {column} must be resolved")
+        for issue in dict.fromkeys(self.state.unresolved + self.state.pending_approvals + list(self.state.failed_actions.values())):
+            check("unresolved", False, issue)
+        failed = [r for r in rules if not r.passed]
+        self.state.validation = ValidationReport(
+            dataset_ref=self.state.current_ref,
+            status=ValidationStatus.FAILED if failed else ValidationStatus.PASSED,
+            rules=rules, schema_ok=all(r.passed for r in rules if r.rule_name == "expected_columns"),
+            quality_ok=not failed, unresolved_issues=[r.message for r in failed],
+        )
+        return {"success": not failed, "version": self.state.current_ref.version,
+                "status": self.state.validation.status.value,
+                "rules": [r.model_dump() for r in rules]}
 
     def _finish(self, args: Dict[str, Any]) -> Dict[str, Any]:
         self.state.finish_summary = str(args["summary"])
         self.state.unresolved.extend(
             item for item in args.get("unresolved", []) if item not in self.state.unresolved
         )
+        validation = self._validate_dataset({})
         self.state.finished = True
         return {
-            "success": True,
+            "success": validation["success"],
+            "validation": validation,
             "summary": self.state.finish_summary,
             "unresolved": self.state.unresolved,
         }

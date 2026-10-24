@@ -148,6 +148,13 @@ class DatasetVersionManager:
         self._append_change(source_ref.dataset_id, record)
         return new_ref, record
 
+    def record_rejected(self, ref: DatasetReference, **details) -> ChangeRecord:
+        """Keep rejected attempts in the audit trail without changing the dataset."""
+        record = ChangeRecord(source_version=ref.version, result_version=ref.version,
+                              success=False, **details)
+        self._append_change(ref.dataset_id, record)
+        return record
+
     def mark_validated(
         self,
         ref: DatasetReference,

@@ -1,0 +1,170 @@
+"""Shared, readable cleaning trace for live runs and saved session results."""
+from __future__ import annotations
+
+import streamlit as st
+
+
+def render_event(event: dict, evidence: dict | None = None) -> None:
+    result = event["result"]
+    evidence = evidence or event.get("evidence", {})
+    outcome = (("Trials passed" if result.get("tested") else "Trial failed") if event["tool"] == "experiment_cleaning_method" and "tested" in result else "Awaiting approval" if result.get("approval_required") or result.get("approved") is False
+               else "Rejected" if result.get("accepted") is False
+               else "Failed" if result.get("success") is False
+               else "Accepted" if result.get("accepted") else "Completed")
+    label = f"{event['event_id']} · {event['tool']} · {outcome} · {event['source_version']} → {event['version']}"
+    with st.expander(label, expanded=outcome in ("Rejected", "Failed", "Awaiting approval")):
+        if result.get("rationale"):
+            st.write(result["rationale"])
+        st.write("Requested action")
+        if event["arguments"].get("code"):
+            st.code(event["arguments"]["code"], language="python")
+            st.json({k: v for k, v in event["arguments"].items() if k != "code"})
+        else:
+            st.json(event["arguments"])
+        if result.get("candidate_id"):
+            st.caption(f"Candidate: {result['candidate_id']} · Code SHA-256: {result.get('code_hash', '')}")
+        if result.get("expected_effect"):
+            st.write(f"Expected effect: {result['expected_effect']}")
+        for trial in result.get("trials", []):
+            st.write(f"{trial['partition'].title()} trial · {trial['rows']} rows · {'Passed' if trial['success'] else 'Failed'}")
+            if trial.get("error"):
+                st.error(trial["error"])
+            if trial.get("setup"):
+                st.code(trial["setup"], language="text")
+            if trial.get("effect"):
+                trial_effect = trial["effect"]
+                st.caption(f"Changed cells: {trial_effect['changed_cells']} · Rows removed: {trial_effect['rows_removed']}")
+                st.dataframe(trial_effect["rules"], hide_index=True, use_container_width=True)
+                if trial_effect.get("column_metrics"):
+                    st.write("Column distributions before and after")
+                    st.json(trial_effect["column_metrics"])
+                if trial_effect.get("changed_examples"):
+                    st.dataframe(trial_effect["changed_examples"], hide_index=True, use_container_width=True)
+        if result.get("trials"):
+            st.info(result["message"])
+            if result.get("holdout_available") is False:
+                st.warning("This dataset has only one row; no independent holdout test was possible.")
+        ids = result.get("evidence_ids", [])
+        if ids:
+            st.write("Supporting evidence")
+            for evidence_id in ids:
+                st.caption(evidence_id)
+                if evidence and evidence_id in evidence:
+                    st.json(evidence[evidence_id])
+        effect = result.get("effect") or (result["details"].get("full_data_effect") if isinstance(result.get("details"), dict) else None)
+        if effect:
+            before, after = effect["before"], effect["after"]
+            st.dataframe([
+                {"Measurement": "Rows", "Before": before["rows"], "After": after["rows"]},
+                {"Measurement": "Columns", "Before": before["columns"], "After": after["columns"]},
+                {"Measurement": "Missing cells", "Before": sum(before["missing"].values()), "After": sum(after["missing"].values())},
+                {"Measurement": "Duplicate rows", "Before": before["duplicate_rows"], "After": after["duplicate_rows"]},
+            ], hide_index=True, use_container_width=True)
+            st.caption(f"Changed cells: {effect['changed_cells'] if effect['changed_cells'] is not None else 'Not compared after row removal'} · Rows removed: {effect['rows_removed']}")
+            affected = event["arguments"].get("columns") or [event["arguments"].get("column")]
+            columns = [c for c in before["dtypes"] if c in affected or before["dtypes"].get(c) != after["dtypes"].get(c) or before["missing"].get(c) != after["missing"].get(c)]
+            if columns:
+                st.dataframe([{"Column": c, "Type before": before["dtypes"][c],
+                               "Type after": after["dtypes"].get(c, "Removed"),
+                               "Missing before": before["missing"][c],
+                               "Missing after": after["missing"].get(c)} for c in columns],
+                             hide_index=True, use_container_width=True)
+            st.write("Acceptance checks")
+            st.dataframe(effect["rules"], hide_index=True, use_container_width=True)
+            if effect.get("changed_examples"):
+                st.write("Examples of changed values (up to 5)")
+                st.dataframe(effect["changed_examples"], hide_index=True, use_container_width=True)
+            if not effect["accepted"]:
+                st.warning("Candidate rejected. The working dataset stayed at the previous version. Measurements above describe the rejected candidate.")
+        if result.get("error"):
+            st.error(str(result["error"]))
+        if not effect and result.get("rules"):
+            st.dataframe(result["rules"], hide_index=True, use_container_width=True)
+        elif not effect and not result.get("trials"):
+            st.json(result)
+
+
+def render_cleaning_result(cleaning, *, key: str = "cleaning_review") -> None:
+    st.subheader("Cleaning run: decisions and measured effects")
+    st.caption(f"Mode: {cleaning.metadata.get('mode', 'unknown')} · Run: {cleaning.run_id} · Final version: {cleaning.final_dataset.version}")
+    (st.success if cleaning.validation.all_passed else st.warning)(
+        f"Final validation: {cleaning.validation.status.value}. "
+        + ("All required checks passed." if cleaning.validation.all_passed else "Review the checks and unresolved items below.")
+    )
+    st.write(cleaning.metadata.get("finish_summary", ""))
+    for switch in cleaning.metadata.get("provider_switches", []):
+        st.warning(f"Switched to {switch['provider']} · {switch['model']} at turn {switch['turn']}: {switch['reason']}")
+    if cleaning.metadata.get("stop_reason"):
+        st.caption(f"Stop reason: {cleaning.metadata['stop_reason']} · Model: {cleaning.metadata.get('model') or 'deterministic'}")
+    for error in cleaning.metadata.get("provider_errors", []):
+        if error.get("recovered"):
+            st.caption(f"Provider request error at turn {error['turn']} was retried successfully.")
+            continue
+        st.error(f"Provider failure at turn {error['turn']} ({error['type']}): {error['message']}")
+    st.write("Final validation rules")
+    if cleaning.validation.rules:
+        st.dataframe([{"Check": r.rule_name, "Passed": r.passed, "Details": r.message}
+                      for r in cleaning.validation.rules], hide_index=True, use_container_width=True)
+    for issue in cleaning.unresolved_issues:
+        st.warning(issue)
+    experiments = cleaning.metadata.get("experiments", {})
+    if experiments:
+        st.write("Sandbox method experiments")
+        st.dataframe([{"Candidate": key, "Base version": spec["base_version"],
+                       "Trials passed": spec["tested"], "Columns": ", ".join(spec["columns"]),
+                       "Expected effect": spec["expected_effect"], "Code hash": spec["code_hash"]}
+                      for key, spec in experiments.items()], hide_index=True, use_container_width=True)
+        st.caption("Passing sample/holdout trials does not apply a change. Promotion reruns the exact code on the full dataset.")
+    events = cleaning.metadata.get("events", [])
+    if events:
+        st.write("Step-by-step execution")
+        for event in events:
+            render_event(event, cleaning.metadata.get("evidence", {}))
+    else:
+        st.info("This result predates detailed step tracking. Run cleaning again to capture a trace.")
+    st.download_button("Download cleaning trace and validation", cleaning.model_dump_json(indent=2),
+                       file_name=f"cleaning_{cleaning.run_id}.json", mime="application/json", key=key)
+
+
+def run_cleaning_with_progress(path):
+    from dashboard.workspace import clean_profiled_dataset
+
+    with st.status("Data Cleaning Agent: inspecting and cleaning...", expanded=True) as status:
+        st.write("Each transformation is checked before it can become the working version.")
+        st.caption("Generated methods run on sample and holdout copies in Docker, then require full-data checks before promotion.")
+        def on_event(event):
+            if "phase" in event:
+                status.update(label=f"Data Cleaning Agent: {event['phase']}")
+            else:
+                render_event(event)
+        result = clean_profiled_dataset(path, on_event=on_event)
+        st.write(result.metadata.get("finish_summary", ""))
+        for switch in result.metadata.get("provider_switches", []):
+            st.warning(f"Switched to {switch['provider']} · {switch['model']} at turn {switch['turn']}: {switch['reason']}")
+        for error in result.metadata.get("provider_errors", []):
+            if error.get("recovered"):
+                st.caption(f"Provider request error at turn {error['turn']} was retried successfully.")
+                continue
+            st.error(f"Provider failure at turn {error['turn']} ({error['type']}): {error['message']}")
+        failed = [r for r in result.validation.rules if not r.passed]
+        if failed:
+            st.write("Remaining validation failures")
+            st.dataframe([{"Check": r.rule_name, "Details": r.message} for r in failed], hide_index=True, use_container_width=True)
+        status.update(label=f"Cleaning finished · validation {result.validation.status.value}",
+                      state="complete" if result.validation.all_passed else "error", expanded=True)
+    return result
+
+
+def render_experiment_runtime():
+    from dataCleaningTools.experiments import runtime_status, BUILD_COMMAND
+    with st.expander("Generated cleaning methods · sandbox setup"):
+        st.write("The agent can invent a transform(df) function, test it on sample and holdout copies, and promote it only after full-data checks. Generated code runs in Docker with no host mounts or network.")
+        st.code(BUILD_COMMAND, language="powershell")
+        if st.button("Check experiment runtime", key="check_experiment_runtime"):
+            result = runtime_status()
+            if result["available"]:
+                st.success("Isolated experiment runtime is ready.")
+                st.caption(f"Image: {result['image_id']}")
+            else:
+                st.warning(result["setup"])
+                st.caption(result["error"])

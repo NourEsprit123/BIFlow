@@ -1,3 +1,4 @@
+from dashboard.cleaning_review import render_cleaning_result
 import json
 from datetime import datetime, timezone
 
@@ -86,3 +87,6 @@ st.caption(
     "This build runs agents on demand in the Streamlit process. There is no persistent "
     "agent pool to restart and no 15-second telemetry stream configured."
 )
+
+if cleaning_result:
+    render_cleaning_result(cleaning_result, key="ops_cleaning_trace")

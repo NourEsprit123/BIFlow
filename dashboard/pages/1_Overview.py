@@ -1,4 +1,3 @@
-from datetime import datetime
 from html import escape
 
 import streamlit as st
@@ -10,7 +9,6 @@ from workspace import (
     get_workspace_result,
     list_datasets,
     load_selected_dataset,
-    profile_dataset_for_workspace,
     profiling_execution_status,
     quality_summary,
 )
@@ -18,9 +16,7 @@ from workspace import (
 setup("Overview")
 user = st.session_state.get("authenticated_user", {})
 first_name = escape((user.get("full_name") or "there").split()[0])
-hour = datetime.now().hour
-greeting = "Good morning" if hour < 12 else "Good afternoon" if hour < 18 else "Good evening"
-page_header(f"{greeting}, {first_name}.", "Run agents against your selected dataset and review real results.")
+page_header(f"Welcome back, {first_name}.", "Choose a dataset above, run an agent, and follow its decisions.")
 
 path, frame = load_selected_dataset()
 if path is None or frame is None:
@@ -40,19 +36,11 @@ metrics[1].metric("Rows", f"{len(frame):,}")
 metrics[2].metric("Columns", len(frame.columns))
 metrics[3].metric("Data quality", f"{health['overall_health_score']}%")
 
-profile_col, analysis_col = st.columns(2)
-with profile_col:
-    if st.button("Run Data Profiling Agent", type="primary", use_container_width=True):
-        result = profile_dataset_for_workspace(path, refresh=True)
-        st.success(
-            f"Profile completed: {result['profile']['rows']:,} rows, "
-            f"{result['profile']['columns']} columns."
-        )
-        used_llm, message = profiling_execution_status(result)
-        (st.info if used_llm else st.warning)(message)
+analysis_col, workflow_col = st.columns(2)
 with analysis_col:
-    if st.button("Create analysis", use_container_width=True):
-        st.switch_page("pages/5_BI_Analysis.py")
+    st.button("BI Analysis · Coming soon", icon="🔒", disabled=True, use_container_width=True)
+with workflow_col:
+    st.page_link("pages/3_Workflows.py", label="Build a workflow", icon="⛓", use_container_width=True)
 
 st.subheader("Agent activity")
 agent_rows = [

@@ -508,7 +508,7 @@ OLLAMA_MODEL=qwen2.5:7b
 GEMINI_MODEL=gemini-3.6-flash
 GEMINI_API_KEY=your_api_key
 GROQ_API_KEY=your_groq_api_key
-GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_MODEL=openai/gpt-oss-20b
 ```
 
 Le fichier `.env` est ignoré par Git grâce au `.gitignore`.
@@ -617,3 +617,165 @@ Les fonctionnalités suivantes pourront être intégrées progressivement :
 
 > Intelligent Business Intelligence
 > *Transform Data into Decisions.*
+
+
+## Cleaning acceptance and execution trace
+
+Agent 2 evaluates each transformation on a candidate DataFrame before committing
+it. Checks reject unexpected row/column changes, changes to unselected columns,
+and conversion of populated values into missing values. Conversion targets,
+requested imputation, and duplicate removal have additional operation-specific
+checks. A rejected attempt is logged against the unchanged working version.
+The conservative conversion rule does not permit discarding unparseable populated
+values automatically; inspect and resolve those values explicitly instead.
+
+Each accepted change records its rationale, supporting profiling/inspection
+references, before/after shape, missing counts, dtypes, duplicate counts, acceptance
+checks, and up to five changed-value examples. These checks establish the stated
+technical conditions; they do not establish that an imputation is appropriate for
+the business question. Custom checks remain sampled and read-only.
+
+Final validation is enforced independently of the LLM's `finish` message. It
+checks required columns, reported cast targets, reported missing values, and
+unresolved/rejected actions. Mutations invalidate earlier validation. Failed
+validation produces a FAILED dataset reference, and workflow KPI analysis is
+skipped. Dry runs remain NOT_RUN. Each run has its own version directory under
+`data/versions/dashboard/<run>/<dataset>/`, preserving earlier experiments.
+
+The Data Quality, Workflows, and Agent Ops pages show the full execution trace,
+with expandable inspection results, action parameters, evidence, measured effects,
+rejected candidates, and final validation rules. Runs also stream tool events as
+they complete. Download the JSON trace to retain the full run and evidence catalog.
+Older session results do not contain this trace and must be rerun to capture it.
+
+
+## Workspace controls
+
+The authenticated workspace uses a light theme and a dataset selector above the
+agent cards. The selector is searchable and its choice persists across pages.
+Dataset search lives in the Datasets library, where every readable file has a
+preview and a Use dataset action. Uploading selects the imported file immediately.
+The two available agents have circular badges, live status, run actions, and links
+to their reports. Workflow templates can be saved and restored in the session.
+
+
+## Cleaning loop completion and diagnostics
+
+LLM turns require a registered tool call. Narrative-only responses are retried up
+to three consecutive times, and premature `finish` calls receive failed validation
+rules before a bounded opportunity to continue. Every action still passes the
+same acceptance checks. Remaining ambiguity or approval requirements can be
+reported explicitly as unresolved; they are never bypassed to force a pass.
+
+Provider feedback summarizes transformation effects instead of repeating every
+passed rule. Older exchanges are summarized while six recent complete exchanges
+remain in context. Short provider rate limits (with a retry header of at most
+44 seconds) receive at most two retries, with progress shown in the UI. Longer
+limits, authentication errors, other invalid requests and exhausted retries stop
+with an explicit diagnostic. Groq `tool_use_failed` responses receive at most two
+regeneration attempts with an exact-tool-name reminder. Rejected generations are
+never parsed into executable calls or silently renamed. Rate-limit and formatting
+retries have separate bounded budgets, with at most five requests per turn.
+
+Each run saves `execution_trace.json` after every tool event and provider error,
+and `cleaning_result.json` on normal finalization. These contain full local audit
+evidence, stop reason, provider error type/status, response finish reason and token
+usage when available. The UI displays the provider error and remaining rules.
+Saved results can be recovered after session loss when the source file signature
+and, if present, the current profiling report match. Older runs without these
+files cannot retrospectively recover provider errors.
+
+
+## Sandbox-based cleaning method experiments
+
+Agent 2 now exposes `experiment_cleaning_method` and `apply_experimental_method`.
+It can generate a Python `transform(df)` function, test it on random disjoint
+sample/holdout copies, inspect the measured effects, revise a failed method, and
+promote a passing candidate. The candidate records source-version and file hashes,
+code SHA-256, evidence IDs, outcome checks, and the exact Docker image ID.
+Promotion accepts only a candidate ID, reruns the unchanged code on the full
+current dataset in that pinned image, and commits only after independent checks
+pass. Changed code, a changed version, or changed source bytes require a new trial.
+
+Each sandbox invocation executes the method twice with fresh namespaces and fixed
+random seeds, rejecting nonrepeatable output. This checks repeatability on the
+provided data, not universal determinism or business correctness. Samples and
+holdouts are limited to 500 rows each (200 by default); one-row datasets explicitly
+report that no independent holdout is available. Full-data checks always run.
+
+Generated transformations currently preserve rows, index/order, columns, and
+unselected values. They may parse, normalize, impute, or implement statistical/ML
+methods using pandas, NumPy and scikit-learn. Existing policy-controlled tools
+handle structural changes. Each method declares at least one independently
+checked outcome (numeric, integer, boolean, datetime, string, no_missing,
+non_negative, or unique). Existing no-data-loss checks and final run validation
+also apply. Trials report distributions, missing counts, types, changed-value
+examples, and every acceptance rule; semantic correctness remains an evaluation
+question for the team.
+
+Start Docker Desktop with Linux containers and, from the project root, build:
+
+```powershell
+docker build -t biflow-cleaning-sandbox:latest -f sandbox/Dockerfile sandbox
+```
+
+Optionally set `BIFLOW_EXPERIMENT_IMAGE` to another compatible local image. The
+runner never pulls images or installs packages during experiments. It runs as a
+nonroot user with a read-only root filesystem, no host mounts, no network, dropped
+capabilities, no privilege escalation, 768 MB memory, one CPU, 64 processes, bounded
+temporary storage, and a 60-second execution timeout. Only disposable input JSON
+is copied in; only a bounded regular JSON result is read back. Generated Python
+is never executed on the host, including when Docker is unavailable. This route
+is independent of the development-only host fallback in the older sandbox helper.
+
+The Data Quality page includes a runtime check and setup command. The execution
+trace shows generated source, sample/holdout results, effects, and full-data
+promotion/rejection. Candidate code and reports are saved under each run's
+`experiments/<candidate_id>/` directory, and linked from the applied change log.
+A sample passing is never displayed as an applied change.
+
+
+## Moving to another computer: Ollama cleaning fallback
+
+Cleaning now supports `BIFLOW_CLEANING_PROVIDER=auto|groq|ollama`. The default
+`auto` mode tries Groq when a key exists and falls back to local Ollama on provider
+failure. Without a Groq key, it uses Ollama directly. Once a run switches to
+Ollama, it stays there for the remaining turns. The trace records the actual
+provider/model and the reason for switching. The cleaning fallback uses the same
+registered tools, experiment sandbox, acceptance checks and version manager.
+
+On the other computer:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+Copy-Item .env.example .env
+ollama run qwen2.5:7b
+```
+
+Ollama must be running on `http://localhost:11434`. For local-only cleaning, set
+`BIFLOW_CLEANING_PROVIDER=ollama` in the new computer's `.env`. For Groq-first with
+local fallback, keep `auto` and optionally add the Groq key locally. The default
+fallback model is `qwen2.5:7b`; `BIFLOW_CLEANING_OLLAMA_MODEL` and
+`BIFLOW_CLEANING_OLLAMA_HOST` override the shared Ollama values. Increase
+`BIFLOW_OLLAMA_TIMEOUT` if local generation is slow. Set
+`BIFLOW_OLLAMA_FALLBACK=false` to disable automatic fallback. Profiling's
+`LLM_PROVIDER` remains independently configured. The native Ollama history adapter
+follows its [tool-calling API](https://github.com/ollama/ollama/blob/main/docs/api.md).
+
+The `.env` file and virtual environment are intentionally not transferred through
+Git. Do not overwrite an existing configured `.env`; copy the example only when
+setting up a fresh checkout. Generated-method experiments additionally require a
+working Docker runtime and the sandbox image built on that computer; Ollama
+handles model inference and does not replace the code-execution sandbox.
+
+## Agent roadmap and feature availability
+
+The top bar now shows all eight planned agents connected along one pipeline.
+Progress is calculated for the active dataset: profiling, cleaning, review needed,
+or validated cleaning awaiting ETL integration. Only profiling and cleaning are
+integrated. Orchestrator, ETL, Semantic/KPI, BI Analyst, Dashboard Generator and
+Auditor/XAI remain visibly locked. The sidebar has a dedicated workbench and
+locked-feature section. BI Analysis and Explainability pages stop at a locked
+notice even when opened directly, and their workflow tasks cannot be enabled or
+restored from an old template.

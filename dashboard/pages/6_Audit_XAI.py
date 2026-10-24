@@ -1,6 +1,6 @@
 import streamlit as st
 
-from components import setup, page_header
+from components import setup, page_header, locked_feature
 from workspace import (
     PROFILE_STATE_KEY,
     get_workspace_result,
@@ -12,6 +12,7 @@ from workspace import (
 )
 
 setup("Audit & XAI")
+locked_feature("Explainability / XAI")
 page_header(
     "Audit & Explainability",
     "Inspect the profiling evidence and verify the report against the active dataset.",

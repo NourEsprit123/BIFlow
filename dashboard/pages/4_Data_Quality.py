@@ -1,3 +1,4 @@
+from dashboard.cleaning_review import render_cleaning_result, run_cleaning_with_progress, render_experiment_runtime
 import pandas as pd
 import streamlit as st
 
@@ -5,7 +6,6 @@ from components import setup, page_header
 from workspace import (
     CLEANING_STATE_KEY,
     PROFILE_STATE_KEY,
-    clean_profiled_dataset,
     cross_column_issues,
     get_workspace_result,
     load_selected_dataset,
@@ -20,6 +20,15 @@ page_header(
     "Run measurable quality checks against the selected dataset and review cleaning results.",
     "Workspace › **Data Quality**",
 )
+
+def remember_experiment_preference():
+    st.session_state["prefer_generated_methods"] = st.session_state["experiment_mode_widget"]
+
+
+st.checkbox("Prefer sandbox method experimentation", value=st.session_state.get("prefer_generated_methods", True),
+            key="experiment_mode_widget", on_change=remember_experiment_preference,
+            help="Ask the LLM to generate and test a cleaning method before promotion. Uncheck to prefer the registered cleaning tools.")
+render_experiment_runtime()
 
 path, frame = load_selected_dataset()
 if path is None or frame is None:
@@ -39,11 +48,12 @@ with run_col:
         (st.info if used_llm else st.warning)(message)
 with clean_col:
     if st.button("Run safe cleaning", use_container_width=True):
-        cleaning = clean_profiled_dataset(path)
+        cleaning = run_cleaning_with_progress(path)
         summary = (
             f"Cleaning finished in {cleaning.final_dataset.version}; "
             f"{len(cleaning.change_log.successful_ops())} changes applied in "
-            f"{cleaning.metadata.get('mode', 'unknown')} mode to a working copy."
+            f"{cleaning.metadata.get('mode', 'unknown')} mode to a working copy; "
+            f"validation {cleaning.validation.status.value}."
         )
         if (
             cleaning.metadata.get("mode") == "llm"
@@ -119,10 +129,4 @@ if profile_result:
 
 cleaning = get_workspace_result(CLEANING_STATE_KEY, path)
 if cleaning:
-    st.subheader("Latest cleaning validation")
-    st.write(f"Version: {cleaning.final_dataset.version}")
-    st.write(f"Validation: {cleaning.validation.status.value}")
-    if cleaning.unresolved_issues:
-        st.warning("The cleaner left items unresolved for review.")
-        for issue in cleaning.unresolved_issues:
-            st.write(f"- {issue}")
+    render_cleaning_result(cleaning, key="quality_cleaning_trace")

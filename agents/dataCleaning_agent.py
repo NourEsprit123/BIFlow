@@ -12,9 +12,13 @@ from __future__ import annotations
 
 import json
 import logging
+import re
+import time
+import hashlib
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
+from uuid import uuid4
 
 _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT) not in sys.path:
@@ -31,7 +35,6 @@ from dataCleaningTools.models import (
     ProfilingReport,
     TransformationStatus,
     ValidationReport,
-    ValidationRuleResult,
     ValidationStatus,
 )
 from dataCleaningTools.policy import apply_policy, requires_approval
@@ -54,14 +57,13 @@ def _load_system_prompt() -> str:
 def _report_context(report: ProfilingReport, max_chars: int = 12000) -> str:
     compact = {
         "schema_version": report.schema_version,
-        "dataset": report.dataset_ref.model_dump(),
+        "dataset": {"file_name": report.dataset_ref.file_name, "rows": report.dataset_ref.rows, "columns": report.dataset_ref.columns},
         "health_scores": report.health_scores.model_dump(),
         "recommended_cleaning_order": report.recommended_cleaning_order,
         "imputation_plan": {k: v.model_dump() for k, v in report.imputation_plan.items()},
         "etl_hints": report.etl_hints.model_dump(),
-        "metadata": report.metadata.model_dump(),
-        "agent_summary": report.agent_summary,
-        "recommendation_summary": report.recommendation_summary,
+        "agent_summary": report.agent_summary[:400],
+        "recommendation_summary": report.recommendation_summary[:600],
         "columns": {},
     }
     for name, prof in report.column_profiles.items():
@@ -70,23 +72,104 @@ def _report_context(report: ProfilingReport, max_chars: int = 12000) -> str:
             "inferred_role": prof.inferred_role,
             "missing_pct": prof.missing_pct,
             "severity": prof.severity,
-            "sample_values": (prof.sample_values or [])[:8],
+            "sample_values": [str(v)[:100] for v in (prof.sample_values or [])[:3]],
             "issues": [
                 {
                     "issue_id": i.issue_id,
                     "severity": i.severity,
-                    "description": i.description,
-                    "evidence": i.evidence,
+                    "description": i.description[:200],
                 }
                 for i in prof.issues
             ],
             "imputation_strategy": prof.imputation_strategy,
             "etl_cast_to": prof.etl_cast_to,
         }
-    text = json.dumps(compact, indent=2, default=str)
+    text = json.dumps(compact, default=str)
     if len(text) > max_chars:
-        return text[:max_chars] + "\n… [truncated]"
-    return text
+        # Keep every column's issue/type/missing signals and keep the JSON valid.
+        for column in compact["columns"].values():
+            column.pop("sample_values", None)
+            for issue in column["issues"]:
+                issue["description"] = issue["description"][:240]
+                issue.pop("evidence", None)
+        compact["detail_note"] = "Some samples/evidence omitted; use inspection tools and the evidence catalog."
+    return json.dumps(compact, default=str)
+
+
+def _tool_feedback(result_json: str) -> str:
+    """Keep feedback useful without resending the full audit trail every turn."""
+    result = json.loads(result_json)
+    if result.get("trials"):
+        result["trials"] = [{"partition": t["partition"], "rows": t["rows"], "success": t["success"],
+                             "error": t.get("error"), "setup": t.get("setup"),
+                             "effect": {"accepted": t["effect"]["accepted"], "changed_cells": t["effect"]["changed_cells"],
+                                        "failed_rules": [r for r in t["effect"]["rules"] if not r["passed"]],
+                                        "changed_examples": t["effect"].get("changed_examples", [])} if t.get("effect") else None}
+                            for t in result["trials"]]
+    if isinstance(result.get("details"), dict) and result["details"].get("full_data_effect"):
+        details = result["details"]
+        result["details"] = {"candidate_id": details["candidate_id"], "code_hash": details["code_hash"],
+                             "image_id": details["image_id"], "full_data_accepted": details["full_data_effect"]["accepted"],
+                             "failed_rules": [r for r in details["full_data_effect"]["rules"] if not r["passed"]]}
+    effect = result.get("effect")
+    if effect:
+        result["effect"] = {
+            "accepted": effect["accepted"], "changed_cells": effect["changed_cells"],
+            "rows_removed": effect["rows_removed"], "columns_removed": effect["columns_removed"],
+            "changed_examples": effect.get("changed_examples", []),
+            "failed_rules": [r for r in effect["rules"] if not r["passed"]],
+            "missing_before": effect["before"]["missing"], "missing_after": effect["after"]["missing"],
+        }
+    return json.dumps(result, default=str)
+
+
+
+def _rate_limit_delay(error) -> float | None:
+    if getattr(error, "status_code", None) != 429:
+        return None
+    headers = getattr(getattr(error, "response", None), "headers", {})
+    value = headers.get("retry-after") or headers.get("x-ratelimit-reset-tokens")
+    if not value:
+        return None
+    try:
+        delay = float(value)
+    except ValueError:
+        match = re.fullmatch(r"(?:(\d+(?:\.\d+)?)m)?(\d+(?:\.\d+)?)s", value)
+        if not match:
+            return None
+        delay = float(match.group(1) or 0) * 60 + float(match.group(2))
+    return delay + 0.5 if 0 < delay <= 44 else None
+
+
+def _tool_generation_failed(error) -> bool:
+    body = getattr(error, "body", None)
+    if getattr(error, "status_code", None) != 400 or not isinstance(body, dict):
+        return False
+    detail = body.get("error", body)
+    return isinstance(detail, dict) and detail.get("code") == "tool_use_failed"
+
+
+def _request_context(messages, state):
+    """Retain complete recent exchanges and a factual summary of older actions."""
+    groups = []
+    for message in messages[2:]:
+        if message["role"] == "assistant" or not groups:
+            groups.append([])
+        groups[-1].append(message)
+    if len(groups) <= 6:
+        return messages
+    summary = {
+        "current_version": state.current_ref.version,
+        "accepted_actions": [{"operation": e["tool"], "columns": e["arguments"].get("columns") or [e["arguments"].get("column")], "version": e["version"]}
+                             for e in state.events if e["result"].get("accepted")],
+        "failed_actions": state.failed_actions,
+        "pending_approvals": state.pending_approvals,
+        "tested_candidates": {key: {"tested": item["tested"], "base_version": item["base_version"], "columns": item["columns"]}
+                              for key, item in state.experiments.items()},
+        "inspection_evidence": {key: {"tool": item["tool"], "version": item["version"], "arguments": item["arguments"]}
+                                for key, item in state.evidence.items() if item.get("source") == "inspection"},
+    }
+    return messages[:2] + [{"role": "user", "content": "Earlier execution summary: " + json.dumps(summary, default=str)}] + [m for group in groups[-6:] for m in group]
 
 
 class DataCleaningAgent:
@@ -102,6 +185,7 @@ class DataCleaningAgent:
         dry_run: bool = False,
         model: Optional[str] = None,
     ):
+        self.data_root = Path(data_root)
         self.manager = DatasetVersionManager(root=data_root)
         self.search_roots = search_roots or [
             Path("data/raw"),
@@ -124,8 +208,10 @@ class DataCleaningAgent:
         *,
         approved_step_ids: Optional[List[str]] = None,
         user_request: str = "",
+        on_event: Optional[Callable[[Dict[str, Any]], None]] = None,
     ) -> CleaningResult:
         report = parse_profiling_report(profiling_payload)
+        self.manager = DatasetVersionManager(self.data_root / uuid4().hex[:12])
         source_path = resolve_source_path(report, search_roots=self.search_roots)
         dataset_id = Path(report.dataset_ref.file_name).stem
 
@@ -135,6 +221,7 @@ class DataCleaningAgent:
             metadata={
                 "agent1_path": report.dataset_ref.file_path,
                 "user_request": user_request,
+                "source_signature": [str(source_path.resolve()), source_path.stat().st_mtime_ns, source_path.stat().st_size],
             },
         )
         working = self.manager.create_working_copy(v0)
@@ -147,9 +234,21 @@ class DataCleaningAgent:
             profiling_summary=report.recommendation_summary,
             approve_all=self.approve_all,
             approved_step_ids=set(approved_step_ids or []),
+            on_event=on_event,
+            expected_columns=list(v0.columns),
+            required_targets={**report.etl_hints.type_casting_targets,
+                              **{c: p.etl_cast_to for c, p in report.column_profiles.items()
+                                 if p.etl_cast_to and p.etl_cast_to.lower() != "none"}},
+            required_missing=[c for c, p in report.column_profiles.items() if p.missing_count > 0],
+            evidence={f"profile:{c}:{i.issue_id}:{n}": {
+                "source": i.source, "column": c, "issue_id": i.issue_id,
+                "description": i.description, "evidence": i.evidence,
+            } for c, p in report.column_profiles.items() for n, i in enumerate(p.issues)},
         )
 
+        state.persist_trace()
         if self.dry_run:
+            state.stop_reason = "dry_run"
             state.finish_summary = "dry_run — no mutations"
             state.finished = True
         elif self.use_llm:
@@ -175,23 +274,83 @@ class DataCleaningAgent:
             {"role": "user", "content": user_msg},
         ]
         executor = ToolExecutor(state)
+        empty_responses = 0
+        incomplete_finishes = 0
 
         for turn in range(1, self.max_turns + 1):
             if state.finished:
                 break
 
             logger.info("--- LLM turn %d ---", turn)
-            try:
-                response = chat_with_tools(
-                    messages, TOOL_SCHEMAS, model=self.model, temperature=0.1
-                )
-            except Exception as e:
-                logger.exception("LLM call failed")
-                state.unresolved.append(f"LLM error: {e}")
-                state.finished = True
-                state.finish_summary = f"Aborted: LLM error ({e})"
+            if state.on_event:
+                state.on_event({"phase": f"choosing next action (turn {turn}/{self.max_turns})"})
+            response = None
+            rate_retries = format_retries = 0
+            for attempt in range(5):
+                try:
+                    response = chat_with_tools(
+                        _request_context(messages, state), TOOL_SCHEMAS, model=self.model, temperature=0.1,
+                        provider=state.llm_provider, on_provider_event=state.on_event
+                    )
+                    for error in state.provider_errors:
+                        if error.get("retrying"):
+                            error["recovered"] = True
+                            error["retrying"] = False
+                    break
+                except Exception as e:
+                    logger.exception("LLM call failed")
+                    status = getattr(e, "status_code", None)
+                    # A subsequent HTTP response other than 429 proves the
+                    # prior rate-limit wait worked, even if generation fails.
+                    if status is not None and status != 429:
+                        for error in state.provider_errors:
+                            if error.get("retrying") and error.get("status_code") == 429:
+                                error.update(recovered=True, retrying=False)
+                    delay = _rate_limit_delay(e) if rate_retries < 2 and attempt < 4 else None
+                    repair = _tool_generation_failed(e) and format_retries < 2 and attempt < 4
+                    state.provider_errors.append({"turn": turn, "type": type(e).__name__,
+                                                  "status_code": status,
+                                                  "message": str(e), "retrying": delay is not None or repair})
+                    state.persist_trace()
+                    if delay is not None:
+                        rate_retries += 1
+                        if state.on_event:
+                            state.on_event({"phase": f"provider rate limit; retrying in {delay:.0f}s"})
+                        time.sleep(delay)
+                        continue
+                    if repair:
+                        format_retries += 1
+                        # Ask the provider to regenerate. Never parse/execute
+                        # failed_generation or silently rewrite a tool name.
+                        messages.append({"role": "user", "content": (
+                            "The provider rejected your generated tool call. Regenerate one valid call "
+                            "using the exact, case-sensitive registered function name and JSON arguments. "
+                            "Do not append channel markers, commentary, XML, or other text to tool names. "
+                            "The rejected call was not executed."
+                        )})
+                        if state.on_event:
+                            state.on_event({"phase": "regenerating malformed provider tool call"})
+                        continue
+                    for error in state.provider_errors:
+                        error["retrying"] = False
+                    state.stop_reason = "provider_error"
+                    state.unresolved.append(f"LLM error: {e}")
+                    state.finished = True
+                    state.finish_summary = f"Aborted: LLM error ({e})"
+                    state.persist_trace()
+                    break
+            if response is None:
                 break
 
+            if response.get("provider"):
+                if response.get("fallback_reason"):
+                    state.provider_switches.append({"turn": turn, "provider": response["provider"],
+                                                    "model": response.get("model"), "reason": response["fallback_reason"]})
+                state.llm_provider = response["provider"]
+                state.llm_model = response.get("model")
+            state.step_log.append({"turn": turn, "provider": response.get("provider"), "model": response.get("model"),
+                                   "response_finish_reason": response.get("finish_reason"),
+                                   "usage": response.get("usage")})
             content = response.get("content") or ""
             tool_calls = response.get("tool_calls") or []
 
@@ -215,20 +374,20 @@ class DataCleaningAgent:
             messages.append(assistant_msg)
 
             if not tool_calls:
-                if turn >= 3:
+                empty_responses += 1
+                state.persist_trace()
+                if empty_responses >= 3:
                     state.finished = True
-                    state.finish_summary = content or "Stopped: no tool calls"
+                    state.stop_reason = "no_tool_calls"
+                    state.finish_summary = "Stopped after three consecutive responses without a tool call."
+                    state.unresolved.append(state.finish_summary)
                     break
-                messages.append(
-                    {
-                        "role": "user",
-                        "content": (
-                            "Continue by calling tools, or call `finish` with a summary "
-                            "if the dataset is ready or you are blocked."
-                        ),
-                    }
-                )
+                messages.append({"role": "user", "content": (
+                    "No tool was called. Cleaning is not complete merely because a response ended. "
+                    "Continue with registered tools, or call finish with explicit unresolved items if blocked."
+                )})
                 continue
+            empty_responses = 0
 
             for tc in tool_calls:
                 name = tc["name"]
@@ -248,19 +407,31 @@ class DataCleaningAgent:
                     {
                         "role": "tool",
                         "tool_call_id": tc["id"],
-                        "content": result_str,
+                        "content": _tool_feedback(result_str),
                     }
                 )
-                if name == "finish" or state.finished:
-                    state.finished = True
-                    break
+                if name == "finish":
+                    validation_ok = state.validation is not None and state.validation.all_passed
+                    blocked = bool(args.get("unresolved") or state.pending_approvals or state.unresolved)
+                    if not validation_ok and not blocked and incomplete_finishes < 2:
+                        incomplete_finishes += 1
+                        state.finished = False
+                        messages.append({"role": "user", "content": (
+                            "Final validation failed. Continue cleaning using the failed rules above. "
+                            "If a remaining issue cannot be resolved safely, call finish with an explicit "
+                            "unresolved explanation. Do not claim completion after just one operation."
+                        )})
+                    else:
+                        state.finished = True
+                        state.stop_reason = "completed" if validation_ok else "incomplete"
+                        break
 
         if not state.finished:
             state.finished = True
-            state.finish_summary = state.finish_summary or (
-                f"Reached max_turns={self.max_turns} without finish()"
-            )
+            state.finish_summary = f"Stopped: reached max_turns={self.max_turns} before a validated finish."
             state.unresolved.append("max_turns reached")
+            state.stop_reason = "max_turns"
+        state.persist_trace()
 
     def _build_user_message(
         self,
@@ -278,6 +449,9 @@ class DataCleaningAgent:
             "",
             "## Agent 1 profiling report (evidence)",
             _report_context(report),
+            "Evidence catalog (cite relevant IDs when applying a transformation):",
+            json.dumps({key: {field: item.get(field) for field in ("column", "issue_id", "source")}
+                        for key, item in state.evidence.items()}, default=str),
             "",
             "## Instructions",
             "1. Reason briefly about the main issues.",
@@ -367,8 +541,9 @@ class DataCleaningAgent:
 
         executor.execute(
             "validate_dataset",
-            {"numeric_columns": ["Revenue", "MonthlyCost", "Quantity"]},
+            {},
         )
+        state.stop_reason = "deterministic_completed"
         executor.execute(
             "finish",
             {
@@ -383,66 +558,52 @@ class DataCleaningAgent:
         report: ProfilingReport,
         user_request: str,
     ) -> CleaningResult:
-        import pandas as pd
-
-        final = self.manager.mark_validated(
-            state.current_ref,
-            status=DatasetStatus.VALIDATED
-            if not state.unresolved
-            else DatasetStatus.WORKING,
-        )
+        if self.dry_run:
+            validation = ValidationReport(dataset_ref=state.current_ref, status=ValidationStatus.NOT_RUN)
+            final = state.current_ref
+        else:
+            # Always validate the actual final version, including early exits and errors.
+            ToolExecutor(state).execute("validate_dataset", {})
+            validation = state.validation
+            final = self.manager.mark_validated(
+                state.current_ref,
+                status=DatasetStatus.VALIDATED if validation.all_passed else DatasetStatus.FAILED,
+            )
+            validation.dataset_ref = final
         changelog = self.manager.get_changelog(state.dataset_id)
 
-        df = self.manager.load(final)
-        rules = [
-            ValidationRuleResult(
-                rule_name="non_empty",
-                passed=len(df) > 0,
-                message=f"rows={len(df)}",
-            )
-        ]
-        for col in ("Revenue", "MonthlyCost", "Quantity"):
-            if col in df.columns:
-                ratio = float(pd.to_numeric(df[col], errors="coerce").notna().mean())
-                rules.append(
-                    ValidationRuleResult(
-                        rule_name=f"numeric_parseable:{col}",
-                        passed=ratio >= 0.5,
-                        message=f"parseable_ratio={ratio:.2f}",
-                    )
-                )
-        failed = [r for r in rules if not r.passed]
-        status = (
-            ValidationStatus.PASSED
-            if not failed
-            else ValidationStatus.PARTIAL
-            if len(failed) < len(rules)
-            else ValidationStatus.FAILED
-        )
-        validation = ValidationReport(
-            dataset_ref=final,
-            status=status,
-            rules=rules,
-            quality_ok=not failed,
-            unresolved_issues=[r.message for r in failed],
-        )
-
-        return CleaningResult(
+        result_path = self.manager.root / state.dataset_id / "cleaning_result.json"
+        result = CleaningResult(
             source_dataset=state.source_ref,
             final_dataset=final,
             change_log=changelog,
             validation=validation,
-            unresolved_issues=state.unresolved
-            + [f"APPROVAL: {p}" for p in state.pending_approvals],
+            unresolved_issues=list(dict.fromkeys(state.unresolved
+                + [f"APPROVAL: {p}" for p in state.pending_approvals]
+                + validation.unresolved_issues)),
             metadata={
                 "mode": "llm" if self.use_llm else "deterministic",
+                "model": (state.llm_model or self.model or default_model()) if self.use_llm else None,
+                "provider": state.llm_provider,
+                "provider_switches": state.provider_switches,
+                "stop_reason": state.stop_reason,
+                "provider_errors": state.provider_errors,
+                "result_path": str(result_path.resolve()),
+                "source_signature": state.source_ref.metadata.get("source_signature"),
+                "profiling_report_hash": hashlib.sha256(json.dumps(report.model_dump(mode="json"), sort_keys=True).encode()).hexdigest(),
                 "finish_summary": state.finish_summary,
                 "step_log": state.step_log,
+                "events": state.events,
+                "evidence": state.evidence,
+                "experiments": state.experiments,
                 "sandbox": sandbox_status(),
                 "user_request": user_request,
                 "agent1_summary": report.agent_summary,
             },
         )
+        result_path.write_text(result.model_dump_json(indent=2), encoding="utf-8")
+        state.persist_trace()
+        return result
 
 
 def main():

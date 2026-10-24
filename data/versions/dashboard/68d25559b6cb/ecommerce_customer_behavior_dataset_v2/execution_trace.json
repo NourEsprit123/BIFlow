@@ -1,0 +1,784 @@
+{
+  "current_dataset": {
+    "dataset_id": "ecommerce_customer_behavior_dataset_v2",
+    "version": "V1",
+    "path": "C:\\Users\\SONIC\\Desktop\\BiFlow\\BIFlow\\data\\versions\\dashboard\\68d25559b6cb\\ecommerce_customer_behavior_dataset_v2\\V1_working.csv",
+    "format": "csv",
+    "row_count": 17049,
+    "column_count": 18,
+    "columns": [
+      "Order_ID",
+      "Customer_ID",
+      "Date",
+      "Age",
+      "Gender",
+      "City",
+      "Product_Category",
+      "Unit_Price",
+      "Quantity",
+      "Discount_Amount",
+      "Total_Amount",
+      "Payment_Method",
+      "Device_Type",
+      "Session_Duration_Minutes",
+      "Pages_Viewed",
+      "Is_Returning_Customer",
+      "Delivery_Time_Days",
+      "Customer_Rating"
+    ],
+    "created_at": "2026-10-24T18:16:26.549054Z",
+    "parent_version": "V0",
+    "status": "working",
+    "metadata": {
+      "agent1_path": "C:\\Users\\SONIC\\Desktop\\BiFlow\\BIFlow\\data\\raw\\ecommerce_customer_behavior_dataset_v2.csv",
+      "user_request": "Improve data quality for BI analysis while preserving the uploaded original. This is an academic experimentation run: propose and test a generated cleaning method with experiment_cleaning_method, inspect the trial results, and promote only a passing candidate with apply_experimental_method. If the isolated runtime is unavailable or the method fails, explain that result and use registered tools where appropriate.",
+      "source_signature": [
+        "C:\\Users\\SONIC\\Desktop\\BiFlow\\BIFlow\\data\\raw\\ecommerce_customer_behavior_dataset_v2.csv",
+        1792708926000000000,
+        1959560
+      ]
+    }
+  },
+  "stop_reason": "provider_error",
+  "finish_summary": "Aborted: LLM error (Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01m4ke0p4be2ca8xjrm8bjewrt` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 7893, Requested 6191. Please try again in 45.629999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}})",
+  "events": [
+    {
+      "event_id": "event-1",
+      "tool": "inspect_column",
+      "arguments": {
+        "column": "Date",
+        "sample_size": 5
+      },
+      "source_version": "V1",
+      "version": "V1",
+      "result": {
+        "column": "Date",
+        "dtype": "str",
+        "null_count": 0,
+        "null_pct": 0.0,
+        "distinct_count": 450,
+        "sample_values": [
+          "2023-05-29",
+          "2023-10-12",
+          "2023-12-05",
+          "2023-05-11",
+          "2023-06-16"
+        ],
+        "top_values": [
+          {
+            "value": "2023-07-29",
+            "count": 59
+          },
+          {
+            "value": "2023-02-14",
+            "count": 56
+          },
+          {
+            "value": "2024-01-15",
+            "count": 54
+          },
+          {
+            "value": "2023-04-17",
+            "count": 53
+          },
+          {
+            "value": "2023-05-25",
+            "count": 53
+          },
+          {
+            "value": "2023-09-23",
+            "count": 53
+          },
+          {
+            "value": "2023-02-11",
+            "count": 52
+          },
+          {
+            "value": "2023-10-26",
+            "count": 51
+          },
+          {
+            "value": "2023-07-15",
+            "count": 51
+          },
+          {
+            "value": "2023-09-27",
+            "count": 50
+          },
+          {
+            "value": "2024-03-03",
+            "count": 50
+          },
+          {
+            "value": "2023-12-06",
+            "count": 50
+          },
+          {
+            "value": "2023-05-06",
+            "count": 50
+          },
+          {
+            "value": "2023-04-27",
+            "count": 50
+          },
+          {
+            "value": "2023-09-10",
+            "count": 50
+          }
+        ],
+        "min": null,
+        "max": null,
+        "mean": null
+      },
+      "evidence": {}
+    },
+    {
+      "event_id": "event-2",
+      "tool": "inspect_column",
+      "arguments": {
+        "column": "Date"
+      },
+      "source_version": "V1",
+      "version": "V1",
+      "result": {
+        "column": "Date",
+        "dtype": "str",
+        "null_count": 0,
+        "null_pct": 0.0,
+        "distinct_count": 450,
+        "sample_values": [
+          "2023-05-29",
+          "2023-10-12",
+          "2023-12-05",
+          "2023-05-11",
+          "2023-06-16",
+          "2023-02-27",
+          "2024-01-03",
+          "2024-02-13",
+          "2023-03-16",
+          "2023-06-12",
+          "2023-06-21",
+          "2023-07-24",
+          "2023-08-07",
+          "2023-08-27",
+          "2024-01-05",
+          "2023-09-14",
+          "2023-10-07",
+          "2023-10-09",
+          "2024-02-16",
+          "2023-08-15"
+        ],
+        "top_values": [
+          {
+            "value": "2023-07-29",
+            "count": 59
+          },
+          {
+            "value": "2023-02-14",
+            "count": 56
+          },
+          {
+            "value": "2024-01-15",
+            "count": 54
+          },
+          {
+            "value": "2023-04-17",
+            "count": 53
+          },
+          {
+            "value": "2023-05-25",
+            "count": 53
+          },
+          {
+            "value": "2023-09-23",
+            "count": 53
+          },
+          {
+            "value": "2023-02-11",
+            "count": 52
+          },
+          {
+            "value": "2023-10-26",
+            "count": 51
+          },
+          {
+            "value": "2023-07-15",
+            "count": 51
+          },
+          {
+            "value": "2023-09-27",
+            "count": 50
+          },
+          {
+            "value": "2024-03-03",
+            "count": 50
+          },
+          {
+            "value": "2023-12-06",
+            "count": 50
+          },
+          {
+            "value": "2023-05-06",
+            "count": 50
+          },
+          {
+            "value": "2023-04-27",
+            "count": 50
+          },
+          {
+            "value": "2023-09-10",
+            "count": 50
+          }
+        ],
+        "min": null,
+        "max": null,
+        "mean": null
+      },
+      "evidence": {}
+    },
+    {
+      "event_id": "event-3",
+      "tool": "validate_dataset",
+      "arguments": {},
+      "source_version": "V1",
+      "version": "V1",
+      "result": {
+        "success": false,
+        "version": "V1",
+        "status": "failed",
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "rows=17049",
+            "details": {}
+          },
+          {
+            "rule_name": "expected_columns",
+            "passed": true,
+            "message": "Required columns must be preserved unless removal was approved",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Order_ID",
+            "passed": true,
+            "message": "All populated values in Order_ID must match string",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Customer_ID",
+            "passed": true,
+            "message": "All populated values in Customer_ID must match string",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Date",
+            "passed": true,
+            "message": "All populated values in Date must match datetime64[ns]",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Age",
+            "passed": true,
+            "message": "All populated values in Age must match int64",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Gender",
+            "passed": true,
+            "message": "All populated values in Gender must match string",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:City",
+            "passed": true,
+            "message": "All populated values in City must match string",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Product_Category",
+            "passed": true,
+            "message": "All populated values in Product_Category must match string",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Unit_Price",
+            "passed": true,
+            "message": "All populated values in Unit_Price must match float64",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Quantity",
+            "passed": true,
+            "message": "All populated values in Quantity must match int64",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Discount_Amount",
+            "passed": true,
+            "message": "All populated values in Discount_Amount must match float64",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Total_Amount",
+            "passed": true,
+            "message": "All populated values in Total_Amount must match float64",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Payment_Method",
+            "passed": true,
+            "message": "All populated values in Payment_Method must match string",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Device_Type",
+            "passed": true,
+            "message": "All populated values in Device_Type must match string",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Session_Duration_Minutes",
+            "passed": true,
+            "message": "All populated values in Session_Duration_Minutes must match int64",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Pages_Viewed",
+            "passed": true,
+            "message": "All populated values in Pages_Viewed must match int64",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Is_Returning_Customer",
+            "passed": true,
+            "message": "All populated values in Is_Returning_Customer must match boolean",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Delivery_Time_Days",
+            "passed": true,
+            "message": "All populated values in Delivery_Time_Days must match int64",
+            "details": {}
+          },
+          {
+            "rule_name": "target_type:Customer_Rating",
+            "passed": true,
+            "message": "All populated values in Customer_Rating must match int64",
+            "details": {}
+          },
+          {
+            "rule_name": "unresolved",
+            "passed": false,
+            "message": "LLM error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01m4ke0p4be2ca8xjrm8bjewrt` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 7893, Requested 6191. Please try again in 45.629999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+            "details": {}
+          }
+        ]
+      },
+      "evidence": {}
+    }
+  ],
+  "evidence": {
+    "profile:Order_ID:type_mismatch:0": {
+      "source": "python",
+      "column": "Order_ID",
+      "issue_id": "type_mismatch",
+      "description": "Pseudo-ID column (near-unique string \u2014 likely an identifier or key)",
+      "evidence": {
+        "detected": "17049 unique values out of 17049 rows (100.0%)",
+        "recommendation": "Exclude from ML features; consider as join key or primary key",
+        "valid_ratio": 100.0
+      }
+    },
+    "profile:Date:type_mismatch:0": {
+      "source": "python",
+      "column": "Date",
+      "issue_id": "type_mismatch",
+      "description": "Date/time values stored as plain text (not parsed as datetime)",
+      "evidence": {
+        "detected": "~100% of sampled values match date patterns",
+        "recommendation": "Parse with pd.to_datetime() to enable time-series operations",
+        "valid_ratio": 100.0
+      }
+    },
+    "profile:Age:statistical_outliers:0": {
+      "source": "python",
+      "column": "Age",
+      "issue_id": "statistical_outliers",
+      "description": "50 statistical outliers (IQR)",
+      "evidence": {
+        "outlier_count": 50,
+        "outlier_pct": 0.29,
+        "bounds": {
+          "low": 2.0,
+          "high": 66.0
+        }
+      }
+    },
+    "profile:Unit_Price:statistical_outliers:0": {
+      "source": "python",
+      "column": "Unit_Price",
+      "issue_id": "statistical_outliers",
+      "description": "1757 statistical outliers (IQR)",
+      "evidence": {
+        "outlier_count": 1757,
+        "outlier_pct": 10.31,
+        "bounds": {
+          "low": -558.705,
+          "high": 1126.535
+        }
+      }
+    },
+    "profile:Discount_Amount:statistical_outliers:0": {
+      "source": "python",
+      "column": "Discount_Amount",
+      "issue_id": "statistical_outliers",
+      "description": "2789 statistical outliers (IQR)",
+      "evidence": {
+        "outlier_count": 2789,
+        "outlier_pct": 16.36,
+        "bounds": {
+          "low": -49.065,
+          "high": 81.775
+        }
+      }
+    },
+    "profile:Total_Amount:statistical_outliers:0": {
+      "source": "python",
+      "column": "Total_Amount",
+      "issue_id": "statistical_outliers",
+      "description": "1943 statistical outliers (IQR)",
+      "evidence": {
+        "outlier_count": 1943,
+        "outlier_pct": 11.4,
+        "bounds": {
+          "low": -1469.2,
+          "high": 2909.92
+        }
+      }
+    },
+    "profile:Session_Duration_Minutes:statistical_outliers:0": {
+      "source": "python",
+      "column": "Session_Duration_Minutes",
+      "issue_id": "statistical_outliers",
+      "description": "85 statistical outliers (IQR)",
+      "evidence": {
+        "outlier_count": 85,
+        "outlier_pct": 0.5,
+        "bounds": {
+          "low": 7.0,
+          "high": 23.0
+        }
+      }
+    },
+    "profile:Pages_Viewed:statistical_outliers:0": {
+      "source": "python",
+      "column": "Pages_Viewed",
+      "issue_id": "statistical_outliers",
+      "description": "1 statistical outliers (IQR)",
+      "evidence": {
+        "outlier_count": 1,
+        "outlier_pct": 0.01,
+        "bounds": {
+          "low": 1.0,
+          "high": 17.0
+        }
+      }
+    },
+    "profile:Delivery_Time_Days:statistical_outliers:0": {
+      "source": "python",
+      "column": "Delivery_Time_Days",
+      "issue_id": "statistical_outliers",
+      "description": "475 statistical outliers (IQR)",
+      "evidence": {
+        "outlier_count": 475,
+        "outlier_pct": 2.79,
+        "bounds": {
+          "low": -2.0,
+          "high": 14.0
+        }
+      }
+    },
+    "event-1": {
+      "source": "inspection",
+      "tool": "inspect_column",
+      "arguments": {
+        "column": "Date",
+        "sample_size": 5
+      },
+      "version": "V1",
+      "result": {
+        "column": "Date",
+        "dtype": "str",
+        "null_count": 0,
+        "null_pct": 0.0,
+        "distinct_count": 450,
+        "sample_values": [
+          "2023-05-29",
+          "2023-10-12",
+          "2023-12-05",
+          "2023-05-11",
+          "2023-06-16"
+        ],
+        "top_values": [
+          {
+            "value": "2023-07-29",
+            "count": 59
+          },
+          {
+            "value": "2023-02-14",
+            "count": 56
+          },
+          {
+            "value": "2024-01-15",
+            "count": 54
+          },
+          {
+            "value": "2023-04-17",
+            "count": 53
+          },
+          {
+            "value": "2023-05-25",
+            "count": 53
+          },
+          {
+            "value": "2023-09-23",
+            "count": 53
+          },
+          {
+            "value": "2023-02-11",
+            "count": 52
+          },
+          {
+            "value": "2023-10-26",
+            "count": 51
+          },
+          {
+            "value": "2023-07-15",
+            "count": 51
+          },
+          {
+            "value": "2023-09-27",
+            "count": 50
+          },
+          {
+            "value": "2024-03-03",
+            "count": 50
+          },
+          {
+            "value": "2023-12-06",
+            "count": 50
+          },
+          {
+            "value": "2023-05-06",
+            "count": 50
+          },
+          {
+            "value": "2023-04-27",
+            "count": 50
+          },
+          {
+            "value": "2023-09-10",
+            "count": 50
+          }
+        ],
+        "min": null,
+        "max": null,
+        "mean": null
+      }
+    },
+    "event-2": {
+      "source": "inspection",
+      "tool": "inspect_column",
+      "arguments": {
+        "column": "Date"
+      },
+      "version": "V1",
+      "result": {
+        "column": "Date",
+        "dtype": "str",
+        "null_count": 0,
+        "null_pct": 0.0,
+        "distinct_count": 450,
+        "sample_values": [
+          "2023-05-29",
+          "2023-10-12",
+          "2023-12-05",
+          "2023-05-11",
+          "2023-06-16",
+          "2023-02-27",
+          "2024-01-03",
+          "2024-02-13",
+          "2023-03-16",
+          "2023-06-12",
+          "2023-06-21",
+          "2023-07-24",
+          "2023-08-07",
+          "2023-08-27",
+          "2024-01-05",
+          "2023-09-14",
+          "2023-10-07",
+          "2023-10-09",
+          "2024-02-16",
+          "2023-08-15"
+        ],
+        "top_values": [
+          {
+            "value": "2023-07-29",
+            "count": 59
+          },
+          {
+            "value": "2023-02-14",
+            "count": 56
+          },
+          {
+            "value": "2024-01-15",
+            "count": 54
+          },
+          {
+            "value": "2023-04-17",
+            "count": 53
+          },
+          {
+            "value": "2023-05-25",
+            "count": 53
+          },
+          {
+            "value": "2023-09-23",
+            "count": 53
+          },
+          {
+            "value": "2023-02-11",
+            "count": 52
+          },
+          {
+            "value": "2023-10-26",
+            "count": 51
+          },
+          {
+            "value": "2023-07-15",
+            "count": 51
+          },
+          {
+            "value": "2023-09-27",
+            "count": 50
+          },
+          {
+            "value": "2024-03-03",
+            "count": 50
+          },
+          {
+            "value": "2023-12-06",
+            "count": 50
+          },
+          {
+            "value": "2023-05-06",
+            "count": 50
+          },
+          {
+            "value": "2023-04-27",
+            "count": 50
+          },
+          {
+            "value": "2023-09-10",
+            "count": 50
+          }
+        ],
+        "min": null,
+        "max": null,
+        "mean": null
+      }
+    }
+  },
+  "experiments": {},
+  "step_log": [
+    {
+      "turn": 1,
+      "response_finish_reason": "tool_calls",
+      "usage": {
+        "completion_tokens": 315,
+        "prompt_tokens": 4919,
+        "total_tokens": 5234,
+        "completion_time": 0.403250197,
+        "completion_tokens_details": {
+          "reasoning_tokens": 287
+        },
+        "prompt_time": 0.24575658,
+        "prompt_tokens_details": null,
+        "queue_time": 0.293368897,
+        "total_time": 0.649006777
+      }
+    },
+    {
+      "turn": 1,
+      "tool": "inspect_column",
+      "args": {
+        "column": "Date",
+        "sample_size": 5
+      },
+      "result_preview": "{\"column\": \"Date\", \"dtype\": \"str\", \"null_count\": 0, \"null_pct\": 0.0, \"distinct_count\": 450, \"sample_values\": [\"2023-05-29\", \"2023-10-12\", \"2023-12-05\", \"2023-05-11\", \"2023-06-16\"], \"top_values\": [{\"value\": \"2023-07-29\", \"count\": 59}, {\"value\": \"2023-02-14\", \"count\": 56}, {\"value\": \"2024-01-15\", \"cou"
+    },
+    {
+      "turn": 2,
+      "response_finish_reason": "tool_calls",
+      "usage": {
+        "completion_tokens": 508,
+        "prompt_tokens": 5368,
+        "total_tokens": 5876,
+        "completion_time": 0.542635726,
+        "completion_tokens_details": {
+          "reasoning_tokens": 488
+        },
+        "prompt_time": 0.321311017,
+        "prompt_tokens_details": null,
+        "queue_time": 0.089762157,
+        "total_time": 0.863946743
+      }
+    },
+    {
+      "turn": 2,
+      "tool": "inspect_column",
+      "args": {
+        "column": "Date"
+      },
+      "result_preview": "{\"column\": \"Date\", \"dtype\": \"str\", \"null_count\": 0, \"null_pct\": 0.0, \"distinct_count\": 450, \"sample_values\": [\"2023-05-29\", \"2023-10-12\", \"2023-12-05\", \"2023-05-11\", \"2023-06-16\", \"2023-02-27\", \"2024-01-03\", \"2024-02-13\", \"2023-03-16\", \"2023-06-12\", \"2023-06-21\", \"2023-07-24\", \"2023-08-07\", \"2023-08"
+    }
+  ],
+  "provider_errors": [
+    {
+      "turn": 2,
+      "type": "RateLimitError",
+      "status_code": 429,
+      "message": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01m4ke0p4be2ca8xjrm8bjewrt` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5010, Requested 5517. Please try again in 18.9525s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "retrying": false,
+      "recovered": true
+    },
+    {
+      "turn": 2,
+      "type": "BadRequestError",
+      "status_code": 400,
+      "message": "Error code: 400 - {'error': {'message': 'Tool call validation failed: tool call validation failed: parameters for tool experiment_cleaning_method did not match schema: errors: [`/sample_size`: maximum: got 1,000, want 500]', 'type': 'invalid_request_error', 'code': 'tool_use_failed', 'failed_generation': '{\"name\": \"experiment_cleaning_method\", \"arguments\": {\"checks\":[{\"column\":\"Date\",\"kind\":\"datetime\"},{\"column\":\"Unit_Price\",\"kind\":\"numeric\"},{\"column\":\"Discount_Amount\",\"kind\":\"numeric\"},{\"column\":\"Total_Amount\",\"kind\":\"numeric\"},{\"column\":\"Delivery_Time_Days\",\"kind\":\"numeric\"},{\"column\":\"Session_Duration_Minutes\",\"kind\":\"numeric\"},{\"column\":\"Pages_Viewed\",\"kind\":\"numeric\"}],\"code\":\"import pandas as pd\\\\nimport numpy as np\\\\n\\\\ndef transform(df):\\\\n    # cast Date to datetime\\\\n    df[\\'Date\\'] = pd.to_datetime(df[\\'Date\\'], errors=\\'coerce\\')\\\\n    # recompute Total_Amount for consistency\\\\n    df[\\'Total_Amount\\'] = df[\\'Unit_Price\\'] * df[\\'Quantity\\'] - df[\\'Discount_Amount\\']\\\\n    # winsorize numeric columns at 5th and 95th percentiles\\\\n    cols = [\\'Unit_Price\\',\\'Discount_Amount\\',\\'Total_Amount\\',\\'Delivery_Time_Days\\',\\'Session_Duration_Minutes\\',\\'Pages_Viewed\\']\\\\n    for col in cols:\\\\n        lower = df[col].quantile(0.05)\\\\n        upper = df[col].quantile(0.95)\\\\n        df[col] = df[col].clip(lower, upper)\\\\n    return df\",\"columns\":[\"Date\",\"Unit_Price\",\"Discount_Amount\",\"Total_Amount\",\"Delivery_Time_Days\",\"Session_Duration_Minutes\",\"Pages_Viewed\"],\"evidence_ids\":[\"profile:Date:type_mismatch:0\",\"profile:Unit_Price:statistical_outliers:0\",\"profile:Discount_Amount:statistical_outliers:0\",\"profile:Total_Amount:statistical_outliers:0\",\"profile:Delivery_Time_Days:statistical_outliers:0\",\"profile:Session_Duration_Minutes:statistical_outliers:0\",\"profile:Pages_Viewed:statistical_outliers:0\"],\"expected_effect\":\"Date cast to datetime, Total_Amount recomputed, outliers winsorized\",\"rationale\":\"Address type mismatch and statistical outliers while ensuring consistency of monetary totals\",\"sample_size\":1000}}'}}",
+      "retrying": false,
+      "recovered": true
+    },
+    {
+      "turn": 2,
+      "type": "RateLimitError",
+      "status_code": 429,
+      "message": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01m4ke0p4be2ca8xjrm8bjewrt` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 7567, Requested 5570. Please try again in 38.5275s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "retrying": false,
+      "recovered": true
+    },
+    {
+      "turn": 3,
+      "type": "RateLimitError",
+      "status_code": 429,
+      "message": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01m4ke0p4be2ca8xjrm8bjewrt` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 7893, Requested 6191. Please try again in 45.629999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+      "retrying": false
+    }
+  ],
+  "unresolved": [
+    "LLM error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01m4ke0p4be2ca8xjrm8bjewrt` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 7893, Requested 6191. Please try again in 45.629999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  ],
+  "pending_approvals": []
+}
