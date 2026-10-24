@@ -202,9 +202,14 @@ def analyze_dataframe(df: pd.DataFrame, path: Path) -> dict[str, Any]:
 def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = None, on_event=None) -> Any:
     result = get_workspace_result(PROFILE_STATE_KEY, path)
     if result is None:
+        if on_event:
+            on_event({"phase": "profiling report missing · running profiling first", "stage": "profiling"})
         result = profile_dataset_for_workspace(path)
 
+    settings = st.session_state.get("cleaning_run_settings", {})
     agent = DataCleaningAgent(
+        max_turns=settings.get("max_turns"),
+        max_seconds=settings.get("max_seconds"),
         data_root=ROOT / "data" / "versions" / "dashboard",
         search_roots=[RAW_DATA, ROOT / "data"],
         use_llm=None,

@@ -1,109 +1,63 @@
-"""Groq tool-calling client with a local Ollama fallback for the cleaning agent.
-
-Set GROQ_API_KEY and optionally GROQ_MODEL in the project-root .env file.
-"""
-
+"""Local-only Ollama tool calling for the cleaning agent (no cloud provider)."""
 from __future__ import annotations
 
 import json
-import os
 import math
+import os
+import queue
+import threading
+import time
+from pathlib import Path
 from uuid import uuid4
 
 import httpx
-from pathlib import Path
-from typing import Any, Dict, List, Optional, cast
-
 from dotenv import load_dotenv
-from groq.types.chat import ChatCompletionMessageParam, ChatCompletionToolParam
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 
 def llm_configured() -> bool:
-    """An enabled local Ollama route also counts as a configured LLM."""
-    provider = os.environ.get("BIFLOW_CLEANING_PROVIDER", "auto").lower()
-    if provider == "ollama":
-        return True
-    return bool(os.environ.get("GROQ_API_KEY") or os.environ.get("BIFLOW_LLM_API_KEY")) or ollama_fallback_enabled()
-
-
-def get_client():
-    from groq import Groq
-
-    api_key = os.environ.get("GROQ_API_KEY") or os.environ.get("BIFLOW_LLM_API_KEY")
-    if not api_key:
-        raise RuntimeError("Groq is not configured; set GROQ_API_KEY in .env.")
-    return Groq(api_key=api_key, max_retries=0, timeout=60.0)
+    # Local availability is checked by the request, not by an external API key.
+    return True
 
 
 def default_model() -> str:
-    return os.environ.get("GROQ_MODEL") or os.environ.get(
-        "BIFLOW_LLM_MODEL", "openai/gpt-oss-20b"
-    )
-
-
-def _groq_chat(
-    messages: List[Dict[str, Any]],
-    tools: List[Dict[str, Any]],
-    *,
-    model: Optional[str] = None,
-    temperature: float = 0.1,
-) -> Dict[str, Any]:
-    """
-    One turn of chat with optional tool calls.
-
-    Returns a normalized dict:
-      {
-        "content": str | None,
-        "tool_calls": [ {"id", "name", "arguments": dict}, ... ],
-        "raw": message object-ish
-      }
-    """
-    client = get_client()
-    model = model or default_model()
-
-    resp = client.chat.completions.create(
-        model=model,
-        messages=cast(List[ChatCompletionMessageParam], messages),
-        tools=cast(List[ChatCompletionToolParam], tools),
-        tool_choice="required",
-        parallel_tool_calls=False,
-        max_completion_tokens=2048,
-        temperature=temperature,
-    )
-    msg = resp.choices[0].message
-    tool_calls = []
-    if msg.tool_calls is not None:
-        for tc in msg.tool_calls:
-            args_raw = tc.function.arguments or "{}"
-            try:
-                args = json.loads(args_raw)
-            except json.JSONDecodeError:
-                args = {"_raw": args_raw}
-            tool_calls.append(
-                {
-                    "id": tc.id,
-                    "name": tc.function.name,
-                    "arguments": args,
-                }
-            )
-
-    return {
-        "content": msg.content,
-        "tool_calls": tool_calls,
-        "raw_role": "assistant",
-        "finish_reason": getattr(resp.choices[0], "finish_reason", None),
-        "usage": resp.usage.model_dump() if getattr(resp, "usage", None) else None,
-    }
-
-def ollama_fallback_enabled() -> bool:
-    return os.environ.get("BIFLOW_OLLAMA_FALLBACK", "true").lower() not in {"0", "false", "no", "off"}
-
-
-def ollama_model() -> str:
     return os.environ.get("BIFLOW_CLEANING_OLLAMA_MODEL") or os.environ.get("OLLAMA_MODEL") or "qwen2.5:7b"
 
+
+def positive_setting(name, default, integer=False):
+    value = int(os.environ.get(name, str(default))) if integer else float(os.environ.get(name, str(default)))
+    if not math.isfinite(value) or value <= 0:
+        raise ValueError(f"{name} must be a positive finite number")
+    return value
+
+
+def _post_with_progress(url, payload, timeout, callback):
+    """Keep Streamlit updates on its main thread while bounded HTTP I/O waits."""
+    results = queue.Queue(maxsize=1)
+    def send():
+        try:
+            response = httpx.post(url, json=payload, timeout=httpx.Timeout(timeout, connect=min(5.0, timeout)))
+            results.put((response, None))
+        except Exception as exc:
+            results.put((None, exc))
+    started = time.monotonic()
+    threading.Thread(target=send, daemon=True, name="biflow-ollama-request").start()
+    next_update = 0.0
+    while True:
+        elapsed = time.monotonic() - started
+        if elapsed >= timeout:
+            raise TimeoutError(f"Ollama exceeded the {timeout:.0f}s request limit; no further actions will be applied from this request")
+        if callback and elapsed >= next_update:
+            callback({"phase": f"waiting for Ollama · {elapsed:.0f}s", "stage": "model", "request_elapsed_seconds": elapsed})
+            next_update = elapsed + 1.0
+        try:
+            response, error = results.get(timeout=min(0.25, timeout - elapsed))
+        except queue.Empty:
+            continue
+        if error:
+            raise error
+        return response
 
 class ToolResponseError(ValueError):
     status_code = 400
@@ -133,26 +87,33 @@ def _ollama_messages(messages):
     return translated
 
 
-def _ollama_chat(messages, tools, *, temperature=0.1):
+def chat_with_tools(messages, tools, *, model=None, temperature=0.1, on_provider_event=None, timeout=None):
+    """One local inference request; cloud environment variables are ignored."""
     host = (os.environ.get("BIFLOW_CLEANING_OLLAMA_HOST") or os.environ.get("OLLAMA_HOST") or "http://localhost:11434").rstrip("/")
-    model = ollama_model()
-    timeout = float(os.environ.get("BIFLOW_OLLAMA_TIMEOUT", "180"))
+    model = model or default_model()
+    configured_timeout = positive_setting("BIFLOW_OLLAMA_TIMEOUT", 90)
+    timeout = min(configured_timeout, timeout) if timeout is not None else configured_timeout
     if not math.isfinite(timeout) or timeout <= 0:
-        raise ValueError("BIFLOW_OLLAMA_TIMEOUT must be a positive finite number")
+        raise ValueError("Ollama request budget has expired")
+    options = {"temperature": temperature,
+               "num_ctx": positive_setting("BIFLOW_OLLAMA_NUM_CTX", 8192, integer=True),
+               "num_predict": positive_setting("BIFLOW_OLLAMA_NUM_PREDICT", 1024, integer=True)}
+    started = time.monotonic()
+    payload = {"model": model, "messages": _ollama_messages(messages), "tools": tools,
+               "stream": False, "keep_alive": "15m", "options": options}
     try:
-        response = httpx.post(
-            host + "/api/chat",
-            json={"model": model, "messages": _ollama_messages(messages), "tools": tools,
-                  "stream": False, "options": {"temperature": temperature, "num_ctx": 16384, "num_predict": 2048}},
-            timeout=httpx.Timeout(timeout, connect=5.0),
-        )
+        response = _post_with_progress(host + "/api/chat", payload, timeout, on_provider_event)
         response.raise_for_status()
-        payload = response.json()
+        data = response.json()
+    except TimeoutError:
+        raise
+    except httpx.TimeoutException as exc:
+        raise TimeoutError(f"Local Ollama request timed out at {host}: {exc}") from exc
     except (httpx.HTTPError, ValueError) as exc:
-        raise RuntimeError(f"Ollama request failed at {host}. Start Ollama and run `ollama run {model}`. Details: {exc}") from exc
-    if payload.get("error"):
-        raise RuntimeError(f"Ollama error: {payload['error']}")
-    message = payload.get("message")
+        raise RuntimeError(f"Ollama request failed at {host}. Check `ollama run {model}`. Details: {exc}") from exc
+    if data.get("error"):
+        raise RuntimeError(f"Ollama error: {data['error']}")
+    message = data.get("message")
     if not isinstance(message, dict):
         raise ToolResponseError("Ollama returned no structured message")
     allowed = {tool["function"]["name"] for tool in tools}
@@ -171,37 +132,15 @@ def _ollama_chat(messages, tools, *, temperature=0.1):
         if not isinstance(arguments, dict):
             raise ToolResponseError("Ollama tool arguments must be an object")
         calls.append({"id": "ollama-" + uuid4().hex[:12], "name": name, "arguments": arguments})
+    def seconds(key):
+        value = data.get(key)
+        return value / 1e9 if isinstance(value, (int, float)) else None
+    generated_seconds = seconds("eval_duration")
+    tokens = data.get("eval_count")
     return {"content": message.get("content") or "", "tool_calls": calls, "raw_role": "assistant",
-            "provider": "ollama", "model": model, "finish_reason": payload.get("done_reason"),
-            "usage": {"prompt_tokens": payload.get("prompt_eval_count"), "completion_tokens": payload.get("eval_count")}}
-
-
-def chat_with_tools(messages, tools, *, model=None, temperature=0.1, provider=None, on_provider_event=None):
-    """Groq first; optionally fail over to local Ollama using the same tool loop."""
-    selected = (provider or os.environ.get("BIFLOW_CLEANING_PROVIDER", "auto")).lower()
-    if selected not in {"auto", "groq", "ollama"}:
-        raise ValueError("BIFLOW_CLEANING_PROVIDER must be auto, groq or ollama")
-    if selected == "ollama":
-        return _ollama_chat(messages, tools, temperature=temperature)
-    has_key = bool(os.environ.get("GROQ_API_KEY") or os.environ.get("BIFLOW_LLM_API_KEY"))
-    primary_error = None
-    if has_key or selected == "groq":
-        try:
-            result = _groq_chat(messages, tools, model=model, temperature=temperature)
-            return {**result, "provider": "groq", "model": model or default_model()}
-        except Exception as exc:
-            if not ollama_fallback_enabled():
-                raise
-            primary_error = exc
-    elif not ollama_fallback_enabled():
-        raise RuntimeError("No Groq key configured and Ollama fallback is disabled")
-    reason = f"{type(primary_error).__name__}: {primary_error}" if primary_error else "No Groq API key configured"
-    if on_provider_event:
-        on_provider_event({"phase": f"switching to local Ollama ({ollama_model()})"})
-    try:
-        result = _ollama_chat(messages, tools, temperature=temperature)
-    except ToolResponseError:
-        raise
-    except Exception as exc:
-        raise RuntimeError(f"Groq unavailable ({reason}); local Ollama also failed: {exc}") from exc
-    return {**result, "fallback_reason": reason}
+            "provider": "ollama", "model": model, "finish_reason": data.get("done_reason"),
+            "usage": {"prompt_tokens": data.get("prompt_eval_count"), "completion_tokens": tokens},
+            "timing": {"request_seconds": time.monotonic() - started, "load_seconds": seconds("load_duration"),
+                       "prompt_seconds": seconds("prompt_eval_duration"), "generation_seconds": generated_seconds,
+                       "tokens_per_second": tokens / generated_seconds if tokens is not None and generated_seconds else None},
+            "options": options}

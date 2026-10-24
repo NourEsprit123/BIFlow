@@ -99,28 +99,44 @@ def test_three_consecutive_empty_responses_stop_with_explicit_failure(tmp_path, 
     assert len([s for s in result.metadata["step_log"] if "response_finish_reason" in s]) == 3
 
 
-def test_short_rate_limit_is_retried_and_recorded_as_recovered(tmp_path, monkeypatch):
-    from types import SimpleNamespace
-    class RateLimit(RuntimeError):
-        status_code = 429
-        response = SimpleNamespace(headers={"retry-after": "0.2"})
-    source = tmp_path / "sample.csv"
-    source.write_text("value\n1\n2\n", encoding="utf-8")
-    report = {"dataset_ref": {"file_path": str(source), "file_name": source.name, "rows": 2, "columns": 1}}
-    responses = iter([RateLimit("Synthetic rate limit"), action("finish", summary="No cleaning required")])
-    sleeps = []
+def test_run_budget_prevents_applying_a_late_model_response(tmp_path, monkeypatch):
+    now = [100.0]
+    monkeypatch.setattr("agents.dataCleaning_agent.time.monotonic", lambda: now[0])
     def respond(*args, **kwargs):
-        response = next(responses)
-        if isinstance(response, Exception):
-            raise response
-        return response
+        assert kwargs["timeout"] == 5
+        now[0] = 106.0
+        return action("trim_whitespace", columns=["TotalCharges"])
     monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
-    monkeypatch.setattr("agents.dataCleaning_agent.time.sleep", sleeps.append)
+    result = DataCleaningAgent(data_root=tmp_path, use_llm=True, max_seconds=5).run(telco_report())
+    assert result.metadata["stop_reason"] == "time_budget"
+    assert not result.change_log.entries
+    assert result.final_dataset.version == "V1"
+
+
+def test_repeated_inspection_on_unchanged_data_stops_as_stalled(tmp_path, monkeypatch):
+    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", lambda *a, **k: action("inspect_schema"))
+    result = DataCleaningAgent(data_root=tmp_path, use_llm=True).run(telco_report())
+    assert result.metadata["stop_reason"] == "stalled"
+    assert result.metadata["turns_used"] == 3
+    assert not result.change_log.entries
+
+
+def test_independent_tools_can_be_batched_in_a_single_model_turn(tmp_path, monkeypatch):
+    source = tmp_path / "flags.csv"
+    pd.DataFrame({"a": ["Yes", "No"], "b": ["No", "Yes"]}).to_csv(source, index=False)
+    report = {"dataset_ref": {"file_path": str(source), "file_name": source.name, "rows": 2, "columns": 2},
+              "column_profiles": {c: {"dtype": "str", "etl_cast_to": "boolean"} for c in ["a", "b"]}}
+    batch = {"content": None, "tool_calls": [action("convert_data_types", column=c, target_type="boolean")["tool_calls"][0]
+                                             for c in ["a", "b"]]}
+    for index, call in enumerate(batch["tool_calls"]):
+        call["id"] = f"convert-{index}"
+    responses = iter([batch, action("finish", summary="Both flags converted")])
+    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", lambda *a, **k: next(responses))
     result = DataCleaningAgent(data_root=tmp_path / "runs", use_llm=True).run(report)
-    assert result.validation.all_passed
-    assert sleeps == [0.7]
-    assert result.metadata["provider_errors"][0]["recovered"] is True
-    assert not result.unresolved_issues
+    assert result.validation.all_passed and result.metadata["turns_used"] == 2
+    assert len(result.change_log.successful_ops()) == 2
+
+
 
 
 def test_saved_run_recovers_after_session_loss_but_not_after_data_or_profile_changes(tmp_path, monkeypatch):
@@ -144,37 +160,9 @@ def test_saved_run_recovers_after_session_loss_but_not_after_data_or_profile_cha
     assert workspace.get_workspace_result(workspace.CLEANING_STATE_KEY, source) is None
 
 
-def test_rate_limit_then_channel_marker_error_regenerates_without_executing_rejected_call(tmp_path, monkeypatch):
-    from types import SimpleNamespace
-    class RateLimit(RuntimeError):
-        status_code = 429
-        response = SimpleNamespace(headers={"retry-after": "0.2"})
-    class InvalidTool(RuntimeError):
-        status_code = 400
-        body = {"error": {"code": "tool_use_failed", "failed_generation":
-                         '{"name":"check_value_patterns<|channel|>commentary","arguments":{"column":"value"}}'}}
-    source = tmp_path / "synthetic.csv"
-    source.write_text("value\n1\n2\n", encoding="utf-8")
-    report = {"dataset_ref": {"file_path": str(source), "file_name": source.name, "rows": 2, "columns": 1}}
-    responses = iter([RateLimit("Synthetic rate limit"), InvalidTool("Synthetic malformed tool name"),
-                      action("check_value_patterns", column="value"), action("finish", summary="Checked values")])
-    requests = []
-    def respond(messages, *args, **kwargs):
-        requests.append(json.loads(json.dumps(messages)))
-        response = next(responses)
-        if isinstance(response, Exception):
-            raise response
-        return response
-    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
-    monkeypatch.setattr("agents.dataCleaning_agent.time.sleep", lambda _: None)
-    result = DataCleaningAgent(data_root=tmp_path / "runs", use_llm=True).run(report)
-    assert result.validation.all_passed
-    assert [e["tool"] for e in result.metadata["events"]] == ["check_value_patterns", "finish", "validate_dataset"]
-    assert all(e["recovered"] and not e["retrying"] for e in result.metadata["provider_errors"])
-    assert any("exact, case-sensitive" in m["content"] for m in requests[2] if m["role"] == "user")
 
 
-@pytest.mark.parametrize("code,expected_calls", [("tool_use_failed", 3), ("invalid_api_key", 1)])
+@pytest.mark.parametrize("code,expected_calls", [("tool_use_failed", 2), ("invalid_request_error", 1)])
 def test_format_retries_are_bounded_and_other_bad_requests_abort(tmp_path, monkeypatch, code, expected_calls):
     class BadRequest(RuntimeError):
         status_code = 400

@@ -4,15 +4,15 @@ BiFlow Agent 2 — LLM Data Cleaning & ETL Agent
 The agent is an LLM with tools. It reasons step-by-step, calls inspection /
 cleaning / approval / sandbox tools, and stops via `finish`.
 
-Fallback: if no LLM is configured, a deterministic planner runs the same tools
-so tests still work offline.
+Ollama performs inference locally. Explicit use_llm=False selects the deterministic
+baseline for offline comparisons.
 """
 
 from __future__ import annotations
 
 import json
 import logging
-import re
+import math
 import time
 import hashlib
 import sys
@@ -41,7 +41,7 @@ from dataCleaningTools.policy import apply_policy, requires_approval
 from dataCleaningTools.sandbox import sandbox_status
 from dataCleaningTools.tool_registry import TOOL_SCHEMAS, AgentSessionState, ToolExecutor
 from dataCleaningTools.versioning import DatasetVersionManager
-from dataCleaningTools.llm_client import chat_with_tools, default_model, llm_configured
+from dataCleaningTools.llm_client import chat_with_tools, default_model, llm_configured, positive_setting
 
 logger = logging.getLogger("biflow.agent2")
 
@@ -54,46 +54,29 @@ def _load_system_prompt() -> str:
     return "You are BiFlow Agent 2. Clean datasets using tools only. Call finish when done."
 
 
-def _report_context(report: ProfilingReport, max_chars: int = 12000) -> str:
-    compact = {
-        "schema_version": report.schema_version,
-        "dataset": {"file_name": report.dataset_ref.file_name, "rows": report.dataset_ref.rows, "columns": report.dataset_ref.columns},
-        "health_scores": report.health_scores.model_dump(),
-        "recommended_cleaning_order": report.recommended_cleaning_order,
-        "imputation_plan": {k: v.model_dump() for k, v in report.imputation_plan.items()},
-        "etl_hints": report.etl_hints.model_dump(),
-        "agent_summary": report.agent_summary[:400],
-        "recommendation_summary": report.recommendation_summary[:600],
-        "columns": {},
-    }
+def _report_context(report: ProfilingReport, max_chars: int = 6000) -> str:
+    """Send the schema and actionable evidence once; full details stay inspectable."""
+    columns = {}
     for name, prof in report.column_profiles.items():
-        compact["columns"][name] = {
-            "dtype": prof.dtype,
-            "inferred_role": prof.inferred_role,
-            "missing_pct": prof.missing_pct,
-            "severity": prof.severity,
-            "sample_values": [str(v)[:100] for v in (prof.sample_values or [])[:3]],
-            "issues": [
-                {
-                    "issue_id": i.issue_id,
-                    "severity": i.severity,
-                    "description": i.description[:200],
-                }
-                for i in prof.issues
-            ],
-            "imputation_strategy": prof.imputation_strategy,
-            "etl_cast_to": prof.etl_cast_to,
-        }
-    text = json.dumps(compact, default=str)
-    if len(text) > max_chars:
-        # Keep every column's issue/type/missing signals and keep the JSON valid.
-        for column in compact["columns"].values():
-            column.pop("sample_values", None)
-            for issue in column["issues"]:
-                issue["description"] = issue["description"][:240]
-                issue.pop("evidence", None)
-        compact["detail_note"] = "Some samples/evidence omitted; use inspection tools and the evidence catalog."
-    return json.dumps(compact, default=str)
+        column = {"dtype": prof.dtype}
+        if prof.etl_cast_to and prof.etl_cast_to.lower() != "none":
+            column["target"] = prof.etl_cast_to
+        if prof.missing_count:
+            column["missing"] = prof.missing_count
+        if prof.issues:
+            column["issues"] = [{"id": i.issue_id, "description": i.description[:120]} for i in prof.issues]
+            column["samples"] = [str(v)[:60] for v in (prof.sample_values or [])[:3]]
+        columns[name] = column
+    compact = {"dataset": report.dataset_ref.file_name, "rows": report.dataset_ref.rows,
+               "columns": columns, "cleaning_order": report.recommended_cleaning_order,
+               "imputation_plan": {k: v.model_dump() for k, v in report.imputation_plan.items()},
+               "cast_targets": report.etl_hints.type_casting_targets,
+               "recommendations": report.recommendation_summary[:400]}
+    if len(json.dumps(compact, default=str)) > max_chars:
+        for column in columns.values():
+            column.pop("samples", None)
+        compact["note"] = "Use inspection tools for additional evidence."
+    return json.dumps(compact, default=str, separators=(",", ":"))
 
 
 def _tool_feedback(result_json: str) -> str:
@@ -124,23 +107,6 @@ def _tool_feedback(result_json: str) -> str:
 
 
 
-def _rate_limit_delay(error) -> float | None:
-    if getattr(error, "status_code", None) != 429:
-        return None
-    headers = getattr(getattr(error, "response", None), "headers", {})
-    value = headers.get("retry-after") or headers.get("x-ratelimit-reset-tokens")
-    if not value:
-        return None
-    try:
-        delay = float(value)
-    except ValueError:
-        match = re.fullmatch(r"(?:(\d+(?:\.\d+)?)m)?(\d+(?:\.\d+)?)s", value)
-        if not match:
-            return None
-        delay = float(match.group(1) or 0) * 60 + float(match.group(2))
-    return delay + 0.5 if 0 < delay <= 44 else None
-
-
 def _tool_generation_failed(error) -> bool:
     body = getattr(error, "body", None)
     if getattr(error, "status_code", None) != 400 or not isinstance(body, dict):
@@ -156,7 +122,8 @@ def _request_context(messages, state):
         if message["role"] == "assistant" or not groups:
             groups.append([])
         groups[-1].append(message)
-    if len(groups) <= 6:
+    char_budget = max(6000, (positive_setting("BIFLOW_OLLAMA_NUM_CTX", 8192, integer=True) - positive_setting("BIFLOW_OLLAMA_NUM_PREDICT", 1024, integer=True)) * 3 - len(json.dumps(TOOL_SCHEMAS)))
+    if len(groups) <= 4 and len(json.dumps(messages)) <= char_budget:
         return messages
     summary = {
         "current_version": state.current_ref.version,
@@ -169,7 +136,11 @@ def _request_context(messages, state):
         "inspection_evidence": {key: {"tool": item["tool"], "version": item["version"], "arguments": item["arguments"]}
                                 for key, item in state.evidence.items() if item.get("source") == "inspection"},
     }
-    return messages[:2] + [{"role": "user", "content": "Earlier execution summary: " + json.dumps(summary, default=str)}] + [m for group in groups[-6:] for m in group]
+    prefix = messages[:2] + [{"role": "user", "content": "Earlier execution summary: " + json.dumps(summary, default=str)}]
+    recent = groups[-4:]
+    while len(recent) > 1 and len(json.dumps(prefix + [m for g in recent for m in g], default=str)) > char_budget:
+        recent = recent[1:]
+    return prefix + [m for group in recent for m in group]
 
 
 class DataCleaningAgent:
@@ -180,7 +151,8 @@ class DataCleaningAgent:
         data_root: Union[str, Path] = "data/versions",
         search_roots: Optional[List[Union[str, Path]]] = None,
         use_llm: Optional[bool] = None,
-        max_turns: int = 25,
+        max_turns: Optional[int] = None,
+        max_seconds: Optional[float] = None,
         approve_all: bool = False,
         dry_run: bool = False,
         model: Optional[str] = None,
@@ -193,7 +165,10 @@ class DataCleaningAgent:
             _ROOT / "data" / "raw",
             _ROOT / "data",
         ]
-        self.max_turns = max_turns
+        self.max_turns = max_turns if max_turns is not None else positive_setting("BIFLOW_CLEANING_MAX_TURNS", 12, integer=True)
+        self.max_seconds = max_seconds if max_seconds is not None else positive_setting("BIFLOW_CLEANING_MAX_SECONDS", 300)
+        if self.max_turns < 1 or self.max_seconds <= 0 or not math.isfinite(self.max_seconds):
+            raise ValueError("Cleaning turn and time budgets must be positive")
         self.approve_all = approve_all
         self.dry_run = dry_run
         self.model = model
@@ -226,6 +201,12 @@ class DataCleaningAgent:
         )
         working = self.manager.create_working_copy(v0)
 
+        run_started = time.monotonic()
+        def emit(event):
+            if on_event:
+                on_event({**event, "turn": state.current_turn, "max_turns": self.max_turns,
+                          "elapsed_seconds": time.monotonic() - run_started, "max_seconds": self.max_seconds})
+
         state = AgentSessionState(
             manager=self.manager,
             dataset_id=dataset_id,
@@ -234,7 +215,9 @@ class DataCleaningAgent:
             profiling_summary=report.recommendation_summary,
             approve_all=self.approve_all,
             approved_step_ids=set(approved_step_ids or []),
-            on_event=on_event,
+            on_event=emit if on_event else None,
+            run_started=run_started,
+            deadline=run_started + self.max_seconds,
             expected_columns=list(v0.columns),
             required_targets={**report.etl_hints.type_casting_targets,
                               **{c: p.etl_cast_to for c, p in report.column_profiles.items()
@@ -255,7 +238,7 @@ class DataCleaningAgent:
             logger.info("Running LLM tool-calling agent (max_turns=%d)", self.max_turns)
             self._run_llm_loop(state, report, user_request)
         else:
-            logger.info("No LLM configured — deterministic tool pipeline")
+            logger.info("Explicit deterministic tool baseline (use_llm=False)")
             self._run_deterministic(state, report, approved_step_ids or [])
 
         return self._build_result(state, report, user_request)
@@ -276,81 +259,69 @@ class DataCleaningAgent:
         executor = ToolExecutor(state)
         empty_responses = 0
         incomplete_finishes = 0
+        repeated_calls = {}
 
         for turn in range(1, self.max_turns + 1):
             if state.finished:
                 break
 
+            if time.monotonic() >= state.deadline:
+                state.stop_reason = "time_budget"
+                state.finish_summary = f"Stopped: reached the {self.max_seconds:.0f}s run budget."
+                state.unresolved.append(state.finish_summary)
+                state.finished = True
+                break
+            state.current_turn = turn
             logger.info("--- LLM turn %d ---", turn)
             if state.on_event:
-                state.on_event({"phase": f"choosing next action (turn {turn}/{self.max_turns})"})
+                state.on_event({"phase": f"Ollama · choosing next tool(s)", "stage": "model"})
             response = None
-            rate_retries = format_retries = 0
-            for attempt in range(5):
+            for attempt in range(2):
                 try:
+                    remaining = state.deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise TimeoutError("Cleaning run budget expired")
                     response = chat_with_tools(
                         _request_context(messages, state), TOOL_SCHEMAS, model=self.model, temperature=0.1,
-                        provider=state.llm_provider, on_provider_event=state.on_event
+                        on_provider_event=state.on_event, timeout=remaining,
                     )
                     for error in state.provider_errors:
                         if error.get("retrying"):
-                            error["recovered"] = True
-                            error["retrying"] = False
+                            error.update(recovered=True, retrying=False)
                     break
                 except Exception as e:
-                    logger.exception("LLM call failed")
-                    status = getattr(e, "status_code", None)
-                    # A subsequent HTTP response other than 429 proves the
-                    # prior rate-limit wait worked, even if generation fails.
-                    if status is not None and status != 429:
-                        for error in state.provider_errors:
-                            if error.get("retrying") and error.get("status_code") == 429:
-                                error.update(recovered=True, retrying=False)
-                    delay = _rate_limit_delay(e) if rate_retries < 2 and attempt < 4 else None
-                    repair = _tool_generation_failed(e) and format_retries < 2 and attempt < 4
+                    logger.exception("Ollama call failed")
+                    repair = _tool_generation_failed(e) and attempt == 0
                     state.provider_errors.append({"turn": turn, "type": type(e).__name__,
-                                                  "status_code": status,
-                                                  "message": str(e), "retrying": delay is not None or repair})
+                                                  "status_code": getattr(e, "status_code", None),
+                                                  "message": str(e), "retrying": repair})
                     state.persist_trace()
-                    if delay is not None:
-                        rate_retries += 1
-                        if state.on_event:
-                            state.on_event({"phase": f"provider rate limit; retrying in {delay:.0f}s"})
-                        time.sleep(delay)
-                        continue
                     if repair:
-                        format_retries += 1
-                        # Ask the provider to regenerate. Never parse/execute
-                        # failed_generation or silently rewrite a tool name.
                         messages.append({"role": "user", "content": (
-                            "The provider rejected your generated tool call. Regenerate one valid call "
-                            "using the exact, case-sensitive registered function name and JSON arguments. "
-                            "Do not append channel markers, commentary, XML, or other text to tool names. "
-                            "The rejected call was not executed."
+                            "Generate a valid registered tool call with the exact function name and JSON arguments. "
+                            "No channel markers or commentary in tool names. The rejected call was not executed."
                         )})
                         if state.on_event:
-                            state.on_event({"phase": "regenerating malformed provider tool call"})
+                            state.on_event({"phase": "Ollama · correcting malformed tool call"})
                         continue
                     for error in state.provider_errors:
                         error["retrying"] = False
-                    state.stop_reason = "provider_error"
-                    state.unresolved.append(f"LLM error: {e}")
+                    state.stop_reason = ("time_budget" if time.monotonic() >= state.deadline else "request_timeout") if isinstance(e, TimeoutError) else "provider_error"
+                    state.unresolved.append(f"Ollama error: {e}")
                     state.finished = True
-                    state.finish_summary = f"Aborted: LLM error ({e})"
+                    state.finish_summary = f"Stopped: {state.stop_reason} ({e})"
                     state.persist_trace()
                     break
             if response is None:
                 break
 
             if response.get("provider"):
-                if response.get("fallback_reason"):
-                    state.provider_switches.append({"turn": turn, "provider": response["provider"],
-                                                    "model": response.get("model"), "reason": response["fallback_reason"]})
                 state.llm_provider = response["provider"]
                 state.llm_model = response.get("model")
             state.step_log.append({"turn": turn, "provider": response.get("provider"), "model": response.get("model"),
                                    "response_finish_reason": response.get("finish_reason"),
-                                   "usage": response.get("usage")})
+                                   "usage": response.get("usage"), "timing": response.get("timing"),
+                                   "options": response.get("options")})
             content = response.get("content") or ""
             tool_calls = response.get("tool_calls") or []
 
@@ -389,9 +360,28 @@ class DataCleaningAgent:
                 continue
             empty_responses = 0
 
+            finish_args = None
             for tc in tool_calls:
+                if finish_args is not None:
+                    messages.append({"role": "tool", "tool_call_id": tc["id"],
+                                     "content": json.dumps({"success": False, "error": "Skipped after finish. Put finish last."})})
+                    continue
                 name = tc["name"]
                 args = tc["arguments"] if isinstance(tc["arguments"], dict) else {}
+                if time.monotonic() >= state.deadline:
+                    state.stop_reason = "time_budget"
+                    state.finish_summary = f"Stopped: reached the {self.max_seconds:.0f}s run budget before {name}."
+                    state.unresolved.append(state.finish_summary)
+                    state.finished = True
+                    break
+                signature = (state.current_ref.version, name, json.dumps({k: v for k, v in args.items() if k not in {"rationale", "evidence_ids", "step_id"}}, sort_keys=True))
+                repeated_calls[signature] = repeated_calls.get(signature, 0) + 1
+                if name != "finish" and repeated_calls[signature] >= 3:
+                    state.stop_reason = "stalled"
+                    state.finish_summary = f"Stopped: repeated {name} on unchanged {state.current_ref.version}."
+                    state.unresolved.append(state.finish_summary)
+                    state.finished = True
+                    break
                 logger.info("Tool call: %s(%s)", name, json.dumps(args)[:200])
                 result_str = executor.execute(name, args)
                 logger.info("Tool result: %s", result_str[:400])
@@ -411,20 +401,20 @@ class DataCleaningAgent:
                     }
                 )
                 if name == "finish":
-                    validation_ok = state.validation is not None and state.validation.all_passed
-                    blocked = bool(args.get("unresolved") or state.pending_approvals or state.unresolved)
-                    if not validation_ok and not blocked and incomplete_finishes < 2:
-                        incomplete_finishes += 1
-                        state.finished = False
-                        messages.append({"role": "user", "content": (
-                            "Final validation failed. Continue cleaning using the failed rules above. "
-                            "If a remaining issue cannot be resolved safely, call finish with an explicit "
-                            "unresolved explanation. Do not claim completion after just one operation."
-                        )})
-                    else:
-                        state.finished = True
-                        state.stop_reason = "completed" if validation_ok else "incomplete"
-                        break
+                    finish_args = args
+            if finish_args is not None:
+                validation_ok = state.validation is not None and state.validation.all_passed
+                blocked = bool(finish_args.get("unresolved") or state.pending_approvals or state.unresolved)
+                if not validation_ok and not blocked and incomplete_finishes < 2:
+                    incomplete_finishes += 1
+                    state.finished = False
+                    messages.append({"role": "user", "content": (
+                        "Final validation failed. Continue with the failed rules above, or finish "
+                        "with explicit unresolved reasons if the remaining work is blocked."
+                    )})
+                else:
+                    state.finished = True
+                    state.stop_reason = "completed" if validation_ok else "incomplete"
 
         if not state.finished:
             state.finished = True
@@ -450,8 +440,7 @@ class DataCleaningAgent:
             "## Agent 1 profiling report (evidence)",
             _report_context(report),
             "Evidence catalog (cite relevant IDs when applying a transformation):",
-            json.dumps({key: {field: item.get(field) for field in ("column", "issue_id", "source")}
-                        for key, item in state.evidence.items()}, default=str),
+            json.dumps({key: item.get("source") for key, item in state.evidence.items()}, default=str),
             "",
             "## Instructions",
             "1. Reason briefly about the main issues.",
@@ -583,9 +572,11 @@ class DataCleaningAgent:
                 + validation.unresolved_issues)),
             metadata={
                 "mode": "llm" if self.use_llm else "deterministic",
+                "limits": {"max_turns": self.max_turns, "max_seconds": self.max_seconds},
+                "elapsed_seconds": time.monotonic() - state.run_started,
+                "turns_used": state.current_turn,
                 "model": (state.llm_model or self.model or default_model()) if self.use_llm else None,
                 "provider": state.llm_provider,
-                "provider_switches": state.provider_switches,
                 "stop_reason": state.stop_reason,
                 "provider_errors": state.provider_errors,
                 "result_path": str(result_path.resolve()),
@@ -625,7 +616,8 @@ def main():
     parser.add_argument("--approve-all", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--model", default=None)
-    parser.add_argument("--max-turns", type=int, default=25)
+    parser.add_argument("--max-turns", type=int, default=None)
+    parser.add_argument("--max-seconds", type=float, default=None)
     parser.add_argument("--out", default="")
     args = parser.parse_args()
 
@@ -646,6 +638,7 @@ def main():
         data_root=args.data_root,
         use_llm=use_llm,
         max_turns=args.max_turns,
+        max_seconds=args.max_seconds,
         approve_all=args.approve_all,
         dry_run=args.dry_run,
         model=args.model,

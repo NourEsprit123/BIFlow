@@ -13,6 +13,8 @@ def render_event(event: dict, evidence: dict | None = None) -> None:
                else "Accepted" if result.get("accepted") else "Completed")
     label = f"{event['event_id']} · {event['tool']} · {outcome} · {event['source_version']} → {event['version']}"
     with st.expander(label, expanded=outcome in ("Rejected", "Failed", "Awaiting approval")):
+        if event.get("duration_seconds") is not None:
+            st.caption(f"Tool execution: {event['duration_seconds']:.2f}s")
         if result.get("rationale"):
             st.write(result["rationale"])
         st.write("Requested action")
@@ -101,6 +103,21 @@ def render_cleaning_result(cleaning, *, key: str = "cleaning_review") -> None:
             st.caption(f"Provider request error at turn {error['turn']} was retried successfully.")
             continue
         st.error(f"Provider failure at turn {error['turn']} ({error['type']}): {error['message']}")
+    limits = cleaning.metadata.get("limits", {})
+    if limits:
+        st.caption(f"Model turns used: {cleaning.metadata.get('turns_used', 0)} / {limits['max_turns']} maximum · Elapsed: {cleaning.metadata.get('elapsed_seconds', 0):.0f}s / {limits['max_seconds']:.0f}s budget")
+    inference = [step for step in cleaning.metadata.get("step_log", []) if step.get("timing")]
+    if inference:
+        with st.expander("Local model timing"):
+            st.dataframe([{"Model turn": s["turn"], "Model": s.get("model"),
+                           "Request seconds": round(s["timing"]["request_seconds"], 2),
+                           "Model load seconds": s["timing"].get("load_seconds"),
+                           "Prompt processing seconds": s["timing"].get("prompt_seconds"),
+                           "Generation seconds": s["timing"].get("generation_seconds"),
+                           "Tokens/second": s["timing"].get("tokens_per_second"),
+                           "Prompt tokens": (s.get("usage") or {}).get("prompt_tokens"),
+                           "Generated tokens": (s.get("usage") or {}).get("completion_tokens")}
+                          for s in inference], hide_index=True, use_container_width=True)
     st.write("Final validation rules")
     if cleaning.validation.rules:
         st.dataframe([{"Check": r.rule_name, "Passed": r.passed, "Details": r.message}
@@ -129,12 +146,20 @@ def render_cleaning_result(cleaning, *, key: str = "cleaning_review") -> None:
 def run_cleaning_with_progress(path):
     from dashboard.workspace import clean_profiled_dataset
 
+    import time
+    started = time.monotonic()
     with st.status("Data Cleaning Agent: inspecting and cleaning...", expanded=True) as status:
         st.write("Each transformation is checked before it can become the working version.")
-        st.caption("Generated methods run on sample and holdout copies in Docker, then require full-data checks before promotion.")
+        st.caption("A model turn chooses one or more tools. The displayed count is a maximum, not a target. Runs can finish earlier.")
+        st.caption("Model inference runs locally in Ollama. Sandbox testing is separate. If a profiling report is missing, profiling runs first, outside the cleaning time budget.")
         def on_event(event):
             if "phase" in event:
-                status.update(label=f"Data Cleaning Agent: {event['phase']}")
+                elapsed = time.monotonic() - started
+                turn = event.get("turn", 0)
+                maximum = event.get("max_turns", "?")
+                label = (f"{event['phase']} · elapsed {elapsed:.0f}s" if event.get("stage") == "profiling"
+                         else f"{event['phase']} · model turn {turn}/{maximum} max · elapsed {elapsed:.0f}s")
+                status.update(label=label)
             else:
                 render_event(event)
         result = clean_profiled_dataset(path, on_event=on_event)
@@ -168,3 +193,19 @@ def render_experiment_runtime():
             else:
                 st.warning(result["setup"])
                 st.caption(result["error"])
+
+
+def render_cleaning_limits():
+    from dataCleaningTools.llm_client import default_model, positive_setting
+    settings = st.session_state.get("cleaning_run_settings", {})
+    with st.expander("Local model speed and run limits"):
+        turns = st.number_input("Maximum model turns", min_value=1, max_value=100,
+                               value=int(settings.get("max_turns", positive_setting("BIFLOW_CLEANING_MAX_TURNS", 12, True))), key="cleaning_turn_limit")
+        minutes = st.number_input("Run time budget (minutes)", min_value=0.1, max_value=120.0, step=0.5,
+                                 value=float(settings.get("max_seconds", positive_setting("BIFLOW_CLEANING_MAX_SECONDS", 300))) / 60, key="cleaning_minutes")
+        st.session_state["cleaning_run_settings"] = {"max_turns": int(turns), "max_seconds": int(minutes * 60)}
+        st.caption(f"Ollama only · {default_model()} · Request timeout: {positive_setting('BIFLOW_OLLAMA_TIMEOUT', 90):.0f}s · Context: {positive_setting('BIFLOW_OLLAMA_NUM_CTX', 8192, True):,} tokens · Maximum output: {positive_setting('BIFLOW_OLLAMA_NUM_PREDICT', 1024, True):,} tokens")
+        st.write("A smaller turn limit bounds exploration; it does not make one model request faster. Uncheck sandbox experimentation for a quicker registered-tool comparison.")
+        st.code("ollama ps", language="powershell")
+        st.caption("While a request is running, check PROCESSOR for GPU versus CPU offloading. The run trace records model-load, prompt-processing and generation times.")
+        st.caption("The run budget is checked before model calls and tools, and before accepting a change. An already-running sandbox operation can take up to its own 60-second limit to return.")

@@ -63,6 +63,20 @@ def test_mutation_invalidates_previous_validation_and_finish_checks_new_version(
     assert state.validation.all_passed and state.validation.dataset_ref.version == "V2"
 
 
+def test_expired_budget_rejects_an_in_flight_transformation_before_commit(tmp_path, monkeypatch):
+    from dataCleaningTools.cleaning import CleaningResult
+    state, executor = session(tmp_path)
+    def slow_transform(frame, **kwargs):
+        state.deadline = -1
+        work = frame.copy()
+        work["name"] = work["name"].str.strip()
+        return CleaningResult(True, df=work)
+    monkeypatch.setattr("dataCleaningTools.tool_registry.trim_whitespace", slow_transform)
+    result = json.loads(executor.execute("trim_whitespace", {"columns": ["name"]}))
+    assert not result["accepted"] and state.current_ref.version == "V1"
+    assert any(r["rule_name"] == "run_budget" and not r["passed"] for r in result["effect"]["rules"])
+
+
 def test_explicit_validation_targets_cannot_be_forgotten_at_finish(tmp_path):
     state, executor = session(tmp_path)
     assert not json.loads(executor.execute("validate_dataset", {"numeric_columns": ["score"]}))["success"]

@@ -23,7 +23,6 @@ NAV = [
     ("Datasets", "pages/2_Datasets.py", "🗄"),
     ("Workflows", "pages/3_Workflows.py", "⛓"),
     ("Data Quality", "pages/4_Data_Quality.py", "✅"),
-    ("Agent Ops", "pages/7_Agent_Ops.py", "🤖"),
 ]
 
 # ---------- helpers HTML ----------

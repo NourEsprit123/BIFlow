@@ -11,6 +11,7 @@ import io
 import json
 import os
 import tarfile
+import time
 from pathlib import Path
 from uuid import uuid4
 
@@ -235,6 +236,9 @@ def experiment(state, arguments) -> dict:
         partitions.append(("holdout", remaining.sample(n=min(sample_size, len(remaining)), random_state=73)))
     spec["holdout_available"] = len(partitions) > 1
     for name, frame in partitions:
+        if time.monotonic() >= state.deadline:
+            spec["trials"].append({"partition": name, "rows": len(frame), "success": False, "error": "Run time budget expired before this trial"})
+            break
         if state.on_event:
             state.on_event({"phase": f"sandbox {name} trial for {candidate_id} ({len(frame)} rows)"})
         execution = run_isolated_transform(frame, code, image_id=spec.get("image_id"))
@@ -266,6 +270,8 @@ def experiment(state, arguments) -> dict:
 def promote(state, candidate_id, before):
     from .cleaning import CleaningResult
     spec = state.experiments.get(candidate_id)
+    if time.monotonic() >= state.deadline:
+        return CleaningResult(False, error="Run time budget expired before promotion")
     if not spec or not spec["tested"]:
         return CleaningResult(False, error="Candidate must pass sample and holdout trials before promotion")
     if spec["base_version"] != state.current_ref.version or spec["dataset_hash"] != digest(Path(state.current_ref.path).read_bytes()):

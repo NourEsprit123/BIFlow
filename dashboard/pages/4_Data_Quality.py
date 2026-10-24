@@ -1,4 +1,4 @@
-from dashboard.cleaning_review import render_cleaning_result, run_cleaning_with_progress, render_experiment_runtime
+from dashboard.cleaning_review import render_cleaning_result, run_cleaning_with_progress, render_experiment_runtime, render_cleaning_limits
 import pandas as pd
 import streamlit as st
 
@@ -28,6 +28,7 @@ def remember_experiment_preference():
 st.checkbox("Prefer sandbox method experimentation", value=st.session_state.get("prefer_generated_methods", True),
             key="experiment_mode_widget", on_change=remember_experiment_preference,
             help="Ask the LLM to generate and test a cleaning method before promotion. Uncheck to prefer the registered cleaning tools.")
+render_cleaning_limits()
 render_experiment_runtime()
 
 path, frame = load_selected_dataset()
@@ -67,7 +68,7 @@ with clean_col:
                 f"validation {cleaning.validation.status.value}."
             )
         else:
-            st.warning(summary + " Configure Groq to enable LLM tool-calling.")
+            st.warning(summary + " Start Ollama to enable local tool-calling.")
 
 health = quality_summary(frame)
 missing = health["missing_info"]

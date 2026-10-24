@@ -54,7 +54,7 @@ coordonnés par l'orchestrateur :
 
 The two agents keep separate LLM clients and control loops. Agent 1 hands Agent
 2 a validated `ProfilingReport` (schema 2.1); Agent 1 uses an Ollama or Gemini
-JSON client, while Agent 2 uses Groq function calling and registered tools.
+JSON client, while Agent 2 uses local Ollama function calling and registered tools.
 Both can request custom, read-only checks whose generated Python runs only
 through the isolated sandbox runner.
 
@@ -507,16 +507,15 @@ OLLAMA_HOST=http://localhost:11434
 OLLAMA_MODEL=qwen2.5:7b
 GEMINI_MODEL=gemini-3.6-flash
 GEMINI_API_KEY=your_api_key
-GROQ_API_KEY=your_groq_api_key
-GROQ_MODEL=openai/gpt-oss-20b
+BIFLOW_CLEANING_OLLAMA_MODEL=qwen2.5:7b
+BIFLOW_OLLAMA_NUM_CTX=8192
+BIFLOW_OLLAMA_NUM_PREDICT=1024
 ```
 
 Le fichier `.env` est ignoré par Git grâce au `.gitignore`.
 L'agent de profilage utilise `LLM_PROVIDER=ollama` ou `LLM_PROVIDER=gemini`;
 Ollama est le choix par défaut. Les erreurs du fournisseur de profilage sont
-remontées au lieu d'être transformées en réponses JSON vides. L'agent de
-nettoyage détecte `GROQ_API_KEY` (ou `BIFLOW_LLM_API_KEY`) et `GROQ_MODEL` est
-facultatif ; sans clé, son mode déterministe est affiché comme mode de secours.
+remontées au lieu d'être transformées en réponses JSON vides. L'agent de nettoyage utilise uniquement Ollama local. Aucune clé API cloud n'est nécessaire pour cet agent; le profilage conserve sa configuration indépendante.
 
 Pour partager la structure des variables nécessaires avec l'équipe, utiliser plutôt :
 
@@ -667,15 +666,12 @@ rules before a bounded opportunity to continue. Every action still passes the
 same acceptance checks. Remaining ambiguity or approval requirements can be
 reported explicitly as unresolved; they are never bypassed to force a pass.
 
-Provider feedback summarizes transformation effects instead of repeating every
-passed rule. Older exchanges are summarized while six recent complete exchanges
-remain in context. Short provider rate limits (with a retry header of at most
-44 seconds) receive at most two retries, with progress shown in the UI. Longer
-limits, authentication errors, other invalid requests and exhausted retries stop
-with an explicit diagnostic. Groq `tool_use_failed` responses receive at most two
-regeneration attempts with an exact-tool-name reminder. Rejected generations are
-never parsed into executable calls or silently renamed. Rate-limit and formatting
-retries have separate bounded budgets, with at most five requests per turn.
+Model feedback summarizes transformation effects instead of repeating every
+passed rule. At most four recent complete exchanges remain in context, with older
+actions summarized. Local malformed tool calls receive one bounded regeneration
+attempt. Rejected generations are never executed or silently renamed. Requests
+and runs have explicit time limits and repeated identical calls on unchanged data
+stop as stalled. Multiple independent tool calls may share a model turn.
 
 Each run saves `execution_trace.json` after every tool event and provider error,
 and `cleaning_result.json` on normal finalization. These contain full local audit
@@ -735,16 +731,15 @@ promotion/rejection. Candidate code and reports are saved under each run's
 A sample passing is never displayed as an applied change.
 
 
-## Moving to another computer: Ollama cleaning fallback
+## Local-only cleaning: setup and performance
 
-Cleaning now supports `BIFLOW_CLEANING_PROVIDER=auto|groq|ollama`. The default
-`auto` mode tries Groq when a key exists and falls back to local Ollama on provider
-failure. Without a Groq key, it uses Ollama directly. Once a run switches to
-Ollama, it stays there for the remaining turns. The trace records the actual
-provider/model and the reason for switching. The cleaning fallback uses the same
-registered tools, experiment sandbox, acceptance checks and version manager.
+Cleaning uses Ollama only, with `qwen2.5:7b` by default. It does not import a cloud
+SDK, read a cloud API key, or attempt cloud failover. Profiling's `LLM_PROVIDER`
+configuration remains independent. Old cleaning provider/fallback variables are
+ignored. The native message adapter follows the
+[Ollama tool-calling API](https://github.com/ollama/ollama/blob/main/docs/api.md).
 
-On the other computer:
+For a fresh checkout on another computer:
 
 ```powershell
 python -m venv .venv
@@ -753,21 +748,47 @@ Copy-Item .env.example .env
 ollama run qwen2.5:7b
 ```
 
-Ollama must be running on `http://localhost:11434`. For local-only cleaning, set
-`BIFLOW_CLEANING_PROVIDER=ollama` in the new computer's `.env`. For Groq-first with
-local fallback, keep `auto` and optionally add the Groq key locally. The default
-fallback model is `qwen2.5:7b`; `BIFLOW_CLEANING_OLLAMA_MODEL` and
-`BIFLOW_CLEANING_OLLAMA_HOST` override the shared Ollama values. Increase
-`BIFLOW_OLLAMA_TIMEOUT` if local generation is slow. Set
-`BIFLOW_OLLAMA_FALLBACK=false` to disable automatic fallback. Profiling's
-`LLM_PROVIDER` remains independently configured. The native Ollama history adapter
-follows its [tool-calling API](https://github.com/ollama/ollama/blob/main/docs/api.md).
+Do not overwrite an existing `.env`; update its cleaning settings from the new
+example. In particular, older `BIFLOW_OLLAMA_TIMEOUT=180` values override the new
+90-second default until updated. Neither `.env` nor `.venv` is transferred in Git.
+The sandbox image must also be built on that computer to run generated methods.
 
-The `.env` file and virtual environment are intentionally not transferred through
-Git. Do not overwrite an existing configured `.env`; copy the example only when
-setting up a fresh checkout. Generated-method experiments additionally require a
-working Docker runtime and the sandbox image built on that computer; Ollama
-handles model inference and does not replace the code-execution sandbox.
+Cleaning defaults are now:
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `BIFLOW_CLEANING_MAX_TURNS` | 12 | Maximum model decisions, not a target action count |
+| `BIFLOW_CLEANING_MAX_SECONDS` | 300 | Cleaning time budget, checked before requests, tools and commits |
+| `BIFLOW_OLLAMA_TIMEOUT` | 90 | Per-model-request wall limit, also bounded by remaining run time |
+| `BIFLOW_OLLAMA_NUM_CTX` | 8192 | Local model context allocation |
+| `BIFLOW_OLLAMA_NUM_PREDICT` | 1024 | Maximum generated tokens per response |
+
+The previous 25-turn default was a manually chosen safety cap. The agent can
+finish much earlier, and one turn can execute multiple tools. Lowering that cap
+bounds exploration; it does not speed up one inference request. Context and output
+budgets, compact evidence, short explanations, avoiding repeated inspections and
+batching independent operations address inference cost. The model is kept warm
+for 15 minutes between requests.
+
+The Data Quality page has a **Local model speed and run limits** panel. It exposes
+the model-turn and run-time budgets, shows local inference settings, and explains
+`ollama ps`. Its PROCESSOR column reveals whether the model is using GPU, CPU, or
+both. With limited VRAM, increasing context may cause memory pressure/offloading;
+see the [official Ollama FAQ](https://github.com/ollama/ollama/blob/main/docs/faq.mdx).
+No actual speedup on a particular computer is guaranteed by changing defaults.
+
+While waiting for a model response, the UI updates elapsed time every second.
+The saved trace separates request time, model loading, prompt evaluation,
+generation, tokens per second, and tool execution. A request that exceeds its wall
+budget is abandoned and cannot trigger a later tool execution; its HTTP worker
+also has a matching socket timeout. An already-running sandbox invocation can take
+up to its own 60-second limit to return, but an expired cleaning budget prevents
+promotion/commit and starting further trials. Initial profiling, when needed, is
+a separate step with its own provider settings.
+
+For a faster registered-tool baseline, uncheck sandbox experimentation. Keep it
+enabled when evaluating generated methods; validation and isolation checks apply
+in both modes.
 
 ## Agent roadmap and feature availability
 
