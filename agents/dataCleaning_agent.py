@@ -122,14 +122,14 @@ def _tool_generation_failed(error) -> bool:
     return isinstance(detail, dict) and detail.get("code") == "tool_use_failed"
 
 
-def _request_context(messages, state):
+def _request_context(messages, state, *, tools=None, reserved_chars=0):
     """Retain complete recent exchanges and a factual summary of older actions."""
     groups = []
     for message in messages[2:]:
         if message["role"] == "assistant" or not groups:
             groups.append([])
         groups[-1].append(message)
-    char_budget = max(6000, (positive_setting("BIFLOW_OLLAMA_NUM_CTX", 8192, integer=True) - positive_setting("BIFLOW_OLLAMA_NUM_PREDICT", 1024, integer=True)) * 3 - len(json.dumps(TOOL_SCHEMAS)))
+    char_budget = max(1000, (positive_setting("BIFLOW_OLLAMA_NUM_CTX", 8192, integer=True) - positive_setting("BIFLOW_OLLAMA_NUM_PREDICT", 1024, integer=True)) * 3 - len(json.dumps(tools if tools is not None else TOOL_SCHEMAS)) - reserved_chars)
     if len(groups) <= 4 and len(json.dumps(messages)) <= char_budget:
         return messages
     summary = {
@@ -291,14 +291,17 @@ class DataCleaningAgent:
                     remaining = state.deadline - time.monotonic()
                     if remaining <= 0:
                         raise TimeoutError("Cleaning run budget expired")
-                    response = chat_with_tools(
-                        _request_context(messages, state) + [{"role": "user", "content": workflow.stage_context(state)}, {"role": "user", "content": (
+                    stage_messages = [{"role": "user", "content": workflow.stage_context(state)}, {"role": "user", "content": (
                             "Authoritative progress measured on the current working dataset: "
-                            + json.dumps(executor.progress())
+                            + json.dumps(executor.progress(include_suggestions=False))
                             + f". Turn {turn}/{self.max_turns}. Work on pending requirements; do not reconvert completed columns. "
-                            "Use test_method for a candidate, review_candidate for measured evaluation, then apply_candidate. Group related columns in one generated method when appropriate. "
+                            "Use test_method, then review_candidate with decision apply or revise. An apply decision runs full-data checks before committing. "
                             "If a strategy is ambiguous, finish with explicit unresolved items instead of repeating completed work."
-                        )}], workflow.schemas(state), model=self.model, temperature=0.1,
+                        )}]
+                    stage_tools = workflow.schemas(state)
+                    response = chat_with_tools(
+                        _request_context(messages, state, tools=stage_tools, reserved_chars=len(json.dumps(stage_messages))) + stage_messages,
+                        stage_tools, model=self.model, temperature=0.1,
                         on_provider_event=state.on_event, timeout=remaining,
                     )
                     for error in state.provider_errors:
@@ -396,6 +399,7 @@ class DataCleaningAgent:
             empty_responses = 0
 
             finish_args = None
+            recovery_messages = []
             for tc in tool_calls:
                 if finish_args is not None:
                     messages.append({"role": "tool", "tool_call_id": tc["id"],
@@ -447,21 +451,21 @@ class DataCleaningAgent:
                     }
                 )
                 if tool_result.get("revision_feedback"):
-                    messages.append({"role": "user", "content": (
+                    recovery_messages.append({"role": "user", "content": (
                         "Data/method error returned to you for reconsideration. "
                         + json.dumps(tool_result["revision_feedback"], default=str)
                     )})
                 if name == "experiment_cleaning_method" and tool_result.get("error") == TRANSFORM_SIGNATURE_ERROR:
                     transform_signature_failures += 1
                     if transform_signature_failures == 1:
-                        messages.append({"role": "user", "content": (
+                        recovery_messages.append({"role": "user", "content": (
                             "The experiment was rejected before execution because its function "
                             "signature is invalid. Define exactly one top-level `def transform(df):` "
                             "function that returns the DataFrame. Your function must not be named "
                             "`clean_data`. Correct the name and make one corrected experiment attempt."
                         )})
                     else:
-                        messages.append({"role": "user", "content": (
+                        recovery_messages.append({"role": "user", "content": (
                             "The corrected experiment was also rejected for its function signature. "
                             "Do not call experiment_cleaning_method again. Use suitable registered "
                             "cleaning tools for the remaining issues, or call finish with explicit "
@@ -469,6 +473,9 @@ class DataCleaningAgent:
                         )})
                 if name == "finish":
                     finish_args = args
+            # Complete every response in an assistant tool batch before asking
+            # the model to reconsider errors; providers require matched history.
+            messages.extend(recovery_messages)
             if finish_args is not None:
                 validation_ok = state.validation is not None and state.validation.all_passed
                 blocked = bool(finish_args.get("unresolved") or state.pending_approvals or state.unresolved)

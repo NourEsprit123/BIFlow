@@ -6,6 +6,7 @@ Neither a successful trial nor the model's review can commit working data.
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path
 from uuid import uuid4
 
@@ -25,10 +26,18 @@ CATALOG = {
 }
 PARAMETERS = {
     "trim_whitespace": {"columns": ["column_name"]},
-    "normalize_values": {"column": "column_name", "mapping": {"old": "new"}, "case": "lower|upper|title", "strip_whitespace": True},
-    "convert_data_types": {"column": "column_name", "target_type": "numeric|float|integer|boolean|datetime|string", "errors": "raise|coerce|ignore", "date_format": "optional"},
-    "clean_numeric_string": {"column": "column_name", "errors": "raise|coerce|ignore"},
-    "handle_missing_values": {"columns": ["column_name"], "strategy": "fill_constant|fill_mean|fill_median|fill_mode", "fill_value": "only for fill_constant"},
+    "normalize_values": {"column": "column_name", "mapping": {"old": "new"}},
+    "convert_data_types": {"target_type": "boolean", "errors": "raise"},
+    "clean_numeric_string": {"errors": "raise"},
+    "handle_missing_values": {"columns": ["column_name"], "strategy": "fill_median"},
+}
+OPTIONS = {
+    "normalize_values": {"case": ["lower", "upper", "title"], "strip_whitespace": "boolean"},
+    "convert_data_types": {"target_type": ["numeric", "float", "integer", "boolean", "datetime", "string"],
+                           "errors": ["raise", "coerce", "ignore"], "date_format": "optional strptime format"},
+    "clean_numeric_string": {"errors": ["raise", "coerce", "ignore"]},
+    "handle_missing_values": {"strategy": ["fill_constant", "fill_mean", "fill_median", "fill_mode"],
+                              "fill_value": "explicit value required for fill_constant; business justification required"},
 }
 
 
@@ -49,14 +58,14 @@ WORKFLOW_SCHEMAS = [
     tool("inspect_data", "Read evidence from the current working data; never changes data.",
          {"view": {"enum": ["schema", "column", "patterns", "duplicates"]}, "column": STRING}, ["view"]),
     tool("test_method", "Propose a hypothesis and test a builtin or generated method on copies. Does not apply changes.", {
-        "issue_ids": {**STRINGS, "minItems": 1}, "hypothesis": STRING, "assumptions": STRINGS,
+        "issue_ids": {**STRINGS, "minItems": 1, "description": "Existing issue IDs from the ledger. May be omitted only when each affected column has exactly one pending issue; BIFlow records that unambiguous binding."}, "hypothesis": STRING, "assumptions": STRINGS,
         "rationale": STRING, "expected_effect": STRING, "evidence_ids": {**STRINGS, "minItems": 1},
         "columns": {**STRINGS, "minItems": 1}, "kind": {"enum": ["builtin", "generated"]},
         "operation": {"enum": list(CATALOG)}, "parameters": {"type": "object"},
         "code": {"type": "string", "maxLength": 8000}, "checks": CHECKS,
-    }, ["issue_ids", "hypothesis", "assumptions", "rationale", "expected_effect", "evidence_ids", "columns", "kind", "checks"]),
-    tool("review_candidate", "Evaluate actual trial results. Accept only a passing candidate, or explain a concrete revision.", {
-        "candidate_id": STRING, "decision": {"enum": ["accept", "revise"]},
+    }, ["hypothesis", "columns", "checks"]),
+    tool("review_candidate", "Evaluate actual trial results. Choose apply to review AND run full-data checks before committing, or revise with a concrete change.", {
+        "candidate_id": STRING, "decision": {"enum": ["apply", "accept", "revise"]},
         "assessment": STRING, "next_change": {"type": "string"}}, ["candidate_id", "decision", "assessment"]),
     tool("apply_candidate", "Apply an accepted, tested, unchanged candidate after full-data checks.",
          {"candidate_id": STRING}, ["candidate_id"]),
@@ -83,8 +92,17 @@ def initialize(state, report):
             "evidence_ids": [f"profile:{column}"], "status": "pending", "failed_trials": 0}
     for column, profile in report.column_profiles.items():
         for number, issue in enumerate(profile.issues):
+            # These are the same obligations already tracked above, not separate
+            # tasks that remain pending after the measured problem is fixed.
+            canonical = ({"missing_values": f"missing:{column}", "type_mismatch": f"type:{column}"}).get(issue.issue_id)
+            evidence_id = f"profile:{column}:{issue.issue_id}:{number}"
+            state.evidence.setdefault(evidence_id, {"source": issue.source, "column": column,
+                                      "description": issue.description, "evidence": issue.evidence})
+            if canonical in state.issues:
+                state.issues[canonical]["evidence_ids"].append(evidence_id)
+                continue
             state.issues[f"finding:{column}:{number}"] = {"column": column, "kind": "finding",
-                "description": issue.description, "evidence_ids": [f"profile:{column}:{issue.issue_id}:{number}"],
+                "description": issue.description, "evidence_ids": [evidence_id],
                 "status": "pending", "failed_trials": 0}
     # ETL hints can refer to columns absent from column_profiles.
     for column in state.required_targets:
@@ -108,7 +126,7 @@ def stage_context(state):
     candidates = {key: {"tested": c["tested"], "kind": c["kind"], "issue_ids": c["issue_ids"],
                         "review": c.get("review"), "base_version": c["base_version"]}
                   for key, c in state.method_candidates.items()}
-    catalog = "\nBuiltin method catalog and parameter shapes (replace example placeholders; optional parameters may be omitted):\n" + json.dumps({k: {"purpose": CATALOG[k], "parameters": PARAMETERS[k]} for k in CATALOG}) if state.workflow_stage in {"understand", "propose", "revise"} else ""
+    catalog = "\nBuiltin catalog: replace column_name with a real column; examples are valid parameter objects. Options are separate lists of choices, not literal argument strings:\n" + json.dumps({k: {"purpose": CATALOG[k], "example_parameters": PARAMETERS[k], "options": OPTIONS.get(k, {})} for k in CATALOG}) if state.workflow_stage in {"understand", "propose", "revise"} else ""
     return (prompt + "\nIssue ledger (profiling recommendations require critical assessment):\n" + json.dumps(state.issues)
             + "\nCandidate ledger:\n" + json.dumps(candidates) + catalog)
 
@@ -122,7 +140,13 @@ def schemas(state):
         "apply": {"inspect_data", "apply_candidate", "review_candidate", "request_review", "finish"},
         "conclude": {"finish", "request_review"},
     }[state.workflow_stage]
-    return [t for t in WORKFLOW_SCHEMAS if t["function"]["name"] in allowed]
+    visible = deepcopy([t for t in WORKFLOW_SCHEMAS if t["function"]["name"] in allowed])
+    for entry in visible:
+        if entry["function"]["name"] == "review_candidate":
+            # 'accept' remains an internal compatibility action; the live model
+            # can commit its reviewed candidate with one explicit apply decision.
+            entry["function"]["parameters"]["properties"]["decision"]["enum"] = ["apply", "revise"]
+    return visible
 
 
 def revision_feedback(state, name, args, result):
@@ -134,7 +158,7 @@ def revision_feedback(state, name, args, result):
     details = result.get("details") if isinstance(result.get("details"), dict) else {}
     effect = result.get("effect") or details.get("full_data_effect") or {}
     failed_rules = effect.get("rules", []) or result.get("rules", []) or (result.get("validation") or {}).get("rules", [])
-    return {
+    feedback = {
         "stage": "revise", "tool": name, "arguments": args,
         "error": result.get("error") or result.get("message") or "Candidate checks failed",
         "failed_checks": [r for r in failed_rules if not r["passed"]],
@@ -143,6 +167,22 @@ def revision_feedback(state, name, args, result):
                    for t in result.get("trials", []) if not t.get("success")],
         "prompt": "The last attempt did not establish a successful repair. Distinguish invalid arguments, incompatible data, failed expectations, and unavailable runtime. Explain a changed hypothesis or concrete method revision using this evidence. Inspect unresolved values if necessary. If builtin semantics cannot address the data, test a generated transform(df) in Docker. Do not repeat the unchanged attempt or invent business meaning. Request review when ambiguous; report runtime failures honestly.",
     }
+    if result.get("error_kind") == "invalid_tool_arguments":
+        feedback.update({"error_kind": "invalid_tool_arguments", "argument_errors": result.get("argument_errors", []),
+                         "eligible_issues": result.get("eligible_issues", {}),
+                         "prompt": "The call was rejected BEFORE testing; no method ran and no data changed. Repair only the listed argument errors using the required field schemas and eligible issue IDs below. Preserve the proposed method unless an argument itself is invalid. Do not switch to Docker or redesign the cleaning method merely to repair call formatting. Never repeat the same invalid arguments. If issue binding is ambiguous, explicitly choose the issue IDs your hypothesis addresses."})
+    return feedback
+
+
+def eligible_issues(state, columns):
+    return {key: {"column": issue["column"], "kind": issue["kind"], "evidence_ids": issue.get("evidence_ids", [])}
+            for key, issue in state.issues.items()
+            if issue["status"] == "pending" and (not columns or issue["column"] in columns)}
+
+
+def argument_failure(state, args, message, errors):
+    return {"success": False, "error_kind": "invalid_tool_arguments", "error": message,
+            "argument_errors": errors, "eligible_issues": eligible_issues(state, args.get("columns", []))}
 
 
 def dispatch(executor, name, args):
@@ -150,7 +190,11 @@ def dispatch(executor, name, args):
     schema = next(t["function"]["parameters"] for t in WORKFLOW_SCHEMAS if t["function"]["name"] == name)
     errors = list(Draft202012Validator(schema).iter_errors(args))
     if errors:
-        raise ValueError("; ".join(e.message for e in errors))
+        return argument_failure(state, args, "; ".join(e.message for e in errors), [
+            {"path": list(e.absolute_path), "message": e.message,
+             "required_fields": e.schema.get("required", []),
+             "field_schemas": {key: e.schema.get("properties", {}).get(key) for key in e.schema.get("required", [])}}
+            for e in errors])
     if name == "inspect_data":
         handlers = {"schema": executor._inspect_schema, "column": executor._inspect_column,
                     "patterns": executor._check_value_patterns, "duplicates": executor._inspect_duplicates}
@@ -164,13 +208,15 @@ def dispatch(executor, name, args):
         if candidate is None:
             raise ValueError("Unknown candidate ID; test_method must produce the candidate first")
         if name == "review_candidate":
-            if args["decision"] == "accept" and not candidate["tested"]:
+            if args["decision"] in {"accept", "apply"} and not candidate["tested"]:
                 raise ValueError("Failed trials cannot be accepted. Revise using measured failures.")
             if args["decision"] == "revise" and not args.get("next_change", "").strip():
                 raise ValueError("A revision must state a concrete next_change")
             candidate["review"] = dict(args)
             state.decisions.append({**args, "stage": "evaluate"})
-            state.workflow_stage = "apply" if args["decision"] == "accept" else "revise"
+            state.workflow_stage = "apply" if args["decision"] in {"accept", "apply"} else "revise"
+            if args["decision"] == "apply":
+                return {**apply_candidate(executor, candidate), "decision": "apply", "assessment": args["assessment"]}
             return {"success": True, "candidate_id": args["candidate_id"], "decision": args["decision"]}
         return apply_candidate(executor, candidate)
     for key in args["issue_ids"]:
@@ -187,6 +233,33 @@ def dispatch(executor, name, args):
 
 def test_method(executor, args):
     state = executor.state
+    args = dict(args)
+    defaults = {}
+    for key, value in {"kind": "generated" if args.get("code") else "builtin",
+                       "assumptions": [], "rationale": args["hypothesis"],
+                       "expected_effect": "Checks must pass: " + ", ".join(f"{c['column']}:{c['kind']}" for c in args["checks"])}.items():
+        if key not in args:
+            args[key] = value
+            defaults[key] = "derived from proposal" if key in {"rationale", "expected_effect"} else "default"
+    if "evidence_ids" not in args:
+        args["evidence_ids"] = [key for key, item in state.evidence.items()
+                                if item.get("column") in args["columns"]
+                                or item.get("arguments", {}).get("column") in args["columns"]]
+        defaults["evidence_ids"] = "existing observations for affected columns"
+    if not args["evidence_ids"]:
+        raise ValueError("No supporting evidence exists for these columns. Inspect them first.")
+    binding = "explicit"
+    if "issue_ids" not in args:
+        eligible = eligible_issues(state, args["columns"])
+        by_column = {column: [key for key, issue in eligible.items() if issue["column"] == column]
+                     for column in args["columns"]}
+        if any(len(keys) != 1 for keys in by_column.values()):
+            return argument_failure(state, args,
+                "issue_ids must be explicit: an affected column has zero or multiple pending issues.",
+                [{"path": ["issue_ids"], "message": "Choose existing issue IDs matching the hypothesis; binding is ambiguous.",
+                  "field_schema": {**STRINGS, "minItems": 1}}])
+        args = {**args, "issue_ids": [keys[0] for keys in by_column.values()]}
+        binding = "inferred_from_unique_pending_issue_per_column"
     for key in args["issue_ids"]:
         if key not in state.issues:
             raise ValueError(f"Unknown issue ID: {key}")
@@ -221,11 +294,19 @@ def test_method(executor, args):
         if operation == "convert_data_types" and "target_type" in parameters:
             parameters["target_type"] = canonical_type(parameters["target_type"])
         from .tool_registry import TOOL_SCHEMAS
-        schema = next(t["function"]["parameters"] for t in TOOL_SCHEMAS if t["function"]["name"] == operation)
+        schema = deepcopy(next(t["function"]["parameters"] for t in TOOL_SCHEMAS if t["function"]["name"] == operation))
+        if operation in {"convert_data_types", "clean_numeric_string", "normalize_values"} and "column" not in parameters:
+            parameters.setdefault("columns", args["columns"])
+            schema["properties"]["columns"] = {**STRINGS, "minItems": 1}
+            schema["required"] = ["columns" if key == "column" else key for key in schema["required"]]
+        if operation in {"trim_whitespace", "handle_missing_values"}:
+            parameters.setdefault("columns", args["columns"])
         full_args = {**parameters, "rationale": args["rationale"], "evidence_ids": args["evidence_ids"]}
         errors = list(Draft202012Validator(schema).iter_errors(full_args))
         if errors:
-            raise ValueError("Invalid builtin parameters: " + "; ".join(e.message for e in errors))
+            return argument_failure(state, args, "Invalid builtin parameters: " + "; ".join(e.message for e in errors), [
+                {"path": ["parameters"] + list(e.absolute_path), "message": e.message,
+                 "example_parameters": PARAMETERS[operation], "allowed_parameters": schema["properties"]} for e in errors])
         touched = parameters.get("columns") or ([parameters["column"]] if "column" in parameters else args["columns"])
         if set(touched) != set(args["columns"]):
             raise ValueError("Method parameters must target exactly the declared columns")
@@ -239,7 +320,7 @@ def test_method(executor, args):
         partitions = [("sample", sample)] + ([("holdout", rest.sample(n=min(200, len(rest)), random_state=73))] if len(rest) else [])
         trials = []
         for partition, before in partitions:
-            outcome = getattr(cleaning, operation)(before.copy(deep=True), **parameters)
+            outcome = run_builtin(before.copy(deep=True), operation, parameters)
             effect = builtin_effect(before, outcome.df, operation, args) if outcome.success and outcome.df is not None else None
             trials.append({"partition": partition, "rows": len(before), "success": bool(effect and effect["accepted"]),
                            "error": outcome.error, "effect": effect})
@@ -248,7 +329,8 @@ def test_method(executor, args):
                   "tested": all(t["success"] for t in trials), "trials": trials,
                   "holdout_available": len(partitions) == 2, "message": "Inspect actual trial results before accepting or revising."}
     candidate = {**args, **result, "base_version": state.current_ref.version,
-                 "dataset_hash": digest(Path(state.current_ref.path).read_bytes()), "fingerprint": fingerprint}
+                 "dataset_hash": digest(Path(state.current_ref.path).read_bytes()), "fingerprint": fingerprint,
+                 "issue_binding": binding, "metadata_defaults": defaults}
     candidate["method_hash"] = method_hash(candidate)
     state.method_candidates[candidate_id] = candidate
     for key in args["issue_ids"]:
@@ -258,6 +340,8 @@ def test_method(executor, args):
                             **{k: args[k] for k in ["issue_ids", "hypothesis", "assumptions", "expected_effect", "evidence_ids"]}})
     state.workflow_stage = "evaluate"
     return {**result, "hypothesis": args["hypothesis"], "assumptions": args["assumptions"],
+            "issue_ids": args["issue_ids"], "issue_binding": binding,
+            "metadata_defaults": defaults,
             "expected_effect": args["expected_effect"], "evidence_ids": args["evidence_ids"]}
 
 
@@ -270,6 +354,23 @@ def builtin_effect(before, after, operation, args):
     return effect
 
 
+def run_builtin(frame, operation, parameters):
+    """Broadcast a trusted column operation atomically across selected columns."""
+    parameters = dict(parameters)
+    if operation in {"convert_data_types", "clean_numeric_string", "normalize_values"} and "columns" in parameters:
+        columns = parameters.pop("columns")
+        current, affected = frame.copy(deep=True), 0
+        for column in columns:
+            result = getattr(cleaning, operation)(current, column=column, **parameters)
+            if not result.success:
+                result.error = f"{operation} failed on column {column}: {result.error or result.message}"
+                return result  # No intermediate frame is committed.
+            current, affected = result.df, affected + result.affected_rows
+        return cleaning.CleaningResult(True, df=current, affected_rows=affected,
+                                       message=f"Tested {operation} across {len(columns)} columns")
+    return getattr(cleaning, operation)(frame, **parameters)
+
+
 def method_hash(candidate):
     return digest(json.dumps({k: candidate.get(k) for k in ["kind", "columns", "operation", "parameters", "code", "checks"]}, sort_keys=True).encode())
 
@@ -280,18 +381,19 @@ def apply_candidate(executor, candidate):
         raise ValueError("Issue reached three failed trials. Request review or finish unresolved.")
     if any(i["column"] in candidate["columns"] and i["status"] == "awaiting_review" for i in state.issues.values()):
         raise ValueError("An affected column is awaiting human review")
-    if not candidate["tested"] or candidate.get("review", {}).get("decision") != "accept":
+    if not candidate["tested"] or candidate.get("review", {}).get("decision") not in {"accept", "apply"}:
         raise ValueError("A candidate must pass trials and receive an explicit review before application")
     if candidate["method_hash"] != method_hash(candidate):
         raise ValueError("Candidate method or checks changed after testing; test again")
     if candidate["base_version"] != state.current_ref.version or candidate["dataset_hash"] != digest(Path(state.current_ref.path).read_bytes()):
         raise ValueError("Working data changed since testing. Test again on the current version.")
+    before = state.manager.load(state.current_ref)
     if candidate["kind"] == "generated":
         result = executor._apply_experimental_method({"candidate_id": candidate["candidate_id"]})
     else:
         operation = candidate["operation"]
         def full(frame, **parameters):
-            outcome = getattr(cleaning, operation)(frame, **parameters)
+            outcome = run_builtin(frame, operation, parameters)
             if outcome.success and outcome.df is not None:
                 effect = builtin_effect(frame, outcome.df, operation, candidate)
                 if not effect["accepted"]:
@@ -313,7 +415,20 @@ def apply_candidate(executor, candidate):
                     state.issues[key]["failed_trials"] += 1
         for key in candidate["issue_ids"]:
             if state.issues[key]["kind"] == "finding" and not result.get("no_op"):
-                state.issues[key]["status"] = "resolved"
+                # Changing any value is not proof that an arbitrary finding was
+                # fixed. Require a declared column postcondition to improve.
+                after = state.manager.load(state.current_ref)
+                column = state.issues[key]["column"]
+                checks = [c for c in candidate["checks"] if c["column"] == column]
+                old = assess_method(before, before, candidate["columns"], checks)
+                new = assess_method(after, after, candidate["columns"], checks)
+                old_rules = {r["rule_name"]: r["passed"] for r in old["rules"] if r["rule_name"].startswith("expected:")}
+                improved = any(r["passed"] and not old_rules.get(r["rule_name"], True)
+                               for r in new["rules"] if r["rule_name"].startswith("expected:"))
+                if improved:
+                    state.issues[key]["status"] = "resolved"
+                else:
+                    state.issues[key]["resolution_note"] = "Data changed, but no declared check demonstrated this finding was fixed. Inspect or request review."
         refresh(state)
         for previous in state.method_candidates.values():
             if previous.get("failed_action_key") and all(state.issues[k]["status"] == "resolved" for k in previous["issue_ids"]):

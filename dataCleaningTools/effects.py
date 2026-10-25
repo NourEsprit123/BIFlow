@@ -27,6 +27,10 @@ def target_matches(series: pd.Series, target: str) -> bool:
               "categorical": "string", "datetime64[ns]": "datetime"}.get(target, target)
     values = series[present(series)]
     if target in ("numeric", "integer", "float", "float64", "int", "int64"):
+        # Parseable text is not an already completed numeric conversion. CSV
+        # supports numeric dtypes, unlike categorical/datetime metadata.
+        if not pd.api.types.is_numeric_dtype(series.dtype) or pd.api.types.is_bool_dtype(series.dtype):
+            return False
         numbers = pd.to_numeric(values, errors="coerce")
         return bool(numbers.notna().all() and (
             target not in ("integer", "int", "int64") or numbers.mod(1).eq(0).all()
@@ -34,7 +38,8 @@ def target_matches(series: pd.Series, target: str) -> bool:
     if target in ("datetime", "date"):
         return bool(pd.to_datetime(values, errors="coerce", format="mixed").notna().all())
     if target in ("boolean", "bool"):
-        return bool(values.astype(str).str.lower().isin(["true", "false", "1", "0"]).all())
+        return bool(pd.api.types.is_bool_dtype(series.dtype) or (
+            not values.empty and values.map(lambda value: pd.api.types.is_bool_dtype(type(value))).all()))
     return target == "string"
 
 

@@ -73,6 +73,42 @@ def test_small_interface_and_stage_prompts(staged):
     assert state.current_ref.version == "V1"
 
 
+def test_missing_issue_ids_are_bound_only_when_unambiguous(staged):
+    state, executor, _ = staged
+    args = proposal()
+    del args["issue_ids"]
+    result = call(executor, "test_method", **args)
+    assert "candidate_id" in result
+    assert state.method_candidates[result["candidate_id"]]["issue_ids"] == ["type:Revenue"]
+    assert result["issue_binding"] == "inferred_from_unique_pending_issue_per_column"
+    assert "issue_ids" not in state.events[-1]["arguments"]
+    assert state.current_ref.version == "V1"
+
+
+def test_ambiguous_binding_requires_explicit_issue_selection(staged):
+    state, executor, _ = staged
+    state.issues["missing:Revenue"] = {"column": "Revenue", "kind": "missing", "status": "pending", "failed_trials": 0}
+    args = proposal()
+    del args["issue_ids"]
+    result = call(executor, "test_method", **args)
+    assert result["error_kind"] == "invalid_tool_arguments"
+    assert set(result["eligible_issues"]) == {"type:Revenue", "missing:Revenue"}
+    assert "BEFORE testing" in result["revision_feedback"]["prompt"]
+    assert not state.method_candidates
+    assert "candidate_id" in call(executor, "test_method", **{**args, "issue_ids": ["type:Revenue"]})
+
+
+def test_other_missing_fields_return_field_level_repair(staged):
+    state, executor, _ = staged
+    args = proposal()
+    del args["checks"]
+    result = call(executor, "test_method", **args)
+    assert result["error_kind"] == "invalid_tool_arguments"
+    assert "checks" in result["revision_feedback"]["argument_errors"][0]["field_schemas"]
+    assert not state.method_candidates
+    assert state.issues["type:Revenue"]["failed_trials"] == 0
+
+
 def test_failed_builtin_is_evidence_for_a_generated_revision(staged, monkeypatch):
     state, executor, _ = staged
     original = Path(state.source_ref.path).read_bytes()
@@ -197,6 +233,41 @@ def test_noop_cannot_resolve_an_unverified_profiling_finding(staged):
     assert result["no_op"] and result["revision_feedback"]
     assert state.issues["finding:Revenue:0"]["status"] == "pending"
     assert not result["validation"]["success"] and state.current_ref.version == "V1"
+
+
+def test_unrelated_change_is_not_proof_of_resolving_a_finding(staged):
+    state, executor, _ = staged
+    state.required_targets.clear()
+    state.issues = {"finding:Revenue:0": {"column": "Revenue", "kind": "finding", "status": "pending", "failed_trials": 0}}
+    candidate = call(executor, "test_method", **proposal(
+        issue_ids=["finding:Revenue:0"], operation="normalize_values",
+        parameters={"column": "Revenue", "mapping": {"$10": "$010"}},
+        checks=[{"column": "Revenue", "kind": "string"}]))
+    assert candidate["tested"]
+    result = call(executor, "review_candidate", candidate_id=candidate["candidate_id"], decision="apply",
+                  assessment="Spelling changed, but the string check was already passing")
+    assert result["success"] and not result["validation"]["success"]
+    assert state.issues["finding:Revenue:0"]["status"] == "pending"
+    assert "no declared check" in state.issues["finding:Revenue:0"]["resolution_note"]
+
+
+def test_batched_builtin_failure_never_applies_partial_columns(staged):
+    state, executor, _ = staged
+    frame = state.manager.load(state.current_ref)
+    frame["Revenue"] = ["Yes", "No", "Yes", "No"]
+    frame["name"] = ["Yes", "Maybe", "No", "Yes"]
+    frame.to_csv(state.current_ref.path, index=False)
+    state.required_targets = {"Revenue": "boolean", "name": "boolean"}
+    state.issues = {f"type:{c}": {"column": c, "kind": "type", "target": "boolean", "status": "pending", "failed_trials": 0}
+                    for c in frame.columns}
+    before = Path(state.current_ref.path).read_bytes()
+    candidate = call(executor, "test_method", **proposal(
+        issue_ids=["type:Revenue", "type:name"], columns=["Revenue", "name"],
+        parameters={"target_type": "boolean", "errors": "raise"},
+        checks=[{"column": c, "kind": "boolean"} for c in frame.columns]))
+    assert not candidate["tested"] and candidate["revision_feedback"]
+    assert any("column name" in (trial.get("error") or "") for trial in candidate["trials"])
+    assert state.current_ref.version == "V1" and Path(state.current_ref.path).read_bytes() == before
 
 
 def test_llm_receives_explicit_error_prompt_and_revises_to_sandbox(staged, tmp_path, monkeypatch):

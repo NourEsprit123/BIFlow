@@ -6,13 +6,19 @@ revise, apply and conclude stages. Stage prompts live in
 model-facing interface. Legacy tools remain internal for trusted execution and
 the explicit deterministic baseline.
 
-The six visible tools are `inspect_data`, `test_method`, `review_candidate`,
-`apply_candidate`, `request_review`, and `finish`. Only the tools relevant to
+The normal model-facing path uses `inspect_data`, `test_method`,
+`review_candidate`, `request_review`, and `finish`. Reviewing with decision
+`apply` runs full-data checks and commits only if accepted, without a second
+application turn. The separate `apply_candidate` path remains for compatibility
+with explicitly accepted candidates. Only the tools relevant to
 the current stage are sent to Ollama. Builtin methods are described by a compact
 catalog, including their parameter shapes.
 
-Every proposal names issue IDs, evidence, a hypothesis, assumptions, expected
-effects, affected columns, and outcome checks. Builtins run on independent data
+The required proposal fields are `hypothesis`, `columns` and `checks`, plus
+a builtin operation/parameters or generated code. Omitted kind, rationale,
+expected-effect text and evidence references are derived from the proposal and
+existing observations, and recorded as metadata defaults. No business assumptions
+are invented. Explicit assumptions and issue IDs can still be supplied. Builtins run on independent data
 copies; generated `transform(df)` functions run only inside the existing isolated
 Docker runner. Both paths report disjoint sample/holdout effects and preserve the
 working version during trials. A one-row dataset explicitly lacks a holdout.
@@ -27,7 +33,8 @@ Data errors, invalid requests, failed trials, full-data failures and no-op
 transformations produce a `revision_feedback` object in the trace and an explicit
 user-role prompt in the next model context. This includes measured failures and
 asks for a concrete changed method or further inspection. It never executes a
-suggested repair automatically. Model HTTP failures remain provider failures,
+suggested repair automatically. Argument errors use a distinct field-repair prompt; they do not ask the model
+to redesign a method that never ran. Model HTTP failures remain provider failures,
 with the existing bounded formatting retry; they are not disguised as data errors.
 
 Each issue permits three failed trials/full-data attempts within the existing
@@ -53,3 +60,7 @@ revision, explicit error prompts, mandatory review, full-data rejection,
 immutability, issue budgets and review blocking. Docker and Ollama are mocked;
 these tests establish control-loop correctness, not live model reliability or
 real container availability. Live local-model evaluation remains a separate step.
+
+Issue binding: test_method may omit issue_ids only when each selected column has exactly one pending issue. The inferred binding is recorded alongside the original arguments. Ambiguous bindings require explicit selection. Invalid envelopes return field-level errors, required field schemas and eligible issue IDs, with a dedicated argument-repair prompt. They do not run methods or consume data-trial budgets.
+
+A builtin column operation may broadcast the same parameters to all declared columns. Trials and full application are atomic: one failing column prevents partial application. Parseable numeric or boolean text no longer counts as a completed persisted conversion. Generic findings require a demonstrated failing-to-passing postcondition, not just any value change.

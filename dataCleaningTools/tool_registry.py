@@ -285,22 +285,24 @@ class ToolExecutor:
     def __init__(self, state: AgentSessionState):
         self.state = state
 
-    def progress(self):
+    def progress(self, include_suggestions=True):
         """Measure outstanding requirements against the persisted working data."""
         frame = self.state.manager.load(self.state.current_ref)
         targets = {c: canonical_type(t) for c, t in self.state.required_targets.items()}
         pending_types = {c: t for c, t in targets.items()
                          if c not in frame or not target_matches(frame[c], t)}
-        return {
+        progress = {
             "version": self.state.current_ref.version,
             "pending_types": pending_types,
-            "suggested_type_calls": [self.type_call(c, t) for c, t in pending_types.items() if c in frame][:8],
             "completed_types": [c for c, t in targets.items()
                                 if c in frame and target_matches(frame[c], t)],
             "pending_missing": {c: int((~present(frame[c])).sum()) if c in frame else "column absent"
                                 for c in self.state.required_missing
                                 if c not in frame or not present(frame[c]).all()},
         }
+        if include_suggestions:
+            progress["suggested_type_calls"] = [self.type_call(c, t) for c, t in pending_types.items() if c in frame][:8]
+        return progress
 
     def type_call(self, column, target):
         evidence = [key for key, item in self.state.evidence.items()
@@ -476,7 +478,8 @@ class ToolExecutor:
                 and before.astype("string").equals(result.df.astype("string"))))
             if same_values:
                 if name in ("convert_data_types", "clean_numeric_string"):
-                    self.state.required_targets.setdefault(function_arguments["column"], function_arguments.get("target_type", "numeric"))
+                    for column in ([function_arguments["column"]] if "column" in function_arguments else selected):
+                        self.state.required_targets.setdefault(column, function_arguments.get("target_type", "numeric"))
                 return {**result.to_dict(), "success": True, "accepted": True,
                         "no_op": True, "effect": assessment, "evidence_ids": evidence_ids,
                         "rationale": rationale, "version": self.state.current_ref.version,
@@ -497,7 +500,8 @@ class ToolExecutor:
                     self.state.required_targets.pop(column, None)
                     self.state.required_missing = [c for c in self.state.required_missing if c != column]
             if name in ("convert_data_types", "clean_numeric_string"):
-                self.state.required_targets.setdefault(function_arguments["column"], function_arguments.get("target_type", "numeric"))
+                for column in ([function_arguments["column"]] if "column" in function_arguments else selected):
+                    self.state.required_targets.setdefault(column, function_arguments.get("target_type", "numeric"))
         else:
             self.state.failed_actions[action_key] = f"Rejected {name} on {selected}: {error or result.message}"
             record = self.state.manager.record_rejected(
