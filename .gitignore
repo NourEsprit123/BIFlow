@@ -70,9 +70,11 @@ data/processed/
 data/reports/
 
 # Fichiers de sortie et rapports des agents (Sandboxes)
+sandbox/data_input/*
+!sandbox/data_input/.gitkeep
 sandbox/reports_output/*
-sandbox_xai/reports_output/*
 !sandbox/reports_output/.gitkeep
+sandbox_xai/reports_output/*
 !sandbox_xai/reports_output/.gitkeep
 
 # Logs de transformation générés
