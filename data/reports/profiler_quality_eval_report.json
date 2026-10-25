@@ -1,0 +1,14 @@
+{
+  "benchmark_file": "data/raw/benchmark_eval_dataset.csv",
+  "rows_tested": 200,
+  "columns_tested": 7,
+  "metrics": {
+    "profiler_role_accuracy": 100.0,
+    "dirty_types_recall": 100.0,
+    "masked_missing_coverage": 100.0,
+    "cross_column_integrity_recall": 100.0,
+    "overall_health_score_calculated": 88.5
+  },
+  "composite_score_pqas": 100.0,
+  "status": "EXCELLENT"
+}

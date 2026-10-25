@@ -70,22 +70,73 @@ else:
 # ── Sidebar AI Provider Configuration ─────────────────────────────────────────
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🤖 BI Agent Engine")
-custom_groq_key = st.sidebar.text_input(
-    "Groq API Key (Optional)",
-    value=os.environ.get("GROQ_API_KEY", "") or st.session_state.get("groq_api_key", ""),
-    type="password",
-    help="Enter your Groq key for ultra-fast Llama-3 inference. If left blank, Gemini or smart statistical heuristics are used.",
+
+adapter_exists = (PROJECT_ROOT / "adapter" / "adapter_model.safetensors").exists()
+engine_options = []
+if adapter_exists:
+    engine_options.append("⚡ Local Fine-Tuned (Qwen 2.5 3B LoRA)")
+engine_options.append("☁️ Cloud API (Groq / Gemini)")
+
+if "bi_engine_choice" not in st.session_state:
+    st.session_state["bi_engine_choice"] = engine_options[0]
+
+selected_engine_label = st.sidebar.radio(
+    "Choose Agent Engine",
+    engine_options,
+    index=engine_options.index(st.session_state["bi_engine_choice"]) if st.session_state["bi_engine_choice"] in engine_options else 0,
+    key="sidebar_bi_engine_radio",
+    help="Toggle between Local LoRA (runs 100% offline on your RTX 4050 GPU using compact statistical summaries) and Cloud API (uses prompt engineering with external LLMs)."
 )
-if custom_groq_key:
-    os.environ["GROQ_API_KEY"] = custom_groq_key
-    st.session_state["groq_api_key"] = custom_groq_key
+st.session_state["bi_engine_choice"] = selected_engine_label
+
+is_local = "Local" in selected_engine_label
+chosen_engine = "local_lora" if is_local else "api"
+
+custom_groq_key = ""
+if is_local:
+    st.sidebar.success("🔒 **100% Offline & Private**\n- **Model**: Qwen 2.5-3B (4-bit NF4)\n- **Adapter**: LoRA Fine-Tuned\n- **Prompt**: Compact Dataset Summary\n- **Hardware**: NVIDIA RTX 4050")
+else:
+    st.sidebar.info("☁️ **Cloud API Engine**\n- **Provider**: Groq Llama-3.3 70B / Gemini\n- **Prompt**: Long Prompt Engineering\n- **Internet**: Required")
+    custom_groq_key = st.sidebar.text_input(
+        "Groq API Key (Optional)",
+        value=os.environ.get("GROQ_API_KEY", "") or st.session_state.get("groq_api_key", ""),
+        type="password",
+        help="Enter your Groq key. If blank, Gemini or smart heuristics are used.",
+    )
+    if custom_groq_key:
+        os.environ["GROQ_API_KEY"] = custom_groq_key
+        st.session_state["groq_api_key"] = custom_groq_key
 
 if df is None:
     st.warning("⚠️ Please select an existing dataset or upload one via the sidebar to start the analysis.")
     st.stop()
 
+# ── Main Page Engine Quick-Switcher Tool ──────────────────────────────────────
+st.markdown("### 🔀 BI Agent Engine Switcher")
+col_sw1, col_sw2 = st.columns([1, 1])
+
+with col_sw1:
+    main_engine = st.radio(
+        "Active Engine Mode:",
+        engine_options,
+        index=engine_options.index(st.session_state["bi_engine_choice"]) if st.session_state["bi_engine_choice"] in engine_options else 0,
+        horizontal=True,
+        key="main_page_engine_radio"
+    )
+    if main_engine != st.session_state["bi_engine_choice"]:
+        st.session_state["bi_engine_choice"] = main_engine
+        st.rerun()
+
+with col_sw2:
+    if is_local:
+        st.caption("⚡ **Local LoRA Active**: Zero data leaves your PC. Powered by Qwen 2.5 3B with your fine-tuned LoRA weights on GPU. Uses the specialized **compact dataset summary** prompt.")
+    else:
+        st.caption("☁️ **Cloud API Active**: High-reasoning inference via Groq/Gemini. Uses **comprehensive prompt engineering** with multi-section instructions and JSON schema guidelines.")
+
 # ── 2. Dataset status banner ──────────────────────────────────────────────────
-active_engine = "Groq Llama-3" if (custom_groq_key or os.environ.get("GROQ_API_KEY")) else "Smart BIFlow Engine"
+active_engine_name = "⚡ Local Qwen 2.5-3B (LoRA RTX 4050)" if is_local else ("☁️ Groq Llama-3" if (custom_groq_key or os.environ.get("GROQ_API_KEY")) else "☁️ Gemini / Smart Fallback")
+badge_color = "purple" if is_local else "blue"
+
 html(f'''<div class="bf-card" style="background:linear-gradient(135deg,#eef2ff,#f8faff);
   border:1px solid #c7d2fe;display:flex;gap:1rem;align-items:center;
   margin-bottom:1.5rem;border-radius:16px;padding:1rem 1.25rem;">🗄
@@ -93,28 +144,35 @@ html(f'''<div class="bf-card" style="background:linear-gradient(135deg,#eef2ff,#
   <b style="color:#1e1b4b;">{dataset_name}</b>
   <span style="color:#64748b;">·</span> {df.shape[0]:,} rows
   <span style="color:#64748b;">·</span> {df.shape[1]} columns
-  <span style="margin-left:auto">{badge(f"● {active_engine}", "blue")}</span>
+  <span style="margin-left:auto">{badge(f"● {active_engine_name}", badge_color)}</span>
 </div>''')
 
 # ── 3. AI Agent analysis ──────────────────────────────────────────────────────
-# Use session state so the analysis only re-runs when the dataset changes.
-cache_key = f"bi_cache_{dataset_name}_{df.shape[0]}_{df.shape[1]}_{bool(custom_groq_key)}"
+cache_key = f"bi_cache_{dataset_name}_{df.shape[0]}_{df.shape[1]}_{chosen_engine}_{bool(custom_groq_key)}"
 
 if st.session_state.get("bi_cache_key") != cache_key:
-    with st.spinner(f"🤖 The BI Analyst Agent is analysing '{dataset_name}' and extracting dynamic KPIs…"):
+    spinner_msg = (
+        f"⚡ Running Local Fine-Tuned Qwen 2.5 3B (LoRA) on RTX 4050 for '{dataset_name}'…"
+        if is_local
+        else f"☁️ Querying Cloud API (Groq/Gemini) with Prompt Engineering for '{dataset_name}'…"
+    )
+    with st.spinner(spinner_msg):
         try:
-            agent = BIAnalystAgent(api_key=custom_groq_key or None)
-            full_response = agent.analyze(df)
+            agent = BIAnalystAgent(api_key=custom_groq_key or None, engine=chosen_engine)
+            full_response = agent.analyze(df, dataset_name=dataset_name)
             ai_analysis_report, chart_config = agent.parse_response(full_response)
+            telemetry = agent.get_telemetry()
 
-            st.session_state["bi_cache_key"]     = cache_key
-            st.session_state["current_bi_report"]      = ai_analysis_report
-            st.session_state["current_chart_config"]   = chart_config
+            st.session_state["bi_cache_key"]         = cache_key
+            st.session_state["current_bi_report"]    = ai_analysis_report
+            st.session_state["current_chart_config"] = chart_config
+            st.session_state["current_bi_telemetry"] = telemetry
 
         except Exception as e:
             st.error(f"Error calling the AI agent: {e}")
             st.session_state["current_bi_report"]    = "Unable to generate analysis at this time."
             st.session_state["current_chart_config"] = {"kpis": [], "recommended_charts": []}
+            st.session_state["current_bi_telemetry"] = {}
 
 ai_analysis_report = st.session_state.get("current_bi_report", "")
 chart_config       = st.session_state.get("current_chart_config", {"kpis": [], "recommended_charts": []})
@@ -338,10 +396,43 @@ else:
     st.info("No charts configured for this dataset.")
 
 
-# ── 6. Full AI report (expandable) ───────────────────────────────────────────
+# ── 6. Full AI report & Prompt Telemetry Inspector ────────────────────────────
 st.markdown("---")
-with st.expander("🧠 View Full AI Intelligence Report & Insights", expanded=False):
+tab_report, tab_prompt = st.tabs(["🧠 Full Executive AI Report", "🔍 Prompt Engineering & Engine Telemetry"])
+
+with tab_report:
     st.markdown(ai_analysis_report)
+
+with tab_prompt:
+    telemetry = st.session_state.get("current_bi_telemetry", {})
+    t_mode = telemetry.get("execution_mode", active_engine_name)
+    t_prompt_type = telemetry.get("prompt_type", "Standard")
+    t_prompt = telemetry.get("prompt_used", "")
+    t_sys = telemetry.get("system_prompt", "")
+
+    col_t1, col_t2 = st.columns(2)
+    with col_t1:
+        st.markdown(f"**⚡ Active Engine:** `{t_mode}`")
+    with col_t2:
+        st.markdown(f"**📝 Prompt Strategy:** `{t_prompt_type}`")
+
+    if is_local:
+        st.info(
+            "💡 **Mode Local Qwen 2.5-3B LoRA :** Le modèle a été fine-tuné spécifiquement pour analyser "
+            "directement le résumé statistique compact du dataset. Il n'a pas besoin du long prompt verbeux !"
+        )
+    else:
+        st.info(
+            "💡 **Mode Cloud API (Groq/Gemini) :** Les LLMs généralistes requièrent un prompt engineering exhaustif "
+            "avec persona d'expert BI, instructions multi-sections, consignes strictes et structure JSON."
+        )
+
+    if t_sys and t_sys != "N/A":
+        with st.expander("📌 System Prompt envoyé au modèle", expanded=False):
+            st.code(t_sys, language="text")
+
+    st.markdown("**📄 Prompt / Dataset Summary transmis au modèle :**")
+    st.code(t_prompt if t_prompt else "Aucun prompt enregistré.", language="text")
 
 # ── 7. Actions ────────────────────────────────────────────────────────────────
 st.markdown("---")

@@ -1,0 +1,479 @@
+{
+  "schema_version": "2.1",
+  "dataset_ref": {
+    "file_path": "C:\\Users\\moham\\Desktop\\Med\\biflow\\data\\raw\\benchmark_eval_dataset.csv",
+    "file_name": "benchmark_eval_dataset.csv",
+    "rows": 200,
+    "columns": 7,
+    "size_bytes": 12236
+  },
+  "health_scores": {
+    "overall": 88.5,
+    "completeness": 97.1,
+    "validity": 80.0,
+    "uniqueness": 100.0,
+    "consistency": 70.0
+  },
+  "column_profiles": {
+    "customer_id": {
+      "dtype": "object",
+      "inferred_role": "primary_key",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 200,
+      "unique_pct": 100.0,
+      "sample_values": [
+        "USR_00001",
+        "USR_00002",
+        "USR_00003",
+        "USR_00004",
+        "USR_00005",
+        "USR_00006",
+        "USR_00007",
+        "USR_00008"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "USR_00001": 1,
+        "USR_00002": 1,
+        "USR_00003": 1,
+        "USR_00004": 1,
+        "USR_00005": 1,
+        "USR_00006": 1,
+        "USR_00007": 1,
+        "USR_00008": 1,
+        "USR_00009": 1,
+        "USR_00010": 1
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Pseudo-ID column (near-unique string \u2014 likely an identifier or key)",
+          "evidence": {
+            "detected": "200 unique values out of 200 rows (100.0%)",
+            "recommendation": "Exclude from ML features; consider as join key or primary key",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        }
+      ],
+      "agent_reasoning": "Serves as the primary key for the dataset with 0% missing values and 200 unique string identifiers. Semantic role is a strict entity identifier critical for joining tables.",
+      "business_interpretation": "Integrity issues or duplicates here would invalidate relational joins and customer-level aggregation pipelines.",
+      "severity": "HIGH",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "drop",
+      "etl_cast_to": "none",
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": true,
+        "metric": "0 violations",
+        "details": "All values conform to quality constraint",
+        "error": null
+      },
+      "custom_check_code": "import pandas as pd\nimport re\n\ndef custom_check(series: pd.Series) -> dict:\n    pattern = re.compile(r'^USR_\\d{5}$')\n    null_count = series.isna().sum()\n    duplicate_count = series.duplicated().sum()\n    invalid_pattern_count = series.dropna().apply(lambda x: not bool(pattern.match(str(x)))).sum()\n    \n    total_violations = null_count + duplicate_count + invalid_pattern_count\n    total_rows = len(series)\n    \n    if total_violations > 0:\n        details = (f\"Found {null_count} nulls, {duplicate_count} duplicates, \"\n                   f\"and {invalid_pattern_count} pattern mismatches.\")\n        return {\"passed\": False, \"metric\": f\"{total_violations} / {total_rows} violations\", \"details\": details}\n    \n    return {\"passed\": True, \"metric\": \"0 violations\", \"details\": \"All values conform to quality constraint\"}"
+    },
+    "monthly_fee": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 5,
+      "missing_pct": 2.5,
+      "unique_count": 183,
+      "unique_pct": 91.5,
+      "sample_values": [
+        "$193.52",
+        "$475.85",
+        "$368.68",
+        "$303.34",
+        "$86.45",
+        "$86.44",
+        "$38.46",
+        "$434.43"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "pending": 5,
+        "unknown": 5,
+        "error": 5,
+        "$303.34": 1,
+        "$193.52": 1,
+        "$475.85": 1,
+        "$368.68": 1,
+        "$434.43": 1,
+        "$304.55": 1,
+        "$356.96": 1
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Dirty numeric strings (numeric stored as text with symbols/mixed entries)",
+          "evidence": {
+            "detected": "15 unparseable entries out of 195",
+            "recommendation": "Apply 4-level waterfall cleaning \u2192 convert to float/int",
+            "valid_ratio": 92.31
+          },
+          "llm_agreement": "agree"
+        },
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 5 (2.5%)",
+          "evidence": {
+            "count": 5,
+            "pct": 2.5
+          }
+        },
+        {
+          "issue_id": "sandbox_check_failed",
+          "source": "sandbox",
+          "severity": "MEDIUM",
+          "description": "Custom check failed: Found rows containing non-numeric characters outside of allowed leading '$' and decimal points.",
+          "evidence": {
+            "check_name": "Count rows where monthly_fee contains non-numeric characters other than a leading '$' or decimal point.",
+            "metric": "20 / 200 violations",
+            "sample_size": 200
+          }
+        }
+      ],
+      "agent_reasoning": "Stored as an object/text data type containing currency symbols ('$'), which makes it a dirty numeric metric requiring string stripping and type conversion to float. Median is recommended for imputation due to potential revenue skewness.",
+      "business_interpretation": "Directly impacts Monthly Recurring Revenue (MRR) reporting and ARPU calculations if corrupted or incorrectly parsed.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": false,
+        "metric": "20 / 200 violations",
+        "details": "Found rows containing non-numeric characters outside of allowed leading '$' and decimal points.",
+        "error": null
+      },
+      "custom_check_code": "import pandas as pd\nimport re\n\ndef custom_check(series: pd.Series) -> dict:\n    pattern = re.compile(r'^\\$?\\d*\\.?\\d+$')\n    violations = 0\n    total = len(series)\n    \n    for val in series:\n        if pd.isna(val) or not pattern.match(str(val)):\n            violations += 1\n            \n    if violations > 0:\n        return {\n            \"passed\": False,\n            \"metric\": f\"{violations} / {total} violations\",\n            \"details\": \"Found rows containing non-numeric characters outside of allowed leading '$' and decimal points.\"\n        }\n    return {\n        \"passed\": True,\n        \"metric\": \"0 violations\",\n        \"details\": \"All values conform to quality constraint\"\n    }"
+    },
+    "signup_date": {
+      "dtype": "object",
+      "inferred_role": "timestamp",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 84,
+      "unique_pct": 42.0,
+      "sample_values": [
+        "2024-01-01",
+        "2024-02-02",
+        "2024-03-03",
+        "2024-04-04",
+        "2024-05-05",
+        "2024-06-06",
+        "2024-07-07",
+        "2024-08-08"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "2024-01-01": 3,
+        "2024-02-02": 3,
+        "2024-03-03": 3,
+        "2024-04-04": 3,
+        "2024-05-05": 3,
+        "2024-06-06": 3,
+        "2024-07-07": 3,
+        "2024-08-08": 3,
+        "2024-09-09": 3,
+        "2024-10-10": 3
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Date/time values stored as plain text (not parsed as datetime)",
+          "evidence": {
+            "detected": "~100% of sampled values match date patterns",
+            "recommendation": "Parse with pd.to_datetime() to enable time-series operations",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        }
+      ],
+      "agent_reasoning": "Stored as plain text object instead of native datetime, but possesses 0% missing values and uniform formatting ('YYYY-MM-DD').",
+      "business_interpretation": "Essential for cohort analysis, time-series revenue tracking, and customer lifetime value modeling once parsed to datetime.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "none",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "auto_renewal": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 4,
+      "unique_pct": 2.0,
+      "sample_values": [
+        "false",
+        "yes",
+        "yes",
+        "no",
+        "true",
+        "true",
+        "no",
+        "no"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "false": 62,
+        "yes": 50,
+        "no": 47,
+        "true": 41
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Boolean flag stored as text (Yes/No or True/False as object)",
+          "evidence": {
+            "detected": "Unique values: ['false', 'no', 'true', 'yes']",
+            "recommendation": "Map to bool dtype: True/False (saves memory, enables logic ops)",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        },
+        {
+          "issue_id": "sandbox_check_failed",
+          "source": "sandbox",
+          "severity": "MEDIUM",
+          "description": "Custom check failed: Found 200 values outside the expected set of boolean representations.",
+          "evidence": {
+            "check_name": "Count rows where auto_renewal values fall outside the expected set of normalized boolean representations (True/False).",
+            "metric": "200 / 200 violations",
+            "sample_size": 200
+          }
+        }
+      ],
+      "agent_reasoning": "Boolean flag stored inconsistently as text (e.g., 'false', 'yes') requiring normalization to standard boolean or binary integers.",
+      "business_interpretation": "Crucial for churn prediction models and automated billing lifecycle workflows.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": false,
+        "metric": "200 / 200 violations",
+        "details": "Found 200 values outside the expected set of boolean representations.",
+        "error": null
+      },
+      "custom_check_code": "import pandas as pd\nimport numpy as np\nimport re\n\ndef custom_check(series: pd.Series) -> dict:\n    expected = {True, False}\n    violations = series[~series.isin(expected)].shape[0]\n    total = len(series)\n    \n    if violations > 0:\n        return {\n            \"passed\": False,\n            \"metric\": f\"{violations} / {total} violations\",\n            \"details\": f\"Found {violations} values outside the expected set of boolean representations.\"\n        }\n    else:\n        return {\n            \"passed\": True,\n            \"metric\": \"0 violations\",\n            \"details\": \"All values conform to quality constraint\"\n        }"
+    },
+    "feedback_score": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 35,
+      "missing_pct": 17.5,
+      "unique_count": 3,
+      "unique_pct": 1.5,
+      "sample_values": [
+        "Valide",
+        "Valide",
+        "Valide",
+        "Valide",
+        "Valide",
+        "Valide",
+        "Valide",
+        "Valide"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Valide": 165,
+        "?": 10,
+        "none": 5
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Missing values: 35 (17.5%)",
+          "evidence": {
+            "count": 35,
+            "pct": 17.5
+          }
+        },
+        {
+          "issue_id": "sandbox_check_failed",
+          "source": "sandbox",
+          "severity": "MEDIUM",
+          "description": "Custom check failed: Found 165 anomalous text entries ('Valide') in feedback_score.",
+          "evidence": {
+            "check_name": "Count rows where feedback_score contains anomalous text entries like 'Valide' instead of expected score metrics.",
+            "metric": "165 / 200 violations",
+            "sample_size": 200
+          }
+        }
+      ],
+      "agent_reasoning": "Contains 17.5% missing values (exceeding the 15% threshold) and displays anomalies in unique values and samples ('Valide'), indicating potential data corruption or improper categorical encoding.",
+      "business_interpretation": "Reduces the reliability of customer satisfaction (CSAT) analytics and sentiment tracking dashboards.",
+      "severity": "HIGH",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": false,
+        "metric": "165 / 200 violations",
+        "details": "Found 165 anomalous text entries ('Valide') in feedback_score.",
+        "error": null
+      },
+      "custom_check_code": "import pandas as pd\n\ndef custom_check(series: pd.Series) -> dict:\n    total_rows = len(series)\n    if total_rows == 0:\n        return {\"passed\": True, \"metric\": \"0 violations\", \"details\": \"Series is empty\"}\n    \n    # Count rows where feedback_score contains 'Valide' (case-insensitive or exact string)\n    violations = series.astype(str).str.contains('Valide', case=False, na=False).sum()\n    \n    if violations > 0:\n        return {\n            \"passed\": False,\n            \"metric\": f\"{violations} / {total_rows} violations\",\n            \"details\": f\"Found {violations} anomalous text entries ('Valide') in feedback_score.\"\n        }\n    \n    return {\n        \"passed\": True,\n        \"metric\": \"0 violations\",\n        \"details\": \"All values conform to quality constraint\"\n    }"
+    },
+    "tenure": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 57,
+      "unique_pct": 28.5,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 28.84,
+        "median": 29.0,
+        "std": 18.5625,
+        "min": 0.0,
+        "max": 58.0,
+        "q1": 12.0,
+        "q3": 45.25,
+        "skewness": -0.0525,
+        "zeros_count": 15,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Continuous numeric field with 0% missing values, perfectly balanced distribution (skewness -0.0525), and realistic min/max bounds (0 to 58). Median is selected as a robust central tendency metric.",
+      "business_interpretation": "Fundamental dimension for customer segmentation, loyalty tiering, and retention analysis.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "TotalCharges": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 186,
+      "unique_pct": 93.0,
+      "sample_values": [
+        "450.0",
+        "450.0",
+        "450.0",
+        "450.0",
+        "450.0",
+        "450.0",
+        "450.0",
+        "450.0"
+      ],
+      "numeric_stats": {
+        "mean": 1563.9833,
+        "median": 1599.9285,
+        "std": 922.4504,
+        "min": 81.9711,
+        "max": 2999.1671,
+        "q1": 597.0797,
+        "q3": 2422.7422,
+        "skewness": -0.046,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Continuous numeric metric stored correctly as float64 with 0% missing values and low skewness (-0.046). Median is preferred to guard against tail anomalies.",
+      "business_interpretation": "Core financial metric utilized for Customer Lifetime Value (LTV) and historical revenue reporting.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    }
+  },
+  "cross_column_issues": [
+    {
+      "columns": [
+        "tenure",
+        "TotalCharges"
+      ],
+      "issue": "Tenure=0 but TotalCharges>0 \u2014 logical impossibility",
+      "affected_rows": 15,
+      "severity": "HIGH",
+      "recommendation": "Set TotalCharges=0 where tenure=0, or verify source"
+    }
+  ],
+  "llm_discovered_issues": [],
+  "uncertainty_flags": [],
+  "recommended_cleaning_order": [
+    "feedback_score",
+    "customer_id",
+    "monthly_fee",
+    "auto_renewal",
+    "signup_date"
+  ],
+  "etl_hints": {
+    "type_casting_targets": {},
+    "join_key_candidates": [],
+    "drop_candidates": [],
+    "recommended_output_format": "parquet",
+    "synonym_mappings": {}
+  },
+  "imputation_plan": {},
+  "outlier_columns": [],
+  "agent_summary": "The dataset exhibits moderate structural health issues, notably dirty financial strings in 'monthly_fee', inconsistent boolean flags in 'auto_renewal', and high missingness (>15%) combined with corrupted entries in 'feedback_score'. Rigorous regex cleaning, type casting, and targeted imputation are required before downstream financial reporting and predictive modeling.",
+  "recommendation_summary": "",
+  "metadata": {
+    "agent_version": "2.0.0",
+    "profiling_timestamp": "2026-10-25T11:54:47.300223+00:00",
+    "llm_model_used": "gemini-flash-latest",
+    "sandbox_executions": 4,
+    "llm_driven": true
+  }
+}

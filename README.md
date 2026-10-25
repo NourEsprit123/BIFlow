@@ -576,6 +576,18 @@ Les transformations et résultats produits par BIFlow doivent pouvoir être expl
 
 ---
 
+# 📚 Guides Techniques & Documentation des Agents
+
+| Document | Description |
+| :--- | :--- |
+| 🚀 [**Guide d'Exécution BI Analyst (LoRA & API)**](docs/RUN_BI_ANALYST_FINETUNED_AGENT.md) | **Guide pas-à-pas** pour exécuter le BI Analyst Agent, configurer le modèle fine-tuné local Qwen 2.5 3B (LoRA en 4-bit) ou basculer en mode Cloud API (Groq/Gemini). |
+| 📊 [**Guide & Stratégie Fine-Tuning BI Agent**](docs/BI_ANALYST_AGENT_AND_FINETUNING_GUIDE.md) | Justification théorique et technique du fine-tuning QLoRA pour l'Agent 2 et arguments pour la soutenance. |
+| 📓 [**Notebook Colab Fine-Tuning Qwen LoRA**](docs/COLAB_FINETUNING_NOTEBOOK_QWEN_LORA.md) | Procédure complète pour reproduire l'entraînement LoRA sur GPU T4 gratuit (Google Colab). |
+| 🛠️ [**Master Guide Évaluation Data Engineering**](docs/DATA_ENGINEERING_AGENT_MASTER_EVALUATION_GUIDE.md) | Guide d'évaluation empirique, benchmarks de profilage et LLM-as-a-Judge de l'Agent 1. |
+| 🔬 [**Sandbox Deep Dive**](docs/SANDBOX_DEEP_DIVE.md) | Analyse détaillée de la génération de code Python dynamique et exécution sandboxée sécurisée. |
+
+---
+
 # 🔮 Évolutions prévues
 
 Les fonctionnalités suivantes pourront être intégrées progressivement :

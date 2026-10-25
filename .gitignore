@@ -67,3 +67,13 @@ data/biflow_auth.sqlite3*
 # Ignore automated data pipeline outputs
 data/cleaned/
 data/processed/
+
+# =========================
+# Modèles d'IA & Poids lourds (>100MB)
+# =========================
+*.safetensors
+*.bin
+*.pt
+*.pth
+adapter/adapter_model.safetensors
+adapter/tokenizer.json

@@ -16,10 +16,12 @@ class LLMClient:
     and cloud providers (Gemini) with automatic JSON extraction.
     """
 
-    def __init__(self):
-        self.provider = os.getenv("LLM_PROVIDER", "ollama").lower()
-        self.ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-        self.model_name = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+    def __init__(self, provider: Optional[str] = None, model_name: Optional[str] = None):
+        self.provider = (provider or os.getenv("LLM_PROVIDER", "ollama")).lower()
+        self.ollama_host = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
+        if "localhost" in self.ollama_host:
+            self.ollama_host = self.ollama_host.replace("localhost", "127.0.0.1")
+        self.model_name = model_name or os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
         self.gemini_api_key = os.getenv("GEMINI_API_KEY", "")
 
     def generate_json(self, prompt: str, system_prompt: Optional[str] = None) -> Dict[str, Any]:
@@ -82,20 +84,24 @@ class LLMClient:
             client = genai.Client(api_key=self.gemini_api_key)
             config = types.GenerateContentConfig(
                 system_instruction=system_prompt,
-                temperature=0.3,
-                max_output_tokens=8192,
+                temperature=0.15,
+                top_p=0.85,
+                top_k=40,
+                max_output_tokens=4096,
             ) if system_prompt else types.GenerateContentConfig(
-                temperature=0.3,
-                max_output_tokens=8192,
+                temperature=0.15,
+                top_p=0.85,
+                top_k=40,
+                max_output_tokens=4096,
             )
 
             max_retries = 2  # Reduced from 3 for faster failure
             for attempt in range(1, max_retries + 1):
                 try:
                     logger.info(f"Calling Gemini API (attempt {attempt}/{max_retries})...")
-                    # Use gemini-flash-latest which is an alias to the latest stable flash model
+                    model_to_use = os.getenv("GEMINI_MODEL", "models/gemini-3.5-flash-lite")
                     response = client.models.generate_content(
-                        model="gemini-flash-latest",
+                        model=model_to_use,
                         contents=prompt,
                         config=config
                     )
@@ -132,14 +138,20 @@ class LLMClient:
         text_clean = text_clean.strip()
 
         try:
-            return json.loads(text_clean)
+            return json.loads(text_clean, strict=False)
         except json.JSONDecodeError:
             start = text_clean.find("{")
             end = text_clean.rfind("}")
             if start != -1 and end != -1 and end > start:
                 try:
-                    return json.loads(text_clean[start:end+1])
+                    return json.loads(text_clean[start:end+1], strict=False)
                 except json.JSONDecodeError:
-                    pass
+                    # Sanitize unescaped newlines inside JSON strings
+                    try:
+                        import re
+                        sanitized = re.sub(r'(?<!\\)\n', r'\\n', text_clean[start:end+1])
+                        return json.loads(sanitized, strict=False)
+                    except Exception:
+                        pass
             logger.error(f"Failed to parse JSON from response: {text[:100]}...")
             return {}

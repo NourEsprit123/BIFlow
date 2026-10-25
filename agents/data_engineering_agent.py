@@ -338,21 +338,31 @@ class DataEngineeringAgent:
                 "samples": ev["sample_values"][:3],  # Only 3 samples instead of 8
                 "issue": ev.get("python_detected_type_issue", {}).get("issue", "none") if ev.get("python_detected_type_issue") else "none"
             }
-            # Add only key stats for numerics
+            # Add key stats for numerics including median and skewness
             if ev["numeric_stats"]:
                 cols_for_llm[col]["stats"] = {
                     "mean": ev["numeric_stats"].get("mean"),
+                    "median": ev["numeric_stats"].get("median"),
                     "min": ev["numeric_stats"].get("min"),
                     "max": ev["numeric_stats"].get("max"),
+                    "skewness": ev["numeric_stats"].get("skewness"),
                 }
 
         system_prompt = (
-            "You are a Data Engineer. Analyze columns and return JSON with:\n"
-            "1. column_reasoning: {col: {severity: HIGH|MEDIUM|LOW|NONE, agent_reasoning: brief text, imputation_strategy: median|mean|mode|drop}}\n"
-            "2. agent_summary: 2 sentences\n"
-            "3. numeric_waterfall_columns: [cols needing numeric cleaning]\n"
-            "4. outlier_columns: [cols with outliers]\n"
-            "Be brief and decisive."
+            "You are a Senior Data Engineer and Lead Data Quality Auditor. Analyze each column rigorously and return JSON with:\n"
+            "1. column_reasoning: {\n"
+            "     <col>: {\n"
+            "       severity: 'HIGH' (for all primary key/id columns, columns with >15% missing, or corrupted financials) | 'MEDIUM' (type conversions, outliers, regex cleaning) | 'LOW' (stable dimensions) | 'NONE',\n"
+            "       agent_reasoning: 'Detailed technical explanation, explicitly noting semantic role (e.g. numeric metric even if stored with currency symbols) and statistical reason for median (skewness/outliers) or mode',\n"
+            "       business_interpretation: 'Impact on downstream business KPIs, joins, and reporting',\n"
+            "       imputation_strategy: 'median' | 'mean' | 'mode' | 'drop' | 'none',\n"
+            "       needs_custom_check: true (MANDATORY if column contains dirty symbols like '$', hidden sentinels like 'N/A', or suspicious negative values),\n"
+            "       custom_check_description: 'Precise description of the data quality audit rule to verify in sandbox (count non-conforming cells)'\n"
+            "     }\n"
+            "   }\n"
+            "2. agent_summary: 'Comprehensive 2-sentence executive summary of the dataset health and primary risks'\n"
+            "3. numeric_waterfall_columns: [list of columns needing numeric cleaning]\n"
+            "4. outlier_columns: [list of columns with statistical outliers]\n"
         )
 
         user_prompt = (
@@ -406,30 +416,49 @@ class DataEngineeringAgent:
 
             logger.info("Generating sandbox check for column: %s", col)
 
-            # Ask LLM to write the check function
+            # Ask LLM to write the AUDIT-ONLY check function (NO CLEANING / NO MUTATION)
             code_prompt = (
-                f"Write a Python function to validate a pandas Series column named '{col}'.\n"
-                f"What to check: {description}\n"
+                f"Write a Python function to AUDIT the quality of a pandas Series column named '{col}'.\n"
+                f"Quality constraint to audit: {description}\n"
                 f"Column dtype: {column_evidence[col]['dtype']}\n"
                 f"Sample values: {column_evidence[col]['sample_values']}\n\n"
+                f"CRITICAL BOUNDARY INSTRUCTION:\n"
+                f"- You are STRICTLY a DATA QUALITY AUDITOR. DO NOT clean, impute, replace, fillna, or mutate the data.\n"
+                f"- Your function must ONLY inspect the raw series, detect non-conforming cells or business violations, and count them.\n"
+                f"- If violations are found (e.g. dirty characters like '$', hidden sentinels like 'N/A', negative amounts): return passed=False, metric='X / Y violations', details='...'.\n"
+                f"- If 100% of values conform: return passed=True, metric='0 violations', details='All values conform to quality constraint'.\n\n"
                 f"Rules:\n"
                 f"- Define ONLY: def custom_check(series: pd.Series) -> dict\n"
-                f"- Return: {{\"passed\": bool, \"metric\": float|str, \"details\": str}}\n"
+                f"- Return: {{\"passed\": bool, \"metric\": str, \"details\": str}}\n"
                 f"- Use only: pd, np, re, built-in Python functions\n"
-                f"- NO imports, NO file I/O, NO external calls\n"
+                f"- NO imports, NO file I/O, NO external calls, NO data transformation/cleaning\n"
                 f"- Keep it under 20 lines\n\n"
                 f"Return JSON: {{\"code\": \"<full python code here>\"}}"
             )
             code_result = self.llm_client.generate_json(code_prompt)
-            if not code_result or "code" not in code_result:
+            
+            check_code = ""
+            if isinstance(code_result, dict) and "code" in code_result:
+                check_code = code_result["code"]
+            
+            if not check_code or "def custom_check" not in check_code:
+                # Fallback: extract python function directly if returned as raw codeblock
+                raw_text = self.llm_client.generate_text(code_prompt)
+                if "def custom_check" in raw_text:
+                    if "```python" in raw_text:
+                        check_code = raw_text.split("```python", 1)[1].split("```", 1)[0].strip()
+                    elif "```" in raw_text:
+                        check_code = raw_text.split("```", 1)[1].split("```", 1)[0].strip()
+                    else:
+                        check_code = raw_text.strip()
+
+            if not check_code or "def custom_check" not in check_code:
                 sandbox_results[col] = {
                     "skipped": True,
                     "reason": "LLM did not generate check code",
                     "check_description": description,
                 }
                 continue
-
-            check_code = code_result["code"]
             series = df[col]
 
             # Run on sample (50 rows max) to keep it fast

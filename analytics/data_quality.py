@@ -35,6 +35,7 @@ def detect_missing(df: pd.DataFrame) -> Dict[str, Any]:
                 .fillna("")
                 .astype(str)
                 .str.strip()
+                .str.lower()
                 .isin(["", "n/a", "null", "none", "?", "missing"])
                 .sum()
             )
@@ -272,12 +273,21 @@ def run_sandboxed_check(code, series, timeout_sec=10):
     Code must define: def custom_check(series) -> dict
     Returns: {"passed": bool|None, "metric": ..., "details": str|None, "error": str|None}
     """
+    # Strip harmless redundant imports since pd, np, re are already pre-loaded into the sandbox
+    safe_imports = {
+        "import pandas as pd", "import numpy as np", "import re", "import math", "import datetime",
+        "import pandas", "import numpy", "from pandas import Series", "from typing import Dict, Any"
+    }
+    filtered_code = "\n".join(
+        line for line in code.splitlines() if line.strip() not in safe_imports
+    )
+
     namespace = {
         "__builtins__": _SAFE_BUILTINS,
         "pd": pd, "np": np, "re": re,
     }
     try:
-        exec(textwrap.dedent(code), namespace)
+        exec(textwrap.dedent(filtered_code), namespace)
     except SyntaxError as exc:
         return {"passed": None, "metric": None, "details": None, "error": f"SyntaxError: {exc}"}
     except Exception as exc:
