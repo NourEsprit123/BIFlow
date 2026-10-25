@@ -69,8 +69,11 @@ data/cleaned/
 data/processed/
 data/reports/
 
-# Sandbox outputs & temporaires (on ne garde que la structure)
+# Fichiers de sortie et rapports des agents (Sandboxes)
 sandbox/reports_output/*
+sandbox_xai/reports_output/*
 !sandbox/reports_output/.gitkeep
-sandbox/data_input/*
-!sandbox/data_input/.gitkeep
+!sandbox_xai/reports_output/.gitkeep
+
+# Logs de transformation générés
+*_transformation_log.json
