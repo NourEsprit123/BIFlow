@@ -1,0 +1,1 @@
+Host approval is required. The attempt was not applied. You cannot grant approval, choose an approved hash or bypass this requirement through generated code. Continue with unrelated safe work, flag the affected columns for review, or finish with the pending approval stated explicitly.

@@ -62,9 +62,9 @@ def test_telco_like_workflow_finishes_within_default_budget_through_ollama_adapt
                         "operation": "convert_data_types", "parameters": {"target_type": "boolean", "errors": "raise"},
                         "checks": [{"column": c, "kind": "boolean"} for c in flags]}
         elif turn in [2, 4, 6]:
-            name = "review_candidate"
+            name = "apply_candidate"
             candidate = json.loads(next(m["content"] for m in reversed(payload["messages"]) if m["role"] == "tool"))
-            args = {"candidate_id": candidate["candidate_id"], "decision": "apply",
+            args = {"candidate_id": candidate["candidate_id"],
                     "assessment": "Trials meet the declared checks without losing populated values; apply with full-data checks"}
         else:
             name, args = "finish", {"summary": "Charges and all flags validated"}
@@ -76,7 +76,7 @@ def test_telco_like_workflow_finishes_within_default_budget_through_ollama_adapt
     result = DataCleaningAgent(data_root=tmp_path / "versions", use_llm=True).run(report)
     assert result.validation.all_passed, result.unresolved_issues
     assert len(calls) == 7 and result.metadata["stop_reason"] == "completed"
-    assert len(result.metadata["issues"]) == 7  # No duplicate missing/type findings.
+    assert "issues" not in result.metadata and "workflow_stage" not in result.metadata
     assert len(result.change_log.successful_ops()) == 3
     frame = pd.read_csv(result.final_dataset.path)
     assert not frame.TotalCharges.isna().any()
@@ -107,7 +107,7 @@ def test_argument_repair_waits_until_all_tool_results_are_matched(tmp_path, monk
             calls = [{"function": {"name": "test_method", "arguments": {}}},
                      {"function": {"name": "inspect_data", "arguments": {"view": "schema"}}}]
         else:
-            assert any("Data/method error returned" in (m.get("content") or "") for m in messages if m["role"] == "user")
+            assert any('"case": "arguments"' in (m.get("content") or "") for m in messages if m["role"] == "user")
             calls = [{"function": {"name": "finish", "arguments": {"summary": "No data cleaning required"}}}]
         return SimpleNamespace(raise_for_status=lambda: None, json=lambda: {"message": {"tool_calls": calls}})
     monkeypatch.setattr(llm_client.httpx, "post", post)
@@ -141,7 +141,7 @@ def test_sales_id_confusion_cannot_block_testing_or_leak_back_into_prompts(tmp_p
         elif count == 2:
             trial = json.loads(next(m["content"] for m in reversed(payload["messages"]) if m["role"] == "tool"))
             assert trial["tested"]
-            name, args = "review_candidate", {"candidate_id": trial["candidate_id"], "decision": "apply",
+            name, args = "apply_candidate", {"candidate_id": trial["candidate_id"],
                 "assessment": "Trials parse both columns and preserve populated values"}
         else:
             name, args = "finish", {"summary": "Both currency columns validated"}
@@ -151,6 +151,5 @@ def test_sales_id_confusion_cannot_block_testing_or_leak_back_into_prompts(tmp_p
     result = DataCleaningAgent(data_root=tmp_path / "versions", use_llm=True).run(report)
     assert result.validation.all_passed and count == 3, result.unresolved_issues
     candidate = next(iter(result.metadata["method_candidates"].values()))
-    assert set(candidate["issue_ids"]) == {"type:Revenue", "type:MonthlyCost"}
-    assert set(candidate["evidence_ids"]) == {"profile:Revenue", "profile:MonthlyCost"}
+    assert set(candidate["columns"]) == {"Revenue", "MonthlyCost"}
     assert result.metadata["events"][0]["arguments"]["issue_ids"][0] == "profile:Revenue"

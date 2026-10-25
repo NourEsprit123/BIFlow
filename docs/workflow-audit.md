@@ -1,5 +1,7 @@
 # Offline workflow audit
 
+> Historical audit of the previous staged design. The current flat workflow is described in [Simple cleaning workflow](staged-cleaning.md). Its stage/issue findings below are retained as history, not current implementation.
+
 The audit exercises the application without starting Streamlit, a model server,
 or Docker. HTTP transport is mocked in the adapter-level scenarios; generated
 code uses trusted test implementations instead of executing on the host.

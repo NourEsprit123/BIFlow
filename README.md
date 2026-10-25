@@ -684,12 +684,15 @@ files cannot retrospectively recover provider errors.
 
 ## Sandbox-based cleaning method experiments
 
-Agent 2 now exposes `experiment_cleaning_method` and `apply_experimental_method`.
+Agent 2 exposes five tools: `inspect_data`, `test_method`, `apply_candidate`,
+`flag_for_review`, and `finish`. One prompt (`agents/prompts/cleaning.md`) drives
+the flat loop; there are no stages, issue IDs, or separate review calls. Builtin
+trials run once on a full-data copy. Generated code retains isolated trials.
 It can generate a Python `transform(df)` function, test it on random disjoint
 sample/holdout copies, inspect the measured effects, revise a failed method, and
 promote a passing candidate. The candidate records source-version and file hashes,
-code SHA-256, evidence IDs, outcome checks, and the exact Docker image ID.
-Promotion accepts only a candidate ID, reruns the unchanged code on the full
+code SHA-256, outcome checks, and the exact Docker image ID.
+Application takes a candidate ID and an assessment of the trial, then reruns the unchanged code on the full
 current dataset in that pinned image, and commits only after independent checks
 pass. Changed code, a changed version, or changed source bytes require a new trial.
 

@@ -1,0 +1,1 @@
+This action made no persisted change. Read the current outstanding requirements before choosing another action. If the selected work is already complete, move to another column or finish. If the intended problem remains, inspect why the method had no effect and test a materially different method. Do not repeat the same no-op or create another version for it.

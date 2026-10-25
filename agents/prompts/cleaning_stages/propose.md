@@ -1,4 +1,0 @@
-Stage: PROPOSE.
-Choose columns and describe the problem and method. Send hypothesis, columns, checks, and either a builtin operation with parameters or generated code defining transform(df). BIFlow handles problem/evidence references internally; do not send IDs. Include assumptions explicitly when they matter. Prefer a builtin when it fits; generate a method when existing semantics are insufficient. Never guess replacements or erase unparseable populated values. A trial never changes working data. A missing-field error needs argument repair, not a new cleaning hypothesis.
-
-Top-level columns is authoritative. Builtin column operations can apply the same parameters to all selected columns; do not repeat column names inside parameters unless selecting one legacy column. For five Yes/No flags, one convert_data_types candidate with target_type boolean can test all five atomically.

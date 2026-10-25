@@ -1,0 +1,1 @@
+The isolated runtime is unavailable. This is an infrastructure failure, not evidence that the data or cleaning hypothesis is wrong. Do not run generated code on the host or repeatedly submit the same Docker request. Use a suitable trusted builtin if it meets the objective, or finish with an explicit runtime limitation. Do not claim the sandbox test passed.

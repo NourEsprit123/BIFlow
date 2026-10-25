@@ -35,22 +35,20 @@ from dataCleaningTools.models import (
     CleaningResult,
     DatasetStatus,
     ProfilingReport,
-    TransformationStatus,
     ValidationReport,
     ValidationStatus,
 )
-from dataCleaningTools.policy import apply_policy, requires_approval
+from dataCleaningTools.policy import apply_policy
 from dataCleaningTools.sandbox import sandbox_status
-from dataCleaningTools.tool_registry import TOOL_SCHEMAS, AgentSessionState, ToolExecutor
-from dataCleaningTools.experiments import TRANSFORM_SIGNATURE_ERROR
+from dataCleaningTools.tool_registry import AgentSessionState, ToolExecutor
 from dataCleaningTools.versioning import DatasetVersionManager
-from dataCleaningTools.effects import present, target_matches
 from dataCleaningTools import workflow
+from dataCleaningTools.recovery import build_prompt
 from dataCleaningTools.llm_client import chat_with_tools, default_model, llm_configured, positive_setting
 
 logger = logging.getLogger("biflow.agent2")
 
-PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "data_cleaning_system.md"
+PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "cleaning.md"
 
 
 def _load_system_prompt() -> str:
@@ -87,6 +85,9 @@ def _report_context(report: ProfilingReport, max_chars: int = 6000) -> str:
 def _tool_feedback(result_json: str) -> str:
     """Keep feedback useful without resending the full audit trail every turn."""
     result = json.loads(result_json)
+    # The focused prompt is sent once as a user message after the tool batch.
+    # Its full copy remains in the saved event and UI.
+    result.pop("recovery_prompt", None)
     if result.get("trials"):
         result["trials"] = [{"partition": t["partition"], "rows": t["rows"], "success": t["success"],
                              "error": t.get("error"), "setup": t.get("setup"),
@@ -110,7 +111,8 @@ def _tool_feedback(result_json: str) -> str:
             "column_metrics": effect.get("column_metrics", {}),
             "missing_before": effect["before"]["missing"], "missing_after": effect["after"]["missing"],
         }
-    return json.dumps(workflow.model_feedback(result), default=str)
+    result.pop("evidence_ids", None)
+    return json.dumps(result, default=str)
 
 
 
@@ -123,31 +125,19 @@ def _tool_generation_failed(error) -> bool:
 
 
 def _request_context(messages, state, *, tools=None, reserved_chars=0):
-    """Retain complete recent exchanges and a factual summary of older actions."""
+    """Keep complete recent tool exchanges; current progress is sent separately."""
+    tools = workflow.SCHEMAS_LIST if tools is None else tools
+    budget = max(1000, (positive_setting("BIFLOW_OLLAMA_NUM_CTX",8192,integer=True)
+        - positive_setting("BIFLOW_OLLAMA_NUM_PREDICT",1024,integer=True))*3
+        - len(json.dumps(tools))-reserved_chars)
     groups = []
     for message in messages[2:]:
-        if message["role"] == "assistant" or not groups:
-            groups.append([])
+        if message["role"] == "assistant" or not groups: groups.append([])
         groups[-1].append(message)
-    char_budget = max(1000, (positive_setting("BIFLOW_OLLAMA_NUM_CTX", 8192, integer=True) - positive_setting("BIFLOW_OLLAMA_NUM_PREDICT", 1024, integer=True)) * 3 - len(json.dumps(tools if tools is not None else TOOL_SCHEMAS)) - reserved_chars)
-    if len(groups) <= 4 and len(json.dumps(messages)) <= char_budget:
-        return messages
-    summary = {
-        "current_version": state.current_ref.version,
-        "accepted_actions": [{"operation": e["tool"], "columns": e["arguments"].get("columns") or [e["arguments"].get("column")], "version": e["version"]}
-                             for e in state.events if e["result"].get("accepted")],
-        "failed_actions": state.failed_actions,
-        "pending_approvals": state.pending_approvals,
-        "tested_candidates": {key: {"tested": item["tested"], "base_version": item["base_version"], "columns": item["columns"]}
-                              for key, item in state.experiments.items()},
-        "recent_inspections": [{"tool": item["tool"], "version": item["version"], "arguments": item["arguments"]}
-                               for item in state.evidence.values() if item.get("source") == "inspection"],
-    }
-    prefix = messages[:2] + [{"role": "user", "content": "Earlier execution summary: " + json.dumps(summary, default=str)}]
-    recent = groups[-4:]
-    while len(recent) > 1 and len(json.dumps(prefix + [m for g in recent for m in g], default=str)) > char_budget:
-        recent = recent[1:]
-    return prefix + [m for group in recent for m in group]
+    recent = groups[-3:]
+    while len(recent)>1 and len(json.dumps(messages[:2]+[m for g in recent for m in g]))>budget:
+        recent.pop(0)
+    return messages[:2]+[m for group in recent for m in group]
 
 
 class DataCleaningAgent:
@@ -230,13 +220,8 @@ class DataCleaningAgent:
                               **{c: p.etl_cast_to for c, p in report.column_profiles.items()
                                  if p.etl_cast_to and p.etl_cast_to.lower() != "none"}},
             required_missing=[c for c, p in report.column_profiles.items() if p.missing_count > 0],
-            evidence={f"profile:{c}:{i.issue_id}:{n}": {
-                "source": i.source, "column": c, "issue_id": i.issue_id,
-                "description": i.description, "evidence": i.evidence,
-            } for c, p in report.column_profiles.items() for n, i in enumerate(p.issues)},
         )
 
-        workflow.initialize(state, report)
 
         state.persist_trace()
         if self.dry_run:
@@ -252,249 +237,109 @@ class DataCleaningAgent:
 
         return self._build_result(state, report, user_request)
 
-    def _run_llm_loop(
-        self,
-        state: AgentSessionState,
-        report: ProfilingReport,
-        user_request: str,
-    ) -> None:
-        system = _load_system_prompt()
-        user_msg = self._build_user_message(report, state, user_request)
-
-        messages: List[Dict[str, Any]] = [
-            {"role": "system", "content": system},
-            {"role": "user", "content": user_msg},
-        ]
+    def _run_llm_loop(self, state, report, user_request):
+        messages = [{"role":"system","content":_load_system_prompt()},
+                    {"role":"user","content":self._build_user_message(report,state,user_request)}]
         executor = ToolExecutor(state)
         empty_responses = 0
-        incomplete_finishes = 0
-        repeated_calls = {}
-        transform_signature_failures = 0
-
-        for turn in range(1, self.max_turns + 1):
-            if state.finished:
-                break
-
+        repeated = {}
+        for turn in range(1,self.max_turns+1):
+            if state.finished: break
             if time.monotonic() >= state.deadline:
                 state.stop_reason = "time_budget"
                 state.finish_summary = f"Stopped: reached the {self.max_seconds:.0f}s run budget."
                 state.unresolved.append(state.finish_summary)
-                state.finished = True
                 break
             state.current_turn = turn
-            logger.info("--- LLM turn %d ---", turn)
-            if state.on_event:
-                state.on_event({"phase": f"Ollama · {state.workflow_stage} · choosing next action", "stage": "model"})
+            if state.on_event: state.on_event({"phase":"Ollama · choosing next action","stage":"model"})
             response = None
             for attempt in range(2):
                 try:
-                    remaining = state.deadline - time.monotonic()
-                    if remaining <= 0:
-                        raise TimeoutError("Cleaning run budget expired")
-                    stage_messages = [{"role": "user", "content": workflow.stage_context(state)}, {"role": "user", "content": (
-                            "Authoritative progress measured on the current working dataset: "
-                            + json.dumps(executor.progress(include_suggestions=False))
-                            + f". Turn {turn}/{self.max_turns}. Work on pending requirements; do not reconvert completed columns. "
-                            "Use test_method, then review_candidate with decision apply or revise. An apply decision runs full-data checks before committing. "
-                            "If a strategy is ambiguous, finish with explicit unresolved items instead of repeating completed work."
-                        )}]
-                    stage_tools = workflow.schemas(state)
-                    response = chat_with_tools(
-                        _request_context(messages, state, tools=stage_tools, reserved_chars=len(json.dumps(stage_messages))) + stage_messages,
-                        stage_tools, model=self.model, temperature=0.1,
-                        on_provider_event=state.on_event, timeout=remaining,
-                    )
+                    context = [{"role":"user","content":json.dumps({"outstanding":executor.progress(),
+                        "flagged":state.flagged,"profiler_findings":[i.description for profile in report.column_profiles.values() for i in profile.issues],"turn":turn,"max_turns":self.max_turns,
+                        "candidates":{key:{"tested":c["tested"],"base_version":c["base_version"],"columns":c["columns"]}
+                                      for key,c in list(state.method_candidates.items())[-4:]}})}]
+                    response = chat_with_tools(_request_context(messages,state,tools=workflow.SCHEMAS_LIST,
+                        reserved_chars=len(json.dumps(context)))+context,workflow.SCHEMAS_LIST,model=self.model,
+                        temperature=0.1,on_provider_event=state.on_event,timeout=state.deadline-time.monotonic())
                     for error in state.provider_errors:
-                        if error.get("retrying"):
-                            error.update(recovered=True, retrying=False)
+                        if error.get("retrying"): error.update(recovered=True,retrying=False)
                     break
-                except Exception as e:
-                    logger.exception("Ollama call failed")
-                    repair = _tool_generation_failed(e) and attempt == 0
-                    state.provider_errors.append({"turn": turn, "type": type(e).__name__,
-                                                  "status_code": getattr(e, "status_code", None),
-                                                  "message": str(e), "retrying": repair})
+                except Exception as exc:
+                    retry = _tool_generation_failed(exc) and attempt == 0
+                    state.provider_errors.append({"turn":turn,"type":type(exc).__name__,"status_code":getattr(exc,"status_code",None),
+                        "message":str(exc),"retrying":retry})
                     state.persist_trace()
-                    if repair:
-                        messages.append({"role": "user", "content": (
-                            "Generate a valid registered tool call with the exact function name and JSON arguments. "
-                            "No channel markers or commentary in tool names. The rejected call was not executed."
-                        )})
-                        if state.on_event:
-                            state.on_event({"phase": "Ollama · correcting malformed tool call"})
+                    if retry:
+                        guidance = build_prompt(executor, "model_response", {}, {"success":False,"error":str(exc)})
+                        messages.append({"role":"user","content":json.dumps(guidance)})
+                        state.step_log.append({"turn":turn,"recovery_prompt":guidance})
                         continue
-                    for error in state.provider_errors:
-                        error["retrying"] = False
-                    state.stop_reason = ("time_budget" if time.monotonic() >= state.deadline else "request_timeout") if isinstance(e, TimeoutError) else "provider_error"
-                    state.unresolved.append(f"Ollama error: {e}")
-                    state.finished = True
-                    state.finish_summary = f"Stopped: {state.stop_reason} ({e})"
-                    state.persist_trace()
+                    state.stop_reason = ("time_budget" if time.monotonic()>=state.deadline else "request_timeout") if isinstance(exc,TimeoutError) else "provider_error"
+                    state.unresolved.append(f"Ollama error: {exc}")
+                    state.finish_summary = f"Stopped: {state.stop_reason} ({exc})"
                     break
-            if response is None:
-                break
-
-            if response.get("provider"):
-                state.llm_provider = response["provider"]
-                state.llm_model = response.get("model")
-            state.step_log.append({"turn": turn, "provider": response.get("provider"), "model": response.get("model"),
-                                   "response_finish_reason": response.get("finish_reason"),
-                                   "tool_call_source": response.get("tool_call_source"),
-                                   "usage": response.get("usage"), "timing": response.get("timing"),
-                                   "options": response.get("options")})
-            content = response.get("content") or ""
-            tool_calls = response.get("tool_calls") or []
-
-            if content:
-                logger.info("Reasoning: %s", content[:500])
-                state.step_log.append({"turn": turn, "reasoning": content})
-
-            assistant_msg: Dict[str, Any] = {"role": "assistant", "content": content or None}
-            if tool_calls:
-                assistant_msg["tool_calls"] = [
-                    {
-                        "id": tc["id"],
-                        "type": "function",
-                        "function": {
-                            "name": tc["name"],
-                            "arguments": json.dumps(model_arguments(tc["name"], tc["arguments"])),
-                        },
-                    }
-                    for tc in tool_calls
-                ]
-            messages.append(assistant_msg)
-
-            if not tool_calls:
-                if transform_signature_failures >= 2:
-                    state.stop_reason = "invalid_experiment_signature"
-                    state.finish_summary = (
-                        "Stopped after the generated cleaning method failed the required "
-                        "transform(df) signature twice and the agent did not choose a "
-                        "registered cleaning tool."
-                    )
-                    state.unresolved.append(state.finish_summary)
-                    state.finished = True
-                    break
+            if response is None: break
+            state.llm_provider = response.get("provider",state.llm_provider)
+            state.llm_model = response.get("model",state.llm_model)
+            state.step_log.append({"turn":turn,"provider":response.get("provider"),"model":response.get("model"),
+                "response_finish_reason":response.get("finish_reason"),"tool_call_source":response.get("tool_call_source"),
+                "usage":response.get("usage"),"timing":response.get("timing"),"options":response.get("options"),"response_issue":response.get("response_issue")})
+            content, calls = response.get("content") or "", response.get("tool_calls") or []
+            if content: state.step_log.append({"turn":turn,"reasoning":content})
+            assistant = {"role":"assistant","content":content or None}
+            if calls:
+                assistant["tool_calls"] = [{"id":c["id"],"type":"function","function":{"name":c["name"],
+                    "arguments":json.dumps(model_arguments(c["name"],c["arguments"]))}} for c in calls]
+            messages.append(assistant)
+            if not calls:
                 empty_responses += 1
-                state.persist_trace()
                 if empty_responses >= 3:
-                    state.finished = True
                     state.stop_reason = "no_tool_calls"
-                    state.finish_summary = "Stopped after three consecutive responses without a tool call."
+                    state.finish_summary = "Stopped after three consecutive responses without a usable tool call."
                     state.unresolved.append(state.finish_summary)
                     break
-                frame = state.manager.load(state.current_ref)
-                pending = {
-                    "type_targets": {c: canonical_type(t) for c, t in state.required_targets.items()
-                                     if c not in frame or not target_matches(frame[c], t)},
-                    "missing_counts": {c: int((~present(frame[c])).sum()) for c in state.required_missing
-                                       if c in frame and not present(frame[c]).all()},
-                }
-                messages.append({"role": "user", "content": (
-                    "No tool was called. Cleaning is not complete merely because a response ended. "
-                    'Prefer a native tool call. If unavailable, return ONLY a JSON object {"name":"inspect_data","arguments":{"view":"schema"}} or another tool exposed in the CURRENT stage, with all required arguments. No prose or planned actions. '
-                    "Inspect evidence, propose a candidate with test_method, review its outcomes, and apply only an accepted candidate. For an error, follow the revision prompt and change your method based on evidence. If blocked, finish with explicit unresolved items."
-                ) + " Current unmet requirements: " + json.dumps(pending)})
+                issue = response.get("response_issue") or {"message":"No usable tool call was received"}
+                guidance = build_prompt(executor, "model_response", {}, {"success":False,
+                    "error":issue.get("message"),"error_kind":issue.get("kind")})
+                messages.append({"role":"user","content":json.dumps(guidance)})
+                state.step_log.append({"turn":turn,"recovery_prompt":guidance})
+                state.persist_trace()
                 continue
             empty_responses = 0
-
-            finish_args = None
-            recovery_messages = []
-            for tc in tool_calls:
-                if finish_args is not None:
-                    messages.append({"role": "tool", "tool_call_id": tc["id"],
-                                     "content": json.dumps({"success": False, "error": "Skipped after finish. Put finish last."})})
-                    continue
-                name = tc["name"]
-                args = tc["arguments"] if isinstance(tc["arguments"], dict) else {}
-                if time.monotonic() >= state.deadline:
-                    state.stop_reason = "time_budget"
-                    state.finish_summary = f"Stopped: reached the {self.max_seconds:.0f}s run budget before {name}."
-                    state.unresolved.append(state.finish_summary)
-                    state.finished = True
-                    break
-                if name == "experiment_cleaning_method" and transform_signature_failures >= 2:
-                    state.stop_reason = "invalid_experiment_signature"
-                    state.finish_summary = (
-                        "Stopped after the generated cleaning method failed the required "
-                        "transform(df) signature twice and the agent attempted another "
-                        "experiment instead of using a registered cleaning tool."
-                    )
-                    state.unresolved.append(state.finish_summary)
-                    state.finished = True
-                    break
-                signature = (state.current_ref.version, name, json.dumps({k: v for k, v in args.items() if k not in {"rationale", "evidence_ids", "step_id"}}, sort_keys=True))
-                repeated_calls[signature] = repeated_calls.get(signature, 0) + 1
-                if name != "finish" and repeated_calls[signature] >= 3:
-                    state.stop_reason = "stalled"
-                    state.finish_summary = f"Stopped: repeated {name} on unchanged {state.current_ref.version}."
-                    state.unresolved.append(state.finish_summary)
-                    state.finished = True
-                    break
-                logger.info("Tool call: %s(%s)", name, json.dumps(args)[:200])
-                result_str = executor.execute(name, args)
-                logger.info("Tool result: %s", result_str[:400])
-                tool_result = json.loads(result_str)
-                state.step_log.append(
-                    {
-                        "turn": turn,
-                        "tool": name,
-                        "args": args,
-                        "result_preview": result_str[:300],
-                    }
-                )
-                messages.append(
-                    {
-                        "role": "tool",
-                        "tool_call_id": tc["id"],
-                        "content": _tool_feedback(result_str),
-                    }
-                )
-                if tool_result.get("revision_feedback"):
-                    recovery_messages.append({"role": "user", "content": (
-                        "Data/method error returned to you for reconsideration. "
-                        + json.dumps(workflow.model_feedback(tool_result["revision_feedback"]), default=str)
-                    )})
-                if name == "experiment_cleaning_method" and tool_result.get("error") == TRANSFORM_SIGNATURE_ERROR:
-                    transform_signature_failures += 1
-                    if transform_signature_failures == 1:
-                        recovery_messages.append({"role": "user", "content": (
-                            "The experiment was rejected before execution because its function "
-                            "signature is invalid. Define exactly one top-level `def transform(df):` "
-                            "function that returns the DataFrame. Your function must not be named "
-                            "`clean_data`. Correct the name and make one corrected experiment attempt."
-                        )})
-                    else:
-                        recovery_messages.append({"role": "user", "content": (
-                            "The corrected experiment was also rejected for its function signature. "
-                            "Do not call experiment_cleaning_method again. Use suitable registered "
-                            "cleaning tools for the remaining issues, or call finish with explicit "
-                            "unresolved reasons if they cannot be safely resolved."
-                        )})
-                if name == "finish":
-                    finish_args = args
-            # Complete every response in an assistant tool batch before asking
-            # the model to reconsider errors; providers require matched history.
-            messages.extend(recovery_messages)
-            if finish_args is not None:
-                validation_ok = state.validation is not None and state.validation.all_passed
-                blocked = bool(finish_args.get("unresolved") or state.pending_approvals or state.unresolved)
-                if not validation_ok and not blocked and incomplete_finishes < 2:
-                    incomplete_finishes += 1
-                    state.finished = False
-                    messages.append({"role": "user", "content": (
-                        "Final validation failed. Continue with the failed rules above, or finish "
-                        "with explicit unresolved reasons if the remaining work is blocked."
-                    )})
+            feedback = []
+            halted = False
+            for call in calls:
+                name, args = call["name"], call["arguments"] if isinstance(call["arguments"],dict) else {}
+                signature = (state.current_ref.version,name,json.dumps(model_arguments(name,args),sort_keys=True))
+                repeated[signature] = repeated.get(signature,0)+1
+                if halted or state.finished:
+                    result = {"success":False,"error":"Skipped after stop or finish"}
+                elif time.monotonic() >= state.deadline:
+                    state.stop_reason="time_budget"; state.finish_summary="Run budget expired before tool execution"
+                    state.unresolved.append(state.finish_summary); halted=True
+                    result={"success":False,"error":state.finish_summary}
+                elif name != "finish" and repeated[signature]>=3:
+                    state.stop_reason="stalled"; state.finish_summary=f"Stopped: repeated {name} on unchanged {state.current_ref.version}."
+                    state.unresolved.append(state.finish_summary); halted=True
+                    result={"success":False,"error":state.finish_summary}
                 else:
-                    state.finished = True
-                    state.stop_reason = "completed" if validation_ok else "incomplete"
-
-        if not state.finished:
-            state.finished = True
-            state.finish_summary = f"Stopped: reached max_turns={self.max_turns} before a validated finish."
+                    result = json.loads(executor.execute(name,args))
+                    state.step_log.append({"turn":turn,"tool":name,"args":args,"result_preview":json.dumps(result)[:300]})
+                    if result.get("recovery_prompt"):
+                        feedback.append({"role":"user","content":json.dumps(result["recovery_prompt"])})
+                messages.append({"role":"tool","tool_call_id":call["id"],"content":_tool_feedback(json.dumps(result))})
+            messages.extend(feedback)
+            state.persist_trace()
+            if halted: break
+            if state.finished:
+                state.stop_reason = "completed" if state.validation.all_passed else "completed_with_exceptions" if state.validation.status==ValidationStatus.PARTIAL else "incomplete"
+                break
+        else:
+            state.stop_reason="max_turns"
+            state.finish_summary=f"Stopped: reached max_turns={self.max_turns} before finish."
             state.unresolved.append("max_turns reached")
-            state.stop_reason = "max_turns"
+        state.finished=True
         state.persist_trace()
 
     def _build_user_message(
@@ -516,9 +361,9 @@ class DataCleaningAgent:
             "BIFlow automatically links problems and observations by column. Do not supply issue or evidence IDs.",
             "",
             "## Instructions",
-            "Follow the current stage prompt. Inspect evidence, propose and test a method, review measured outcomes, then apply the exact accepted candidate.",
+            "Inspect as needed, test on a copy, then apply a passing candidate with an assessment of its measured results.",
             "Use generated transform(df) experiments when existing methods are insufficient. Data errors require reconsideration and a concrete revision.",
-            "Request review for ambiguous business decisions or structural changes. Finish with explicit unresolved reasons when blocked.",
+            "Use flag_for_review for ambiguous business decisions. Findings are advisory; current type and missing obligations are measured each turn.",
         ]
         if self.approve_all:
             parts.append(
@@ -548,13 +393,6 @@ class DataCleaningAgent:
         }
 
         for step in plan.steps:
-            if requires_approval(step) and not self.approve_all and step.step_id not in approved:
-                state.unresolved.append(
-                    f"Awaiting approval: {step.operation} {step.columns} — {step.rationale}"
-                )
-                step.status = TransformationStatus.PROPOSED
-                continue
-
             tool_name = op_map.get(step.operation)
             if not tool_name:
                 state.unresolved.append(f"No tool mapping for {step.operation}")
@@ -589,19 +427,19 @@ class DataCleaningAgent:
                     "drop": "drop_rows",
                 }.get(strat, strat)
 
-            result_str = executor.execute(tool_name, args)
+            result_str = executor.execute_trusted(tool_name, args)
             result = json.loads(result_str)
             if not result.get("success"):
                 state.unresolved.append(
                     f"Failed {tool_name}: {result.get('error') or result.get('message')}"
                 )
 
-        executor.execute(
+        executor.execute_trusted(
             "validate_dataset",
             {},
         )
         state.stop_reason = "deterministic_completed"
-        executor.execute(
+        executor.execute_trusted(
             "finish",
             {
                 "summary": "Deterministic pipeline completed",
@@ -620,12 +458,10 @@ class DataCleaningAgent:
             final = state.current_ref
         else:
             # Always validate the actual final version, including early exits and errors.
-            ToolExecutor(state).execute("validate_dataset", {})
+            ToolExecutor(state)._validate_dataset({})
             validation = state.validation
-            final = self.manager.mark_validated(
-                state.current_ref,
-                status=DatasetStatus.VALIDATED if validation.all_passed else DatasetStatus.FAILED,
-            )
+            final = state.current_ref if validation.status == ValidationStatus.PARTIAL else self.manager.mark_validated(
+                state.current_ref, status=DatasetStatus.VALIDATED if validation.all_passed else DatasetStatus.FAILED)
             validation.dataset_ref = final
         changelog = self.manager.get_changelog(state.dataset_id)
 
@@ -637,7 +473,7 @@ class DataCleaningAgent:
             validation=validation,
             unresolved_issues=list(dict.fromkeys(state.unresolved
                 + [f"APPROVAL: {p}" for p in state.pending_approvals]
-                + validation.unresolved_issues)),
+                + validation.unresolved_issues + validation.exceptions)),
             metadata={
                 "mode": "llm" if self.use_llm else "deterministic",
                 "limits": {"max_turns": self.max_turns, "max_seconds": self.max_seconds},
@@ -655,8 +491,8 @@ class DataCleaningAgent:
                 "events": state.events,
                 "evidence": state.evidence,
                 "experiments": state.experiments,
-                "workflow_stage": state.workflow_stage,
-                "issues": state.issues,
+                "flagged": state.flagged,
+                "failures": state.failures,
                 "method_candidates": state.method_candidates,
                 "decisions": state.decisions,
                 "sandbox": sandbox_status(),

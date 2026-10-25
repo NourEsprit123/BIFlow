@@ -1,0 +1,1 @@
+BIFlow could not receive a usable action. Read the exact response/parser error. Return a native structured tool call, or ONLY a complete JSON object with name and arguments, using a registered tool and its required fields. Do not add prose around JSON, describe future calls, or repeat an invalid envelope. No proposed action from this rejected response was executed.

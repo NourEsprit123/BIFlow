@@ -22,34 +22,6 @@ from pydantic import BaseModel, Field
 # Enums
 # ---------------------------------------------------------------------------
 
-class Severity(str, Enum):
-    NONE = "NONE"
-    INFO = "info"
-    LOW = "low"
-    MEDIUM = "MEDIUM"      # Agent 1 uses uppercase
-    HIGH = "HIGH"
-    CRITICAL = "CRITICAL"
-
-    @classmethod
-    def _missing_(cls, value: object):
-        """Accept mixed-case values from Agent 1 or internal code."""
-        if isinstance(value, str):
-            upper = value.upper()
-            for member in cls:
-                if member.value.upper() == upper:
-                    return member
-            lower = value.lower()
-            for member in cls:
-                if member.value.lower() == lower:
-                    return member
-        return None
-
-
-class Confidence(str, Enum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-
 
 class RiskLevel(str, Enum):
     LOW = "low"
@@ -135,21 +107,6 @@ class ColumnIssue(BaseModel):
     description: str = ""
     evidence: Dict[str, Any] = Field(default_factory=dict)
     llm_agreement: Optional[str] = None
-
-    model_config = {"extra": "ignore"}
-
-
-class NumericStats(BaseModel):
-    mean: Optional[float] = None
-    median: Optional[float] = None
-    std: Optional[float] = None
-    min: Optional[float] = None
-    max: Optional[float] = None
-    q1: Optional[float] = None
-    q3: Optional[float] = None
-    skewness: Optional[float] = None
-    zeros_count: Optional[int] = None
-    negative_count: Optional[int] = None
 
     model_config = {"extra": "ignore"}
 
@@ -368,11 +325,12 @@ class ValidationReport(BaseModel):
     schema_ok: bool = True
     quality_ok: bool = True
     unresolved_issues: List[str] = Field(default_factory=list)
+    exceptions: List[str] = Field(default_factory=list)
     generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     @property
     def all_passed(self) -> bool:
-        return self.status == ValidationStatus.PASSED and not self.unresolved_issues
+        return self.status == ValidationStatus.PASSED and not self.unresolved_issues and not self.exceptions
 
 
 class CleaningResult(BaseModel):

@@ -28,14 +28,13 @@ def session(tmp_path):
     state = AgentSessionState(manager=manager, dataset_id="dirty", source_ref=original,
                               current_ref=manager.create_working_copy(original), expected_columns=["customer", "amount"])
     executor = ToolExecutor(state)
-    observed = json.loads(executor.execute("inspect_column", {"column": "amount"}))
+    observed = json.loads(executor.execute("inspect_data", {"view":"column", "column": "amount"}))
     return state, executor, observed["event_id"]
 
 
 def request(evidence):
-    return {"code": CODE, "columns": ["amount"], "rationale": "Observed currency strings and a missing value",
-            "expected_effect": "Parse dollar amounts and fill the missing amount using the median",
-            "evidence_ids": [evidence], "checks": [{"column": "amount", "kind": "numeric"},
+    return {"code": CODE, "columns": ["amount"], "hypothesis": "Observed currency strings and a missing value",
+            "checks": [{"column": "amount", "kind": "numeric"},
                 {"column": "amount", "kind": "no_missing"}, {"column": "amount", "kind": "non_negative"}]}
 
 
@@ -58,29 +57,29 @@ def test_trials_are_disjoint_and_exact_method_is_promoted_after_full_checks(sess
     original = Path(state.source_ref.path).read_bytes()
     calls = []
     monkeypatch.setattr(experiments, "run_isolated_transform", trusted_test_runner(calls))
-    trial = json.loads(executor.execute("experiment_cleaning_method", request(evidence)))
+    trial = json.loads(executor.execute("test_method", request(evidence)))
     assert trial["tested"] and trial["success"]
     assert state.current_ref.version == "V1"
     assert set(calls[0]["index"]).isdisjoint(calls[1]["index"])
     assert calls[1]["image_id"] == "sha256:tested"
-    result = json.loads(executor.execute("apply_experimental_method", {"candidate_id": trial["candidate_id"]}))
+    result = json.loads(executor.execute("apply_candidate", {"candidate_id": trial["candidate_id"],"assessment":"Trial outcomes satisfy the checks"}))
     assert result["accepted"] and state.current_ref.version == "V2"
     assert calls[2]["rows"] == 4 and calls[2]["code"] == CODE
     assert calls[2]["image_id"] == "sha256:tested"
     assert state.manager.load(state.current_ref).amount.tolist() == [10, 20, 20, 40]
     record = state.manager.get_changelog("dirty").entries[-1]
     assert record.metadata["experiment"]["code_hash"] == trial["code_hash"]
-    assert trial["candidate_id"] in record.metadata["evidence_ids"]
+    assert record.metadata["effect"]["accepted"]
     assert Path(state.source_ref.path).read_bytes() == original
 
 
 def test_full_data_failure_rejects_sample_success_without_mutating_working_copy(session, monkeypatch):
     state, executor, evidence = session
     monkeypatch.setattr(experiments, "run_isolated_transform", trusted_test_runner([], fail_full=True))
-    trial = json.loads(executor.execute("experiment_cleaning_method", request(evidence)))
+    trial = json.loads(executor.execute("test_method", request(evidence)))
     assert trial["tested"]
-    result = json.loads(executor.execute("apply_experimental_method", {"candidate_id": trial["candidate_id"]}))
-    assert not result["accepted"] and state.current_ref.version == "V1"
+    result = json.loads(executor.execute("apply_candidate", {"candidate_id": trial["candidate_id"],"assessment":"Trial outcomes satisfy the checks"}))
+    assert not result["success"] and state.current_ref.version == "V1"
     assert not result["details"]["full_data_effect"]["accepted"]
     assert not state.manager.get_changelog("dirty").entries[-1].success
 
@@ -90,16 +89,16 @@ def test_changed_code_or_input_requires_a_new_experiment(session, monkeypatch, c
     state, executor, evidence = session
     calls = []
     monkeypatch.setattr(experiments, "run_isolated_transform", trusted_test_runner(calls))
-    trial = json.loads(executor.execute("experiment_cleaning_method", request(evidence)))
+    trial = json.loads(executor.execute("test_method", request(evidence)))
     if change == "code":
-        Path(state.experiments[trial["candidate_id"]]["code_path"]).write_text(CODE + "\n# changed", encoding="utf-8")
+        Path(state.experiments[state.method_candidates[trial["candidate_id"]]["experiment_id"]]["code_path"]).write_text(CODE + "\n# changed", encoding="utf-8")
     elif change == "version":
-        executor.execute("normalize_values", {"column": "customer", "case": "upper"})
+        executor.execute_trusted("normalize_values", {"column": "customer", "case": "upper"})
     else:
         with Path(state.current_ref.path).open("a", encoding="utf-8") as stream:
             stream.write("e,$50\n")
-    result = json.loads(executor.execute("apply_experimental_method", {"candidate_id": trial["candidate_id"]}))
-    assert not result["accepted"]
+    result = json.loads(executor.execute("apply_candidate", {"candidate_id": trial["candidate_id"],"assessment":"Trial outcomes satisfy the checks"}))
+    assert not result["success"]
     assert len(calls) == 2
     assert "changed" in result["error"]
 
@@ -108,11 +107,11 @@ def test_unavailable_runtime_is_a_failed_trial_with_no_host_fallback(session, mo
     state, executor, evidence = session
     monkeypatch.setattr(experiments, "run_isolated_transform", lambda *a, **k: {
         "success": False, "error": "Docker unavailable", "setup": experiments.BUILD_COMMAND})
-    trial = json.loads(executor.execute("experiment_cleaning_method", request(evidence)))
+    trial = json.loads(executor.execute("test_method", request(evidence)))
     assert not trial["tested"] and state.current_ref.version == "V1"
     assert trial["trials"][0]["setup"] == experiments.BUILD_COMMAND
-    result = json.loads(executor.execute("apply_experimental_method", {"candidate_id": trial["candidate_id"]}))
-    assert not result["accepted"] and state.current_ref.version == "V1"
+    result = json.loads(executor.execute("apply_candidate", {"candidate_id": trial["candidate_id"],"assessment":"Trial outcomes satisfy the checks"}))
+    assert not result["success"] and state.current_ref.version == "V1"
 
 
 def test_syntax_error_is_feedback_for_revision_not_an_agent_crash(session, monkeypatch):
@@ -122,7 +121,7 @@ def test_syntax_error_is_feedback_for_revision_not_an_agent_crash(session, monke
     monkeypatch.setattr(experiments, "run_isolated_transform", unexpected)
     arguments = request(evidence)
     arguments["code"] = "def transform(df):\n    return ("
-    result = json.loads(executor.execute("experiment_cleaning_method", arguments))
+    result = json.loads(executor.execute("test_method", arguments))
     assert not result["success"] and "Invalid candidate Python" in result["error"]
     assert state.current_ref.version == "V1" and not state.experiments
 
@@ -134,7 +133,7 @@ def test_methods_cannot_change_unselected_columns_or_remove_rows(session, monkey
         after["customer"] = "changed"
         return {"success": True, "df": after, "image_id": "sha256:test"}
     monkeypatch.setattr(experiments, "run_isolated_transform", run)
-    trial = json.loads(executor.execute("experiment_cleaning_method", request(evidence)))
+    trial = json.loads(executor.execute("test_method", request(evidence)))
     assert not trial["tested"]
     assert any(r["rule_name"] == "untouched:customer" and not r["passed"] for r in trial["trials"][0]["effect"]["rules"])
     before = state.manager.load(state.current_ref)
@@ -195,12 +194,12 @@ def test_llm_can_invent_test_and_promote_a_method_through_registered_tools(tmp_p
         turn = len(turns)
         turns.append(turn)
         if turn == 0:
-            name, arguments = "inspect_column", {"column": "amount"}
+            name, arguments = "inspect_data", {"view":"column", "column": "amount"}
         elif turn == 1:
-            name, arguments = "experiment_cleaning_method", request("event-1")
+            name, arguments = "test_method", request("event-1")
         elif turn == 2:
             result = json.loads(next(m["content"] for m in reversed(messages) if m["role"] == "tool"))
-            name, arguments = "apply_experimental_method", {"candidate_id": result["candidate_id"]}
+            name, arguments = "apply_candidate", {"candidate_id": result["candidate_id"],"assessment":"Trials passed without losing populated values"}
         else:
             name, arguments = "finish", {"summary": "Tested a generated method and validated its full-data result"}
         return {"content": None, "tool_calls": [{"id": str(turn), "name": name, "arguments": arguments}]}
@@ -228,7 +227,7 @@ def test_trial_ui_shows_generated_code_results_and_promotion_requirements(sessio
         socket.setdefaulttimeout(timeout)
     state, executor, evidence = session
     monkeypatch.setattr(experiments, "run_isolated_transform", trusted_test_runner([]))
-    executor.execute("experiment_cleaning_method", request(evidence))
+    executor.execute("test_method", request(evidence))
     event = state.events[-1]
     app = AppTest.from_string(
         "import json\nfrom dashboard.cleaning_review import render_event\n"

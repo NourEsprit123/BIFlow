@@ -2,7 +2,7 @@
 Cleaning tools – concrete, testable operations.
 
 Each function:
-  - operates on a DataFrame (or via VersionManager)
+  - operates on a DataFrame
   - returns a result summary (affected rows, errors, change metadata)
   - never silently invents business rules
 
@@ -12,12 +12,10 @@ Risk assessment and approval decisions live outside these tools
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Literal, Optional, Sequence
+from typing import Any, Dict, Literal, Optional, Sequence
 
 import pandas as pd
 
-from .models import ChangeRecord, DatasetReference
-from .versioning import DatasetVersionManager
 from .effects import present
 
 ErrorMode = Literal["coerce", "raise", "ignore"]
@@ -495,72 +493,3 @@ def drop_column(
         message=f"Dropped columns {list(columns)}",
         details={"dropped": list(columns)},
     )
-
-
-# ---------------------------------------------------------------------------
-# Helper: apply a cleaning function and commit via VersionManager
-# ---------------------------------------------------------------------------
-
-def apply_and_commit(
-    manager: DatasetVersionManager,
-    source_ref: DatasetReference,
-    cleaning_fn,
-    *,
-    operation_name: str,
-    affected_columns: Optional[List[str]] = None,
-    rationale: str = "",
-    step_id: Optional[str] = None,
-    approval_obtained: bool = False,
-    **fn_kwargs,
-) -> tuple[DatasetReference, ChangeRecord, CleaningResult]:
-    """
-    Load → clean → commit new version in one call.
-
-    ``affected_columns`` is metadata for the ChangeRecord only.
-    Columns actually operated on are passed via **fn_kwargs to match
-    the signature of ``cleaning_fn`` (e.g. column=..., columns=[...]).
-
-    Returns (new_ref, change_record, cleaning_result).
-    """
-    df = manager.load(source_ref)
-    result = cleaning_fn(df, **fn_kwargs)
-
-    # Infer metadata columns if not supplied
-    if affected_columns is not None:
-        cols_meta = affected_columns
-    elif "columns" in fn_kwargs:
-        cols_meta = list(fn_kwargs["columns"])
-    elif "column" in fn_kwargs:
-        cols_meta = [fn_kwargs["column"]]
-    else:
-        cols_meta = []
-
-    if not result.success or result.df is None:
-        new_ref, record = manager.commit_transformation(
-            source_ref=source_ref,
-            df=df,
-            operation=operation_name,
-            columns=cols_meta,
-            parameters=fn_kwargs,
-            rationale=rationale,
-            affected_rows=0,
-            step_id=step_id,
-            approval_obtained=approval_obtained,
-            success=False,
-            error_message=result.error or result.message,
-        )
-        return new_ref, record, result
-
-    new_ref, record = manager.commit_transformation(
-        source_ref=source_ref,
-        df=result.df,
-        operation=operation_name,
-        columns=cols_meta,
-        parameters=fn_kwargs,
-        rationale=rationale,
-        affected_rows=result.affected_rows,
-        step_id=step_id,
-        approval_obtained=approval_obtained,
-        success=True,
-    )
-    return new_ref, record, result

@@ -129,7 +129,7 @@ if cleaning_result:
     render_cleaning_result(cleaning_result, key="workflow_cleaning_trace")
     cleaned = load_dataset(cleaning_result.final_dataset.path)
     st.download_button(
-        "Download cleaned CSV" if cleaning_result.validation.all_passed else "Download working CSV (validation failed)",
+        "Download cleaned CSV" if cleaning_result.validation.all_passed else "Download working CSV (review required)",
         data=cleaned.to_csv(index=False).encode("utf-8"),
         file_name=f"{path.stem}_cleaned.csv",
         mime="text/csv",

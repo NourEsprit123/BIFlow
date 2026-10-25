@@ -1,0 +1,1 @@
+This attempt was rejected for invalid arguments before a method could run. Repair the named fields using the tool schema and method catalog. Keep the hypothesis unless its method arguments are wrong. Do not invent data corrections or switch to the sandbox to solve formatting. Return a corrected structured call; do not repeat the same invalid arguments.

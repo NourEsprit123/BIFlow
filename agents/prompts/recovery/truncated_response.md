@@ -1,0 +1,1 @@
+Your response reached the generation limit, so BIFlow could not accept the incomplete action. Shorten the hypothesis and generated code, target a smaller related group of columns, and return one complete structured call. Avoid a long explanation before the call. Do not assume the truncated method was tested or applied; no action from it was executed.

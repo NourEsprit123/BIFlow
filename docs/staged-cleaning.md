@@ -1,67 +1,46 @@
-# Staged cleaning and method experimentation
+# Simple cleaning workflow
 
-The local LLM follows an issue ledger through understand, propose, evaluate,
-revise, apply and conclude stages. Stage prompts live in
-`agents/prompts/cleaning_stages/`. `dataCleaningTools/workflow.py` owns the small
-model-facing interface. Legacy tools remain internal for trusted execution and
-the explicit deterministic baseline.
+The model sees five fixed tools: inspect_data, test_method, apply_candidate,
+flag_for_review, and finish. One prompt lives at agents/prompts/cleaning.md.
+There is no stage machine, issue tracker, evidence-ID contract or separate
+review action. Profiler findings are advisory text; type and missing-value
+obligations are computed from the current working data.
 
-The normal model-facing path uses `inspect_data`, `test_method`,
-`review_candidate`, `request_review`, and `finish`. Reviewing with decision
-`apply` runs full-data checks and commits only if accepted, without a second
-application turn. The separate `apply_candidate` path remains for compatibility
-with explicitly accepted candidates. Only the tools relevant to
-the current stage are sent to Ollama. Builtin methods are described by a compact
-catalog, including their parameter shapes.
+A builtin trial runs its trusted function on a full-data copy, with independent
+acceptance and any declared outcome checks. Generated code requires declared
+checks and uses the existing isolated Docker sample/holdout runner. BIFlow adds
+selected-column target-type and missing-value obligations to generated checks.
+Generated code never runs on the host, including when Docker is unavailable.
 
-The required proposal fields are `hypothesis`, `columns` and `checks`, plus
-a builtin operation/parameters or generated code. Omitted kind, rationale,
-expected-effect text and evidence references are derived from the proposal and
-existing observations, and recorded as metadata defaults. No business assumptions
-are invented. Explicit assumptions can still be supplied. The model names columns;
-problem and evidence references are application-owned. Builtins run on independent data
-copies; generated `transform(df)` functions run only inside the existing isolated
-Docker runner. Both paths report disjoint sample/holdout effects and preserve the
-working version during trials. A one-row dataset explicitly lacks a holdout.
+Only apply_candidate commits model-proposed changes. It records a concise model
+assessment, reruns the exact tested method on the full current data, rechecks
+mandatory acceptance and declared outcomes, then commits. The public c1/c2 IDs
+map to internal generated-experiment IDs; generated promotion uses the latter.
+Version and content checks reject stale data or modified candidates. Content
+checks remain because version files are writable, not physically immutable.
 
-The LLM reviews trial outcomes before application. Successful trials and an
-accepting review are prerequisites, not proof of full-data correctness. Applying
-reruns the unchanged candidate on the full current dataset, checks its effects,
-and commits only if accepted. Changed methods, checks, source bytes or versions
-require fresh testing. Existing independent validation remains authoritative.
+Approval IDs are hashes of the operation, columns and parameters. Only host UI
+or CLI input populates approved_step_ids. A model cannot choose its own approval
+ID or grant permission. A host-only trusted operation path supports the explicit
+deterministic baseline and core tests; it is not reachable through model dispatch.
 
-Data errors, invalid requests, failed trials, full-data failures and no-op
-transformations produce a `revision_feedback` object in the trace and an explicit
-user-role prompt in the next model context. This includes measured failures and
-asks for a concrete changed method or further inspection. It never executes a
-suggested repair automatically. Argument errors use a distinct field-repair prompt; they do not ask the model
-to redesign a method that never ran. Model HTTP failures remain provider failures,
-with the existing bounded formatting retry; they are not disguised as data errors.
+flag_for_review takes column names and reasons. Those columns are frozen for the
+rest of the run and omitted from remaining obligations. Final validation reports
+those reasons, unresolved comments and pending approvals as exceptions. A run
+with no failing checked obligations but with exceptions has status partial, keeps
+a WORKING dataset, and never satisfies validation.all_passed. Full success is
+reserved for checked obligations passing without exceptions. A second unsuccessful
+finish attempt ends the run rather than creating a completion loop.
 
-Each issue permits three failed trials/full-data attempts within the existing
-overall turn/time budget. An unchanged candidate on unchanged data cannot be
-retested. Ambiguous business decisions are marked awaiting review; overlapping
-experiments cannot bypass that state. Failed applications remain in the audit
-trail; their active failure flags are cleared only after a subsequent accepted
-candidate resolves their associated issues.
+Failed methods remain in audit traces but do not permanently poison later
+validation. Identical candidates cannot be retested on the same version. Method
+failure counts, repeat-call limits, total turns and wall time bound the run.
+Errors go back to the model with their actual failed checks or exception; JSON
+parser rejection reasons and truncation are also recorded and returned for repair.
+Focused feedback templates for different error cases are described in
+[Case-specific recovery prompts](recovery-prompts.md). They do not introduce
+stages or change which tools are available.
 
-The UI displays hypotheses, assumptions, stages, trial measurements, candidate
-assessments, returned revision prompts and the issue ledger. Detailed decisions
-and candidate specifications are persisted in both trace and result artifacts.
-
-Current scope: the unified trial path supports nonstructural cleaning. Row/column
-removal is routed to human review rather than silently enabled through generated
-code. Profiling findings without automatic postconditions require a tested,
-reviewed candidate or remain unresolved; model-declared expectations cannot
-override application checks. Sample/holdout feedback is development evidence,
-not a substitute for a separate held-out behavioral evaluation dataset.
-
-`tests/test_staged_cleaning.py` verifies builtin rejection followed by generated
-revision, explicit error prompts, mandatory review, full-data rejection,
-immutability, issue budgets and review blocking. Docker and Ollama are mocked;
-these tests establish control-loop correctness, not live model reliability or
-real container availability. Live local-model evaluation remains a separate step.
-
-Problem binding: test_method and request_review accept column names, never issue/evidence references. BIFlow links all pending problems and existing observations for those columns, including multiple problems on one column. Actual validation determines which problems are resolved; binding is not a claim that all were repaired. Legacy model-supplied issue_ids/evidence_ids are ignored, including when the model returns JSON text. Raw requests and canonical internal links remain in the audit trace, while prompts and tool feedback omit those references. Invalid method arguments return field-level repair guidance and problem descriptions by column; they do not run methods or consume data-trial budgets.
-
-A builtin column operation may broadcast the same parameters to all declared columns. Trials and full application are atomic: one failing column prevents partial application. Parseable numeric or boolean text no longer counts as a completed persisted conversion. Generic semantic findings remain unresolved until independently verified or reviewed; linking a column never establishes that every finding on it was fixed.
+Tests use controlled HTTP responses and trusted sandbox mocks. They verify the
+application's control and acceptance boundaries, not live Qwen decision quality
+or real Docker availability. A separate live behavioral evaluation is still needed.

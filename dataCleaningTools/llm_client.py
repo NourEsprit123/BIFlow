@@ -89,35 +89,40 @@ def _ollama_messages(messages):
     return translated
 
 
-def _json_tool_calls(content, tools):
+def _json_tool_calls(content, tools, diagnostics=None):
     """Accept only a complete JSON call envelope, never extract calls from prose."""
+    def rejected(message):
+        if diagnostics is not None:
+            diagnostics.append(message)
+        return []
     text = content.strip()
     if text.startswith("```json\n") and text.endswith("\n```"):
         text = text[8:-4].strip()
     try:
         value = json.loads(text)
     except (ValueError, TypeError):
-        return []
+        return rejected("Return a complete JSON call without surrounding prose")
     if isinstance(value, dict) and set(value) == {"tool_calls"}:
         value = value["tool_calls"]
     entries = value if isinstance(value, list) else [value]
     if not entries or len(entries) > 8:
-        return []
+        return rejected("Return between one and eight tool calls")
     schemas = {t["function"]["name"]: t["function"]["parameters"] for t in tools}
     calls = []
     for entry in entries:
         if not isinstance(entry, dict):
-            return []
+            return rejected("Each call must be a JSON object")
         if set(entry) == {"function"}:
             entry = entry["function"]
         if not isinstance(entry, dict) or set(entry) != {"name", "arguments"}:
-            return []
+            return rejected("A call must contain exactly name and arguments")
         name, arguments = entry["name"], entry["arguments"]
         arguments = model_arguments(name, arguments)
         if not isinstance(name, str) or name not in schemas or not isinstance(arguments, dict):
-            return []
-        if not Draft202012Validator(schemas[name]).is_valid(arguments):
-            return []
+            return rejected("Use a registered tool name and an arguments object")
+        errors = list(Draft202012Validator(schemas[name]).iter_errors(arguments))
+        if errors:
+            return rejected("Invalid arguments for " + name + ": " + "; ".join(e.message for e in errors))
         calls.append({"function": {"name": name, "arguments": arguments}})
     return calls
 
@@ -155,9 +160,13 @@ def chat_with_tools(messages, tools, *, model=None, temperature=0.1, on_provider
     calls = []
     raw_calls = message.get("tool_calls") or []
     call_source = "native"
+    diagnostics = []
     if not raw_calls and data.get("done_reason") != "length":
-        raw_calls = _json_tool_calls(message.get("content") or "", tools)
+        raw_calls = _json_tool_calls(message.get("content") or "", tools, diagnostics)
         call_source = "validated_json" if raw_calls else "none"
+    elif not raw_calls:
+        call_source = "none"
+        diagnostics.append("Response reached the generation limit; return a shorter complete action")
     for call in raw_calls:
         function = call.get("function", {})
         name = function.get("name")
@@ -180,6 +189,7 @@ def chat_with_tools(messages, tools, *, model=None, temperature=0.1, on_provider
     return {"content": message.get("content") or "", "tool_calls": calls, "raw_role": "assistant",
             "provider": "ollama", "model": model, "finish_reason": data.get("done_reason"),
             "tool_call_source": call_source,
+            "response_issue": {"kind": "truncated" if data.get("done_reason") == "length" else "invalid_response", "message": diagnostics[0]} if diagnostics else None,
             "usage": {"prompt_tokens": data.get("prompt_eval_count"), "completion_tokens": tokens},
             "timing": {"request_seconds": time.monotonic() - started, "load_seconds": seconds("load_duration"),
                        "prompt_seconds": seconds("prompt_eval_duration"), "generation_seconds": generated_seconds,

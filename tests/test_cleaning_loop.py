@@ -1,260 +1,77 @@
 import json
 from pathlib import Path
-
 import pandas as pd
 import pytest
-
 from agents.dataCleaning_agent import DataCleaningAgent
-from dataCleaningTools.models import CleaningResult
-
 
 @pytest.fixture(autouse=True)
-def offline_sandbox(monkeypatch):
-    monkeypatch.setattr("agents.dataCleaning_agent.sandbox_status", lambda: {"selected": "fallback"})
+def offline(monkeypatch): monkeypatch.setattr('agents.dataCleaning_agent.sandbox_status',lambda:{})
 
+def report(tmp_path):
+    source=tmp_path/'input.csv';pd.DataFrame({'flag':['Yes','No']}).to_csv(source,index=False)
+    return {'dataset_ref':{'file_path':str(source),'file_name':source.name,'rows':2,'columns':1},
+        'column_profiles':{'flag':{'dtype':'str','etl_cast_to':'boolean'}}}
+def action(name,**args): return {'content':None,'tool_calls':[{'id':name,'name':name,'arguments':args}]}
+def run(tmp_path,monkeypatch,respond,**settings):
+    monkeypatch.setattr('agents.dataCleaning_agent.chat_with_tools',respond)
+    return DataCleaningAgent(data_root=tmp_path/'versions',use_llm=True,**settings).run(report(tmp_path))
 
-def action(name, **arguments):
-    return {"content": None, "finish_reason": "tool_calls", "tool_calls": [
-        {"id": name, "name": name, "arguments": arguments}]}
+def test_flat_tools_stay_constant_and_apply_needs_no_review_turn(tmp_path,monkeypatch):
+    calls=[]
+    def respond(messages,tools,**kwargs):
+        calls.append(messages)
+        assert {t['function']['name'] for t in tools}=={'inspect_data','test_method','apply_candidate','flag_for_review','finish'}
+        if len(calls)==1: return action('test_method',hypothesis='Yes/No flags',columns=['flag'],operation='convert_data_types',parameters={'target_type':'boolean'})
+        result=json.loads(next(m['content'] for m in reversed(messages) if m['role']=='tool'))
+        if len(calls)==2: return action('apply_candidate',candidate_id=result['candidate_id'],assessment='Both values parsed in the full copy')
+        return action('finish',summary='Flag prepared')
+    result=run(tmp_path,monkeypatch,respond)
+    assert result.validation.all_passed and len(calls)==3 and result.metadata['stop_reason']=='completed'
 
-
-def telco_report():
-    root = Path(__file__).resolve().parents[1]
-    # Do not depend on a report overwritten by live profiling experiments.
-    return {"dataset_ref": {"file_path": str(root / "data/raw/telco_churn.csv"),
-                            "file_name": "telco_churn.csv", "rows": 7043, "columns": 21},
-            "column_profiles": {
-                "TotalCharges": {"dtype": "str", "missing_count": 11, "etl_cast_to": "numeric"},
-                **{c: {"dtype": "str", "etl_cast_to": "boolean"} for c in
-                   ["Partner", "Dependents", "PhoneService", "PaperlessBilling", "Churn"]}}}
-
-
-def test_telco_progress_survives_alternating_noops_and_guides_remaining_batch(tmp_path, monkeypatch):
-    responses = [action("convert_data_types", column="TotalCharges", target_type="float")]
-    for column in ["Partner", "Dependents", "Partner", "Dependents"]:
-        responses.append(action("convert_data_types", column=column, target_type="boolean"))
-    batch = [action("convert_data_types", column=c, target_type="boolean")["tool_calls"][0]
-             for c in ["PhoneService", "PaperlessBilling", "Churn"]]
-    responses += [{"content": None, "tool_calls": batch},
-                  action("handle_missing_values", columns=["TotalCharges"], strategy="fill_median"),
-                  action("finish", summary="Completed outstanding requirements")]
-    iterator = iter(responses)
-    progress = []
-    def respond(messages, *args, **kwargs):
-        text = messages[-1]["content"]
-        prefix = "Authoritative progress measured on the current working dataset: "
-        progress.append(json.JSONDecoder().raw_decode(text[len(prefix):])[0])
-        return next(iterator)
-    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
-    result = DataCleaningAgent(data_root=tmp_path, use_llm=True).run(telco_report())
-    assert result.validation.all_passed
-    events = result.metadata["events"]
-    assert events[3]["result"]["no_op"] and events[4]["result"]["no_op"]
-    assert events[3]["source_version"] == events[3]["version"] == events[4]["version"]
-    assert set(progress[5]["pending_types"]) == {"PhoneService", "PaperlessBilling", "Churn"}
-    assert progress[5]["pending_missing"] == {"TotalCharges": 11}
-    assert not progress[-1]["pending_types"] and not progress[-1]["pending_missing"]
-
-
-def test_wrong_normalizer_calls_get_exact_boolean_repairs(tmp_path, monkeypatch):
-    flags = ["Partner", "Dependents", "PhoneService", "PaperlessBilling", "Churn"]
-    source = tmp_path / "flags.csv"
-    pd.DataFrame({c: ["Yes", "No"] for c in flags}).to_csv(source, index=False)
-    report = {"dataset_ref": {"file_path": str(source), "file_name": source.name, "rows": 2, "columns": 5},
-              "column_profiles": {c: {"dtype": "str", "etl_cast_to": "boolean"} for c in flags}}
-    responses = iter([
-        action("normalize_values", target_type="boolean"),
-        action("normalize_values", column="Partner", target_type="boolean"),
-        action("normalize_values", column="Partner"),
-    ])
-    turn = 0
-    def respond(messages, *args, **kwargs):
-        nonlocal turn
-        turn += 1
-        if turn <= 3:
-            return next(responses)
-        if turn == 4:
-            feedback = json.loads(next(m["content"] for m in reversed(messages) if m["role"] == "tool"))
-            assert feedback["no_op"]
-            repairs = feedback["recovery"]["next_actions"]
-            assert {r["arguments"]["column"] for r in repairs} == set(flags)
-            return {"content": None, "tool_calls": [
-                {"id": str(i), "name": r["tool"], "arguments": r["arguments"]}
-                for i, r in enumerate(repairs)]}
-        return action("finish", summary="All flags converted using the supported tool")
-    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
-    result = DataCleaningAgent(data_root=tmp_path / "versions", use_llm=True).run(report)
-    assert result.validation.all_passed and turn == 5
-    events = result.metadata["events"]
-    assert not events[0]["result"]["success"] and not events[1]["result"]["success"]
-    assert events[2]["result"]["no_op"]
-    assert all(e["source_version"] == e["version"] for e in events[:3])
-    assert all(pd.api.types.is_bool_dtype(pd.read_csv(result.final_dataset.path)[c]) for c in flags)
-
-
-def test_telco_continues_after_narrative_at_turn_four_and_cleans_remaining_columns(tmp_path, monkeypatch):
-    responses = [action("inspect_schema"), action("inspect_column", column="TotalCharges"),
-                 action("trim_whitespace", columns=["TotalCharges"], rationale="Trim numeric text"),
-                 {"content": "Whitespace removed. Next I should fill missing values and convert flags.", "tool_calls": []},
-                 action("convert_data_types", column="TotalCharges", target_type="numeric"),
-                 action("handle_missing_values", columns=["TotalCharges"], strategy="fill_median")]
-    responses.extend(action("convert_data_types", column=c, target_type="boolean") for c in
-                     ["Partner", "Dependents", "PhoneService", "PaperlessBilling", "Churn"])
-    responses.append(action("finish", summary="Charges and flags prepared"))
-    iterator = iter(responses)
-    feedback_sizes = []
-    def respond(messages, *args, **kwargs):
-        feedback_sizes.extend(len(m["content"]) for m in messages if m["role"] == "tool" and '"effect"' in m["content"])
-        return next(iterator)
-    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
-    result = DataCleaningAgent(data_root=tmp_path, use_llm=True).run(telco_report())
-    assert result.validation.all_passed
-    assert result.metadata["stop_reason"] == "completed"
-    df = pd.read_csv(result.final_dataset.path)
-    assert len(df) == 7043 and not df.TotalCharges.isna().any()
-    assert pd.api.types.is_bool_dtype(df.Partner)
-    assert max(feedback_sizes) < 4000
-    persisted = CleaningResult.model_validate_json(Path(result.metadata["result_path"]).read_text(encoding="utf-8"))
-    assert persisted.validation.all_passed and persisted.metadata["events"] == result.metadata["events"]
-
-
-def test_provider_error_after_trim_is_persisted_with_exact_turn(tmp_path, monkeypatch):
-    class ProviderFailure(RuntimeError):
-        status_code = 429
-    count = 0
-    def respond(*args, **kwargs):
-        nonlocal count
-        count += 1
-        if count == 1:
-            return action("trim_whitespace", columns=["TotalCharges"])
-        raise ProviderFailure("Synthetic token limit error")
-    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
-    result = DataCleaningAgent(data_root=tmp_path, use_llm=True).run(telco_report())
+def test_three_empty_responses_are_bounded(tmp_path,monkeypatch):
+    result=run(tmp_path,monkeypatch,lambda *a,**k:{'content':'I will clean','tool_calls':[]})
+    assert result.metadata['stop_reason']=='no_tool_calls' and result.metadata['turns_used']==3
     assert not result.validation.all_passed
-    assert result.metadata["stop_reason"] == "provider_error"
-    assert result.metadata["provider_errors"][0]["turn"] == 2
-    assert result.metadata["provider_errors"][0]["status_code"] == 429
-    trace = json.loads((Path(result.final_dataset.path).parent / "execution_trace.json").read_text(encoding="utf-8"))
-    assert trace["provider_errors"][0]["message"] == "Synthetic token limit error"
-    assert trace["events"][0]["tool"] == "trim_whitespace"
-    assert Path(result.metadata["result_path"]).is_file()
 
+def test_repeated_inspection_is_bounded(tmp_path,monkeypatch):
+    result=run(tmp_path,monkeypatch,lambda *a,**k:action('inspect_data',view='schema'))
+    assert result.metadata['stop_reason']=='stalled' and result.metadata['turns_used']==3
 
-def test_premature_finish_gets_validation_feedback_and_can_recover(tmp_path, monkeypatch):
-    source = tmp_path / "input.csv"
-    pd.DataFrame({"flag": ["Yes", "No"]}).to_csv(source, index=False)
-    report = {"dataset_ref": {"file_path": str(source), "file_name": source.name, "rows": 2, "columns": 1},
-              "column_profiles": {"flag": {"dtype": "str", "etl_cast_to": "boolean"}}}
-    responses = iter([action("finish", summary="Done"),
-                      action("convert_data_types", column="flag", target_type="boolean"),
-                      action("finish", summary="Flags converted")])
-    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", lambda *a, **k: next(responses))
-    result = DataCleaningAgent(data_root=tmp_path / "runs", use_llm=True).run(report)
-    assert result.validation.all_passed
-    assert result.metadata["stop_reason"] == "completed"
-
-
-def test_three_consecutive_empty_responses_stop_with_explicit_failure(tmp_path, monkeypatch):
-    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", lambda *a, **k: {"tool_calls": [], "content": "Thinking"})
-    result = DataCleaningAgent(data_root=tmp_path, use_llm=True).run(telco_report())
-    assert result.metadata["stop_reason"] == "no_tool_calls"
+def test_finish_rechecks_once_and_then_stops(tmp_path,monkeypatch):
+    result=run(tmp_path,monkeypatch,lambda *a,**k:action('finish',summary='Unable to resolve flag'))
+    assert result.metadata['turns_used']==2 and result.metadata['stop_reason']=='incomplete'
     assert not result.validation.all_passed
-    assert len([s for s in result.metadata["step_log"] if "response_finish_reason" in s]) == 3
 
+def test_flagging_finishes_with_visible_exceptions_not_full_success(tmp_path,monkeypatch):
+    calls=iter([action('flag_for_review',columns=['flag'],reason='Meaning undocumented'),action('finish',summary='Needs human review')])
+    result=run(tmp_path,monkeypatch,lambda *a,**k:next(calls))
+    assert result.metadata['stop_reason']=='completed_with_exceptions'
+    assert result.validation.exceptions and not result.validation.all_passed
+    assert result.validation.status.value=='partial' and result.final_dataset.status.value=='working'
 
-def test_run_budget_prevents_applying_a_late_model_response(tmp_path, monkeypatch):
-    now = [100.0]
-    monkeypatch.setattr("agents.dataCleaning_agent.time.monotonic", lambda: now[0])
-    def respond(*args, **kwargs):
-        assert kwargs["timeout"] == 5
-        now[0] = 106.0
-        return action("trim_whitespace", columns=["TotalCharges"])
-    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
-    result = DataCleaningAgent(data_root=tmp_path, use_llm=True, max_seconds=5).run(telco_report())
-    assert result.metadata["stop_reason"] == "time_budget"
-    assert not result.change_log.entries
-    assert result.final_dataset.version == "V1"
+def test_provider_error_is_persisted(tmp_path,monkeypatch):
+    def respond(*a,**k): raise RuntimeError('synthetic provider failure')
+    result=run(tmp_path,monkeypatch,respond)
+    assert result.metadata['stop_reason']=='provider_error'
+    trace=json.loads(Path(result.metadata['result_path']).with_name('execution_trace.json').read_text())
+    assert trace['provider_errors'][0]['message']=='synthetic provider failure'
 
+@pytest.mark.parametrize('code,count',[('tool_use_failed',2),('other',1)])
+def test_format_retry_is_bounded(tmp_path,monkeypatch,code,count):
+    class BadResponse(ValueError):
+        status_code=400
+        body={'code':code}
+    calls=[]
+    def respond(*a,**k): calls.append(1);raise BadResponse('invalid response')
+    result=run(tmp_path,monkeypatch,respond)
+    assert len(calls)==count and result.metadata['stop_reason']=='provider_error'
 
-def test_repeated_inspection_on_unchanged_data_stops_as_stalled(tmp_path, monkeypatch):
-    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", lambda *a, **k: action("inspect_schema"))
-    result = DataCleaningAgent(data_root=tmp_path, use_llm=True).run(telco_report())
-    assert result.metadata["stop_reason"] == "stalled"
-    assert result.metadata["turns_used"] == 3
-    assert not result.change_log.entries
-
-
-def test_repeated_invalid_experiment_signature_gets_one_retry_then_stops(tmp_path, monkeypatch):
-    invalid_experiment = action(
-        "experiment_cleaning_method",
-        code="def clean_data(df):\n    return df\n",
-        columns=["TotalCharges"],
-    )
-    responses = iter([invalid_experiment, invalid_experiment, invalid_experiment])
-    prompts = []
-
-    def respond(messages, *args, **kwargs):
-        prompts.append([message.get("content", "") for message in messages if message["role"] == "user"])
-        return next(responses)
-
-    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
-    result = DataCleaningAgent(data_root=tmp_path, use_llm=True, max_turns=12).run(telco_report())
-
-    assert len(prompts) == 3
-    assert any("Correct the name and make one corrected experiment attempt." in text for text in prompts[1])
-    assert any("Do not call experiment_cleaning_method again." in text for text in prompts[2])
-    assert result.metadata["stop_reason"] == "invalid_experiment_signature"
-    assert result.metadata["turns_used"] == 3
-    assert "transform(df) signature" in result.metadata["finish_summary"]
-    assert len([event for event in result.metadata["events"]
-                if event["tool"] == "experiment_cleaning_method"]) == 2
-    assert "max_turns reached" not in result.unresolved_issues
-
-
-def test_invalid_experiment_signature_falls_back_to_registered_tools(tmp_path, monkeypatch):
-    source = tmp_path / "flags.csv"
-    pd.DataFrame({"flag": ["Yes", "No"]}).to_csv(source, index=False)
-    report = {
-        "dataset_ref": {"file_path": str(source), "file_name": source.name, "rows": 2, "columns": 1},
-        "column_profiles": {"flag": {"dtype": "str", "etl_cast_to": "boolean"}},
-    }
-    responses = iter([
-        action("experiment_cleaning_method", code="def clean_data(df):\n    return df\n", columns=["flag"]),
-        action("experiment_cleaning_method", code="def clean_data(df):\n    return df\n", columns=["flag"]),
-        action("convert_data_types", column="flag", target_type="boolean"),
-        action("finish", summary="Converted flag using a registered tool"),
-    ])
-    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", lambda *a, **k: next(responses))
-
-    result = DataCleaningAgent(data_root=tmp_path / "runs", use_llm=True).run(report)
-
-    assert result.validation.all_passed
-    assert result.metadata["stop_reason"] == "completed"
-    assert result.metadata["turns_used"] == 4
-    assert [event["tool"] for event in result.metadata["events"]][-3:] == [
-        "convert_data_types",
-        "finish",
-        "validate_dataset",
-    ]
-
-
-def test_independent_tools_can_be_batched_in_a_single_model_turn(tmp_path, monkeypatch):
-    source = tmp_path / "flags.csv"
-    pd.DataFrame({"a": ["Yes", "No"], "b": ["No", "Yes"]}).to_csv(source, index=False)
-    report = {"dataset_ref": {"file_path": str(source), "file_name": source.name, "rows": 2, "columns": 2},
-              "column_profiles": {c: {"dtype": "str", "etl_cast_to": "boolean"} for c in ["a", "b"]}}
-    batch = {"content": None, "tool_calls": [action("convert_data_types", column=c, target_type="boolean")["tool_calls"][0]
-                                             for c in ["a", "b"]]}
-    for index, call in enumerate(batch["tool_calls"]):
-        call["id"] = f"convert-{index}"
-    responses = iter([batch, action("finish", summary="Both flags converted")])
-    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", lambda *a, **k: next(responses))
-    result = DataCleaningAgent(data_root=tmp_path / "runs", use_llm=True).run(report)
-    assert result.validation.all_passed and result.metadata["turns_used"] == 2
-    assert len(result.change_log.successful_ops()) == 2
-
-
-
+def test_time_budget_prevents_a_late_tool_call(tmp_path,monkeypatch):
+    now=[100.0]
+    monkeypatch.setattr('agents.dataCleaning_agent.time.monotonic',lambda:now[0])
+    def respond(*a,**k): now[0]=106;return action('test_method',hypothesis='Flags',columns=['flag'],operation='convert_data_types',parameters={'target_type':'boolean'})
+    result=run(tmp_path,monkeypatch,respond,max_seconds=5)
+    assert result.metadata['stop_reason']=='time_budget' and not result.change_log.entries
 
 def test_saved_run_recovers_after_session_loss_but_not_after_data_or_profile_changes(tmp_path, monkeypatch):
     import dashboard.workspace as workspace
@@ -275,22 +92,3 @@ def test_saved_run_recovers_after_session_loss_but_not_after_data_or_profile_cha
     workspace.st.session_state.clear()
     source.write_text("value\n100\n200\n", encoding="utf-8")
     assert workspace.get_workspace_result(workspace.CLEANING_STATE_KEY, source) is None
-
-
-
-
-@pytest.mark.parametrize("code,expected_calls", [("tool_use_failed", 2), ("invalid_request_error", 1)])
-def test_format_retries_are_bounded_and_other_bad_requests_abort(tmp_path, monkeypatch, code, expected_calls):
-    class BadRequest(RuntimeError):
-        status_code = 400
-        body = {"code": code, "failed_generation": '{"name":"delete_file","arguments":{}}'}
-    calls = []
-    def respond(*a, **k):
-        calls.append(1)
-        raise BadRequest("Synthetic bad request")
-    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
-    result = DataCleaningAgent(data_root=tmp_path, use_llm=True).run(telco_report())
-    assert len(calls) == expected_calls
-    assert result.metadata["stop_reason"] == "provider_error"
-    assert [e["tool"] for e in result.metadata["events"]] == ["validate_dataset"]
-    assert not result.change_log.entries

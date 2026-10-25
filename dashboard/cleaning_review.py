@@ -20,13 +20,18 @@ def render_event(event: dict, evidence: dict | None = None) -> None:
         if result.get("hypothesis"):
             st.write("Hypothesis: " + result["hypothesis"])
             st.write("Assumptions", result.get("assumptions", []))
-        if event["tool"] == "review_candidate":
+        if event["tool"] == "apply_candidate":
             st.write("Assessment: " + event["arguments"].get("assessment", ""))
             if event["arguments"].get("next_change"):
                 st.write("Proposed revision: " + event["arguments"]["next_change"])
         if result.get("revision_feedback"):
             st.warning("Returned to the LLM for reconsideration")
             st.json(result["revision_feedback"])
+        if result.get("recovery_prompt"):
+            guidance = result["recovery_prompt"]
+            st.write("Guidance returned to the LLM · " + guidance["case"])
+            st.write(guidance["instruction"])
+            st.json(guidance["context"])
         if result.get("rationale"):
             st.write(result["rationale"])
         if result.get("no_op"):
@@ -115,11 +120,8 @@ def render_cleaning_result(cleaning, *, key: str = "cleaning_review") -> None:
         + ("All required checks passed." if cleaning.validation.all_passed else "Review the checks and unresolved items below.")
     )
     st.write(cleaning.metadata.get("finish_summary", ""))
-    if cleaning.metadata.get("issues"):
-        st.write("Issue ledger")
-        st.dataframe([{"Issue": key, "Column": issue["column"], "Status": issue["status"],
-                       "Failed trials": issue["failed_trials"]} for key, issue in cleaning.metadata["issues"].items()],
-                     hide_index=True, use_container_width=True)
+    for exception in cleaning.validation.exceptions:
+        st.warning("Exception · " + exception)
     for switch in cleaning.metadata.get("provider_switches", []):
         st.warning(f"Switched to {switch['provider']} · {switch['model']} at turn {switch['turn']}: {switch['reason']}")
     if cleaning.metadata.get("stop_reason"):

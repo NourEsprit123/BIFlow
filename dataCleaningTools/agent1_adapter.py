@@ -21,13 +21,11 @@ from .models import (
     ColumnIssue,
     ColumnProfile,
     DatasetReference,
-    DatasetStatus,
     Finding,
     ProfilingReport,
     RiskLevel,
     TransformationPlan,
     TransformationStep,
-    TransformationStatus,
 )
 
 

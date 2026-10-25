@@ -1,0 +1,1 @@
+The data or method changed after testing. The old trial no longer authorizes application. Inspect the current working data if needed, then test the intended method again on the current version. Do not keep applying the stale candidate, reuse an unrelated candidate ID, or bypass the version/integrity checks.

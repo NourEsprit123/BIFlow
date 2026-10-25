@@ -1,2 +1,0 @@
-Stage: APPLY.
-Use apply_candidate only for the exact candidate you reviewed and accepted. BIFlow reruns it on the full current data and independently checks it before committing. An intervening change makes the candidate stale; test again. Read full-data failures as new evidence and revise, not as permission to relax safeguards. Applying one candidate need not complete every issue. Continue with the measured remaining issues.

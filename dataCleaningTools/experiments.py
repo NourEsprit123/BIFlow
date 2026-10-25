@@ -128,7 +128,8 @@ def run_isolated_transform(frame: pd.DataFrame, code: str, *, image_id: str | No
         outcome = container.wait(timeout=60)
         logs = container.logs(tail=100).decode("utf-8", errors="replace")[-12000:]
         if outcome["StatusCode"] != 0:
-            return {"success": False, "error": logs or "Sandbox process failed", "image_id": pinned_image}
+            return {"success": False, "error": logs or "Sandbox process failed", "image_id": pinned_image,
+                    "error_kind": "sandbox_execution"}
         chunks, _ = container.get_archive("/workspace/output.json")
         output = bytearray()
         for chunk in chunks:
@@ -146,6 +147,7 @@ def run_isolated_transform(frame: pd.DataFrame, code: str, *, image_id: str | No
                 "repeatable": True, "output_hash": digest(data), "log": logs}
     except Exception as exc:
         return {"success": False, "error": str(exc),
+                "error_kind": "sandbox_unavailable" if container is None else "sandbox_execution",
                 "setup": f"Use an isolated Docker runtime. {BUILD_COMMAND}"}
     finally:
         if container is not None:
@@ -211,7 +213,7 @@ def experiment(state, arguments) -> dict:
     if not checks or any(c.get("column") not in columns or c.get("kind") not in valid_checks for c in checks):
         raise ValueError("Declare at least one supported outcome check on an affected column")
     evidence_ids = arguments.get("evidence_ids", [])
-    if not evidence_ids or any(key not in state.evidence for key in evidence_ids):
+    if any(key not in state.evidence for key in evidence_ids):
         raise ValueError("Reference existing profiling or inspection evidence IDs")
     if not arguments["rationale"].strip() or not arguments["expected_effect"].strip():
         raise ValueError("Explain the rationale and expected effect")
@@ -284,7 +286,8 @@ def promote(state, candidate_id, before):
         state.on_event({"phase": f"full-data sandbox validation of {candidate_id} ({len(before)} rows)"})
     execution = run_isolated_transform(before, code, image_id=spec["image_id"])
     if not execution["success"]:
-        return CleaningResult(False, error=execution["error"], details={"candidate_id": candidate_id})
+        return CleaningResult(False, error=execution["error"], details={"candidate_id": candidate_id,
+            "error_kind": execution.get("error_kind"), "setup": execution.get("setup")})
     if execution["image_id"] != spec["image_id"]:
         return CleaningResult(False, error="Sandbox runtime differs from the tested runtime")
     effect = assess_method(before, execution["df"], spec["columns"], spec["checks"])

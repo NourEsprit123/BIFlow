@@ -90,25 +90,36 @@ def test_complete_json_calls_are_recovered_and_labeled(monkeypatch, content):
     '[{"name":"inspect_schema","arguments":{}},{"name":"not_registered","arguments":{}}]',
 ])
 def test_ambiguous_or_invalid_json_is_never_partially_executed(monkeypatch, content):
-    from dataCleaningTools.tool_registry import TOOL_SCHEMAS
+    from dataCleaningTools.workflow import SCHEMAS_LIST as TOOL_SCHEMAS
     mock_local(monkeypatch, {"message": {"content": content}})
     assert llm_client.chat_with_tools([], TOOL_SCHEMAS)["tool_calls"] == []
 
 
 def test_truncated_json_response_is_not_recovered(monkeypatch):
     mock_local(monkeypatch, {"message": {"content": '{"name":"inspect_schema","arguments":{}}'}, "done_reason": "length"})
-    assert not llm_client.chat_with_tools([], TOOLS)["tool_calls"]
+    result = llm_client.chat_with_tools([], TOOLS)
+    assert not result["tool_calls"]
+    assert result["response_issue"]["kind"] == "truncated"
+    assert result["tool_call_source"] == "none"
+
+
+def test_invalid_json_call_retains_the_argument_error_for_repair(monkeypatch):
+    from dataCleaningTools.workflow import SCHEMAS_LIST
+    mock_local(monkeypatch, {"message": {"content": '{"name":"test_method","arguments":{"columns":["Revenue"]}}'}})
+    result = llm_client.chat_with_tools([], SCHEMAS_LIST)
+    assert not result["tool_calls"]
+    assert "hypothesis" in result["response_issue"]["message"]
 
 
 def test_json_workflow_calls_ignore_obsolete_reference_fields(monkeypatch):
     import json
-    from dataCleaningTools.workflow import WORKFLOW_SCHEMAS
+    from dataCleaningTools.workflow import SCHEMAS_LIST
     args = {"hypothesis": "Parse numeric currency values", "columns": ["Revenue"],
             "operation": "clean_numeric_string", "parameters": {},
             "checks": [{"column": "Revenue", "kind": "numeric"}],
             "issue_ids": ["profile:Revenue"], "evidence_ids": ["invalid"]}
     mock_local(monkeypatch, {"message": {"content": json.dumps({"name": "test_method", "arguments": args})}})
-    result = llm_client.chat_with_tools([], WORKFLOW_SCHEMAS)
+    result = llm_client.chat_with_tools([], SCHEMAS_LIST)
     recovered = result["tool_calls"][0]["arguments"]
     assert "issue_ids" not in recovered and "evidence_ids" not in recovered
 

@@ -1,2 +1,0 @@
-Stage: UNDERSTAND.
-Read the problems by column and profiling observations. Select related columns. Profiling recommendations are not business truth: use request_review with columns and reason for ambiguous decisions. Inspect only missing evidence with inspect_data. Otherwise call test_method with hypothesis, columns, checks and a method. BIFlow handles all internal references. Emit structured calls rather than descriptions of planned calls.
