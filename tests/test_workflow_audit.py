@@ -50,7 +50,7 @@ def test_telco_like_workflow_finishes_within_default_budget_through_ollama_adapt
             name = "test_method"
             if turn == 1:
                 args = {"hypothesis": "Charges need numeric conversion before imputation", "columns": ["TotalCharges"],
-                        "issue_ids": ["type:TotalCharges"], "operation": "convert_data_types",
+                        "operation": "convert_data_types",
                         "parameters": {"target_type": "float", "errors": "coerce"},
                         "checks": [{"column": "TotalCharges", "kind": "numeric"}]}
             elif turn == 3:
@@ -113,3 +113,44 @@ def test_argument_repair_waits_until_all_tool_results_are_matched(tmp_path, monk
     monkeypatch.setattr(llm_client.httpx, "post", post)
     result = DataCleaningAgent(data_root=tmp_path / "versions", use_llm=True).run(report)
     assert result.validation.all_passed and count == 2
+
+
+def test_sales_id_confusion_cannot_block_testing_or_leak_back_into_prompts(tmp_path, monkeypatch):
+    source = tmp_path / "sales.csv"
+    pd.DataFrame({"Revenue": ["$10", "$20", "$30", "$40"],
+                  "MonthlyCost": ["$1", "$2", "$3", "$4"]}).to_csv(source, index=False)
+    report = {"dataset_ref": {"file_path": str(source), "file_name": source.name, "rows": 4, "columns": 2},
+              "column_profiles": {c: {"dtype": "str", "etl_cast_to": "float"} for c in ["Revenue", "MonthlyCost"]}}
+    monkeypatch.setattr("agents.dataCleaning_agent.sandbox_status", lambda: {})
+    count = 0
+    def post(url, **kwargs):
+        nonlocal count
+        count += 1
+        payload = kwargs["json"]
+        assert_matched_history(payload["messages"])
+        text = json.dumps(payload["messages"])
+        assert "issue_ids" not in text and "evidence_ids" not in text and "profile:Revenue" not in text
+        for tool in payload["tools"]:
+            assert "issue_ids" not in tool["function"]["parameters"]["properties"]
+            assert "evidence_ids" not in tool["function"]["parameters"]["properties"]
+        if count == 1:
+            name, args = "test_method", {"hypothesis": "Both columns contain numeric currency strings",
+                "columns": ["Revenue", "MonthlyCost"], "operation": "clean_numeric_string", "parameters": {},
+                "checks": [{"column": c, "kind": "numeric"} for c in ["Revenue", "MonthlyCost"]],
+                "issue_ids": ["profile:Revenue", "profile:MonthlyCost"], "evidence_ids": ["nonexistent"]}
+        elif count == 2:
+            trial = json.loads(next(m["content"] for m in reversed(payload["messages"]) if m["role"] == "tool"))
+            assert trial["tested"]
+            name, args = "review_candidate", {"candidate_id": trial["candidate_id"], "decision": "apply",
+                "assessment": "Trials parse both columns and preserve populated values"}
+        else:
+            name, args = "finish", {"summary": "Both currency columns validated"}
+        return SimpleNamespace(raise_for_status=lambda: None, json=lambda: {
+            "message": {"tool_calls": [{"function": {"name": name, "arguments": args}}]}})
+    monkeypatch.setattr(llm_client.httpx, "post", post)
+    result = DataCleaningAgent(data_root=tmp_path / "versions", use_llm=True).run(report)
+    assert result.validation.all_passed and count == 3, result.unresolved_issues
+    candidate = next(iter(result.metadata["method_candidates"].values()))
+    assert set(candidate["issue_ids"]) == {"type:Revenue", "type:MonthlyCost"}
+    assert set(candidate["evidence_ids"]) == {"profile:Revenue", "profile:MonthlyCost"}
+    assert result.metadata["events"][0]["arguments"]["issue_ids"][0] == "profile:Revenue"

@@ -9,3 +9,10 @@ def canonical_type(value):
         "date": "datetime", "timestamp": "datetime", "datetime64[ns]": "datetime",
     }
     return aliases.get(target, target)
+
+
+def model_arguments(tool_name, arguments):
+    """Discard obsolete model-supplied references; the application owns them."""
+    if isinstance(tool_name, str) and tool_name in {"test_method", "request_review"} and isinstance(arguments, dict):
+        return {key: value for key, value in arguments.items() if key not in {"issue_ids", "evidence_ids"}}
+    return arguments

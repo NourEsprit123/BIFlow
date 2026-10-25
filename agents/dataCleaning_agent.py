@@ -10,7 +10,7 @@ baseline for offline comparisons.
 
 from __future__ import annotations
 
-from dataCleaningTools.contracts import canonical_type
+from dataCleaningTools.contracts import canonical_type, model_arguments
 
 import json
 import logging
@@ -69,7 +69,7 @@ def _report_context(report: ProfilingReport, max_chars: int = 6000) -> str:
         if prof.missing_count:
             column["missing"] = prof.missing_count
         if prof.issues:
-            column["issues"] = [{"id": i.issue_id, "description": i.description[:120]} for i in prof.issues]
+            column["issues"] = [{"description": i.description[:120]} for i in prof.issues]
             column["samples"] = [str(v)[:60] for v in (prof.sample_values or [])[:3]]
         columns[name] = column
     compact = {"dataset": report.dataset_ref.file_name, "rows": report.dataset_ref.rows,
@@ -110,7 +110,7 @@ def _tool_feedback(result_json: str) -> str:
             "column_metrics": effect.get("column_metrics", {}),
             "missing_before": effect["before"]["missing"], "missing_after": effect["after"]["missing"],
         }
-    return json.dumps(result, default=str)
+    return json.dumps(workflow.model_feedback(result), default=str)
 
 
 
@@ -140,8 +140,8 @@ def _request_context(messages, state, *, tools=None, reserved_chars=0):
         "pending_approvals": state.pending_approvals,
         "tested_candidates": {key: {"tested": item["tested"], "base_version": item["base_version"], "columns": item["columns"]}
                               for key, item in state.experiments.items()},
-        "inspection_evidence": {key: {"tool": item["tool"], "version": item["version"], "arguments": item["arguments"]}
-                                for key, item in state.evidence.items() if item.get("source") == "inspection"},
+        "recent_inspections": [{"tool": item["tool"], "version": item["version"], "arguments": item["arguments"]}
+                               for item in state.evidence.values() if item.get("source") == "inspection"],
     }
     prefix = messages[:2] + [{"role": "user", "content": "Earlier execution summary: " + json.dumps(summary, default=str)}]
     recent = groups[-4:]
@@ -357,7 +357,7 @@ class DataCleaningAgent:
                         "type": "function",
                         "function": {
                             "name": tc["name"],
-                            "arguments": json.dumps(tc["arguments"]),
+                            "arguments": json.dumps(model_arguments(tc["name"], tc["arguments"])),
                         },
                     }
                     for tc in tool_calls
@@ -453,7 +453,7 @@ class DataCleaningAgent:
                 if tool_result.get("revision_feedback"):
                     recovery_messages.append({"role": "user", "content": (
                         "Data/method error returned to you for reconsideration. "
-                        + json.dumps(tool_result["revision_feedback"], default=str)
+                        + json.dumps(workflow.model_feedback(tool_result["revision_feedback"]), default=str)
                     )})
                 if name == "experiment_cleaning_method" and tool_result.get("error") == TRANSFORM_SIGNATURE_ERROR:
                     transform_signature_failures += 1
@@ -513,8 +513,7 @@ class DataCleaningAgent:
             "",
             "## Agent 1 profiling report (evidence)",
             _report_context(report),
-            "Evidence catalog (cite relevant IDs when applying a transformation):",
-            json.dumps({key: item.get("source") for key, item in state.evidence.items()}, default=str),
+            "BIFlow automatically links problems and observations by column. Do not supply issue or evidence IDs.",
             "",
             "## Instructions",
             "Follow the current stage prompt. Inspect evidence, propose and test a method, review measured outcomes, then apply the exact accepted candidate.",

@@ -66,36 +66,34 @@ def test_small_interface_and_stage_prompts(staged):
     state, executor, _ = staged
     assert {t["function"]["name"] for t in workflow.WORKFLOW_SCHEMAS} == {
         "inspect_data", "test_method", "review_candidate", "apply_candidate", "request_review", "finish"}
-    assert "Issue ledger" in workflow.stage_context(state)
+    assert "Problems by column" in workflow.stage_context(state)
+    assert "profile:Revenue" not in workflow.stage_context(state)
     assert "convert_data_types" in workflow.stage_context(state)
     result = call(executor, "inspect_data", view="patterns", column="Revenue")
     assert result["event_id"] in state.evidence and state.workflow_stage == "propose"
     assert state.current_ref.version == "V1"
 
 
-def test_missing_issue_ids_are_bound_only_when_unambiguous(staged):
+def test_problem_links_are_always_owned_by_the_application(staged):
     state, executor, _ = staged
     args = proposal()
     del args["issue_ids"]
     result = call(executor, "test_method", **args)
     assert "candidate_id" in result
     assert state.method_candidates[result["candidate_id"]]["issue_ids"] == ["type:Revenue"]
-    assert result["issue_binding"] == "inferred_from_unique_pending_issue_per_column"
+    assert result["issue_binding"] == "application_linked_by_column"
     assert "issue_ids" not in state.events[-1]["arguments"]
     assert state.current_ref.version == "V1"
 
 
-def test_ambiguous_binding_requires_explicit_issue_selection(staged):
+def test_multiple_problems_on_one_column_do_not_require_model_ids(staged):
     state, executor, _ = staged
     state.issues["missing:Revenue"] = {"column": "Revenue", "kind": "missing", "status": "pending", "failed_trials": 0}
     args = proposal()
     del args["issue_ids"]
     result = call(executor, "test_method", **args)
-    assert result["error_kind"] == "invalid_tool_arguments"
-    assert set(result["eligible_issues"]) == {"type:Revenue", "missing:Revenue"}
-    assert "BEFORE testing" in result["revision_feedback"]["prompt"]
-    assert not state.method_candidates
-    assert "candidate_id" in call(executor, "test_method", **{**args, "issue_ids": ["type:Revenue"]})
+    assert "candidate_id" in result
+    assert set(state.method_candidates[result["candidate_id"]]["issue_ids"]) == {"type:Revenue", "missing:Revenue"}
 
 
 def test_other_missing_fields_return_field_level_repair(staged):
@@ -107,6 +105,19 @@ def test_other_missing_fields_return_field_level_repair(staged):
     assert "checks" in result["revision_feedback"]["argument_errors"][0]["field_schemas"]
     assert not state.method_candidates
     assert state.issues["type:Revenue"]["failed_trials"] == 0
+
+
+def test_column_binding_does_not_claim_unrelated_findings_were_fixed(staged, monkeypatch):
+    state, executor, _ = staged
+    state.issues["finding:Revenue:outliers"] = {"column": "Revenue", "kind": "finding",
+        "description": "Possible statistical outliers", "status": "pending", "failed_trials": 0}
+    monkeypatch.setattr(experiments, "run_isolated_transform", runner([]))
+    candidate = call(executor, "test_method", **proposal("generated"))
+    result = call(executor, "review_candidate", candidate_id=candidate["candidate_id"], decision="apply",
+                  assessment="Parsed currency strings; no evidence that the outliers were erroneous")
+    assert result["success"] and not result["validation"]["success"]
+    assert state.issues["type:Revenue"]["status"] == "resolved"
+    assert state.issues["finding:Revenue:outliers"]["status"] == "pending"
 
 
 def test_failed_builtin_is_evidence_for_a_generated_revision(staged, monkeypatch):
@@ -185,7 +196,7 @@ def test_candidate_must_remain_unchanged(staged, monkeypatch, change):
 
 def test_ambiguous_decision_is_not_experimented_around(staged):
     state, executor, _ = staged
-    result = call(executor, "request_review", issue_ids=["type:Revenue"], reason="Currency units are undocumented")
+    result = call(executor, "request_review", columns=["Revenue"], reason="Currency units are undocumented")
     assert result["approval_required"]
     assert not call(executor, "test_method", **proposal())["success"]
     assert not call(executor, "finish", summary="Awaiting currency definition")["success"]

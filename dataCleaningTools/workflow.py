@@ -13,7 +13,7 @@ from uuid import uuid4
 from jsonschema import Draft202012Validator
 
 from . import cleaning
-from .contracts import canonical_type
+from .contracts import canonical_type, model_arguments
 from .effects import assess_candidate, present, target_matches
 from .experiments import assess_method, digest, experiment
 
@@ -58,8 +58,8 @@ WORKFLOW_SCHEMAS = [
     tool("inspect_data", "Read evidence from the current working data; never changes data.",
          {"view": {"enum": ["schema", "column", "patterns", "duplicates"]}, "column": STRING}, ["view"]),
     tool("test_method", "Propose a hypothesis and test a builtin or generated method on copies. Does not apply changes.", {
-        "issue_ids": {**STRINGS, "minItems": 1, "description": "Existing issue IDs from the ledger. May be omitted only when each affected column has exactly one pending issue; BIFlow records that unambiguous binding."}, "hypothesis": STRING, "assumptions": STRINGS,
-        "rationale": STRING, "expected_effect": STRING, "evidence_ids": {**STRINGS, "minItems": 1},
+        "hypothesis": STRING, "assumptions": STRINGS,
+        "rationale": STRING, "expected_effect": STRING,
         "columns": {**STRINGS, "minItems": 1}, "kind": {"enum": ["builtin", "generated"]},
         "operation": {"enum": list(CATALOG)}, "parameters": {"type": "object"},
         "code": {"type": "string", "maxLength": 8000}, "checks": CHECKS,
@@ -70,7 +70,7 @@ WORKFLOW_SCHEMAS = [
     tool("apply_candidate", "Apply an accepted, tested, unchanged candidate after full-data checks.",
          {"candidate_id": STRING}, ["candidate_id"]),
     tool("request_review", "Record an ambiguous business decision or structural change requiring human review.",
-         {"issue_ids": {**STRINGS, "minItems": 1}, "reason": STRING}, ["issue_ids", "reason"]),
+         {"columns": {**STRINGS, "minItems": 1}, "reason": STRING}, ["columns", "reason"]),
     tool("finish", "Finish; the application independently validates the actual working data.",
          {"summary": STRING, "unresolved": STRINGS}, ["summary"]),
 ]
@@ -123,11 +123,11 @@ def refresh(state):
 def stage_context(state):
     refresh(state)
     prompt = (Path(__file__).resolve().parents[1] / "agents/prompts/cleaning_stages" / f"{state.workflow_stage}.md").read_text(encoding="utf-8")
-    candidates = {key: {"tested": c["tested"], "kind": c["kind"], "issue_ids": c["issue_ids"],
+    candidates = {key: {"tested": c["tested"], "kind": c["kind"], "columns": c["columns"],
                         "review": c.get("review"), "base_version": c["base_version"]}
                   for key, c in state.method_candidates.items()}
     catalog = "\nBuiltin catalog: replace column_name with a real column; examples are valid parameter objects. Options are separate lists of choices, not literal argument strings:\n" + json.dumps({k: {"purpose": CATALOG[k], "example_parameters": PARAMETERS[k], "options": OPTIONS.get(k, {})} for k in CATALOG}) if state.workflow_stage in {"understand", "propose", "revise"} else ""
-    return (prompt + "\nIssue ledger (profiling recommendations require critical assessment):\n" + json.dumps(state.issues)
+    return (prompt + "\nProblems by column (profiling recommendations require critical assessment):\n" + json.dumps(problem_summary(state))
             + "\nCandidate ledger:\n" + json.dumps(candidates) + catalog)
 
 
@@ -169,8 +169,8 @@ def revision_feedback(state, name, args, result):
     }
     if result.get("error_kind") == "invalid_tool_arguments":
         feedback.update({"error_kind": "invalid_tool_arguments", "argument_errors": result.get("argument_errors", []),
-                         "eligible_issues": result.get("eligible_issues", {}),
-                         "prompt": "The call was rejected BEFORE testing; no method ran and no data changed. Repair only the listed argument errors using the required field schemas and eligible issue IDs below. Preserve the proposed method unless an argument itself is invalid. Do not switch to Docker or redesign the cleaning method merely to repair call formatting. Never repeat the same invalid arguments. If issue binding is ambiguous, explicitly choose the issue IDs your hypothesis addresses."})
+                         "problems": result.get("problems", []),
+                         "prompt": "The call was rejected BEFORE testing; no method ran and no data changed. Repair only the listed argument errors. Name real columns and describe your method and checks. BIFlow links problems and evidence internally; do not supply IDs. Preserve the method unless its arguments are invalid. Do not switch to Docker just to repair formatting. Never repeat unchanged invalid arguments."})
     return feedback
 
 
@@ -180,13 +180,29 @@ def eligible_issues(state, columns):
             if issue["status"] == "pending" and (not columns or issue["column"] in columns)}
 
 
+def problem_summary(state, columns=None):
+    return [{key: issue[key] for key in ["column", "kind", "target", "description", "status", "failed_trials", "resolution_note"] if key in issue}
+            for issue in state.issues.values() if not columns or issue["column"] in columns]
+
+
+def model_feedback(value):
+    """Keep internal audit references out of model-visible tool feedback."""
+    if isinstance(value, dict):
+        return {key: model_feedback(item) for key, item in value.items()
+                if key not in {"issue_ids", "evidence_ids", "issue_binding", "metadata_defaults"}}
+    if isinstance(value, list):
+        return [model_feedback(item) for item in value]
+    return value
+
+
 def argument_failure(state, args, message, errors):
     return {"success": False, "error_kind": "invalid_tool_arguments", "error": message,
-            "argument_errors": errors, "eligible_issues": eligible_issues(state, args.get("columns", []))}
+            "argument_errors": errors, "problems": problem_summary(state, args.get("columns", []))}
 
 
 def dispatch(executor, name, args):
     state = executor.state
+    args = model_arguments(name, args)
     schema = next(t["function"]["parameters"] for t in WORKFLOW_SCHEMAS if t["function"]["name"] == name)
     errors = list(Draft202012Validator(schema).iter_errors(args))
     if errors:
@@ -219,14 +235,14 @@ def dispatch(executor, name, args):
                 return {**apply_candidate(executor, candidate), "decision": "apply", "assessment": args["assessment"]}
             return {"success": True, "candidate_id": args["candidate_id"], "decision": args["decision"]}
         return apply_candidate(executor, candidate)
-    for key in args["issue_ids"]:
-        if key not in state.issues:
-            raise ValueError(f"Unknown issue ID: {key}")
-    for key in args["issue_ids"]:
+    issue_ids = list(eligible_issues(state, args["columns"]))
+    if not issue_ids:
+        raise ValueError("No pending problems exist for those columns. Use the column problem summary or finish.")
+    for key in issue_ids:
         state.issues[key]["status"] = "awaiting_review"
-    reason = f"Review required for {args['issue_ids']}: {args['reason']}"
+    reason = f"Review required for columns {args['columns']}: {args['reason']}"
     state.pending_approvals.append(reason)
-    state.decisions.append({"stage": "review", **args})
+    state.decisions.append({"stage": "review", **args, "issue_ids": issue_ids})
     state.workflow_stage = "understand"
     return {"success": True, "approval_required": True, "message": reason}
 
@@ -241,43 +257,27 @@ def test_method(executor, args):
         if key not in args:
             args[key] = value
             defaults[key] = "derived from proposal" if key in {"rationale", "expected_effect"} else "default"
-    if "evidence_ids" not in args:
-        args["evidence_ids"] = [key for key, item in state.evidence.items()
-                                if item.get("column") in args["columns"]
-                                or item.get("arguments", {}).get("column") in args["columns"]]
-        defaults["evidence_ids"] = "existing observations for affected columns"
+    args["evidence_ids"] = [key for key, item in state.evidence.items()
+                            if item.get("column") in args["columns"]
+                            or item.get("arguments", {}).get("column") in args["columns"]
+                            or item.get("arguments", {}).get("view") == "schema"]
+    defaults["evidence_ids"] = "existing observations for affected columns"
     if not args["evidence_ids"]:
         raise ValueError("No supporting evidence exists for these columns. Inspect them first.")
-    binding = "explicit"
-    if "issue_ids" not in args:
-        eligible = eligible_issues(state, args["columns"])
-        by_column = {column: [key for key, issue in eligible.items() if issue["column"] == column]
-                     for column in args["columns"]}
-        if any(len(keys) != 1 for keys in by_column.values()):
-            return argument_failure(state, args,
-                "issue_ids must be explicit: an affected column has zero or multiple pending issues.",
-                [{"path": ["issue_ids"], "message": "Choose existing issue IDs matching the hypothesis; binding is ambiguous.",
-                  "field_schema": {**STRINGS, "minItems": 1}}])
-        args = {**args, "issue_ids": [keys[0] for keys in by_column.values()]}
-        binding = "inferred_from_unique_pending_issue_per_column"
+    binding = "application_linked_by_column"
+    args["issue_ids"] = list(eligible_issues(state, args["columns"]))
+    if not args["issue_ids"]:
+        raise ValueError("No pending problems exist for those columns. Use the column problem summary or finish.")
     for key in args["issue_ids"]:
-        if key not in state.issues:
-            raise ValueError(f"Unknown issue ID: {key}")
-        if state.issues[key]["status"] == "awaiting_review":
-            raise ValueError("This issue is awaiting human review; do not experiment around that decision")
         if state.issues[key]["failed_trials"] >= 3:
             raise ValueError("Issue reached three failed trials. Request review or finish unresolved.")
     frame = state.manager.load(state.current_ref)
     if not args["columns"] or set(args["columns"]) - set(frame.columns):
         raise ValueError("All affected columns must exist")
-    if any(state.issues[key]["column"] not in args["columns"] for key in args["issue_ids"]):
-        raise ValueError("Each selected issue must concern an affected column")
     if any(i["column"] in args["columns"] and i["status"] == "awaiting_review" for i in state.issues.values()):
-        raise ValueError("An affected column is awaiting human review; do not bypass that decision with another issue ID")
+        raise ValueError("An affected column is awaiting human review; do not bypass that decision")
     if any(c["column"] not in args["columns"] for c in args["checks"]):
         raise ValueError("Outcome checks must refer to affected columns")
-    if any(key not in state.evidence for key in args["evidence_ids"]):
-        raise ValueError("Use existing evidence IDs")
     fingerprint = digest(json.dumps({k: args.get(k) for k in ["kind", "columns", "operation", "parameters", "code", "checks"]}, sort_keys=True).encode())
     if any(c["fingerprint"] == fingerprint and c["base_version"] == state.current_ref.version for c in state.method_candidates.values()):
         raise ValueError("This exact method was already tested on this version. Review its results or make a concrete revision.")
@@ -387,7 +387,6 @@ def apply_candidate(executor, candidate):
         raise ValueError("Candidate method or checks changed after testing; test again")
     if candidate["base_version"] != state.current_ref.version or candidate["dataset_hash"] != digest(Path(state.current_ref.path).read_bytes()):
         raise ValueError("Working data changed since testing. Test again on the current version.")
-    before = state.manager.load(state.current_ref)
     if candidate["kind"] == "generated":
         result = executor._apply_experimental_method({"candidate_id": candidate["candidate_id"]})
     else:
@@ -415,20 +414,9 @@ def apply_candidate(executor, candidate):
                     state.issues[key]["failed_trials"] += 1
         for key in candidate["issue_ids"]:
             if state.issues[key]["kind"] == "finding" and not result.get("no_op"):
-                # Changing any value is not proof that an arbitrary finding was
-                # fixed. Require a declared column postcondition to improve.
-                after = state.manager.load(state.current_ref)
-                column = state.issues[key]["column"]
-                checks = [c for c in candidate["checks"] if c["column"] == column]
-                old = assess_method(before, before, candidate["columns"], checks)
-                new = assess_method(after, after, candidate["columns"], checks)
-                old_rules = {r["rule_name"]: r["passed"] for r in old["rules"] if r["rule_name"].startswith("expected:")}
-                improved = any(r["passed"] and not old_rules.get(r["rule_name"], True)
-                               for r in new["rules"] if r["rule_name"].startswith("expected:"))
-                if improved:
-                    state.issues[key]["status"] = "resolved"
-                else:
-                    state.issues[key]["resolution_note"] = "Data changed, but no declared check demonstrated this finding was fixed. Inspect or request review."
+                # Linking a column cannot prove a separate semantic concern,
+                # such as an outlier, was fixed by converting its type.
+                state.issues[key]["resolution_note"] = "Data changed, but no declared check independently verifies this profiling finding. Inspect or request review."
         refresh(state)
         for previous in state.method_candidates.values():
             if previous.get("failed_action_key") and all(state.issues[k]["status"] == "resolved" for k in previous["issue_ids"]):

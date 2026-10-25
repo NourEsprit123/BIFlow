@@ -10,4 +10,4 @@ With review_candidate compare measured sample/holdout effects to the hypothesis.
 
 Each issue permits at most three failed trials, within the overall time and turn budgets. An unchanged rejected method is not a revision. Use request_review for ambiguous decisions; finish with explicit unresolved items if blocked. Final validation belongs to the application and cannot be overridden by the model.
 
-Keep test_method concise: hypothesis, columns, checks, and either operation/parameters or code. BIFlow derives omitted bookkeeping fields from the proposal and existing observations; it does not invent business assumptions. Include explicit assumptions or issue IDs when the choice is ambiguous.
+Keep test_method concise: hypothesis, columns, checks, and either operation/parameters or code. BIFlow derives omitted bookkeeping fields from the proposal and existing observations; it does not invent business assumptions. Include explicit assumptions when meaning is ambiguous; request_review takes columns and a reason. Never supply issue or evidence IDs.

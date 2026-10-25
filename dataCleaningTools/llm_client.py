@@ -13,6 +13,7 @@ from uuid import uuid4
 import httpx
 from jsonschema import Draft202012Validator
 from dotenv import load_dotenv
+from .contracts import model_arguments
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
@@ -112,6 +113,7 @@ def _json_tool_calls(content, tools):
         if not isinstance(entry, dict) or set(entry) != {"name", "arguments"}:
             return []
         name, arguments = entry["name"], entry["arguments"]
+        arguments = model_arguments(name, arguments)
         if not isinstance(name, str) or name not in schemas or not isinstance(arguments, dict):
             return []
         if not Draft202012Validator(schemas[name]).is_valid(arguments):

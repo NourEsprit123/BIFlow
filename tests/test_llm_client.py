@@ -100,6 +100,19 @@ def test_truncated_json_response_is_not_recovered(monkeypatch):
     assert not llm_client.chat_with_tools([], TOOLS)["tool_calls"]
 
 
+def test_json_workflow_calls_ignore_obsolete_reference_fields(monkeypatch):
+    import json
+    from dataCleaningTools.workflow import WORKFLOW_SCHEMAS
+    args = {"hypothesis": "Parse numeric currency values", "columns": ["Revenue"],
+            "operation": "clean_numeric_string", "parameters": {},
+            "checks": [{"column": "Revenue", "kind": "numeric"}],
+            "issue_ids": ["profile:Revenue"], "evidence_ids": ["invalid"]}
+    mock_local(monkeypatch, {"message": {"content": json.dumps({"name": "test_method", "arguments": args})}})
+    result = llm_client.chat_with_tools([], WORKFLOW_SCHEMAS)
+    recovered = result["tool_calls"][0]["arguments"]
+    assert "issue_ids" not in recovered and "evidence_ids" not in recovered
+
+
 def test_request_deadline_returns_without_waiting_for_stuck_model(monkeypatch):
     release = threading.Event()
     def delayed_post(*args, **kwargs):

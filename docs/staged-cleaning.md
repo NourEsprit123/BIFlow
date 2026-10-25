@@ -18,7 +18,8 @@ The required proposal fields are `hypothesis`, `columns` and `checks`, plus
 a builtin operation/parameters or generated code. Omitted kind, rationale,
 expected-effect text and evidence references are derived from the proposal and
 existing observations, and recorded as metadata defaults. No business assumptions
-are invented. Explicit assumptions and issue IDs can still be supplied. Builtins run on independent data
+are invented. Explicit assumptions can still be supplied. The model names columns;
+problem and evidence references are application-owned. Builtins run on independent data
 copies; generated `transform(df)` functions run only inside the existing isolated
 Docker runner. Both paths report disjoint sample/holdout effects and preserve the
 working version during trials. A one-row dataset explicitly lacks a holdout.
@@ -61,6 +62,6 @@ immutability, issue budgets and review blocking. Docker and Ollama are mocked;
 these tests establish control-loop correctness, not live model reliability or
 real container availability. Live local-model evaluation remains a separate step.
 
-Issue binding: test_method may omit issue_ids only when each selected column has exactly one pending issue. The inferred binding is recorded alongside the original arguments. Ambiguous bindings require explicit selection. Invalid envelopes return field-level errors, required field schemas and eligible issue IDs, with a dedicated argument-repair prompt. They do not run methods or consume data-trial budgets.
+Problem binding: test_method and request_review accept column names, never issue/evidence references. BIFlow links all pending problems and existing observations for those columns, including multiple problems on one column. Actual validation determines which problems are resolved; binding is not a claim that all were repaired. Legacy model-supplied issue_ids/evidence_ids are ignored, including when the model returns JSON text. Raw requests and canonical internal links remain in the audit trace, while prompts and tool feedback omit those references. Invalid method arguments return field-level repair guidance and problem descriptions by column; they do not run methods or consume data-trial budgets.
 
-A builtin column operation may broadcast the same parameters to all declared columns. Trials and full application are atomic: one failing column prevents partial application. Parseable numeric or boolean text no longer counts as a completed persisted conversion. Generic findings require a demonstrated failing-to-passing postcondition, not just any value change.
+A builtin column operation may broadcast the same parameters to all declared columns. Trials and full application are atomic: one failing column prevents partial application. Parseable numeric or boolean text no longer counts as a completed persisted conversion. Generic semantic findings remain unresolved until independently verified or reviewed; linking a column never establishes that every finding on it was fixed.
