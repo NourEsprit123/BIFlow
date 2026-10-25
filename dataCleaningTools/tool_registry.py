@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, List, Optional, Set
 from uuid import uuid4
 
 import pandas as pd
+from jsonschema import Draft202012Validator
 
 from analytics.data_quality import run_sandboxed_check
 from .cleaning import (
@@ -96,7 +97,7 @@ TOOL_SCHEMAS = [
     ),
     _tool(
         "normalize_values",
-        "Normalize values in a column using explicit options and mappings.",
+        "Edit text spelling, whitespace or case in one column. Does NOT convert types. For boolean flags use convert_data_types with target_type boolean instead. Requires singular column; target_type is unsupported here.",
         {
             "column": _STRING,
             "mapping": {"type": "object", "additionalProperties": {"type": "string"}},
@@ -107,7 +108,7 @@ TOOL_SCHEMAS = [
     ),
     _tool(
         "convert_data_types",
-        "Convert a column to a supported dtype. Use canonical types; profiling aliases such as float64/int64 are normalized by the executor.",
+        "Convert a column to a supported dtype. For Yes/No flags use target_type boolean directly; True/False and 1/0 are also supported. Use canonical types; profiling aliases such as float64/int64 are normalized by the executor.",
         {
             "column": _STRING,
             "target_type": {
@@ -232,6 +233,11 @@ class AgentSessionState:
     events: List[Dict[str, Any]] = field(default_factory=list)
     evidence: Dict[str, Any] = field(default_factory=dict)
     experiments: Dict[str, Any] = field(default_factory=dict)
+    workflow_stage: str = "understand"
+    workflow_used: bool = False
+    issues: Dict[str, Any] = field(default_factory=dict)
+    method_candidates: Dict[str, Any] = field(default_factory=dict)
+    decisions: List[Dict[str, Any]] = field(default_factory=list)
     failed_actions: Dict[str, str] = field(default_factory=dict)
     required_targets: Dict[str, str] = field(default_factory=dict)
     required_missing: List[str] = field(default_factory=list)
@@ -255,11 +261,22 @@ class AgentSessionState:
                    "elapsed_seconds": time.monotonic() - self.run_started, "current_turn": self.current_turn,
                    "llm_provider": self.llm_provider, "llm_model": self.llm_model,
                    "events": self.events, "evidence": self.evidence, "experiments": self.experiments,
+                   "workflow_stage": self.workflow_stage, "issues": self.issues,
+                   "method_candidates": self.method_candidates, "decisions": self.decisions,
                    "step_log": self.step_log, "provider_errors": self.provider_errors,
                    "unresolved": self.unresolved, "pending_approvals": self.pending_approvals}
         temporary = path.with_suffix(".tmp")
         temporary.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
-        temporary.replace(path)
+        # Windows file indexers can briefly hold the existing trace open.
+        # Preserve atomic replacement and propagate persistent access failures.
+        for attempt in range(4):
+            try:
+                temporary.replace(path)
+                break
+            except PermissionError:
+                if attempt == 3:
+                    raise
+                time.sleep(0.05)
 
 
 class ToolExecutor:
@@ -272,10 +289,12 @@ class ToolExecutor:
         """Measure outstanding requirements against the persisted working data."""
         frame = self.state.manager.load(self.state.current_ref)
         targets = {c: canonical_type(t) for c, t in self.state.required_targets.items()}
+        pending_types = {c: t for c, t in targets.items()
+                         if c not in frame or not target_matches(frame[c], t)}
         return {
             "version": self.state.current_ref.version,
-            "pending_types": {c: t for c, t in targets.items()
-                              if c not in frame or not target_matches(frame[c], t)},
+            "pending_types": pending_types,
+            "suggested_type_calls": [self.type_call(c, t) for c, t in pending_types.items() if c in frame][:8],
             "completed_types": [c for c, t in targets.items()
                                 if c in frame and target_matches(frame[c], t)],
             "pending_missing": {c: int((~present(frame[c])).sum()) if c in frame else "column absent"
@@ -283,7 +302,18 @@ class ToolExecutor:
                                 if c not in frame or not present(frame[c]).all()},
         }
 
+    def type_call(self, column, target):
+        evidence = [key for key, item in self.state.evidence.items()
+                    if item.get("column") == column or item.get("arguments", {}).get("column") == column]
+        return {"tool": "convert_data_types", "arguments": {
+            "column": column, "target_type": canonical_type(target), "errors": "raise",
+            "rationale": f"The profiling target for {column} is {canonical_type(target)}; convert its type and check the effect.",
+            "evidence_ids": evidence,
+        }}
+
     def execute(self, name: str, arguments: Dict[str, Any]) -> str:
+        from .workflow import revision_feedback
+        source_stage = self.state.workflow_stage
         source_version = self.state.current_ref.version
         if self.state.on_event:
             self.state.on_event({"phase": f"running {name} on {source_version}"})
@@ -300,6 +330,9 @@ class ToolExecutor:
                       "message": "Identical failed operation on unchanged data was not executed again. Correct the arguments or choose another method."}
         else:
             result = json.loads(self._dispatch(name, arguments))
+        feedback = revision_feedback(self.state, name, arguments, result)
+        if feedback:
+            result["revision_feedback"] = feedback
         if name in _MUTATIONS and not result.get("success") and not result.get("approval_required"):
             columns = arguments.get("columns") or ([arguments["column"]] if arguments.get("column") else [])
             result["recovery"] = {
@@ -308,6 +341,13 @@ class ToolExecutor:
                 "missing_value_contract": "Explicit nonempty columns required. fill_mean/fill_median require numeric columns. Text/date imputation needs a separately justified strategy; do not invent replacement values.",
                 "supported_types": ["numeric", "integer", "float", "string", "boolean", "datetime"],
             }
+        if name == "normalize_values" and (not result.get("success") or result.get("no_op")):
+            progress = self.progress()
+            result["recovery"] = {
+                "instruction": "normalize_values only edits text values; it cannot convert types. Use convert_data_types for the pending type targets. These suggested calls are not executed automatically. If conversion fails, inspect the values before changing them.",
+                "next_actions": progress["suggested_type_calls"],
+                "pending_types": progress["pending_types"],
+            }
         event_id = f"event-{len(self.state.events) + 1}"
         if name.startswith("inspect_") or name in ("check_value_patterns", "run_custom_check"):
             self.state.evidence[event_id] = {
@@ -315,6 +355,7 @@ class ToolExecutor:
                 "version": source_version, "result": result,
             }
         event = {"duration_seconds": time.monotonic() - started, "event_id": event_id, "tool": name, "arguments": arguments,
+                 "source_stage": source_stage, "stage": self.state.workflow_stage,
                  "source_version": source_version, "version": self.state.current_ref.version,
                  "result": result,
                  "evidence": {key: self.state.evidence[key] for key in result.get("evidence_ids", [])}}
@@ -325,6 +366,13 @@ class ToolExecutor:
         return self._json({**result, "event_id": event_id})
 
     def _dispatch(self, name: str, arguments: Dict[str, Any]) -> str:
+        from .workflow import NAMES, dispatch
+        if name in NAMES:
+            self.state.workflow_used = True
+            try:
+                return self._json(dispatch(self, name, arguments))
+            except (KeyError, TypeError, ValueError) as exc:
+                return self._json({"success": False, "error": str(exc)})
         handlers = {
             "inspect_schema": self._inspect_schema,
             "inspect_column": self._inspect_column,
@@ -540,6 +588,14 @@ class ToolExecutor:
         return self._clean("trim_whitespace", trim_whitespace, args, columns)
 
     def _normalize_values(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        schema = next(t["function"]["parameters"] for t in TOOL_SCHEMAS
+                      if t["function"]["name"] == "normalize_values")
+        # Metadata may be inferred from measurements by the executor; operation
+        # arguments must still obey the published contract before execution.
+        errors = list(Draft202012Validator({**schema, "required": ["column"]}).iter_errors(args))
+        if errors:
+            raise ValueError("Invalid normalize_values arguments: " + "; ".join(e.message for e in errors)
+                             + ". This tool edits text, not types; use convert_data_types(column=..., target_type='boolean') for booleans.")
         return self._clean("normalize_values", normalize_values, args, [args["column"]])
 
     def _convert_data_types(self, args: Dict[str, Any]) -> Dict[str, Any]:
@@ -643,6 +699,11 @@ class ToolExecutor:
         for column in self.state.required_missing:
             check(f"missing_resolved:{column}", column in df and present(df[column]).all(),
                   f"Reported missing values in {column} must be resolved")
+        if self.state.workflow_used:
+            from .workflow import refresh
+            refresh(self.state)
+            for key, issue in self.state.issues.items():
+                check(f"issue:{key}", issue["status"] == "resolved", f"{key}: {issue['status']}")
         for issue in dict.fromkeys(self.state.unresolved + self.state.pending_approvals + list(self.state.failed_actions.values())):
             check("unresolved", False, issue)
         failed = [r for r in rules if not r.passed]

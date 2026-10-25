@@ -1,0 +1,2 @@
+Stage: PROPOSE.
+Use evidence to choose a hypothesis and method for selected issue_ids. test_method accepts kind builtin with operation and parameters, or kind generated with code defining transform(df). Include assumptions, expected_effect, affected columns and checks that could expose failure. Prefer an existing method when it fits; generate a method when existing semantics are insufficient or related columns warrant a shared transformation. Do not guess replacements or erase unparseable populated values. A trial never changes working data.

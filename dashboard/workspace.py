@@ -218,8 +218,8 @@ def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = 
     if st.session_state.get("prefer_generated_methods", True):
         objective += (
             " This is an academic experimentation run: propose and test a generated cleaning method "
-            "with experiment_cleaning_method, inspect the trial results, and promote only a passing "
-            "candidate with apply_experimental_method. If the isolated runtime is unavailable or "
+            "with test_method(kind=generated), review the trial results with review_candidate, and apply only a passing "
+            "candidate with apply_candidate. If the isolated runtime is unavailable or "
             "the method fails, explain that result and use registered tools where appropriate."
         )
     cleaning = agent.run(

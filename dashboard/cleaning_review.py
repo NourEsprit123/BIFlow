@@ -7,7 +7,7 @@ import streamlit as st
 def render_event(event: dict, evidence: dict | None = None) -> None:
     result = event["result"]
     evidence = evidence or event.get("evidence", {})
-    outcome = ("No change" if result.get("no_op") else ("Trials passed" if result.get("tested") else "Trial failed") if event["tool"] == "experiment_cleaning_method" and "tested" in result else "Awaiting approval" if result.get("approval_required") or result.get("approved") is False
+    outcome = ("No change" if result.get("no_op") else ("Trials passed" if result.get("tested") else "Trial failed") if event["tool"] in ("experiment_cleaning_method", "test_method") and "tested" in result else "Awaiting approval" if result.get("approval_required") or result.get("approved") is False
                else "Rejected" if result.get("accepted") is False
                else "Failed" if result.get("success") is False
                else "Accepted" if result.get("accepted") else "Completed")
@@ -15,6 +15,18 @@ def render_event(event: dict, evidence: dict | None = None) -> None:
     with st.expander(label, expanded=outcome in ("Rejected", "Failed", "Awaiting approval")):
         if event.get("duration_seconds") is not None:
             st.caption(f"Tool execution: {event['duration_seconds']:.2f}s")
+        if event.get("stage"):
+            st.caption(f"Stage: {event.get('source_stage', event['stage'])} → {event['stage']}")
+        if result.get("hypothesis"):
+            st.write("Hypothesis: " + result["hypothesis"])
+            st.write("Assumptions", result.get("assumptions", []))
+        if event["tool"] == "review_candidate":
+            st.write("Assessment: " + event["arguments"].get("assessment", ""))
+            if event["arguments"].get("next_change"):
+                st.write("Proposed revision: " + event["arguments"]["next_change"])
+        if result.get("revision_feedback"):
+            st.warning("Returned to the LLM for reconsideration")
+            st.json(result["revision_feedback"])
         if result.get("rationale"):
             st.write(result["rationale"])
         if result.get("no_op"):
@@ -103,6 +115,11 @@ def render_cleaning_result(cleaning, *, key: str = "cleaning_review") -> None:
         + ("All required checks passed." if cleaning.validation.all_passed else "Review the checks and unresolved items below.")
     )
     st.write(cleaning.metadata.get("finish_summary", ""))
+    if cleaning.metadata.get("issues"):
+        st.write("Issue ledger")
+        st.dataframe([{"Issue": key, "Column": issue["column"], "Status": issue["status"],
+                       "Failed trials": issue["failed_trials"]} for key, issue in cleaning.metadata["issues"].items()],
+                     hide_index=True, use_container_width=True)
     for switch in cleaning.metadata.get("provider_switches", []):
         st.warning(f"Switched to {switch['provider']} · {switch['model']} at turn {switch['turn']}: {switch['reason']}")
     if cleaning.metadata.get("stop_reason"):

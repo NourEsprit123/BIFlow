@@ -45,6 +45,7 @@ from dataCleaningTools.tool_registry import TOOL_SCHEMAS, AgentSessionState, Too
 from dataCleaningTools.experiments import TRANSFORM_SIGNATURE_ERROR
 from dataCleaningTools.versioning import DatasetVersionManager
 from dataCleaningTools.effects import present, target_matches
+from dataCleaningTools import workflow
 from dataCleaningTools.llm_client import chat_with_tools, default_model, llm_configured, positive_setting
 
 logger = logging.getLogger("biflow.agent2")
@@ -91,12 +92,13 @@ def _tool_feedback(result_json: str) -> str:
                              "error": t.get("error"), "setup": t.get("setup"),
                              "effect": {"accepted": t["effect"]["accepted"], "changed_cells": t["effect"]["changed_cells"],
                                         "failed_rules": [r for r in t["effect"]["rules"] if not r["passed"]],
+                                        "column_metrics": t["effect"].get("column_metrics", {}),
                                         "changed_examples": t["effect"].get("changed_examples", [])} if t.get("effect") else None}
                             for t in result["trials"]]
     if isinstance(result.get("details"), dict) and result["details"].get("full_data_effect"):
         details = result["details"]
-        result["details"] = {"candidate_id": details["candidate_id"], "code_hash": details["code_hash"],
-                             "image_id": details["image_id"], "full_data_accepted": details["full_data_effect"]["accepted"],
+        result["details"] = {"candidate_id": details.get("candidate_id"), "code_hash": details.get("code_hash"),
+                             "image_id": details.get("image_id"), "full_data_accepted": details["full_data_effect"]["accepted"],
                              "failed_rules": [r for r in details["full_data_effect"]["rules"] if not r["passed"]]}
     effect = result.get("effect")
     if effect:
@@ -105,6 +107,7 @@ def _tool_feedback(result_json: str) -> str:
             "rows_removed": effect["rows_removed"], "columns_removed": effect["columns_removed"],
             "changed_examples": effect.get("changed_examples", []),
             "failed_rules": [r for r in effect["rules"] if not r["passed"]],
+            "column_metrics": effect.get("column_metrics", {}),
             "missing_before": effect["before"]["missing"], "missing_after": effect["after"]["missing"],
         }
     return json.dumps(result, default=str)
@@ -233,6 +236,8 @@ class DataCleaningAgent:
             } for c, p in report.column_profiles.items() for n, i in enumerate(p.issues)},
         )
 
+        workflow.initialize(state, report)
+
         state.persist_trace()
         if self.dry_run:
             state.stop_reason = "dry_run"
@@ -279,7 +284,7 @@ class DataCleaningAgent:
             state.current_turn = turn
             logger.info("--- LLM turn %d ---", turn)
             if state.on_event:
-                state.on_event({"phase": f"Ollama · choosing next tool(s)", "stage": "model"})
+                state.on_event({"phase": f"Ollama · {state.workflow_stage} · choosing next action", "stage": "model"})
             response = None
             for attempt in range(2):
                 try:
@@ -287,13 +292,13 @@ class DataCleaningAgent:
                     if remaining <= 0:
                         raise TimeoutError("Cleaning run budget expired")
                     response = chat_with_tools(
-                        _request_context(messages, state) + [{"role": "user", "content": (
+                        _request_context(messages, state) + [{"role": "user", "content": workflow.stage_context(state)}, {"role": "user", "content": (
                             "Authoritative progress measured on the current working dataset: "
                             + json.dumps(executor.progress())
                             + f". Turn {turn}/{self.max_turns}. Work on pending requirements; do not reconvert completed columns. "
-                            "Batch independent conversions for remaining columns in one response. After numeric conversion, resolve pending missing values with an evidence-supported strategy. "
+                            "Use test_method for a candidate, review_candidate for measured evaluation, then apply_candidate. Group related columns in one generated method when appropriate. "
                             "If a strategy is ambiguous, finish with explicit unresolved items instead of repeating completed work."
-                        )}], TOOL_SCHEMAS, model=self.model, temperature=0.1,
+                        )}], workflow.schemas(state), model=self.model, temperature=0.1,
                         on_provider_event=state.on_event, timeout=remaining,
                     )
                     for error in state.provider_errors:
@@ -384,8 +389,8 @@ class DataCleaningAgent:
                 }
                 messages.append({"role": "user", "content": (
                     "No tool was called. Cleaning is not complete merely because a response ended. "
-                    'Prefer a native tool call. If unavailable, return ONLY a JSON object {"name":"inspect_schema","arguments":{}} (replace with the appropriate registered tool and all its required arguments). No prose or planned actions. '
-                    "Call inspect_column with column set to a profiling column name, or handle_missing_values with explicit columns and a compatible strategy (median/mean only for numeric data). For messy formats use check_value_patterns then a justified experiment_cleaning_method. Use canonical types numeric/integer/float/string/boolean/datetime. Follow the last tool recovery feedback; never repeat a rejected call unchanged. Call finish with explicit unresolved items if blocked."
+                    'Prefer a native tool call. If unavailable, return ONLY a JSON object {"name":"inspect_data","arguments":{"view":"schema"}} or another tool exposed in the CURRENT stage, with all required arguments. No prose or planned actions. '
+                    "Inspect evidence, propose a candidate with test_method, review its outcomes, and apply only an accepted candidate. For an error, follow the revision prompt and change your method based on evidence. If blocked, finish with explicit unresolved items."
                 ) + " Current unmet requirements: " + json.dumps(pending)})
                 continue
             empty_responses = 0
@@ -441,6 +446,11 @@ class DataCleaningAgent:
                         "content": _tool_feedback(result_str),
                     }
                 )
+                if tool_result.get("revision_feedback"):
+                    messages.append({"role": "user", "content": (
+                        "Data/method error returned to you for reconsideration. "
+                        + json.dumps(tool_result["revision_feedback"], default=str)
+                    )})
                 if name == "experiment_cleaning_method" and tool_result.get("error") == TRANSFORM_SIGNATURE_ERROR:
                     transform_signature_failures += 1
                     if transform_signature_failures == 1:
@@ -500,14 +510,9 @@ class DataCleaningAgent:
             json.dumps({key: item.get("source") for key, item in state.evidence.items()}, default=str),
             "",
             "## Instructions",
-            "1. Reason briefly about the main issues.",
-            "2. Use inspection tools if you need more evidence.",
-            "3. Apply cleaning tools in a sensible order (see recommended_cleaning_order).",
-            "4. Use run_custom_check only when a specific uncertain column needs a "
-            "read-only check that the registered tools cannot answer.",
-            "5. Use request_approval for high-risk or ambiguous actions.",
-            "6. Call validate_dataset when major columns are cleaned.",
-            "7. Call finish with a summary when done or blocked.",
+            "Follow the current stage prompt. Inspect evidence, propose and test a method, review measured outcomes, then apply the exact accepted candidate.",
+            "Use generated transform(df) experiments when existing methods are insufficient. Data errors require reconsideration and a concrete revision.",
+            "Request review for ambiguous business decisions or structural changes. Finish with explicit unresolved reasons when blocked.",
         ]
         if self.approve_all:
             parts.append(
@@ -644,6 +649,10 @@ class DataCleaningAgent:
                 "events": state.events,
                 "evidence": state.evidence,
                 "experiments": state.experiments,
+                "workflow_stage": state.workflow_stage,
+                "issues": state.issues,
+                "method_candidates": state.method_candidates,
+                "decisions": state.decisions,
                 "sandbox": sandbox_status(),
                 "user_request": user_request,
                 "agent1_summary": report.agent_summary,

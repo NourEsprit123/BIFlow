@@ -56,6 +56,42 @@ def test_telco_progress_survives_alternating_noops_and_guides_remaining_batch(tm
     assert not progress[-1]["pending_types"] and not progress[-1]["pending_missing"]
 
 
+def test_wrong_normalizer_calls_get_exact_boolean_repairs(tmp_path, monkeypatch):
+    flags = ["Partner", "Dependents", "PhoneService", "PaperlessBilling", "Churn"]
+    source = tmp_path / "flags.csv"
+    pd.DataFrame({c: ["Yes", "No"] for c in flags}).to_csv(source, index=False)
+    report = {"dataset_ref": {"file_path": str(source), "file_name": source.name, "rows": 2, "columns": 5},
+              "column_profiles": {c: {"dtype": "str", "etl_cast_to": "boolean"} for c in flags}}
+    responses = iter([
+        action("normalize_values", target_type="boolean"),
+        action("normalize_values", column="Partner", target_type="boolean"),
+        action("normalize_values", column="Partner"),
+    ])
+    turn = 0
+    def respond(messages, *args, **kwargs):
+        nonlocal turn
+        turn += 1
+        if turn <= 3:
+            return next(responses)
+        if turn == 4:
+            feedback = json.loads(next(m["content"] for m in reversed(messages) if m["role"] == "tool"))
+            assert feedback["no_op"]
+            repairs = feedback["recovery"]["next_actions"]
+            assert {r["arguments"]["column"] for r in repairs} == set(flags)
+            return {"content": None, "tool_calls": [
+                {"id": str(i), "name": r["tool"], "arguments": r["arguments"]}
+                for i, r in enumerate(repairs)]}
+        return action("finish", summary="All flags converted using the supported tool")
+    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
+    result = DataCleaningAgent(data_root=tmp_path / "versions", use_llm=True).run(report)
+    assert result.validation.all_passed and turn == 5
+    events = result.metadata["events"]
+    assert not events[0]["result"]["success"] and not events[1]["result"]["success"]
+    assert events[2]["result"]["no_op"]
+    assert all(e["source_version"] == e["version"] for e in events[:3])
+    assert all(pd.api.types.is_bool_dtype(pd.read_csv(result.final_dataset.path)[c]) for c in flags)
+
+
 def test_telco_continues_after_narrative_at_turn_four_and_cleans_remaining_columns(tmp_path, monkeypatch):
     responses = [action("inspect_schema"), action("inspect_column", column="TotalCharges"),
                  action("trim_whitespace", columns=["TotalCharges"], rationale="Trim numeric text"),

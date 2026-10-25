@@ -228,7 +228,8 @@ def test_successful_cleaning_checks_telco_column_and_emits_live_events(tmp_path,
     assert pd.read_csv(result.final_dataset.path)["TotalCharges"].tolist() == [10, 15, 20]
     assert any(r.rule_name == "target_type:TotalCharges" for r in result.validation.rules)
     assert len(result.change_log.successful_ops()) == 2
-    assert result.change_log.entries[0].metadata["evidence_ids"] == ["profile:TotalCharges:missing_values:0"]
+    assert "profile:TotalCharges:missing_values:0" in result.change_log.entries[0].metadata["evidence_ids"]
+    assert all(key in result.metadata["evidence"] for key in result.change_log.entries[0].metadata["evidence_ids"])
     assert [e["tool"] for e in events if "tool" in e] == [e["tool"] for e in result.metadata["events"]]
 
 
