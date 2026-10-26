@@ -1,0 +1,67 @@
+{
+  "dataset": "retail_sales_dataset.csv",
+  "evaluation_timestamp": "2026-10-26 21:18:57",
+  "agent_telemetry": {
+    "engine": "api",
+    "provider": "☁️ Groq",
+    "model": "openai/gpt-oss-20b",
+    "is_llm": true,
+    "execution_mode": "☁️ Groq · openai/gpt-oss-20b",
+    "duration_s": 4.0,
+    "converted_columns": [],
+    "attempts": [
+      {
+        "provider": "Groq",
+        "model": "openai/gpt-oss-20b",
+        "status": "success",
+        "detail": ""
+      }
+    ],
+    "prompt_type": "Long Prompt Engineering (Multi-section instructions & schema)",
+    "system_prompt": "You are an expert AI agent in Business Intelligence and data analytics.",
+    "prompt_used": "\nYou are the primary BI Analyst Agent of the BIFlow enterprise platform.\nYour task is to dynamically analyse a dataset with 1000 rows and 9 columns.\n\nTechnical summary:\n- Column types: {'Transaction ID': 'int64', 'Date': 'str', 'Customer ID': 'str', 'Gender': 'str', 'Age': 'int64', 'Product Category': 'str', 'Quantity': 'int64', 'Price per Unit': 'int64', 'Total Amount': 'int64'}\n- Missing values: {'Transaction ID': 0, 'Date': 0, 'Customer ID': 0, 'Gender': 0, 'Age': 0, 'Product Category': 0, 'Quantity': 0, 'Price per Unit': 0, 'Total Amount': 0}\n- Statistical summary: {'Transaction ID': {'count': 1000.0, 'unique': nan, 'top': nan, 'freq': nan, 'mean': 500.5, 'std': 288.8194360957494, 'min': 1.0, '25%': 250.75, '50%': 500.5, '75%': 750.25, 'max': 1000.0}, 'Date': {'count': 1000, 'unique': 345, 'top': '2023-05-16', 'freq': 11, 'mean': nan, 'std': nan, 'min': nan, '25%': nan, '50%': nan, '75%': nan, 'max': nan}, 'Customer ID': {'count': 1000, 'unique': 1000, 'top': 'CUST001', 'freq': 1, 'mean': nan, 'std': nan, 'min': nan, '25%': nan, '50%': nan, '75%': nan, 'max': nan}, 'Gender': {'count': 1000, 'unique': 2, 'top': 'Female', 'freq': 510, 'mean': nan, 'std': nan, 'min': nan, '25%': nan, '50%': nan, '75%': nan, 'max': nan}, 'Age': {'count': 1000.0, 'unique': nan, 'top': nan, 'freq': nan, 'mean': 41.392, 'std': 13.681429659122527, 'min': 18.0, '25%': 29.0, '50%': 42.0, '75%': 53.0, 'max': 64.0}, 'Product Category': {'count': 1000, 'unique': 3, 'top': 'Clothing', 'freq': 351, 'mean': nan, 'std': nan, 'min': nan, '25%': nan, '50%': nan, '75%': nan, 'max': nan}, 'Quantity': {'count': 1000.0, 'unique': nan, 'top': nan, 'freq': nan, 'mean': 2.514, 'std': 1.1327343409145356, 'min': 1.0, '25%': 1.0, '50%': 3.0, '75%': 4.0, 'max': 4.0}, 'Price per Unit': {'count': 1000.0, 'unique': nan, 'top': nan, 'freq': nan, 'mean': 179.89, 'std': 189.68135627129232, 'min': 25.0, '25%': 30.0, '50%': 50.0, '75%': 300.0, 'max': 500.0}, 'Total Amount': {'count': 1000.0, 'unique': nan, 'top': nan, 'freq': nan, 'mean': 456.0, 'std': 559.997631555123, 'min': 25.0, '25%': 60.0, '50%': 135.0, '75%': 900.0, 'max': 2000.0}}\n- Sample (5 rows): [{'Transaction ID': 1, 'Date': '2023-11-24', 'Customer ID': 'CUST001', 'Gender': 'Male', 'Age': 34, 'Product Category': 'Beauty', 'Quantity': 3, 'Price per Unit': 50, 'Total Amount': 150}, {'Transaction ID': 2, 'Date': '2023-02-27', 'Customer ID': 'CUST002', 'Gender': 'Female', 'Age': 26, 'Product Category': 'Clothing', 'Quantity': 2, 'Price per Unit': 500, 'Total Amount': 1000}, {'Transaction ID': 3, 'Date': '2023-01-13', 'Customer ID': 'CUST003', 'Gender': 'Male', 'Age': 50, 'Product Category': 'Electronics', 'Quantity': 1, 'Price per Unit': 30, 'Total Amount': 30}, {'Transaction ID': 4, 'Date': '2023-05-21', 'Customer ID': 'CUST004', 'Gender': 'Male', 'Age': 37, 'Product Category': 'Clothing', 'Quantity': 1, 'Price per Unit': 500, 'Total Amount': 500}, {'Transaction ID': 5, 'Date': '2023-05-06', 'Customer ID': 'CUST005', 'Gender': 'Male', 'Age': 30, 'Product Category': 'Beauty', 'Quantity': 2, 'Price per Unit': 50, 'Total Amount': 100}]\n\n### MISSION:\n1. Write a comprehensive executive report in Markdown including:\n   - Executive Summary\n   - Key KPIs Analysis\n   - Emerging Trends & Patterns\n   - Anomalies & Outliers\n   - Strategic Business Recommendations\n\n2. **Determine exactly 4 key domain KPIs** specifically tailored to this dataset\n   (e.g., Conversion Rate, Avg Value, Churn Rate, Max Peak, Volume).\n   For each KPI, provide: title, calculated value, and context subtitle.\n\n3. **Decide on 4 to 6 relevant charts** to display\n   (types: \"pie\", \"bar\", \"histogram\", \"scatter\", \"box\").\n\nAt the end of your response, you MUST include a valid JSON block enclosed in markdown triple backticks ```json ... ```:\n```json\n{\n  \"kpis\": [\n    {\"title\": \"KPI Title 1\", \"value\": \"123\", \"subtitle\": \"Context description\"},\n    {\"title\": \"KPI Title 2\", \"value\": \"45.6%\", \"subtitle\": \"Context description\"},\n    {\"title\": \"KPI Title 3\", \"value\": \"789\", \"subtitle\": \"Context description\"},\n    {\"title\": \"KPI Title 4\", \"value\": \"99.1%\", \"subtitle\": \"Context description\"}\n  ],\n  \"recommended_charts\": [\n    {\n      \"title\": \"Descriptive Chart Title\",\n      \"type\": \"bar\",\n      \"column_x\": \"exact_column_name\",\n      \"column_y\": \"numeric_column_if_needed_else_null\"\n    }\n  ]\n}\n```\nBe precise, professional, and clear.\n"
+  },
+  "deterministic_verification": {
+    "valid_charts_count": 5,
+    "total_charts": 5,
+    "valid_columns_pct": 100.0,
+    "invalid_columns": []
+  },
+  "judge_evaluation": {
+    "judge_model": "Google Gemini 3.5 Flash",
+    "evaluated_engine": "☁️ Groq · openai/gpt-oss-20b",
+    "rubrics": {
+      "factual_grounding_and_kpis": {
+        "score_1_to_5": 5,
+        "justification": "All core KPIs (AOV $456, Total Volume $456,000, Avg Quantity 2.51, Female Share 51%) are exact mathematical representations of the Ground Truth. Outliers and statistical bounds (e.g., max revenue $2,000, max price $500, top date 2023-05-16 with 11 sales) are perfectly aligned with empirical stats."
+      },
+      "chart_relevance_and_validity": {
+        "score_1_to_5": 5,
+        "justification": "100% schema compliance with zero hallucinated columns. Chart selection matches statistical best practices (Pie for binary categorical split, Bar for categorical aggregation, Histogram for numeric distribution, Box plot for variance, Scatter for correlation)."
+      },
+      "analytical_depth_and_trends": {
+        "score_1_to_5": 5,
+        "justification": "The agent extracted meaningful cross-sectional insight including seasonality metrics, demographic spread, category distributions, and multi-dimensional anomaly detection."
+      },
+      "strategic_actionability": {
+        "score_1_to_5": 5,
+        "justification": "Recommendations are executive-grade, highly actionable, realistic, and directly tied to empirical findings (e.g., targeting the 29-53 demographic bracket, capitalizing on mid-May traffic spikes, introducing female loyalty tiers)."
+      },
+      "schema_and_structure_compliance": {
+        "score_1_to_5": 5,
+        "justification": "The agent strictly followed all structural requirements, producing clear markdown sections and flawless JSON objects for KPIs and chart specs."
+      }
+    },
+    "overall_score_pct": 98.0,
+    "verdict": "EXCELLENT",
+    "strengths": [
+      "Flawless KPI calculations and exact alignment with empirical Ground Truth data.",
+      "Zero column hallucinations across structured chart definitions.",
+      "Highly tailored strategic business recommendations directly derived from data distributions."
+    ],
+    "weaknesses": [
+      "Minor narrative rounding inaccuracy: Product category breakdown in narrative text slightly flipped Electronics (34.2% actual vs 30% reported) and Beauty (30.7% actual vs 35% reported)."
+    ],
+    "judge_executive_summary": "The BI Analyst Agent produced an exemplary analysis of the dataset. Calculated KPIs match the ground truth mathematically down to the decimal point. The recommended visualizations use 100% valid schema columns with optimal plot choices. Narrative insights and strategic recommendations are highly articulate, realistic, and actionable for C-suite decision-makers."
+  }
+}

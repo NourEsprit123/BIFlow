@@ -87,19 +87,19 @@ class LLMClient:
                 temperature=0.15,
                 top_p=0.85,
                 top_k=40,
-                max_output_tokens=4096,
+                max_output_tokens=8192,
             ) if system_prompt else types.GenerateContentConfig(
                 temperature=0.15,
                 top_p=0.85,
                 top_k=40,
-                max_output_tokens=4096,
+                max_output_tokens=8192,
             )
 
             max_retries = 2  # Reduced from 3 for faster failure
             for attempt in range(1, max_retries + 1):
                 try:
                     logger.info(f"Calling Gemini API (attempt {attempt}/{max_retries})...")
-                    model_to_use = os.getenv("GEMINI_MODEL", "models/gemini-3.5-flash-lite")
+                    model_to_use = os.getenv("GEMINI_MODEL", "models/gemini-3.5-flash")
                     response = client.models.generate_content(
                         model=model_to_use,
                         contents=prompt,

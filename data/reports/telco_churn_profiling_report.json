@@ -1,7 +1,7 @@
 {
   "schema_version": "2.1",
   "dataset_ref": {
-    "file_path": "data/raw/telco_churn.csv",
+    "file_path": "D:\\BIFlow\\data\\raw\\telco_churn.csv",
     "file_name": "telco_churn.csv",
     "rows": 7043,
     "columns": 21,
@@ -16,7 +16,7 @@
   },
   "column_profiles": {
     "customerID": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "primary_key",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -33,18 +33,7 @@
         "6713-OKOMC"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "7590-VHVEG": 1,
-        "5575-GNVDE": 1,
-        "3668-QPYBK": 1,
-        "7795-CFOCW": 1,
-        "9237-HQITU": 1,
-        "9305-CDSKC": 1,
-        "1452-KIOVK": 1,
-        "6713-OKOMC": 1,
-        "7892-POOKP": 1,
-        "6388-TABGU": 1
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [
         {
@@ -60,20 +49,20 @@
           "llm_agreement": "agree"
         }
       ],
-      "agent_reasoning": "Complete data with no missing values; Type issue: Pseudo-ID column (near-unique string \u2014 likely an identifier or key); High cardinality (7043 unique values).",
+      "agent_reasoning": "Complete data with no missing values; Type issue: Pseudo-ID column (near-unique string \u2014 likely an identifier or key).",
       "business_interpretation": "Column 'customerID' (primary_key)",
       "severity": "MEDIUM",
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "gender": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -90,10 +79,7 @@
         "Female"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "Male": 3555,
-        "Female": 3488
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [],
       "agent_reasoning": "Clean categorical column with 2 categories.",
@@ -102,7 +88,7 @@
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
@@ -153,7 +139,7 @@
       "custom_check_code": null
     },
     "Partner": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "boolean",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -170,10 +156,7 @@
         "No"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "No": 3641,
-        "Yes": 3402
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [
         {
@@ -189,20 +172,20 @@
           "llm_agreement": "agree"
         }
       ],
-      "agent_reasoning": "Complete data with no missing values; Type issue: Boolean flag stored as text (Yes/No or True/False as object); Binary categorical feature.",
+      "agent_reasoning": "Complete data with no missing values; Type issue: Boolean flag stored as text (Yes/No or True/False as object).",
       "business_interpretation": "Column 'Partner' (boolean)",
       "severity": "MEDIUM",
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "Dependents": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "boolean",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -219,10 +202,7 @@
         "No"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "No": 4933,
-        "Yes": 2110
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [
         {
@@ -238,13 +218,13 @@
           "llm_agreement": "agree"
         }
       ],
-      "agent_reasoning": "Complete data with no missing values; Type issue: Boolean flag stored as text (Yes/No or True/False as object); Binary categorical feature.",
+      "agent_reasoning": "Complete data with no missing values; Type issue: Boolean flag stored as text (Yes/No or True/False as object).",
       "business_interpretation": "Column 'Dependents' (boolean)",
       "severity": "MEDIUM",
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
@@ -295,7 +275,7 @@
       "custom_check_code": null
     },
     "PhoneService": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "boolean",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -312,10 +292,7 @@
         "No"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "Yes": 6361,
-        "No": 682
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [
         {
@@ -331,20 +308,20 @@
           "llm_agreement": "agree"
         }
       ],
-      "agent_reasoning": "Complete data with no missing values; Type issue: Boolean flag stored as text (Yes/No or True/False as object); Binary categorical feature.",
+      "agent_reasoning": "Complete data with no missing values; Type issue: Boolean flag stored as text (Yes/No or True/False as object).",
       "business_interpretation": "Column 'PhoneService' (boolean)",
       "severity": "MEDIUM",
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "MultipleLines": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -361,11 +338,7 @@
         "No phone service"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "No": 3390,
-        "Yes": 2971,
-        "No phone service": 682
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [],
       "agent_reasoning": "Clean categorical column with 3 categories.",
@@ -374,14 +347,14 @@
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "InternetService": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -398,11 +371,7 @@
         "DSL"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "Fiber optic": 3096,
-        "DSL": 2421,
-        "No": 1526
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [],
       "agent_reasoning": "Clean categorical column with 3 categories.",
@@ -411,14 +380,14 @@
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "OnlineSecurity": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -435,11 +404,7 @@
         "Yes"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "No": 3498,
-        "Yes": 2019,
-        "No internet service": 1526
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [],
       "agent_reasoning": "Clean categorical column with 3 categories.",
@@ -448,14 +413,14 @@
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "OnlineBackup": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -472,11 +437,7 @@
         "No"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "No": 3088,
-        "Yes": 2429,
-        "No internet service": 1526
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [],
       "agent_reasoning": "Clean categorical column with 3 categories.",
@@ -485,14 +446,14 @@
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "DeviceProtection": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -509,11 +470,7 @@
         "No"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "No": 3095,
-        "Yes": 2422,
-        "No internet service": 1526
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [],
       "agent_reasoning": "Clean categorical column with 3 categories.",
@@ -522,14 +479,14 @@
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "TechSupport": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -546,11 +503,7 @@
         "No"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "No": 3473,
-        "Yes": 2044,
-        "No internet service": 1526
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [],
       "agent_reasoning": "Clean categorical column with 3 categories.",
@@ -559,14 +512,14 @@
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "StreamingTV": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -583,11 +536,7 @@
         "No"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "No": 2810,
-        "Yes": 2707,
-        "No internet service": 1526
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [],
       "agent_reasoning": "Clean categorical column with 3 categories.",
@@ -596,14 +545,14 @@
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "StreamingMovies": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -620,11 +569,7 @@
         "No"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "No": 2785,
-        "Yes": 2732,
-        "No internet service": 1526
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [],
       "agent_reasoning": "Clean categorical column with 3 categories.",
@@ -633,14 +578,14 @@
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "Contract": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -657,11 +602,7 @@
         "Month-to-month"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "Month-to-month": 3875,
-        "Two year": 1695,
-        "One year": 1473
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [],
       "agent_reasoning": "Clean categorical column with 3 categories.",
@@ -670,14 +611,14 @@
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "PaperlessBilling": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "boolean",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -694,10 +635,7 @@
         "No"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "Yes": 4171,
-        "No": 2872
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [
         {
@@ -713,20 +651,20 @@
           "llm_agreement": "agree"
         }
       ],
-      "agent_reasoning": "Complete data with no missing values; Type issue: Boolean flag stored as text (Yes/No or True/False as object); Binary categorical feature.",
+      "agent_reasoning": "Complete data with no missing values; Type issue: Boolean flag stored as text (Yes/No or True/False as object).",
       "business_interpretation": "Column 'PaperlessBilling' (boolean)",
       "severity": "MEDIUM",
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "PaymentMethod": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -743,12 +681,7 @@
         "Mailed check"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "Electronic check": 2365,
-        "Mailed check": 1612,
-        "Bank transfer (automatic)": 1544,
-        "Credit card (automatic)": 1522
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [],
       "agent_reasoning": "Clean categorical column with 4 categories.",
@@ -757,7 +690,7 @@
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
@@ -808,7 +741,7 @@
       "custom_check_code": null
     },
     "TotalCharges": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 11,
       "missing_pct": 0.16,
@@ -825,18 +758,7 @@
         "301.9"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "20.2": 11,
-        " ": 11,
-        "19.75": 9,
-        "19.65": 8,
-        "19.9": 8,
-        "20.05": 8,
-        "19.55": 7,
-        "45.3": 7,
-        "19.45": 6,
-        "20.25": 6
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [
         {
@@ -868,14 +790,14 @@
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "Churn": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "boolean",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -892,10 +814,7 @@
         "No"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "No": 5174,
-        "Yes": 1869
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [
         {
@@ -911,13 +830,13 @@
           "llm_agreement": "agree"
         }
       ],
-      "agent_reasoning": "Complete data with no missing values; Type issue: Boolean flag stored as text (Yes/No or True/False as object); Binary categorical feature.",
+      "agent_reasoning": "Complete data with no missing values; Type issue: Boolean flag stored as text (Yes/No or True/False as object).",
       "business_interpretation": "Column 'Churn' (boolean)",
       "severity": "MEDIUM",
       "uncertainty": "MEDIUM",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
@@ -965,7 +884,7 @@
   "recommendation_summary": "Rule-based analysis found 7 type issues and 11 missing values.",
   "metadata": {
     "agent_version": "2.0.0",
-    "profiling_timestamp": "2026-10-22T22:32:03.251852+00:00",
+    "profiling_timestamp": "2026-10-25T16:29:44.133120+00:00",
     "llm_model_used": "gemini-flash-latest",
     "sandbox_executions": 0,
     "llm_driven": true

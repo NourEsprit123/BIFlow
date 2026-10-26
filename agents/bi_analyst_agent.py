@@ -3,14 +3,19 @@ BI Analyst Agent — Intelligent Business Intelligence agent for BIFlow.
 Supports:
 1. Local Fine-Tuned Qwen 2.5 3B LoRA Adapter (4-bit GPU acceleration on RTX 4050)
    using compact dataset summary prompts (no verbose prompt engineering needed).
-2. Cloud API (Groq Llama-3 / Google Gemini) using full prompt engineering instructions.
+2. Cloud API (Groq / Google Gemini / LLMClient) using full prompt engineering instructions.
 3. Deterministic Statistical Fallback Engine so analysis NEVER fails.
+
+Traceability: after each call, get_telemetry() reports the REAL provider and model
+that produced the result (provider, model, is_llm) plus the list of every attempt
+(success / failure + error) in the order they were tried.
 """
 
 import os
 import sys
 import json
 import re
+import time
 import logging
 from pathlib import Path
 from typing import Dict, Any, Tuple, Optional, List
@@ -28,6 +33,15 @@ logger = logging.getLogger(__name__)
 # Module-level model cache to prevent reloading 2GB weights on every Streamlit interaction
 _CACHED_LOCAL_MODEL = None
 _CACHED_LOCAL_TOKENIZER = None
+
+LOCAL_BASE_MODEL = "Qwen/Qwen2.5-3B-Instruct"
+API_SYSTEM_PROMPT = "You are an expert AI agent in Business Intelligence and data analytics."
+
+# Substrings that mark non-chat models in provider model lists
+_NON_CHAT_MARKERS = (
+    "whisper", "tts", "guard", "playai", "orpheus", "embed", "image",
+    "audio", "live", "robotics", "computer-use", "transcribe", "imagen", "veo",
+)
 
 
 def get_local_lora_model():
@@ -49,7 +63,7 @@ def get_local_lora_model():
     from peft import PeftModel
 
     adapter_path = PROJECT_ROOT / "adapter"
-    base_model_name = "Qwen/Qwen2.5-3B-Instruct"
+    base_model_name = LOCAL_BASE_MODEL
 
     logger.info("Initializing Local Fine-Tuned Qwen 2.5 3B LoRA model...")
     tokenizer = AutoTokenizer.from_pretrained(base_model_name)
@@ -104,13 +118,11 @@ class BIAnalystAgent:
         self.engine = engine.lower()
         self.groq_api_key = api_key or os.environ.get("GROQ_API_KEY")
         self.model_name = model_name or os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+        self.gemini_api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
         self.adapter_path = PROJECT_ROOT / "adapter"
         self.groq_client = None
-        self.last_engine_used = None
-        self.last_execution_mode = None
-        self.last_prompt_type = None
-        self.last_prompt_used = ""
-        self.last_system_prompt = ""
+
+        self._reset_telemetry()
 
         if self.groq_api_key:
             try:
@@ -118,13 +130,81 @@ class BIAnalystAgent:
                 self.groq_client = Groq(api_key=self.groq_api_key)
             except Exception as e:
                 logger.warning(f"Could not initialize Groq client: {e}")
+                self._log_attempt("Groq", "-", "failed", f"client init: {e}")
 
+    # ──────────────────────────────────────────────────────────────────────────
+    # Telemetry helpers
+    # ──────────────────────────────────────────────────────────────────────────
+    def _reset_telemetry(self):
+        self.last_engine_used = None
+        self.last_execution_mode = "Unknown"
+        self.last_prompt_type = "Standard"
+        self.last_prompt_used = ""
+        self.last_system_prompt = ""
+        self.last_provider = "Unknown"
+        self.last_model = "-"
+        self.last_is_llm = False
+        self.last_duration_s = 0.0
+        self.last_prepared_columns: List[str] = []
+        if not hasattr(self, "attempts"):
+            self.attempts: List[Dict[str, str]] = []
+
+    def _log_attempt(self, provider: str, model: str, status: str, detail: str = ""):
+        self.attempts.append({
+            "provider": provider,
+            "model": model,
+            "status": status,        # "success" | "failed" | "skipped"
+            "detail": str(detail)[:300],
+        })
+
+    def _set_result(self, provider: str, model: str, is_llm: bool = True):
+        """Records the provider/model that REALLY produced the final answer."""
+        self.last_provider = provider
+        self.last_model = model
+        self.last_is_llm = is_llm
+        self.last_execution_mode = f"{provider} · {model}" if model and model != "-" else provider
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Data preparation
+    # ──────────────────────────────────────────────────────────────────────────
+    def _prepare_df(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Converts text columns that are really numeric (e.g. Telco 'TotalCharges',
+        which contains blank strings) to float so statistics are computed correctly.
+        """
+        df = df.copy()
+        converted = []
+        for col in df.columns:
+            if pd.api.types.is_numeric_dtype(df[col]) or pd.api.types.is_bool_dtype(df[col]):
+                continue
+            if not (df[col].dtype == object or pd.api.types.is_string_dtype(df[col])):
+                continue
+            try:
+                raw = df[col].astype("string").str.strip().replace("", pd.NA)
+                conv = pd.to_numeric(raw, errors="coerce")
+                present = int(raw.notna().sum())
+                if present and conv.notna().sum() / present >= 0.9:
+                    df[col] = conv.astype(float)
+                    converted.append(col)
+            except Exception:
+                continue
+        self.last_prepared_columns = converted
+        return df
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Main entry point
+    # ──────────────────────────────────────────────────────────────────────────
     def analyze(self, df: pd.DataFrame, dataset_name: str = "dataset") -> str:
         """
         Analyses the dataset and returns a full Markdown report with
         an embedded ```json ... ``` block describing KPIs and recommended charts.
         """
-        # Determine execution path
+        self.attempts = []
+        self._reset_telemetry()
+        start = time.time()
+
+        df = self._prepare_df(df)
+
         has_local_adapter = (self.adapter_path / "adapter_model.safetensors").exists()
         use_local = False
 
@@ -139,22 +219,34 @@ class BIAnalystAgent:
                 pass
 
         # ROUTE 1: Local Fine-Tuned Model (Compact Prompt)
-        if use_local and has_local_adapter:
-            try:
-                logger.info("Executing BI Analyst using Local Fine-Tuned Qwen 2.5 3B LoRA...")
-                self.last_engine_used = "local_lora"
-                self.last_execution_mode = "⚡ Local Fine-Tuned (Qwen 2.5 3B LoRA - RTX 4050)"
-                self.last_prompt_type = "Compact Dataset Summary (LoRA format - No long prompt)"
-                return self._analyze_local_lora(df, dataset_name)
-            except Exception as e:
-                logger.warning(f"Local LoRA inference error, falling back to Cloud API: {e}")
+        if use_local:
+            if not has_local_adapter:
+                self._log_attempt("Local LoRA", LOCAL_BASE_MODEL, "skipped",
+                                  "adapter/adapter_model.safetensors not found")
+            else:
+                try:
+                    logger.info("Executing BI Analyst using Local Fine-Tuned Qwen 2.5 3B LoRA...")
+                    result = self._analyze_local_lora(df, dataset_name)
+                    self.last_engine_used = "local_lora"
+                    self.last_prompt_type = "Compact Dataset Summary (LoRA format - No long prompt)"
+                    self._set_result("⚡ Local LoRA", f"{LOCAL_BASE_MODEL} + adapter")
+                    self._log_attempt("Local LoRA", LOCAL_BASE_MODEL, "success")
+                    self.last_duration_s = round(time.time() - start, 1)
+                    return result
+                except Exception as e:
+                    logger.warning(f"Local LoRA inference error, falling back to Cloud API: {e}")
+                    self._log_attempt("Local LoRA", LOCAL_BASE_MODEL, "failed", e)
 
         # ROUTE 2: Cloud API (Verbose Prompt Engineering)
         self.last_engine_used = "api"
-        self.last_execution_mode = "☁️ Cloud API (Groq Llama-3 / Gemini)"
         self.last_prompt_type = "Long Prompt Engineering (Multi-section instructions & schema)"
-        return self._analyze_via_api(df)
+        result = self._analyze_via_api(df)
+        self.last_duration_s = round(time.time() - start, 1)
+        return result
 
+    # ──────────────────────────────────────────────────────────────────────────
+    # Local LoRA
+    # ──────────────────────────────────────────────────────────────────────────
     def _analyze_local_lora(self, df: pd.DataFrame, dataset_name: str = "dataset") -> str:
         """
         Executes inference using the fine-tuned LoRA model with the exact
@@ -219,7 +311,7 @@ class BIAnalystAgent:
                 missing = int(df[col].isnull().sum())
                 lines.append(f"{col}: mean={mean_v}, median={med_v}, std={std_v}, min={min_v}, max={max_v}, missing={missing}")
 
-        cat_cols = df.select_dtypes(include=["object", "category", "bool"]).columns.tolist()
+        cat_cols = df.select_dtypes(include=["object", "category", "bool", "string"]).columns.tolist()
         if cat_cols:
             lines.append("Categorical columns:")
             for col in cat_cols[:10]:
@@ -254,9 +346,166 @@ class BIAnalystAgent:
 
         return "\n".join(lines)
 
+    # ──────────────────────────────────────────────────────────────────────────
+    # Cloud API route
+    # ──────────────────────────────────────────────────────────────────────────
+    def _groq_candidate_models(self) -> List[str]:
+        """
+        Asks Groq which models this key can actually use, so we never rely on
+        hard-coded names that may have been retired. The preferred model comes first.
+        """
+        preferred = [
+            self.model_name,
+            "llama-3.3-70b-versatile",
+            "openai/gpt-oss-120b",
+            "openai/gpt-oss-20b",
+            "llama-3.1-8b-instant",
+        ]
+        available: List[str] = []
+        try:
+            listing = self.groq_client.models.list()
+            available = [m.id for m in listing.data
+                         if not any(x in m.id.lower() for x in _NON_CHAT_MARKERS)]
+        except Exception as e:
+            self._log_attempt("Groq", "models.list()", "failed", e)
+
+        ordered: List[str] = []
+        if available:
+            ordered = [m for m in preferred if m in available]
+            ordered += [m for m in available if m not in ordered]
+        else:
+            ordered = list(preferred)
+
+        seen, unique = set(), []
+        for m in ordered:
+            if m and m not in seen:
+                seen.add(m)
+                unique.append(m)
+        return unique[:5]  # cap attempts to keep latency reasonable
+
+    def _try_groq(self, prompt: str) -> Optional[str]:
+        if not self.groq_client:
+            self._log_attempt("Groq", "-", "skipped",
+                              "no API key" if not self.groq_api_key else "client not initialised (is `groq` installed?)")
+            return None
+
+        for m in self._groq_candidate_models():
+            try:
+                response = self.groq_client.chat.completions.create(
+                    messages=[
+                        {"role": "system", "content": API_SYSTEM_PROMPT},
+                        {"role": "user", "content": prompt}
+                    ],
+                    model=m,
+                    temperature=0.2,
+                    max_tokens=4000
+                )
+                text = response.choices[0].message.content
+                if text and len(text.strip()) > 50:
+                    self._log_attempt("Groq", m, "success")
+                    self._set_result("☁️ Groq", m)
+                    return text
+                self._log_attempt("Groq", m, "failed", "empty / too short response")
+            except Exception as model_err:
+                logger.warning(f"Groq model {m} failed: {model_err}")
+                self._log_attempt("Groq", m, "failed", model_err)
+        return None
+
+    def _gemini_candidate_models(self, client) -> List[str]:
+        """Lists Gemini models that support generateContent for this key."""
+        names: List[str] = []
+        try:
+            for m in client.models.list():
+                name = getattr(m, "name", "") or ""
+                actions = getattr(m, "supported_actions", None) or []
+                if actions and "generateContent" not in actions:
+                    continue
+                short = name.replace("models/", "")
+                low = short.lower()
+                if "gemini" not in low or any(x in low for x in _NON_CHAT_MARKERS):
+                    continue
+                names.append(short)
+        except Exception as e:
+            self._log_attempt("Gemini", "models.list()", "failed", e)
+            return []
+
+        # Prefer fast "flash" models, newest names first, stable before preview/exp
+        def sort_key(n: str):
+            low = n.lower()
+            return (
+                0 if "flash" in low and "lite" not in low else 1,
+                1 if ("preview" in low or "exp" in low) else 0,
+                [-ord(c) for c in n],
+            )
+        names.sort(key=sort_key)
+        return names[:3]
+
+    def _try_gemini(self, prompt: str) -> Optional[str]:
+        if not self.gemini_api_key:
+            self._log_attempt("Gemini", "-", "skipped", "no GEMINI_API_KEY / GOOGLE_API_KEY")
+            return None
+        try:
+            from google import genai
+        except Exception as e:
+            self._log_attempt("Gemini", "-", "skipped", f"`google-genai` not installed: {e}")
+            return None
+
+        try:
+            client = genai.Client(api_key=self.gemini_api_key)
+        except Exception as e:
+            self._log_attempt("Gemini", "-", "failed", f"client init: {e}")
+            return None
+
+        for m in self._gemini_candidate_models(client):
+            try:
+                resp = client.models.generate_content(
+                    model=m,
+                    contents=prompt,
+                    config={
+                        "system_instruction": API_SYSTEM_PROMPT,
+                        "temperature": 0.2,
+                        "max_output_tokens": 4000,
+                    },
+                )
+                text = getattr(resp, "text", None)
+                if text and len(text.strip()) > 50:
+                    self._log_attempt("Gemini", m, "success")
+                    self._set_result("☁️ Google Gemini", m)
+                    return text
+                self._log_attempt("Gemini", m, "failed", "empty / too short response")
+            except Exception as e:
+                logger.warning(f"Gemini model {m} failed: {e}")
+                self._log_attempt("Gemini", m, "failed", e)
+        return None
+
+    def _try_llm_client(self, prompt: str) -> Optional[str]:
+        """Last LLM route: the project's own LLMClient (Gemini / Ollama ...)."""
+        try:
+            from agents.llm_client import LLMClient
+            llm = LLMClient()
+            resp = llm.generate_text(
+                prompt,
+                system_prompt="You are an expert AI agent in Business Intelligence."
+            )
+            if resp and resp.strip() and resp.strip() != "{}":
+                # LLMClient may not expose its provider; read what it offers, else say so honestly.
+                provider = (getattr(llm, "provider", None) or getattr(llm, "backend", None)
+                            or getattr(llm, "active_provider", None) or "provider not reported")
+                model = (getattr(llm, "model", None) or getattr(llm, "model_name", None)
+                         or getattr(llm, "active_model", None) or "-")
+                self._log_attempt("LLMClient", f"{provider} / {model}", "success")
+                self._set_result(f"☁️ LLMClient ({provider})", str(model))
+                return resp
+            self._log_attempt("LLMClient", "-", "failed", "empty response")
+        except Exception as e:
+            logger.warning(f"LLMClient call failed: {e}")
+            self._log_attempt("LLMClient", "-", "failed", e)
+        return None
+
     def _analyze_via_api(self, df: pd.DataFrame) -> str:
         """
-        Cloud API inference route (Groq Llama-3 / Gemini) using comprehensive prompt engineering.
+        Cloud API inference route using comprehensive prompt engineering.
+        Order: Groq → Gemini (direct) → LLMClient → deterministic heuristic.
         """
         shape = df.shape
         dtypes = df.dtypes.astype(str).to_dict()
@@ -312,68 +561,36 @@ At the end of your response, you MUST include a valid JSON block enclosed in mar
 Be precise, professional, and clear.
 """
         self.last_prompt_used = prompt
-        self.last_system_prompt = "You are an expert AI agent in Business Intelligence and data analytics."
+        self.last_system_prompt = API_SYSTEM_PROMPT
 
-        # 1. Attempt Groq if client is ready
-        if self.groq_client:
-            try:
-                candidate_models = [
-                    self.model_name,
-                    "llama-3.3-70b-versatile",
-                    "llama-3.1-8b-instant",
-                    "mixtral-8x7b-32768",
-                ]
-                for m in candidate_models:
-                    try:
-                        response = self.groq_client.chat.completions.create(
-                            messages=[
-                                {"role": "system", "content": "You are an expert AI agent in Business Intelligence and data analytics."},
-                                {"role": "user", "content": prompt}
-                            ],
-                            model=m,
-                            temperature=0.2
-                        )
-                        text = response.choices[0].message.content
-                        if text and len(text.strip()) > 50:
-                            return text
-                    except Exception as model_err:
-                        logger.warning(f"Groq model {m} failed: {model_err}")
-                        continue
-            except Exception as e:
-                logger.warning(f"Groq API call failed: {e}")
+        for route in (self._try_groq, self._try_gemini, self._try_llm_client):
+            text = route(prompt)
+            if text:
+                return text
 
-        # 2. Attempt LLMClient (Gemini / Ollama)
-        try:
-            from agents.llm_client import LLMClient
-            llm = LLMClient()
-            resp = llm.generate_text(
-                prompt,
-                system_prompt="You are an expert AI agent in Business Intelligence."
-            )
-            if resp and resp.strip() and resp.strip() != "{}":
-                return resp
-        except Exception as e:
-            logger.warning(f"LLMClient call failed: {e}")
-
-        # 3. Deterministic Statistical Fallback Engine
+        # Deterministic Statistical Fallback Engine
         return self._generate_heuristic_report(df)
 
+    # ──────────────────────────────────────────────────────────────────────────
+    # Heuristic fallback (no LLM)
+    # ──────────────────────────────────────────────────────────────────────────
     def _generate_heuristic_report(self, df: pd.DataFrame) -> str:
         """
         Generates a rich, dynamic BI report and chart configuration
         directly from DataFrame statistics when external LLMs are unavailable.
         """
         self.last_engine_used = "heuristic"
-        self.last_execution_mode = "📊 Deterministic Statistical Fallback"
         self.last_prompt_type = "Pure Python statistical aggregation (No LLM prompt needed)"
         self.last_prompt_used = "N/A - Direct statistical calculations from DataFrame"
         self.last_system_prompt = "N/A"
+        self._set_result("📊 Heuristic (no LLM)", "-", is_llm=False)
+        self._log_attempt("Heuristic", "-", "success", "all LLM routes failed or were unavailable")
 
         kpis = calculate_kpis(df)
         charts = recommend_charts(df)
         n_rows, n_cols = df.shape
         num_cols = list(df.select_dtypes(include=["number"]).columns)
-        cat_cols = list(df.select_dtypes(include=["object", "category", "bool"]).columns)
+        cat_cols = list(df.select_dtypes(include=["object", "category", "bool", "string"]).columns)
 
         missing_count = int(df.isnull().sum().sum())
         completeness = ((df.size - missing_count) / max(df.size, 1)) * 100
@@ -387,7 +604,7 @@ Be precise, professional, and clear.
 
         top_cats = []
         for c in cat_cols[:3]:
-            top_val = df[c].mode()[0] if not df[c].empty else "N/A"
+            top_val = df[c].mode()[0] if not df[c].dropna().empty else "N/A"
             uniques = df[c].nunique()
             top_cats.append(f"- **{c}**: Dominant `{top_val}`, Distinct `{uniques}`")
         cats_md = "\n".join(top_cats) if top_cats else "- No categorical columns available"
@@ -426,6 +643,9 @@ The dataset comprises **{n_rows:,} rows** and **{n_cols} columns** across numeri
 ```
 """
 
+    # ──────────────────────────────────────────────────────────────────────────
+    # Parsing + telemetry
+    # ──────────────────────────────────────────────────────────────────────────
     def parse_response(self, raw: str) -> Tuple[str, Dict[str, Any]]:
         """
         Separates the Markdown report text from the JSON configuration block,
@@ -465,11 +685,18 @@ The dataset comprises **{n_rows:,} rows** and **{n_cols} columns** across numeri
     def get_telemetry(self) -> Dict[str, Any]:
         """
         Returns execution details and prompt metadata for dashboard inspection.
+        `provider` / `model` are the ones that really produced the result.
         """
         return {
-            "engine": getattr(self, "last_engine_used", self.engine),
-            "execution_mode": getattr(self, "last_execution_mode", "Unknown"),
-            "prompt_type": getattr(self, "last_prompt_type", "Standard"),
-            "system_prompt": getattr(self, "last_system_prompt", ""),
-            "prompt_used": getattr(self, "last_prompt_used", "")
+            "engine": self.last_engine_used or self.engine,
+            "provider": self.last_provider,
+            "model": self.last_model,
+            "is_llm": self.last_is_llm,
+            "execution_mode": self.last_execution_mode,
+            "duration_s": self.last_duration_s,
+            "converted_columns": list(self.last_prepared_columns),
+            "attempts": list(self.attempts),
+            "prompt_type": self.last_prompt_type,
+            "system_prompt": self.last_system_prompt,
+            "prompt_used": self.last_prompt_used,
         }

@@ -33,39 +33,60 @@ page_header(
     "Dynamic BI / <b>AI Analysis</b>",
 )
 
-# ── 1. Dataset selection / upload ─────────────────────────────────────────────
+# ── 1. Dataset upload + Run button ────────────────────────────────────────────
+st.markdown("### 📤 Dataset")
+
+# Datasets existants (sidebar, optionnel)
 st.sidebar.markdown("### 🗄 Data Source")
 data_dir = PROJECT_ROOT / "data"
-available_csvs = []
-if data_dir.exists():
-    available_csvs = [p.relative_to(PROJECT_ROOT) for p in data_dir.glob("**/*.csv")]
-
-source_mode = st.sidebar.radio(
-    "Selection mode",
-    ["📂 Choose an existing dataset", "📤 Upload a new CSV"],
+available_csvs = (
+    [p.relative_to(PROJECT_ROOT) for p in data_dir.glob("**/*.csv")]
+    if data_dir.exists()
+    else []
+)
+NONE_OPT = "— Aucun —"
+existing_choice = st.sidebar.selectbox(
+    "Ou choisir un dataset existant",
+    [NONE_OPT] + [str(p) for p in available_csvs],
 )
 
 df = None
 dataset_name = ""
 
-if source_mode == "📂 Choose an existing dataset":
-    if available_csvs:
-        csv_options = {str(p): p for p in available_csvs}
-        selected_path_str = st.sidebar.selectbox("Select a file", list(csv_options.keys()))
-        if selected_path_str:
-            full_path = PROJECT_ROOT / csv_options[selected_path_str]
-            try:
-                df = pd.read_csv(full_path)
-                dataset_name = full_path.name
-            except Exception as e:
-                st.sidebar.error(f"File read error: {e}")
-    else:
-        st.sidebar.warning("No CSV files found in `data/`.")
-else:
-    uploaded_file = st.sidebar.file_uploader("📂 Import a CSV file", type=["csv"])
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
-        dataset_name = uploaded_file.name
+with st.container(border=True):
+    col_up, col_run = st.columns([3, 1], vertical_alignment="bottom")
+
+    with col_up:
+        uploaded_file = st.file_uploader(
+            "Glissez votre fichier CSV ici ou cliquez pour parcourir",
+            type=["csv"],
+            key="main_uploader",
+        )
+
+    # Priorité : fichier uploadé > dataset existant
+    try:
+        if uploaded_file is not None:
+            df = pd.read_csv(uploaded_file)
+            dataset_name = uploaded_file.name
+        elif existing_choice != NONE_OPT:
+            df = pd.read_csv(PROJECT_ROOT / existing_choice)
+            dataset_name = Path(existing_choice).name
+    except Exception as e:
+        st.error(f"Erreur de lecture du fichier : {e}")
+        df = None
+
+    with col_run:
+        run_clicked = st.button(
+            "🚀 Lancer l'analyse",
+            type="primary",
+            width="stretch",
+            disabled=df is None,
+        )
+
+    if df is not None:
+        st.caption(f"✅ **{dataset_name}** chargé · {df.shape[0]:,} lignes · {df.shape[1]} colonnes")
+        with st.expander("👀 Aperçu des données"):
+            st.dataframe(df.head(10), width="stretch")
 
 # ── Sidebar AI Provider Configuration ─────────────────────────────────────────
 st.sidebar.markdown("---")
@@ -108,7 +129,7 @@ else:
         st.session_state["groq_api_key"] = custom_groq_key
 
 if df is None:
-    st.warning("⚠️ Please select an existing dataset or upload one via the sidebar to start the analysis.")
+    st.info("⬆️ Importez un fichier CSV (ou choisissez-en un dans la sidebar), puis cliquez sur **Lancer l'analyse**.")
     st.stop()
 
 # ── Main Page Engine Quick-Switcher Tool ──────────────────────────────────────
@@ -147,10 +168,13 @@ html(f'''<div class="bf-card" style="background:linear-gradient(135deg,#eef2ff,#
   <span style="margin-left:auto">{badge(f"● {active_engine_name}", badge_color)}</span>
 </div>''')
 
-# ── 3. AI Agent analysis ──────────────────────────────────────────────────────
-cache_key = f"bi_cache_{dataset_name}_{df.shape[0]}_{df.shape[1]}_{chosen_engine}_{bool(custom_groq_key)}"
+# ── 3. AI Agent analysis (déclenchée par le bouton) ───────────────────────────
+dataset_sig = f"{dataset_name}_{df.shape[0]}_{df.shape[1]}"
+cache_key   = f"{dataset_sig}_{chosen_engine}_{bool(custom_groq_key)}"
 
-if st.session_state.get("bi_cache_key") != cache_key:
+should_run = run_clicked or st.session_state.pop("bi_force_rerun", False)
+
+if should_run:
     spinner_msg = (
         f"⚡ Running Local Fine-Tuned Qwen 2.5 3B (LoRA) on RTX 4050 for '{dataset_name}'…"
         if is_local
@@ -160,27 +184,49 @@ if st.session_state.get("bi_cache_key") != cache_key:
         try:
             agent = BIAnalystAgent(api_key=custom_groq_key or None, engine=chosen_engine)
             full_response = agent.analyze(df, dataset_name=dataset_name)
-            ai_analysis_report, chart_config = agent.parse_response(full_response)
-            telemetry = agent.get_telemetry()
+            report, cfg = agent.parse_response(full_response)
 
-            st.session_state["bi_cache_key"]         = cache_key
-            st.session_state["current_bi_report"]    = ai_analysis_report
-            st.session_state["current_chart_config"] = chart_config
-            st.session_state["current_bi_telemetry"] = telemetry
-
+            st.session_state["current_bi_report"]    = report
+            st.session_state["current_chart_config"] = cfg
+            st.session_state["current_bi_telemetry"] = agent.get_telemetry()
         except Exception as e:
             st.error(f"Error calling the AI agent: {e}")
             st.session_state["current_bi_report"]    = "Unable to generate analysis at this time."
             st.session_state["current_chart_config"] = {"kpis": [], "recommended_charts": []}
             st.session_state["current_bi_telemetry"] = {}
 
+        st.session_state["bi_dataset_sig"] = dataset_sig
+        st.session_state["bi_cache_key"]   = cache_key
+
+# Pas d'analyse pour ce dataset → on attend le clic
+if st.session_state.get("bi_dataset_sig") != dataset_sig:
+    st.info("👆 Cliquez sur **🚀 Lancer l'analyse** pour générer le rapport et les dashboards.")
+    st.stop()
+
+# Moteur changé depuis la dernière analyse
+if st.session_state.get("bi_cache_key") != cache_key:
+    st.warning("⚠️ Le moteur a changé depuis la dernière analyse. Relancez pour mettre à jour les résultats.")
+
 ai_analysis_report = st.session_state.get("current_bi_report", "")
 chart_config       = st.session_state.get("current_chart_config", {"kpis": [], "recommended_charts": []})
 
+# Fournisseur réel ayant généré ce résultat
+_t = st.session_state.get("current_bi_telemetry", {}) or {}
+if _t.get("is_llm"):
+    st.success(
+        f"✅ Généré par **{_t.get('provider', '?')}** · modèle `{_t.get('model', '-')}` "
+        f"· {_t.get('duration_s', 0)} s"
+    )
+elif _t:
+    st.warning(
+        "⚠️ **Aucun LLM n'a répondu** : ce rapport vient du moteur statistique Python (heuristique). "
+        "Voir l'onglet Telemetry pour le détail des erreurs."
+    )
+
 # ── 4. Dynamic KPI cards (AI-driven with Python fallback) ─────────────────────
-ai_kpis  = chart_config.get("kpis", [])
+ai_kpis  = list(chart_config.get("kpis", []))
 num_cols = list(df.select_dtypes(include=["number"]).columns)
-cat_cols = list(df.select_dtypes(include=["object", "category"]).columns)
+cat_cols = list(df.select_dtypes(include=["object", "category", "string"]).columns)
 
 default_kpis = [
     {"title": "Row Count",      "value": f"{df.shape[0]:,}",
@@ -221,6 +267,24 @@ def find_best_column(col_name, available_cols):
         if col_name.lower() in c.lower() or c.lower() in col_name.lower():
             return c
     return None
+
+
+def style_fig(fig, axes=True):
+    """Apply the common BIFlow look to a plotly figure."""
+    axis_style = dict(
+        tickfont=dict(color="#334155", size=11),
+        title_font=dict(color="#0f172a", size=12),
+        gridcolor="#f1f5f9",
+    )
+    fig.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#0f172a", family="Inter, sans-serif"),
+        margin=dict(t=15, b=25, l=25, r=15),
+    )
+    if axes:
+        fig.update_layout(xaxis=axis_style, yaxis=axis_style)
+    return fig
 
 
 st.markdown("---")
@@ -290,6 +354,8 @@ if charts:
                 ''')
 
                 try:
+                    y_is_numeric = bool(c_y) and c_y in df.columns and pd.api.types.is_numeric_dtype(df[c_y])
+
                     if c_type == "pie":
                         data_pie = df[c_x].value_counts().reset_index()
                         data_pie.columns = [c_x, "Count"]
@@ -298,97 +364,40 @@ if charts:
                             names=c_x,
                             values="Count",
                             hole=0.45,
-                            color_discrete_sequence=px.colors.sequential.Purp_r
+                            color_discrete_sequence=px.colors.sequential.Purp_r,
                         )
+                        style_fig(fig, axes=False)
                         fig.update_layout(
-                            paper_bgcolor="rgba(0,0,0,0)",
-                            plot_bgcolor="rgba(0,0,0,0)",
-                            font=dict(color="#0f172a", family="Inter, sans-serif"),
                             legend=dict(font=dict(color="#334155", size=11)),
-                            margin=dict(t=10, b=10, l=10, r=10)
+                            margin=dict(t=10, b=10, l=10, r=10),
                         )
-                        st.plotly_chart(fig, use_container_width=True)
 
                     elif c_type == "bar":
-                        if c_y and c_y in df.columns and df[c_y].dtype in ["int64", "float64"]:
+                        if y_is_numeric:
                             agg_df = df.groupby(c_x, observed=False)[c_y].mean().reset_index()
                             fig = px.bar(agg_df.head(15), x=c_x, y=c_y, color_discrete_sequence=["#6366f1"])
                         else:
                             data_bar = df[c_x].value_counts().reset_index()
                             data_bar.columns = [c_x, "Count"]
                             fig = px.bar(data_bar.head(15), x=c_x, y="Count", color_discrete_sequence=["#6366f1"])
-
-                        fig.update_layout(
-                            paper_bgcolor="rgba(0,0,0,0)",
-                            plot_bgcolor="rgba(0,0,0,0)",
-                            font=dict(color="#0f172a", family="Inter, sans-serif"),
-                            xaxis=dict(
-                                tickfont=dict(color="#334155", size=11),
-                                title_font=dict(color="#0f172a", size=12),
-                                gridcolor="#f1f5f9"
-                            ),
-                            yaxis=dict(
-                                tickfont=dict(color="#334155", size=11),
-                                title_font=dict(color="#0f172a", size=12),
-                                gridcolor="#f1f5f9"
-                            ),
-                            margin=dict(t=15, b=25, l=25, r=15)
-                        )
-                        st.plotly_chart(fig, use_container_width=True)
+                        style_fig(fig)
 
                     elif c_type == "histogram":
                         fig = px.histogram(df, x=c_x, color_discrete_sequence=["#8b5cf6"])
-                        fig.update_layout(
-                            paper_bgcolor="rgba(0,0,0,0)",
-                            plot_bgcolor="rgba(0,0,0,0)",
-                            font=dict(color="#0f172a", family="Inter, sans-serif"),
-                            xaxis=dict(
-                                tickfont=dict(color="#334155", size=11),
-                                title_font=dict(color="#0f172a", size=12),
-                                gridcolor="#f1f5f9"
-                            ),
-                            yaxis=dict(
-                                tickfont=dict(color="#334155", size=11),
-                                title_font=dict(color="#0f172a", size=12),
-                                gridcolor="#f1f5f9"
-                            ),
-                            margin=dict(t=15, b=25, l=25, r=15)
-                        )
-                        st.plotly_chart(fig, use_container_width=True)
+                        style_fig(fig)
 
                     elif c_type == "box":
-                        if c_y and c_y in df.columns and df[c_y].dtype in ["int64", "float64"]:
+                        if y_is_numeric:
                             fig = px.box(df, x=c_x, y=c_y, color_discrete_sequence=["#c026d3"])
                         else:
                             fig = px.box(df, y=c_x, color_discrete_sequence=["#c026d3"])
-
-                        fig.update_layout(
-                            paper_bgcolor="rgba(0,0,0,0)",
-                            plot_bgcolor="rgba(0,0,0,0)",
-                            font=dict(color="#0f172a", family="Inter, sans-serif"),
-                            xaxis=dict(
-                                tickfont=dict(color="#334155", size=11),
-                                title_font=dict(color="#0f172a", size=12),
-                                gridcolor="#f1f5f9"
-                            ),
-                            yaxis=dict(
-                                tickfont=dict(color="#334155", size=11),
-                                title_font=dict(color="#0f172a", size=12),
-                                gridcolor="#f1f5f9"
-                            ),
-                            margin=dict(t=15, b=25, l=25, r=15)
-                        )
-                        st.plotly_chart(fig, use_container_width=True)
+                        style_fig(fig)
 
                     else:
                         fig = px.histogram(df, x=c_x, color_discrete_sequence=["#6366f1"])
-                        fig.update_layout(
-                            paper_bgcolor="rgba(0,0,0,0)",
-                            plot_bgcolor="rgba(0,0,0,0)",
-                            font=dict(color="#0f172a", family="Inter, sans-serif"),
-                            margin=dict(t=15, b=25, l=25, r=15)
-                        )
-                        st.plotly_chart(fig, use_container_width=True)
+                        style_fig(fig, axes=False)
+
+                    st.plotly_chart(fig, width="stretch", key=f"bi_chart_{i}")
 
                 except Exception as chart_err:
                     st.warning(f"Could not render chart ({c_title}): {chart_err}")
@@ -409,22 +418,46 @@ with tab_prompt:
     t_prompt_type = telemetry.get("prompt_type", "Standard")
     t_prompt = telemetry.get("prompt_used", "")
     t_sys = telemetry.get("system_prompt", "")
+    t_provider = telemetry.get("provider", "Unknown")
+    t_model = telemetry.get("model", "-")
+    t_attempts = telemetry.get("attempts", [])
+    t_converted = telemetry.get("converted_columns", [])
 
-    col_t1, col_t2 = st.columns(2)
+    col_t1, col_t2, col_t3 = st.columns(3)
     with col_t1:
-        st.markdown(f"**⚡ Active Engine:** `{t_mode}`")
+        st.markdown(f"**🏢 Fournisseur réel :** `{t_provider}`")
     with col_t2:
+        st.markdown(f"**🧩 Modèle :** `{t_model}`")
+    with col_t3:
         st.markdown(f"**📝 Prompt Strategy:** `{t_prompt_type}`")
 
-    if is_local:
+    if "Local" in str(t_provider):
         st.info(
             "💡 **Mode Local Qwen 2.5-3B LoRA :** Le modèle a été fine-tuné spécifiquement pour analyser "
             "directement le résumé statistique compact du dataset. Il n'a pas besoin du long prompt verbeux !"
         )
-    else:
+    elif telemetry.get("is_llm"):
         st.info(
-            "💡 **Mode Cloud API (Groq/Gemini) :** Les LLMs généralistes requièrent un prompt engineering exhaustif "
+            "💡 **Mode Cloud API :** Les LLMs généralistes requièrent un prompt engineering exhaustif "
             "avec persona d'expert BI, instructions multi-sections, consignes strictes et structure JSON."
+        )
+    else:
+        st.info("💡 **Mode heuristique :** aucun LLM n'a été utilisé, le rapport est calculé en Python.")
+
+    if t_converted:
+        st.caption(f"🔧 Colonnes texte converties en numérique avant analyse : {', '.join(t_converted)}")
+
+    if t_attempts:
+        st.markdown("**🧾 Historique des tentatives (dans l'ordre) :**")
+        icons = {"success": "✅", "failed": "❌", "skipped": "⏭️"}
+        st.dataframe(
+            pd.DataFrame([
+                {"": icons.get(a["status"], "•"), "Fournisseur": a["provider"], "Modèle": a["model"],
+                 "Statut": a["status"], "Détail": a["detail"]}
+                for a in t_attempts
+            ]),
+            width="stretch",
+            hide_index=True,
         )
 
     if t_sys and t_sys != "N/A":
@@ -438,15 +471,14 @@ with tab_prompt:
 st.markdown("---")
 col1, col2 = st.columns(2)
 with col1:
-    if st.button("⭳ Download Markdown Report", use_container_width=True):
-        st.download_button(
-            label="Confirm download",
-            data=ai_analysis_report,
-            file_name="BIFlow_BI_Analysis_Report.md",
-            mime="text/markdown",
-        )
+    st.download_button(
+        "⭳ Download Markdown Report",
+        data=ai_analysis_report,
+        file_name="BIFlow_BI_Analysis_Report.md",
+        mime="text/markdown",
+        width="stretch",
+    )
 with col2:
-    if st.button("🔄 Re-run AI Analysis", type="primary", use_container_width=True):
-        # Clear the cache so the next rerun triggers a fresh analysis
-        st.session_state.pop("bi_cache_key", None)
+    if st.button("🔄 Re-run AI Analysis", type="primary", width="stretch"):
+        st.session_state["bi_force_rerun"] = True
         st.rerun()
