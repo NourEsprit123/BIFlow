@@ -200,3 +200,66 @@ def recommend_charts(df: pd.DataFrame) -> List[Dict[str, Any]]:
         })
 
     return charts[:6]
+
+
+# ── BI Analyst Sandbox Executor ───────────────────────────────────────────────
+import threading
+import traceback
+import textwrap
+
+_BI_SAFE_BUILTINS = {
+    "len": len, "range": range, "enumerate": enumerate, "zip": zip,
+    "min": min, "max": max, "sum": sum, "round": round, "abs": abs,
+    "int": int, "float": float, "str": str, "bool": bool, "list": list,
+    "dict": dict, "set": set, "tuple": tuple, "type": type,
+    "isinstance": isinstance, "print": print, "repr": repr,
+    "any": any, "all": all, "sorted": sorted, "map": map, "filter": filter,
+    "None": None, "True": True, "False": False,
+}
+
+
+def run_bi_sandboxed_calc(code: str, df: "pd.DataFrame", timeout_sec: int = 5) -> tuple:
+    """
+    Safely execute LLM-generated Python code for BI metric calculation.
+
+    The code MUST define:  def compute_insight(df) -> dict
+
+    Returns: (result_dict, error_string_or_None)
+      - On success : ({"key": value, ...}, None)
+      - On failure : (None, "ErrorType: description")
+    """
+    namespace = {
+        "__builtins__": _BI_SAFE_BUILTINS,
+        "pd": pd,
+        "np": np,
+    }
+
+    # Phase 1 — compile & exec the code definition (syntax / import errors caught here)
+    try:
+        exec(textwrap.dedent(code), namespace)  # noqa: S102
+    except SyntaxError as exc:
+        return None, f"SyntaxError: {exc}"
+    except Exception as exc:
+        return None, f"ExecError: {exc}"
+
+    if "compute_insight" not in namespace:
+        return None, "Code must define: def compute_insight(df) -> dict"
+
+    # Phase 2 — call compute_insight(df) with a thread timeout
+    result_box: list = [None]
+    error_box:  list = [None]
+
+    def _target():
+        try:
+            result_box[0] = namespace["compute_insight"](df.copy())
+        except Exception:
+            error_box[0] = traceback.format_exc()
+
+    t = threading.Thread(target=_target, daemon=True)
+    t.start()
+    t.join(timeout=timeout_sec)
+
+    if t.is_alive():
+        return None, f"TimeoutError: execution exceeded {timeout_sec}s"
+
+    return result_box[0], error_box[0]

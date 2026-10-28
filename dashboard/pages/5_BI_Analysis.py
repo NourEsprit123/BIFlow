@@ -407,7 +407,37 @@ else:
 
 # ── 6. Full AI report & Prompt Telemetry Inspector ────────────────────────────
 st.markdown("---")
-tab_report, tab_prompt = st.tabs(["🧠 Full Executive AI Report", "🔍 Prompt Engineering & Engine Telemetry"])
+
+# ── Sandbox status badge (always visible) ────────────────────────────────────
+_sb_telemetry = st.session_state.get("current_bi_telemetry", {})
+_sb_all        = _sb_telemetry.get("sandbox_results", [])
+_sb_baseline   = next((e for e in _sb_all if e.get("type") == "baseline"), None)
+_sb_llm_blocks = [e for e in _sb_all if e.get("type") == "llm"]
+
+if not _sb_all:
+    # Pas encore d'analyse
+    st.caption("⬜ **Sandbox :** aucune analyse lancée — statut inconnu")
+elif _sb_baseline and not _sb_baseline.get("error"):
+    # Baseline OK
+    _sb_llm_ok  = sum(1 for e in _sb_llm_blocks if not e.get("error"))
+    _sb_llm_err = sum(1 for e in _sb_llm_blocks if e.get("error"))
+    if _sb_llm_blocks:
+        _badge_txt = (
+            f"✅ **Sandbox exécuté** — moteur actif · "
+            f"{_sb_llm_ok} bloc(s) LLM vérifié(s)"
+            + (f" · {_sb_llm_err} erreur(s)" if _sb_llm_err else "")
+        )
+    else:
+        _badge_txt = "✅ **Sandbox exécuté** — moteur actif · aucun bloc LLM généré cette fois"
+    st.success(_badge_txt)
+else:
+    st.error("❌ **Sandbox ERREUR** — le moteur n'a pas pu s'exécuter · voir ⚡ Sandbox Monitor")
+
+tab_report, tab_prompt, tab_sandbox = st.tabs([
+    "🧠 Full Executive AI Report",
+    "🔍 Prompt Engineering & Engine Telemetry",
+    "⚡ Sandbox Monitor",
+])
 
 with tab_report:
     st.markdown(ai_analysis_report)
@@ -466,6 +496,90 @@ with tab_prompt:
 
     st.markdown("**📄 Prompt / Dataset Summary transmis au modèle :**")
     st.code(t_prompt if t_prompt else "Aucun prompt enregistré.", language="text")
+
+    # (sandbox results moved to dedicated ⚡ Sandbox Monitor tab)
+
+with tab_sandbox:
+    # ── Sandbox Monitor Tab ──────────────────────────────────────────────────
+    from analytics.kpi import run_bi_sandboxed_calc
+
+    telemetry_sb = st.session_state.get("current_bi_telemetry", {})
+    sb_results   = telemetry_sb.get("sandbox_results", [])
+    is_heuristic = not telemetry_sb.get("is_llm", False)
+    sb_provider  = telemetry_sb.get("provider", "")
+
+    # ── Status badge ─────────────────────────────────────────────────────────
+    st.markdown("### 🛡️ Statut du Moteur Sandbox In-Memory")
+
+    if not sb_results:
+        st.warning(
+            "**Aucune analyse enregistrée dans la session courante.**  \n"
+            "Veuillez lancer une analyse ou utiliser l'outil d'exécution manuel ci-dessous."
+        )
+    else:
+        errors  = [e for e in sb_results if e.get("error")]
+        success = [e for e in sb_results if not e.get("error")]
+        if errors:
+            st.error(f"**Sandbox exécuté avec erreurs — {len(errors)} bloc(s) en échec / {len(sb_results)} total**")
+        else:
+            st.success(f"**Sandbox actif et vérifié — {len(success)} calcul(s) exécuté(s) en environnement sécurisé**")
+
+    # ── Résultats de la dernière analyse ─────────────────────────────────────
+    if sb_results:
+        st.markdown("---")
+        st.markdown("#### Résultats des blocs exécutés lors de la dernière analyse")
+        for entry in sb_results:
+            b = entry["block"]
+            if entry.get("error"):
+                st.error(f"**Bloc {b}** — Erreur sandbox")
+                st.code(entry["error"], language="text")
+            else:
+                st.success(f"**Bloc {b}** — Calcul vérifié sur les données réelles")
+                st.json(entry["result"])
+
+    # ── Test manuel du sandbox ────────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown("#### Tester le sandbox manuellement")
+    st.caption(
+        "Exécute un calcul de test sur le dataset chargé pour confirmer que le moteur "
+        "sandbox fonctionne, indépendamment du LLM."
+    )
+
+    test_code = st.text_area(
+        "Code à tester (doit définir `def compute_insight(df) -> dict`) :",
+        value=(
+            "def compute_insight(df):\n"
+            "    n_rows = len(df)\n"
+            "    n_cols = len(df.columns)\n"
+            "    missing_pct = round(df.isnull().sum().sum() / (n_rows * n_cols) * 100, 2)\n"
+            "    return {'nb_lignes': n_rows, 'nb_colonnes': n_cols, 'pct_manquant': missing_pct}"
+        ),
+        height=180,
+        key="sandbox_test_code",
+    )
+
+    col_run, col_timeout = st.columns([3, 1])
+    with col_timeout:
+        timeout_val = st.number_input("Timeout (s)", min_value=1, max_value=30, value=5, key="sb_timeout")
+    with col_run:
+        run_test = st.button("Lancer le test sandbox", type="primary", use_container_width=True)
+
+    if run_test:
+        if df is None or df.empty:
+            st.error("Aucun dataset chargé — chargez un fichier CSV d'abord.")
+        else:
+            with st.spinner("Exécution dans le sandbox..."):
+                result, error = run_bi_sandboxed_calc(test_code, df, timeout_sec=int(timeout_val))
+            if error:
+                st.error("**Sandbox ERREUR**")
+                st.code(error, language="text")
+            else:
+                st.success("**Sandbox OK — calcul exécuté sur les données réelles**")
+                st.json(result)
+                st.caption(
+                    f"Données : {df.shape[0]} lignes x {df.shape[1]} colonnes  "
+                    f"| Timeout : {timeout_val}s"
+                )
 
 # ── 7. Actions ────────────────────────────────────────────────────────────────
 st.markdown("---")

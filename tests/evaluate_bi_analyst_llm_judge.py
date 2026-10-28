@@ -39,7 +39,7 @@ def extract_ground_truth(df: pd.DataFrame) -> Dict[str, Any]:
     completeness = round(((df.size - missing_count) / max(df.size, 1)) * 100, 2)
     
     num_cols = list(df.select_dtypes(include=[np.number]).columns)
-    cat_cols = list(df.select_dtypes(include=["object", "category", "bool"]).columns)
+    cat_cols = list(df.select_dtypes(include=["object", "category", "bool", "string"]).columns)
     
     num_stats = {}
     for col in num_cols[:15]:
@@ -322,8 +322,17 @@ Provide your evaluation in STRICT JSON format:
         "judge_evaluation": judge_response
     }
     
+    def _json_serialize_fallback(o):
+        if isinstance(o, (np.integer, np.int64, np.int32)):
+            return int(o)
+        if isinstance(o, (np.floating, np.float64, np.float32)):
+            return float(o)
+        if isinstance(o, (np.ndarray, set)):
+            return list(o)
+        return str(o)
+
     with open(report_file, "w", encoding="utf-8") as f:
-        json.dump(final_output, f, indent=2, ensure_ascii=False)
+        json.dump(final_output, f, indent=2, ensure_ascii=False, default=_json_serialize_fallback)
         
     print(f"📁 Rapport d'évaluation officiel sauvegardé dans :\n   {report_file}")
     return final_output

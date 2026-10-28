@@ -23,7 +23,7 @@ import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
 
-from analytics.kpi import calculate_kpis, recommend_charts
+from analytics.kpi import calculate_kpis, recommend_charts, run_bi_sandboxed_calc
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(PROJECT_ROOT / ".env")
@@ -43,7 +43,7 @@ _NON_CHAT_MARKERS = (
     "audio", "live", "robotics", "computer-use", "transcribe", "imagen", "veo",
 )
 
-
+#charge le modèle IA qui tourne sur ton PC (Qwen avec ton entraînement LoRA). Elle le garde en mémoire pour ne pas le recharger à chaque clic.
 def get_local_lora_model():
     """
     Loads and caches Qwen 2.5 3B in 4-bit with LoRA adapter attached.
@@ -109,6 +109,8 @@ class BIAnalystAgent:
     - 'auto'       : Automatically selects local LoRA if available, else API
     """
 
+
+#prépare l’agent au démarrage (clés API, moteur choisi, client Groq
     def __init__(
         self,
         model_name: Optional[str] = None,
@@ -134,7 +136,8 @@ class BIAnalystAgent:
 
     # ──────────────────────────────────────────────────────────────────────────
     # Telemetry helpers
-    # ──────────────────────────────────────────────────────────────────────────
+    # ──────────────────────────────────────────────────────────────────────────4
+    #remet le suivi à zéro avant chaque nouvelle analyse.
     def _reset_telemetry(self):
         self.last_engine_used = None
         self.last_execution_mode = "Unknown"
@@ -148,7 +151,10 @@ class BIAnalystAgent:
         self.last_prepared_columns: List[str] = []
         if not hasattr(self, "attempts"):
             self.attempts: List[Dict[str, str]] = []
+        self.sandbox_results: List[Dict[str, Any]] = []   # sandbox execution log
 
+
+#note chaque tentative (réussie, échouée, ignorée) dans un historique.
     def _log_attempt(self, provider: str, model: str, status: str, detail: str = ""):
         self.attempts.append({
             "provider": provider,
@@ -157,6 +163,8 @@ class BIAnalystAgent:
             "detail": str(detail)[:300],
         })
 
+
+#note quel fournisseur a vraiment produit la réponse finale.
     def _set_result(self, provider: str, model: str, is_llm: bool = True):
         """Records the provider/model that REALLY produced the final answer."""
         self.last_provider = provider
@@ -194,6 +202,7 @@ class BIAnalystAgent:
     # ──────────────────────────────────────────────────────────────────────────
     # Main entry point
     # ──────────────────────────────────────────────────────────────────────────
+    #c’est le chef d’orchestre. Tu lui donnes un dataset, elle choisit quel moteur utiliser, essaie le premier, et passe au suivant si ça échoue. Elle te renvoie le rapport.
     def analyze(self, df: pd.DataFrame, dataset_name: str = "dataset") -> str:
         """
         Analyses the dataset and returns a full Markdown report with
@@ -247,6 +256,7 @@ class BIAnalystAgent:
     # ──────────────────────────────────────────────────────────────────────────
     # Local LoRA
     # ──────────────────────────────────────────────────────────────────────────
+    #utilise ce modèle local pour écrire le rapport, avec un prompt court.
     def _analyze_local_lora(self, df: pd.DataFrame, dataset_name: str = "dataset") -> str:
         """
         Executes inference using the fine-tuned LoRA model with the exact
@@ -279,12 +289,14 @@ class BIAnalystAgent:
                 temperature=0.2,
                 do_sample=True,
                 top_p=0.9,
-                repetition_penalty=1.05
+                repetition_penalty=1.05  
             )
 
         gen_tokens = outputs[0][inputs["input_ids"].shape[1]:]
         return tokenizer.decode(gen_tokens, skip_special_tokens=True)
 
+
+#résume le dataset en quelques lignes (moyennes, valeurs fréquentes, corrélations) pour le modèle local.
     def _build_compact_summary(self, df: pd.DataFrame, dataset_name: str = "dataset") -> str:
         """
         Extracts concise dataset statistical metrics matching the fine-tuning training distribution.
@@ -349,6 +361,8 @@ class BIAnalystAgent:
     # ──────────────────────────────────────────────────────────────────────────
     # Cloud API route
     # ──────────────────────────────────────────────────────────────────────────
+
+    #demandent au fournisseur quels modèles sont disponibles avec ta clé. Ça évite d’utiliser un nom de modèle qui n’existe plus.
     def _groq_candidate_models(self) -> List[str]:
         """
         Asks Groq which models this key can actually use, so we never rely on
@@ -398,7 +412,7 @@ class BIAnalystAgent:
                     ],
                     model=m,
                     temperature=0.2,
-                    max_tokens=4000
+                    max_tokens=6000
                 )
                 text = response.choices[0].message.content
                 if text and len(text.strip()) > 50:
@@ -464,7 +478,7 @@ class BIAnalystAgent:
                     config={
                         "system_instruction": API_SYSTEM_PROMPT,
                         "temperature": 0.2,
-                        "max_output_tokens": 4000,
+                        "max_output_tokens": 8192,
                     },
                 )
                 text = getattr(resp, "text", None)
@@ -539,6 +553,25 @@ Technical summary:
 3. **Decide on 4 to 6 relevant charts** to display
    (types: "pie", "bar", "histogram", "scatter", "box").
 
+OPTIONAL SANDBOX CALCULATION:
+If you need a precise calculation that cannot be reliably derived from the statistical
+summary above (e.g., a cross-column ratio, a conditional aggregation, a grouped metric),
+you MAY include ONE Python code block BEFORE the json block using this EXACT format:
+```python
+def compute_insight(df):
+    # Your pandas/numpy calculation here — df is the REAL DataFrame
+    # MUST return a dict with string keys and numeric or string values
+    result = df.groupby('SomeColumn')['NumericCol'].mean().to_dict()
+    return {{"insight_key": round(list(result.values())[0], 2)}}
+```
+The sandbox will execute this code on the real dataset and inject the verified result
+into the report.
+CRITICAL INSTRUCTIONS:
+1. Always write raw final numbers and values directly (e.g. "34.12%" or "456,000"). NEVER output code template placeholders like "{{variable_name}}%", "{{kpi_value}}", or unformatted format-strings.
+2. If you output percentages, calculate them correctly (e.g. category rows / total rows * 100). Never append a "%" sign to raw count figures (e.g., if there are 351 transactions, write "351 transactions", NOT "351 %").
+3. If you include a sandbox calculation, ensure the facts and narrative in your executive report match the empirical calculation exactly.
+4. Conclude with the complete ```json ... ``` block.
+
 At the end of your response, you MUST include a valid JSON block enclosed in markdown triple backticks ```json ... ```:
 ```json
 {{
@@ -566,10 +599,99 @@ Be precise, professional, and clear.
         for route in (self._try_groq, self._try_gemini, self._try_llm_client):
             text = route(prompt)
             if text:
-                return text
+                return self._run_sandbox_and_inject(text, df)
 
         # Deterministic Statistical Fallback Engine
         return self._generate_heuristic_report(df)
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Sandbox injection helper
+    # ──────────────────────────────────────────────────────────────────────────
+    # Default sandbox code — always executed to verify the engine is live
+    _SANDBOX_DEFAULT_CODE = """
+def compute_insight(df):
+    n_rows = len(df)
+    n_cols = len(df.columns)
+    missing_total = int(df.isnull().sum().sum())
+    missing_pct   = round(missing_total / (n_rows * n_cols) * 100, 2) if n_rows * n_cols else 0
+    num_cols = len(df.select_dtypes(include=['number']).columns)
+    cat_cols = len(df.select_dtypes(include=['object', 'category']).columns)
+    return {
+        "nb_lignes": n_rows,
+        "nb_colonnes": n_cols,
+        "colonnes_numeriques": num_cols,
+        "colonnes_categorielles": cat_cols,
+        "valeurs_manquantes_pct": missing_pct,
+    }
+"""
+
+    def _run_sandbox_and_inject(self, raw_response: str, df: pd.DataFrame) -> str:
+        """
+        1. TOUJOURS exécute un calcul sandbox de base (vérifie que le moteur est actif).
+        2. Si le LLM a généré un bloc `def compute_insight(df)`, l'exécute aussi et
+           injecte le résultat vérifié dans le rapport.
+
+        Sandbox type: In-Process Restricted Namespace + Thread Timeout (5 s).
+        """
+        import re as _re
+        self.sandbox_results = []
+
+        # ── Étape 1 : exécution automatique du calcul de base ────────────────
+        logger.info("[Sandbox] Running mandatory baseline calculation …")
+        base_result, base_error = run_bi_sandboxed_calc(
+            self._SANDBOX_DEFAULT_CODE.strip(), df, timeout_sec=5
+        )
+        self.sandbox_results.append({
+            "block": "auto",
+            "type": "baseline",
+            "result": base_result,
+            "error": base_error,
+        })
+        if base_error:
+            logger.warning(f"[Sandbox] Baseline error: {base_error}")
+        else:
+            logger.info(f"[Sandbox] Baseline OK: {base_result}")
+
+        # ── Étape 2 : exécution des blocs optionnels générés par le LLM ──────
+        code_blocks = _re.findall(
+            r"```python\s*(def compute_insight[\s\S]*?)```",
+            raw_response,
+            flags=_re.DOTALL,
+        )
+
+        injected = raw_response
+        for i, code in enumerate(code_blocks):
+            logger.info(f"[Sandbox] Executing LLM compute_insight block {i + 1} …")
+            result, error = run_bi_sandboxed_calc(code.strip(), df, timeout_sec=5)
+            self.sandbox_results.append({
+                "block": i + 1,
+                "type": "llm",
+                "result": result,
+                "error": error,
+            })
+
+            original_block = f"```python\n{code}```"
+            if result and isinstance(result, dict) and not error:
+                result_str = ", ".join(f"{k}: {v}" for k, v in result.items())
+                injection = f"\n> 🔢 **Sandbox Verified Calculation:** {result_str}\n"
+                injected = injected.replace(original_block, injection, 1)
+                
+                # Remplacement automatique de placeholders template comme {key} ou {key}%
+                for k, v in result.items():
+                    val_str = str(v)
+                    injected = injected.replace(f"{{{k}}}", val_str)
+                    injected = injected.replace(f"{{{k}_pct}}", val_str)
+                    injected = injected.replace(f"{{{k}%}}", f"{val_str}%")
+                    
+                logger.info(f"[Sandbox] LLM Block {i + 1} result: {result}")
+            else:
+                logger.warning(f"[Sandbox] LLM Block {i + 1} error: {error}")
+                injected = injected.replace(original_block, "", 1)
+
+        # Nettoyage de sécurité : si des placeholders non substitués restent (ex: {nom_variable}%)
+        injected = _re.sub(r"\{[a-zA-Z0-9_]+\s*(?:pct|share|rate)?\}", "N/A", injected)
+
+        return injected
 
     # ──────────────────────────────────────────────────────────────────────────
     # Heuristic fallback (no LLM)
@@ -585,6 +707,17 @@ Be precise, professional, and clear.
         self.last_system_prompt = "N/A"
         self._set_result("📊 Heuristic (no LLM)", "-", is_llm=False)
         self._log_attempt("Heuristic", "-", "success", "all LLM routes failed or were unavailable")
+
+        # Exécuter également la sandbox baseline pour garantir la traçabilité
+        base_result, base_error = run_bi_sandboxed_calc(
+            self._SANDBOX_DEFAULT_CODE.strip(), df, timeout_sec=5
+        )
+        self.sandbox_results = [{
+            "block": "auto",
+            "type": "baseline",
+            "result": base_result,
+            "error": base_error,
+        }]
 
         kpis = calculate_kpis(df)
         charts = recommend_charts(df)
@@ -699,4 +832,5 @@ The dataset comprises **{n_rows:,} rows** and **{n_cols} columns** across numeri
             "prompt_type": self.last_prompt_type,
             "system_prompt": self.last_system_prompt,
             "prompt_used": self.last_prompt_used,
+            "sandbox_results": list(self.sandbox_results),
         }
