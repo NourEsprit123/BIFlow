@@ -1,0 +1,9 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir pandas ollama
+
+COPY . /app
+
+CMD ["python", "demo_xai_sandbox.py"]
