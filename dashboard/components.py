@@ -8,9 +8,6 @@ NAV = [
     ("Overview", "pages/1_Overview.py", "🏠"),
     ("Datasets", "pages/2_Datasets.py", "🗄"),
     ("Workflows", "pages/3_Workflows.py", "⛓"),
-    ("Data Quality", "pages/4_Data_Quality.py", "✅"),
-    ("BI Analysis", "pages/5_BI_Analysis.py", "📊"),
-    ("Audit & XAI", "pages/6_Audit_XAI.py", "🧠"),
     ("Agent Ops", "pages/7_Agent_Ops.py", "🤖"),
 ]
 
@@ -20,7 +17,7 @@ AGENTS = [
       ("✅ Quality Check", "pages/A1_Quality.py"),
       ("🔧 ETL & Cleaning", "pages/A1_ETL_Cleaning.py")]),
     ("Agent 2 · BI Analyst", "agent2", "📊", "#0ea5e9",
-     [("📈 KPI Analysis",  "pages/5_BI_Analysis.py")]),
+     [("📈 KPI & Dashboards",  "pages/5_BI_Analysis.py")]),
     ("Agent 3 · XAI Auditor", "agent3", "🧠", "#a855f7",
      [("🧠 Audit & XAI",  "pages/6_Audit_XAI.py")]),
 ]
@@ -54,11 +51,12 @@ def card(body, title="", subtitle="", right=""):
 def grid(items, cls="g2"):
     return f'<div class="bf-grid {cls}">{"".join(items)}</div>'
 
-def table(headers, rows):
+def table(headers, rows, max_height: int = 0):
     th = "".join(f"<th>{h}</th>" for h in headers)
     tr = "".join("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in rows)
+    style_scroll = f"max-height:{max_height}px;overflow-y:auto;" if max_height > 0 else ""
     return (
-        f'<div style="overflow-x:auto;width:100%">'
+        f'<div style="overflow-x:auto;width:100%;{style_scroll}">'
         f'<table class="bf-table" style="min-width:max-content">'
         f'<thead><tr>{th}</tr></thead><tbody>{tr}</tbody></table>'
         f'</div>'
@@ -76,26 +74,19 @@ def svg_line(path, color="#4f46e5", w=260, h=90):
 # ---------- layout ----------
 def setup(title, hub="Enterprise Analytics Hub"):
     """À appeler en PREMIER dans chaque page."""
-    # Auto-detect sidebar mode based on page URL if not explicitly set
-    if "sidebar_mode" not in st.session_state:
-        # Check current page to determine mode
-        current_page = st.query_params.get("page", "")
-        if not current_page:
-            # Try to get from session path
-            import inspect
-            frame = inspect.currentframe()
-            if frame and frame.f_back:
-                caller_file = frame.f_back.f_code.co_filename
-                if "A1_" in caller_file:
-                    st.session_state.sidebar_mode = "agent1"
-                elif "A2_" in caller_file:
-                    st.session_state.sidebar_mode = "agent2"
-                elif "A3_" in caller_file:
-                    st.session_state.sidebar_mode = "agent3"
-                else:
-                    st.session_state.sidebar_mode = "nav"
-            else:
-                st.session_state.sidebar_mode = "nav"
+    # Détection automatique du mode d'agent selon le fichier appelant
+    import inspect
+    frame = inspect.currentframe()
+    if frame and frame.f_back:
+        caller_file = frame.f_back.f_code.co_filename
+        if "A1_" in caller_file:
+            st.session_state.sidebar_mode = "agent1"
+        elif "5_BI_Analysis" in caller_file or "A2_" in caller_file:
+            st.session_state.sidebar_mode = "agent2"
+        elif "6_Audit_XAI" in caller_file or "A3_" in caller_file:
+            st.session_state.sidebar_mode = "agent3"
+        elif any(f in caller_file for f in ["1_Overview", "2_Datasets", "3_Workflows", "7_Agent_Ops"]):
+            st.session_state.sidebar_mode = "nav"
     
     sidebar_mode = st.session_state.get("sidebar_mode", "nav")
 
@@ -109,13 +100,11 @@ def setup(title, hub="Enterprise Analytics Hub"):
     
     # Force sidebar open in agent mode via session state
     if sidebar_mode != "nav":
-        # This tells Streamlit to keep sidebar expanded
         st.session_state._sidebar_expanded = True
 
     # ── Restore session from cookie if session_state was wiped (page reload) ─
     if not st.session_state.get("authenticated_user"):
         import streamlit.components.v1 as _cv1
-        # Inject JS to read cookie and pass it via query param
         _cv1.html("""
         <script>
         (function() {
@@ -131,7 +120,6 @@ def setup(title, hub="Enterprise Analytics Hub"):
         })();
         </script>
         """, height=0)
-        # Check if token was passed as query param
         params = st.query_params
         token = params.get("bf_token", "")
         if token:
@@ -140,13 +128,16 @@ def setup(title, hub="Enterprise Analytics Hub"):
             if user:
                 st.session_state["authenticated_user"] = user
                 st.session_state["session_token"] = token
-                # Clean the URL
                 st.query_params.clear()
                 st.rerun()
 
-    # Agent sidebar animation CSS
+    # Agent sidebar animation CSS + Masquage de la navigation native Streamlit
     st.markdown("""
     <style>
+    /* Masquer la liste native des fichiers de Streamlit pour une sidebar 100% propre */
+    [data-testid="stSidebarNav"] {
+        display: none !important;
+    }
     @keyframes bf-agent-spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
     @keyframes bf-agent-pulse{0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,.5)}50%{box-shadow:0 0 0 8px rgba(99,102,241,0)}}
     .bf-agent-btn-running{animation:bf-agent-pulse 1.4s ease-in-out infinite!important;border-color:#6366f1!important}
@@ -181,8 +172,8 @@ def setup(title, hub="Enterprise Analytics Hub"):
             if agent_data:
                 label, key, icon, color, pages = agent_data
 
-                # Back button
-                if st.button("← Back to navigation", use_container_width=True):
+                # Bouton retour menu général
+                if st.button("← Menu général / Workflows", use_container_width=True):
                     st.session_state.sidebar_mode = "nav"
                     st.switch_page("pages/3_Workflows.py")
 
@@ -193,11 +184,10 @@ def setup(title, hub="Enterprise Analytics Hub"):
                     f'<span style="width:38px;height:38px;border-radius:10px;background:{color};color:#fff;'
                     f'display:grid;place-items:center;font-size:1.1rem;flex:none">{icon}</span>'
                     f'<div><b style="font-size:.95rem;color:#0f172a">{label}</b><br>'
-                    f'<small style="color:#64748b">Results explorer</small></div></div>'
+                    f'<small style="color:#64748b">Espace de travail actif</small></div></div>'
                 )
-                html('<div class="bf-nav-label">RESULTS</div>')
+                html('<div class="bf-nav-label">PAGES DE L\'AGENT</div>')
                 for page_label, page_path in pages:
-                    # Strip emoji from label for st.page_link, use icon param instead
                     parts = page_label.split(" ", 1)
                     if len(parts) == 2 and len(parts[0]) <= 2:
                         st.page_link(page_path, label=parts[1], icon=parts[0])
@@ -215,114 +205,115 @@ def setup(title, hub="Enterprise Analytics Hub"):
             st.session_state.pop("authenticated_user", None)
             st.session_state.pop("session_token", None)
             st.session_state.sidebar_mode = "nav"
-            # Clear cookie
             st.markdown(
                 '<script>document.cookie="bf_session=;path=/;max-age=0"</script>',
                 unsafe_allow_html=True,
             )
             st.switch_page("app.py")
 
-    # ── Agent status bar (top) ────────────────────────────────────────────────
-    pipeline_state = st.session_state.get("pipeline_state", "idle")
-    pipeline_step  = st.session_state.get("pipeline_step", 0)
+    # ── PIPELINE STEPPER INTERACTIF (BARRE DU HAUT) ───────────────────────────
+    wf_st      = st.session_state.get("wf_graph_state") or {}
+    wf_reports = wf_st.get("reports") or {}
+    pipe_res   = st.session_state.get("pipeline_results") or {}
 
-    AGENT_META = [
-        ("Agent 1", "Data Engineering", "⚙", "#4f46e5", "agent1"),
-        ("Agent 2", "BI Analyst",        "📊", "#0ea5e9", "agent2"),
-        ("Agent 3", "XAI Auditor",       "🧠", "#a855f7", "agent3"),
+    a1_done = bool(wf_reports.get("data_engineer") or pipe_res.get("agent1") or st.session_state.get("current_dataset_path"))
+    a2_done = bool(wf_reports.get("bi_analyst") or pipe_res.get("agent2") or st.session_state.get("current_bi_report"))
+    a3_done = bool(wf_reports.get("xai_auditor") or pipe_res.get("agent3"))
+
+    AGENT_STEPS = [
+        ("Agent 1", "Data Engineering", "⚙", "#4f46e5", "agent1", a1_done, "pages/A1_Profiling.py"),
+        ("Agent 2", "BI Analyst",        "📊", "#0ea5e9", "agent2", a2_done, "pages/5_BI_Analysis.py"),
+        ("Agent 3", "XAI Auditor",       "🧠", "#a855f7", "agent3", a3_done, "pages/6_Audit_XAI.py"),
     ]
 
-    # Inject agent button CSS once
     st.markdown("""
     <style>
-    @keyframes bf-agent-shimmer{
-      0%{background-position:-200% 0}100%{background-position:200% 0}}
-    @keyframes bf-agent-pulse{
-      0%,100%{opacity:1}50%{opacity:.6}}
-    /* Agent bar wrapper — targets only the agent buttons row via data attribute */
-    .bf-agent-bar button{
-      height:44px!important;border-radius:12px!important;font-weight:600!important;
-      font-size:.82rem!important;transition:all .2s ease!important;
-      border:1px solid #e2e8f0!important;background:#fff!important;color:#475569!important;
-      box-shadow:0 1px 3px rgba(15,23,42,.06)!important}
-    .bf-agent-bar button p{
-      color:#475569!important;font-size:.82rem!important;font-weight:600!important}
-    .bf-agent-bar button:hover{
-      border-color:#a5b4fc!important;color:#4338ca!important;
-      transform:translateY(-1px)!important;
-      box-shadow:0 4px 12px rgba(79,70,229,.15)!important}
-    .bf-agent-bar button:hover p{color:#4338ca!important}
+    div[data-testid="stVerticalBlock"]:has(#bf-stepper-anchor) div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] button {
+      height: 48px !important;
+      border-radius: 12px !important;
+      font-weight: 600 !important;
+      font-size: 0.85rem !important;
+      transition: all 0.2s ease !important;
+      border: 1px solid #e2e8f0 !important;
+      background: #ffffff !important;
+      color: #475569 !important;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+    }
+    div[data-testid="stVerticalBlock"]:has(#bf-stepper-anchor) div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] button p {
+      font-size: 0.85rem !important;
+      font-weight: 600 !important;
+    }
+    div[data-testid="stVerticalBlock"]:has(#bf-stepper-anchor) div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] button:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.16) !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-    # Wrap agent buttons in a labelled div so CSS targets only them
-    st.markdown('<div class="bf-agent-bar">', unsafe_allow_html=True)
+    with st.container():
+        st.markdown('<div id="bf-stepper-anchor"></div>', unsafe_allow_html=True)
+        p_col1, p_arr1, p_col2, p_arr2, p_col3 = st.columns([10, 1, 10, 1, 10], gap="small")
+        step_cols = [p_col1, p_col2, p_col3]
+        arrow_cols = [p_arr1, p_arr2]
 
-    agent_cols = st.columns(3, gap="small")
-    for col_idx, (column, (short, role, icon, color, a_key)) in enumerate(
-        zip(agent_cols, AGENT_META)
-    ):
-        agent_idx = col_idx + 1
+        for arr_col in arrow_cols:
+            with arr_col:
+                st.markdown(
+                    '<div style="display:flex;align-items:center;justify-content:center;height:48px;'
+                    'font-size:1.3rem;color:#94a3b8;font-weight:800">➔</div>',
+                    unsafe_allow_html=True
+                )
 
-        # State
-        if pipeline_state == "idle" or pipeline_step == 0:
-            a_state = "idle"
-        elif pipeline_state == "running" and pipeline_step == agent_idx:
-            a_state = "running"
-        elif pipeline_step > agent_idx or (pipeline_state == "done" and agent_idx <= 3):
-            a_state = "done"
-        else:
-            a_state = "idle"
+        for idx, (short, role, icon, color, a_key, is_done, target_page) in enumerate(AGENT_STEPS):
+            target_col = step_cols[idx]
+            is_active  = (sidebar_mode == a_key)
 
-        if a_state == "running":
-            label = f"⟳  {short} · {role}"
-        elif a_state == "done":
-            label = f"✓  {short} · {role}"
-        else:
-            label = f"{icon}  {short} · {role}"
-
-        with column:
-            clicked = st.button(
-                label,
-                key=f"agent_top_btn_{a_key}",
-                use_container_width=True,
-                disabled=(a_state == "running"),
-            )
-            if clicked and a_state == "done":
-                st.session_state.sidebar_mode = a_key
-                _first_page = AGENTS[col_idx][4][0][1]
-                st.switch_page(_first_page)
-
-            # Per-agent color accent on left border + done/running state
-            if a_state == "done":
-                st.markdown(f"""
-                <style>
-                .bf-agent-bar > div:nth-child({agent_idx}) button{{
-                  border-color:#86efac!important;
-                  background:linear-gradient(135deg,#f0fdf4,#dcfce7)!important;
-                  color:#166534!important;
-                  border-left:4px solid #22c55e!important}}
-                .bf-agent-bar > div:nth-child({agent_idx}) button p{{color:#166534!important}}
-                </style>""", unsafe_allow_html=True)
-            elif a_state == "running":
-                st.markdown(f"""
-                <style>
-                .bf-agent-bar > div:nth-child({agent_idx}) button{{
-                  border-color:#a5b4fc!important;
-                  background:linear-gradient(135deg,#eef2ff,#e0e7ff)!important;
-                  color:#4338ca!important;
-                  border-left:4px solid {color}!important;
-                  animation:bf-agent-pulse 1.4s ease-in-out infinite!important}}
-                .bf-agent-bar > div:nth-child({agent_idx}) button p{{color:#4338ca!important}}
-                </style>""", unsafe_allow_html=True)
+            if is_active:
+                btn_label = f"📍 {icon} {short} · {role} (Actif)"
+            elif is_done:
+                btn_label = f"✓ {icon} {short} · {role} (Prêt)"
             else:
-                st.markdown(f"""
-                <style>
-                .bf-agent-bar > div:nth-child({agent_idx}) button{{
-                  border-left:4px solid {color}!important}}
-                </style>""", unsafe_allow_html=True)
+                btn_label = f"{icon} {short} · {role}"
 
-    st.markdown('</div>', unsafe_allow_html=True)  # close .bf-agent-bar
+            with target_col:
+                clicked = st.button(
+                    btn_label,
+                    key=f"agent_pipeline_top_btn_{a_key}",
+                    use_container_width=True,
+                )
+                if clicked:
+                    st.session_state.sidebar_mode = a_key
+                    st.switch_page(target_page)
+
+                css_nth = (idx * 2) + 1  # 1, 3, 5
+                if is_active:
+                    st.markdown(f"""
+                    <style>
+                    div[data-testid="stVerticalBlock"]:has(#bf-stepper-anchor) div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:nth-child({css_nth}) button {{
+                      border: 2px solid {color} !important;
+                      background: linear-gradient(135deg, {color}14, #ffffff) !important;
+                      box-shadow: 0 0 14px {color}33 !important;
+                      color: {color} !important;
+                    }}
+                    div[data-testid="stVerticalBlock"]:has(#bf-stepper-anchor) div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:nth-child({css_nth}) button p {{
+                      color: {color} !important;
+                      font-weight: 700 !important;
+                    }}
+                    </style>""", unsafe_allow_html=True)
+                elif is_done:
+                    st.markdown(f"""
+                    <style>
+                    div[data-testid="stVerticalBlock"]:has(#bf-stepper-anchor) div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:nth-child({css_nth}) button {{
+                      border-color: #86efac !important;
+                      background: linear-gradient(135deg, #f0fdf4, #ffffff) !important;
+                      border-left: 4px solid #22c55e !important;
+                      color: #166534 !important;
+                    }}
+                    div[data-testid="stVerticalBlock"]:has(#bf-stepper-anchor) div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:nth-child({css_nth}) button p {{
+                      color: #166534 !important;
+                      font-weight: 600 !important;
+                    }}
+                    </style>""", unsafe_allow_html=True)
 
     # ── Sidebar visibility control ────────────────────────────────────────────
     # In agent mode: force sidebar visible with CSS only (JS blocked by iframe sandbox)

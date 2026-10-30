@@ -1,7 +1,7 @@
 {
   "schema_version": "2.1",
   "dataset_ref": {
-    "file_path": "C:\\Users\\moham\\Desktop\\Med\\biflow\\data\\raw\\network_dataset.csv",
+    "file_path": "C:\\Users\\moham\\Desktop\\Med\\biflow integ\\data\\raw\\network_dataset.csv",
     "file_name": "network_dataset.csv",
     "rows": 1001,
     "columns": 15,
@@ -50,7 +50,7 @@
         {
           "issue_id": "type_mismatch",
           "source": "python",
-          "severity": "LOW",
+          "severity": "HIGH",
           "description": "Pseudo-ID column (near-unique string \u2014 likely an identifier or key)",
           "evidence": {
             "detected": "1001 unique values out of 1001 rows (100.0%)",
@@ -60,13 +60,13 @@
           "llm_agreement": "agree"
         }
       ],
-      "agent_reasoning": "Timestamp serves as a unique primary key with no missing values; should be parsed as datetime or dropped from modeling features.",
-      "business_interpretation": "",
-      "severity": "LOW",
+      "agent_reasoning": "String column serving as a pseudo\u2011ID; unique for every row (1001 unique values) and acts as the temporal primary key for time\u2011series joins.",
+      "business_interpretation": "Critical join key for any temporal analysis, forecasting, or merging with external logs; any duplication or loss breaks downstream pipelines.",
+      "severity": "HIGH",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "drop",
+      "imputation_strategy": "none",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
@@ -112,13 +112,13 @@
           "evidence": {}
         }
       ],
-      "agent_reasoning": "Zero-variance constant feature (single unique value across all rows), offering no predictive power.",
-      "business_interpretation": "",
+      "agent_reasoning": "Integer categorical field with a single constant value (2) across the dataset; no variance to model.",
+      "business_interpretation": "Provides no discriminative power for analytics; can be retained for schema completeness but ignored in modeling.",
       "severity": "LOW",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "drop",
+      "imputation_strategy": "none",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
@@ -171,9 +171,9 @@
           }
         }
       ],
-      "agent_reasoning": "Continuous metric with no missing values; moderate right skew but within reasonable operating ranges.",
-      "business_interpretation": "",
-      "severity": "LOW",
+      "agent_reasoning": "Float continuous metric representing data rate; modest skew (0.48) and 303 distinct values, no type issues.",
+      "business_interpretation": "Key performance indicator for network capacity; used in SLA calculations and trend analysis.",
+      "severity": "MEDIUM",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
@@ -230,9 +230,9 @@
           }
         }
       ],
-      "agent_reasoning": "Clean continuous metric with high right-skew and tail values requiring outlier treatment.",
-      "business_interpretation": "",
-      "severity": "LOW",
+      "agent_reasoning": "Float metric with high positive skew (1.43) and a max of 134.37, indicating occasional spikes.",
+      "business_interpretation": "Directly impacts QoS alerts; outlier spikes may trigger congestion mitigation workflows.",
+      "severity": "MEDIUM",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
@@ -289,9 +289,9 @@
           }
         }
       ],
-      "agent_reasoning": "Zero-inflated continuous metric with 0% missing values; extreme loss values represent network degradation spikes.",
-      "business_interpretation": "",
-      "severity": "LOW",
+      "agent_reasoning": "Float metric heavily right\u2011skewed (2.07) with many zeros and a max of 52.5, typical of burst loss events.",
+      "business_interpretation": "Critical for SLA breach detection; high outliers can flag network incidents.",
+      "severity": "MEDIUM",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
@@ -348,8 +348,8 @@
           }
         }
       ],
-      "agent_reasoning": "Extreme positive outliers present with maximum reaching 3051.58ms against a mean of 54.76ms.",
-      "business_interpretation": "",
+      "agent_reasoning": "Float metric with extreme skew (7.74) and a max of 3051.58 ms, indicating severe latency outliers.",
+      "business_interpretation": "Core QoE KPI; extreme values may distort averages and must be handled before reporting.",
       "severity": "MEDIUM",
       "uncertainty": "LOW",
       "python_agreement": "agree",
@@ -407,9 +407,9 @@
           }
         }
       ],
-      "agent_reasoning": "Valid continuous metric with no missing values; right-skewed with minor outliers.",
-      "business_interpretation": "",
-      "severity": "LOW",
+      "agent_reasoning": "Float metric with strong right skew (5.82) and max 10.8 ms; outliers reflect bursty timing variations.",
+      "business_interpretation": "Affects video/voice quality assessments; outlier handling is required for stable KPI computation.",
+      "severity": "MEDIUM",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
@@ -443,9 +443,9 @@
       },
       "is_constant": false,
       "issues": [],
-      "agent_reasoning": "Clean low-cardinality categorical feature with no missing data.",
-      "business_interpretation": "",
-      "severity": "NONE",
+      "agent_reasoning": "Object categorical field with two distinct values (e.g., \"up xrv6\"); no missing data.",
+      "business_interpretation": "Used for grouping by router status; stable dimension for segmentation.",
+      "severity": "LOW",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
@@ -479,9 +479,9 @@
       },
       "is_constant": false,
       "issues": [],
-      "agent_reasoning": "Clean binary categorical column requiring standard encoding.",
-      "business_interpretation": "",
-      "severity": "NONE",
+      "agent_reasoning": "Object categorical with two values (\"Best effort\"); clean and complete.",
+      "business_interpretation": "Defines routing policy; useful for stratified analysis but low risk.",
+      "severity": "LOW",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
@@ -522,13 +522,13 @@
           "evidence": {}
         }
       ],
-      "agent_reasoning": "Zero-variance column with only one unique value; should be dropped.",
-      "business_interpretation": "",
+      "agent_reasoning": "Constant categorical value \"S1\"; no variability.",
+      "business_interpretation": "Placeholder dimension; does not affect calculations.",
       "severity": "LOW",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "drop",
+      "imputation_strategy": "none",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
@@ -558,9 +558,9 @@
       },
       "is_constant": false,
       "issues": [],
-      "agent_reasoning": "Clean binary categorical feature ready for modeling.",
-      "business_interpretation": "",
-      "severity": "NONE",
+      "agent_reasoning": "Object categorical with two values (\"S2\"); clean.",
+      "business_interpretation": "Used for target segmentation; low impact on data quality.",
+      "severity": "LOW",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
@@ -605,17 +605,22 @@
           }
         }
       ],
-      "agent_reasoning": "Missing nearly 30% of records; requires categorical imputation or indicator flag.",
-      "business_interpretation": "",
-      "severity": "MEDIUM",
+      "agent_reasoning": "Object categorical with 29.97% missing entries; missingness likely represents unknown or unassigned video streams.",
+      "business_interpretation": "Essential for linking network metrics to video services; high missing rate can bias service\u2011level analyses.",
+      "severity": "HIGH",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
       "imputation_strategy": "mode",
       "etl_cast_to": "none",
-      "sandbox_triggered": false,
-      "sandbox_result": null,
-      "custom_check_code": null
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": "False",
+        "metric": "200 / 500 violations",
+        "details": "200 non-conforming rows detected",
+        "error": null
+      },
+      "custom_check_code": "def custom_check(series: pd.Series) -> dict:\n    total=len(series)\n    sentinels={'n/a','na','null','none'}\n    mask_null=series.isna()\n    str_vals=series.astype(str)\n    mask_empty=str_vals.str.strip()==''\n    mask_sentinel=str_vals.str.strip().str.lower().isin(sentinels)\n    mask_dirty=str_vals.str.contains(r'\\$',na=False)\n    violations=(mask_null|mask_empty|mask_sentinel|mask_dirty).sum()\n    passed=violations==0\n    metric=f\"{violations} / {total} violations\" if not passed else \"0 violations\"\n    details=\"All values conform to quality constraint\" if passed else f\"{violations} non-conforming rows detected\"\n    return {\"passed\":passed,\"metric\":metric,\"details\":details}"
     },
     "Percentage video occupancy": {
       "dtype": "int64",
@@ -649,17 +654,22 @@
       "value_counts": {},
       "is_constant": false,
       "issues": [],
-      "agent_reasoning": "Clean discrete numeric/categorical feature with zero missing values.",
-      "business_interpretation": "",
-      "severity": "NONE",
+      "agent_reasoning": "Integer categorical metric with moderate skew (1.15) and max 120%; values exceed 100% indicating possible data entry errors.",
+      "business_interpretation": "Used for capacity planning; values >100% must be flagged before reporting.",
+      "severity": "MEDIUM",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
       "imputation_strategy": "median",
       "etl_cast_to": "none",
-      "sandbox_triggered": false,
-      "sandbox_result": null,
-      "custom_check_code": null
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": null,
+        "metric": null,
+        "details": null,
+        "error": "SyntaxError: unmatched '}' (<string>, line 8)"
+      },
+      "custom_check_code": "def custom_check(series: pd.Series) -> dict:\n    total = len(series)\n    invalid_idx = series[~series.apply(lambda x: isinstance(x, (int, np.integer)) and x <= 100)].index.tolist()\n    cnt = len(invalid_idx)\n    if cnt == 0:\n        return {\"passed\": true, \"metric\": \"0 violations\", \"details\": \"All values conform to quality constraint\"}\n    else:\n        return {\"passed\": false, \"metric\": f\"{cnt} / {total} violations\", \"details\": f\"Rows with invalid occupancy: {invalid_idx}\"}}"
     },
     "Bitrate video": {
       "dtype": "int64",
@@ -693,9 +703,9 @@
       "value_counts": {},
       "is_constant": false,
       "issues": [],
-      "agent_reasoning": "Discrete numeric metric with 0% missingness and consistent zero-baseline values.",
-      "business_interpretation": "",
-      "severity": "NONE",
+      "agent_reasoning": "Integer metric with skew (1.15) and wide range (0\u20112004); potential outliers at high bitrate.",
+      "business_interpretation": "Key for video quality assessment; extreme bitrates may indicate mis\u2011recorded sessions.",
+      "severity": "MEDIUM",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
@@ -752,9 +762,9 @@
           }
         }
       ],
-      "agent_reasoning": "Clean discrete count variable with complete data coverage.",
-      "business_interpretation": "",
-      "severity": "NONE",
+      "agent_reasoning": "Integer count with skew (1.48) and max 6; occasional high counts could be anomalies.",
+      "business_interpretation": "Feeds usage analytics; outlier counts may distort average session load.",
+      "severity": "MEDIUM",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
@@ -770,15 +780,15 @@
   "uncertainty_flags": [],
   "recommended_cleaning_order": [
     "Video target",
-    "latency",
     "timestamp",
-    "bandwidth",
     "throughput",
     "congestion",
     "packet_loss",
+    "latency",
     "jitter",
-    "Network measure",
-    "Number videos"
+    "Number videos",
+    "bandwidth",
+    "Network measure"
   ],
   "etl_hints": {
     "type_casting_targets": {},
@@ -790,18 +800,17 @@
   "imputation_plan": {},
   "outlier_columns": [
     "latency",
-    "congestion",
-    "packet_loss",
     "jitter",
-    "throughput"
+    "packet_loss",
+    "congestion"
   ],
-  "agent_summary": "The dataset is in strong overall health with complete values across core telemetry, though 'Video target' requires imputation for 30% missing values. Zero-variance columns ('bandwidth' and 'Network measure') should be dropped, and heavy tail outliers in 'latency' and 'congestion' warrant capping or robust scaling.",
+  "agent_summary": "The dataset is largely clean with only the primary key and the Video target column flagged as high\u2011severity issues; most numeric fields exhibit right\u2011skewed distributions requiring median imputation and outlier handling. Primary business risk lies in missing Video target values and extreme latency/jitter outliers that could distort QoS reporting.",
   "recommendation_summary": "",
   "metadata": {
     "agent_version": "2.0.0",
-    "profiling_timestamp": "2026-10-23T07:54:45.106145+00:00",
+    "profiling_timestamp": "2026-10-30T22:27:40.235463+00:00",
     "llm_model_used": "gemini-flash-latest",
-    "sandbox_executions": 0,
+    "sandbox_executions": 2,
     "llm_driven": true
   }
 }

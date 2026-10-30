@@ -22,6 +22,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from dotenv import load_dotenv
+load_dotenv(PROJECT_ROOT / ".env")
+
 # ── BIFlow imports ────────────────────────────────────────────────────────────
 from agents.xai_auditor_agent import XAIAuditorAgent
 from components import setup, page_header, btn, html, kpi, grid, badge
@@ -249,6 +252,18 @@ with st.container(border=True):
         elif existing_choice != NONE_OPT:
             df = pd.read_csv(PROJECT_ROOT / existing_choice)
             dataset_name = Path(existing_choice).name
+        else:
+            # Fallback automatique sur le dataset actif du pipeline / Agent 1
+            wf_st = st.session_state.get("wf_graph_state") or {}
+            wf_path = (
+                st.session_state.get("current_dataset_path")
+                or wf_st.get("cleaned_data_path")
+                or wf_st.get("data_path")
+                or st.session_state.get("wf_file")
+            )
+            if wf_path and Path(wf_path).exists():
+                df = pd.read_csv(wf_path)
+                dataset_name = Path(wf_path).name
     except Exception as e:
         st.error(f"Erreur de lecture : {e}")
         df = None
@@ -409,8 +424,17 @@ if launch_audit or st.session_state.get("xai_force_rerun", False):
     st.session_state["xai_surrogate_accuracy"] = surrogate_accuracy
 
 if st.session_state.get("xai_dataset_sig") != dataset_sig:
-    st.info("👆 Configurez les paramètres ci-dessus puis cliquez sur **🔬 Lancer l'Audit Forensique**.")
-    st.stop()
+    wf_st = st.session_state.get("wf_graph_state") or {}
+    a3_rep = (wf_st.get("reports") or {}).get("xai_auditor") or st.session_state.get("pipeline_results", {}).get("agent3")
+    if a3_rep and a3_rep.get("audit_report"):
+        st.session_state["xai_audit_report"] = a3_rep["audit_report"]
+        st.session_state["xai_dataset_sig"] = dataset_sig
+        st.session_state["xai_task_type"] = a3_rep["audit_report"].get("task_type", "classification")
+        st.session_state["xai_feature_names"] = a3_rep["audit_report"].get("feature_names", [f.get("feature") for f in a3_rep["audit_report"].get("shap", {}).get("summary", {}).get("top_features", []) if isinstance(f, dict)])
+        st.session_state["xai_surrogate_accuracy"] = a3_rep["audit_report"].get("surrogate_accuracy")
+    else:
+        st.info("👆 Configurez les paramètres ci-dessus puis cliquez sur **🔬 Lancer l'Audit Forensique**.")
+        st.stop()
 
 # ── Lecture des résultats ─────────────────────────────────────────────────────
 audit_report       = st.session_state["xai_audit_report"]
@@ -448,10 +472,11 @@ engine_label = (
     else f"Cloud API · <b>{_provider_safe}</b>"   if engine_used == "api"
     else f"Auto → <b>{_provider_safe}</b>"
 )
+_llm_status_badge = '<b style="color:#34d399">✅ actif</b>' if llm_ok else '<b style="color:#f87171">❌ fallback</b>'
 st.markdown(
     f'<div class="xai-engine-bar">{engine_icon} Moteur actif : {engine_label}'
     f' &nbsp;|&nbsp; Durée : <b>{telemetry.get("duration_s", 0)} s</b>'
-    f' &nbsp;|&nbsp; LLM : {"<b style=\'color:#34d399\'>✅ actif</b>" if llm_ok else "<b style=\'color:#f87171\'>❌ fallback</b>"}'
+    f' &nbsp;|&nbsp; LLM : {_llm_status_badge}'
     f'</div>',
     unsafe_allow_html=True,
 )

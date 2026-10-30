@@ -56,6 +56,7 @@ data/cleaned/
 data/processed/
 data/reports/
 !data/reports/.gitkeep
+dashboard/.deprecated/
 
 # ── Mocks & données synthétiques temporaires ─────────────────────────────────
 # Les mocks sont écrits dans /tmp — rien à ignorer ici

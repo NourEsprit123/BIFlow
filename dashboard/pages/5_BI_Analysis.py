@@ -96,7 +96,9 @@ with st.container(border=True):
         )
 
     if df is not None:
-        st.caption(f"✅ **{dataset_name}** chargé · {df.shape[0]:,} lignes · {df.shape[1]} colonnes")
+        is_cleaned = "_cleaned" in dataset_name or "cleaned" in str(wf_path or "")
+        clean_tag = " · ✨ [Nettoyé par l'Agent 1]" if is_cleaned else ""
+        st.caption(f"✅ **{dataset_name}**{clean_tag} chargé · {df.shape[0]:,} lignes · {df.shape[1]} colonnes")
         with st.expander("👀 Aperçu des données"):
             st.dataframe(df.head(10), width="stretch")
 

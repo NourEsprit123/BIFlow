@@ -1,7 +1,7 @@
 {
   "schema_version": "2.1",
   "dataset_ref": {
-    "file_path": "C:\\Users\\moham\\Desktop\\Med\\biflow\\data\\raw\\AmesHousing.csv",
+    "file_path": "C:\\Users\\moham\\Desktop\\Med\\biflow integ\\data\\raw\\AmesHousing.csv",
     "file_name": "AmesHousing.csv",
     "rows": 2930,
     "columns": 82,
@@ -4259,7 +4259,7 @@
   "recommendation_summary": "Found 1 type issues, 15749 missing values",
   "metadata": {
     "agent_version": "2.0.0",
-    "profiling_timestamp": "2026-10-22T23:06:00.096725+00:00",
+    "profiling_timestamp": "2026-10-30T21:04:58.325431+00:00",
     "llm_model_used": "gemini-flash-latest",
     "sandbox_executions": 0,
     "llm_driven": true

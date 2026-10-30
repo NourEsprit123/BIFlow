@@ -19,6 +19,8 @@ if "sidebar_mode" not in st.session_state or st.session_state.sidebar_mode == "n
 setup("Profiling", hub="Agent 1 · Data Engineering")
 
 results = st.session_state.get("pipeline_results", {}).get("agent1", {})
+if not results:
+    results = (st.session_state.get("wf_graph_state") or {}).get("reports", {}).get("data_engineer", {})
 profile = results.get("profile", {})          # flat profiler output
 report  = results.get("profiling_report", {}) # structured agent report
 
@@ -29,15 +31,52 @@ page_header(
     "Agent 1 · Data Engineering > <b>Profiling</b>"
 )
 
+# Si profile est manquant mais que profiling_report est présent, reconstruire le profil
+if not profile and report:
+    col_profiles = report.get("column_profiles", {})
+    if col_profiles:
+        col_roles = {col: cp.get("inferred_role", "unknown") for col, cp in col_profiles.items()}
+        col_types = {col: cp.get("detected_dtype", "") for col, cp in col_profiles.items()}
+        col_missing = {col: cp.get("missing_count", 0) for col, cp in col_profiles.items()}
+        col_unique = {col: cp.get("unique_count", 0) for col, cp in col_profiles.items()}
+        profile = {
+            "column_roles": col_roles,
+            "column_types": col_types,
+            "missing_values": col_missing,
+            "unique_values": col_unique,
+            "columns": len(col_roles),
+            "column_names": list(col_roles.keys()),
+        }
+
 if not profile:
-    html(
-        '<div class="bf-card" style="text-align:center;padding:3rem;color:#94a3b8">'
-        '<div style="font-size:2.5rem;margin-bottom:1rem">⚙</div>'
-        '<b>No profiling data yet</b><br>'
-        '<small>Run a pipeline from the '
-        '<a href="/Workflows" style="color:#4338ca">Workflows</a> page first.</small>'
-        '</div>'
-    )
+    st.info("💡 Aucun profil de données actif en mémoire pour le moment.")
+    raw_dir = PROJECT_ROOT / "data" / "raw"
+    csv_files = sorted(raw_dir.glob("*.csv")) if raw_dir.exists() else []
+    if csv_files:
+        default_idx = 0
+        cur_p = st.session_state.get("current_dataset_path") or st.session_state.get("wf_file")
+        if cur_p:
+            cur_name = Path(cur_p).name
+            for i, f in enumerate(csv_files):
+                if f.name == cur_name:
+                    default_idx = i
+                    break
+        c_sel, c_btn = st.columns([3, 1])
+        with c_sel:
+            chosen_csv = st.selectbox("Sélectionner un jeu de données à profiler :", [f.name for f in csv_files], index=default_idx, key="prof_ds_sel")
+        with c_btn:
+            st.write("")
+            run_direct_prof = st.button("🚀 Profiler avec l'Agent 1", type="primary", use_container_width=True, key="btn_run_direct_prof")
+        if run_direct_prof and chosen_csv:
+            with st.spinner("🔍 Analyse et profiling en cours par l'Agent 1..."):
+                from agents.data_engineering_agent import DataEngineeringAgent
+                agent = DataEngineeringAgent()
+                audit_res = agent.run_audit(str(raw_dir / chosen_csv))
+                if "pipeline_results" not in st.session_state:
+                    st.session_state["pipeline_results"] = {}
+                st.session_state["pipeline_results"]["agent1"] = audit_res
+                st.session_state["current_dataset_path"] = str(raw_dir / chosen_csv)
+            st.rerun()
     st.stop()
 
 # ── Summary KPIs from flat profile dict ───────────────────────────────────────
@@ -111,7 +150,7 @@ for col in profile.get("column_names", list(col_roles.keys())):
     ])
 
 html(card(
-    table(["COLUMN", "ROLE", "TYPE", "MISSING", "UNIQUE", "LLM REASONING"], rows),
+    table(["COLUMN", "ROLE", "TYPE", "MISSING", "UNIQUE", "LLM REASONING"], rows, max_height=420),
     "Column Profiles",
     f"{total_cols} columns analysed by Agent 1",
     badge("LLM-reasoned", "purple") if col_profiles_report else badge("Rule-based", "gray"),
@@ -131,7 +170,7 @@ if num_stats:
             row.append(f"<span class='mono' style='font-size:.82rem'>{round(val,2) if isinstance(val,(int,float)) else val}</span>")
         stat_rows.append(row)
     html(card(
-        table(["COLUMN"] + [s.upper() for s in stat_names], stat_rows),
+        table(["COLUMN"] + [s.upper() for s in stat_names], stat_rows, max_height=380),
         "Numerical Statistics",
         "Descriptive stats for all numeric columns",
         badge(str(len(cols_list)) + " numeric cols", "blue"),
@@ -146,7 +185,7 @@ if flags:
         badge("Needs review", "amber"),
     ] for f in flags]
     html(card(
-        table(["COLUMN", "REASON", "STATUS"], flag_rows),
+        table(["COLUMN", "REASON", "STATUS"], flag_rows, max_height=300),
         "⚠ Uncertainty Flags",
         "Columns Agent 1 was not confident about — review recommended.",
         badge(str(len(flags)) + " flags", "amber"),

@@ -326,6 +326,17 @@ class XAIAuditorAgent:
 
     def _try_ollama(self, user_message: str) -> Optional[str]:
         """Appelle l'instance Ollama locale en streaming NDJSON."""
+        # Fast health check (1.5s) pour éviter un freeze de 120s quand Ollama est hors ligne
+        ping_url = self.ollama_url.rsplit("/", 1)[0] + "/tags"
+        try:
+            r_ping = requests.get(ping_url, timeout=1.5)
+            if r_ping.status_code != 200:
+                self._log_attempt("Ollama", self.ollama_model, "skipped", "Ollama server not ready")
+                return None
+        except Exception:
+            self._log_attempt("Ollama", self.ollama_model, "skipped", "Ollama server offline")
+            return None
+
         payload = {
             "model":  self.ollama_model,
             "system": XAI_SYSTEM_PROMPT,
