@@ -1,0 +1,82 @@
+# =============================================================================
+# BIFlow — Docker Compose
+# =============================================================================
+# Services :
+#   xai_agent_sandbox  — Agent 3 (XAI Auditor) isolé sur le port 8003
+#
+# Lancement :
+#   docker-compose up -d xai_agent_sandbox
+#
+# Variables d'environnement :
+#   Copier .env.example → .env et renseigner les clés.
+#   Les clés NE SONT PAS hardcodées ici — elles sont injectées depuis .env.
+# =============================================================================
+
+version: "3.9"
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # Agent 3 — XAI Auditor Sandbox
+  # Isolation complète : réseau none par défaut en production,
+  # bridge en développement pour permettre l'accès aux datasets locaux.
+  # ---------------------------------------------------------------------------
+  xai_agent_sandbox:
+    build:
+      context: ..                        # racine du projet = contexte de build
+      dockerfile: docker/Dockerfile.xai
+    image: biflow/xai-auditor:latest
+    container_name: biflow_xai_sandbox
+    restart: unless-stopped
+
+    ports:
+      - "8003:8003"
+
+    environment:
+      # Moteur LLM : "local" | "cloud" | "auto"
+      # En mode "cloud", aucun appel vers Ollama ne sera effectué.
+      ENGINE: "${XAI_ENGINE:-auto}"
+
+      # Clés API Cloud — injectées depuis .env, jamais hardcodées ici
+      GROQ_API_KEY: "${GROQ_API_KEY:-}"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      GOOGLE_API_KEY: "${GOOGLE_API_KEY:-}"
+
+      # Ollama host — utilisé uniquement si ENGINE=local ou ENGINE=auto
+      # En mode cloud cette variable est ignorée par l'agent
+      OLLAMA_HOST: "${OLLAMA_HOST:-http://host.docker.internal:11434}"
+
+      PYTHONUNBUFFERED: "1"
+
+    volumes:
+      # Volume partagé lecture/écriture pour les datasets et rapports
+      # Le conteneur lit les CSV depuis /workspace/data/raw/
+      # et écrit les rapports JSON dans /workspace/data/reports/
+      - ../data:/workspace/data:rw
+
+      # Montage en lecture seule du code agents pour les mises à jour à chaud
+      # (retirer en production — utiliser uniquement l'image buildée)
+      - ../agents:/workspace/agents:ro
+
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8003/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+    # Limites de ressources — ajuster selon le hardware disponible
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "2.0"
+        reservations:
+          memory: 512M
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
