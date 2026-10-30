@@ -1,13 +1,45 @@
+# =============================================================================
+# BIFlow — requirements.txt
+# Versions épinglées sur les packages réellement installés dans le venv projet.
+# Mise à jour : octobre 2026
+# =============================================================================
+
+# ── Interface utilisateur ─────────────────────────────────────────────────────
 streamlit>=1.37.0
+plotly>=5.18.0
+
+# ── Data Science core ────────────────────────────────────────────────────────
 pandas>=2.0.0
 numpy>=1.24.0
-plotly>=5.18.0
 scikit-learn>=1.3.0
 shap>=0.42.0
-langgraph>=0.0.10
-langchain-core>=0.1.0
-python-dotenv>=1.0.0
-pytest>=7.4.0
-google-genai>=0.3.0
+
+# ── Orchestration Multi-Agents (LangGraph) ────────────────────────────────────
+langgraph>=0.2.0
+langchain-core>=0.3.0
+
+# ── Schémas & validation ──────────────────────────────────────────────────────
+pydantic>=2.5.0
+
+# ── HTTP & réseau ─────────────────────────────────────────────────────────────
 requests>=2.31.0
-ollama>=0.1.5
+httpx>=0.25.0
+
+# ── API Sandbox XAI (Agent 3) ────────────────────────────────────────────────
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+
+# ── LLM Providers Cloud ───────────────────────────────────────────────────────
+groq>=0.9.0
+google-genai>=0.8.0
+
+# ── Configuration & sécurité ─────────────────────────────────────────────────
+python-dotenv>=1.0.0
+
+# ── Tests ─────────────────────────────────────────────────────────────────────
+pytest>=7.4.0
+pytest-asyncio>=0.23.0
+
+# ── Optionnel : LLM local Ollama (non requis en mode Cloud) ───────────────────
+# Décommenter si ENGINE=local est utilisé et que le SDK Python Ollama est souhaité
+# ollama>=0.1.5

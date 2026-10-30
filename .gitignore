@@ -1,86 +1,79 @@
-# =========================
-# Python
-# =========================
+# =============================================================================
+# BIFlow — .gitignore
+# =============================================================================
 
+# ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyo
+*.pyd
 
-# =========================
-# Environnement virtuel
-# =========================
-
+# ── Environnements virtuels ───────────────────────────────────────────────────
 .venv/
 venv/
 env/
+.env_cache/
 
-# =========================
-# Variables d'environnement / secrets
-# =========================
-
+# ── Secrets & Variables d'environnement (JAMAIS committer) ───────────────────
 .env
 .env.*
 !.env.example
+.streamlit/secrets.toml
+*.secret
+*.key
 
-# =========================
-# Jupyter Notebook
-# =========================
-
+# ── Jupyter ───────────────────────────────────────────────────────────────────
 .ipynb_checkpoints/
+*.ipynb
 
-# =========================
-# IDE
-# =========================
-
+# ── IDEs ──────────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# =========================
-# OS
-# =========================
-
+# ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# =========================
-# Tests / couverture
-# =========================
-
+# ── Tests & Couverture ────────────────────────────────────────────────────────
 .pytest_cache/
 .coverage
 htmlcov/
+coverage.xml
 
-# =========================
-# Fichiers temporaires
-# =========================
-
+# ── Logs & fichiers temporaires ───────────────────────────────────────────────
 *.log
 *.tmp
+*.temp
+logs/
+temp/
 
-# =========================
-# Fichiers générés
-# =========================
-
-results/
-data/biflow_auth.sqlite3*
-
-# Ignore automated data pipeline outputs
+# ── Données générées par le pipeline (ne pas versionner les outputs) ──────────
 data/cleaned/
 data/processed/
+data/reports/
+!data/reports/.gitkeep
 
-# =========================
-# Modèles d'IA & Poids lourds (>100MB)
-# =========================
+# ── Mocks & données synthétiques temporaires ─────────────────────────────────
+# Les mocks sont écrits dans /tmp — rien à ignorer ici
+# Mais on ignore les exports locaux éventuels
+mock_outputs/
+
+# ── Modèles IA & poids lourds (>100 MB — utiliser Git LFS si besoin) ─────────
 *.safetensors
 *.bin
 *.pt
 *.pth
+*.gguf
+*.ggml
 adapter/adapter_model.safetensors
 adapter/tokenizer.json
+models/
 
-data/reports/
-
-# Fichiers de sortie et rapports des agents (Sandboxes)
+# ── Sandboxes Docker (outputs générés à l'exécution) ─────────────────────────
 sandbox/data_input/*
 !sandbox/data_input/.gitkeep
 sandbox/reports_output/*
@@ -88,5 +81,18 @@ sandbox/reports_output/*
 sandbox_xai/reports_output/*
 !sandbox_xai/reports_output/.gitkeep
 
-# Logs de transformation générés
+# ── Rapports d'audit générés ──────────────────────────────────────────────────
 *_transformation_log.json
+*_profiling_report.json
+*_audit_*.json
+
+# ── SQLite (auth local) ───────────────────────────────────────────────────────
+data/biflow_auth.sqlite3*
+*.sqlite3
+*.db
+
+# ── Artefacts de build ────────────────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+.eggs/
