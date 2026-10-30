@@ -1,7 +1,7 @@
 {
   "schema_version": "2.1",
   "dataset_ref": {
-    "file_path": "D:\\5DS8\\BIFlow\\BIFlow\\data\\raw\\telco_churn.csv",
+    "file_path": "D:\\BIFlow\\data\\raw\\telco_churn.csv",
     "file_name": "telco_churn.csv",
     "rows": 7043,
     "columns": 21,
@@ -884,7 +884,7 @@
   "recommendation_summary": "Rule-based analysis found 7 type issues and 11 missing values.",
   "metadata": {
     "agent_version": "2.0.0",
-    "profiling_timestamp": "2026-10-29T22:51:16.826433+00:00",
+    "profiling_timestamp": "2026-10-30T16:34:40.142441+00:00",
     "llm_model_used": "gemini-flash-latest",
     "sandbox_executions": 0,
     "llm_driven": true

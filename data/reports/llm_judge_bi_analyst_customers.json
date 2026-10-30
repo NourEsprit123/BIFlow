@@ -1,18 +1,24 @@
 {
   "dataset": "customers.csv",
-  "evaluation_timestamp": "2026-10-28 21:29:22",
+  "evaluation_timestamp": "2026-10-30 15:11:28",
   "agent_telemetry": {
     "engine": "api",
     "provider": "☁️ Groq",
-    "model": "openai/gpt-oss-20b",
+    "model": "openai/gpt-oss-120b",
     "is_llm": true,
-    "execution_mode": "☁️ Groq · openai/gpt-oss-20b",
-    "duration_s": 7.0,
+    "execution_mode": "☁️ Groq · openai/gpt-oss-120b",
+    "duration_s": 7.6,
     "converted_columns": [],
     "attempts": [
       {
         "provider": "Groq",
         "model": "openai/gpt-oss-20b",
+        "status": "failed",
+        "detail": "Error code: 400 - {'error': {'message': 'Tool choice is none, but model called a tool', 'type': 'invalid_request_error', 'code': 'tool_use_failed', 'failed_generation': '{\"name\": \"python\", \"arguments\": def compute_insight(df):\\n    unique_zip = df[\\'customer_zip_code_prefix\\'].nunique()\\n    return "
+      },
+      {
+        "provider": "Groq",
+        "model": "openai/gpt-oss-120b",
         "status": "success",
         "detail": ""
       }
@@ -37,70 +43,58 @@
         "block": 1,
         "type": "llm",
         "result": {
-          "unique_coverage": 96.64,
-          "duplicate_rate": 3.36,
-          "sp_share": 41.98,
-          "zip_std": 29798.0,
-          "top_states": {
-            "SP": 41746,
-            "RJ": 12852,
-            "MG": 11635
-          },
-          "top_cities": {
-            "sao paulo": 15540,
-            "rio de janeiro": 6882,
-            "belo horizonte": 2773
-          }
+          "total_records": 99441,
+          "unique_customers": 96096,
+          "duplicate_rate_pct": 3.36,
+          "top_state_share_pct": 42.0
         },
         "error": null
       }
     ]
   },
   "deterministic_verification": {
-    "valid_charts_count": 3,
-    "total_charts": 4,
-    "valid_columns_pct": 75.0,
+    "valid_charts_count": 4,
+    "total_charts": 5,
+    "valid_columns_pct": 80.0,
     "invalid_columns": [
-      "count"
+      "duplicate_flag"
     ]
   },
   "judge_evaluation": {
     "judge_model": "Google Gemini 3.5 Flash",
-    "evaluated_engine": "☁️ Groq · openai/gpt-oss-20b",
+    "evaluated_engine": "☁️ Groq · openai/gpt-oss-120b",
     "rubrics": {
       "factual_grounding_and_kpis": {
-        "score_1_to_5": 3,
-        "justification": "The core KPIs (Unique Customer Coverage 96.64%, Duplicate Rate 3.36%, SP Share ~41.9%, Zip std ~29,798) match ground truth. However, the report introduces factual hallucinations in the body text: it states MG is ~20% and RJ is ~15% (ground truth shows RJ is 12.9% and MG is 11.7%), and invents high-volume cities 'Osasco' and 'Itapecerica' contributing 5–6% each, which contradicts ground truth top cities (Rio de Janeiro and Belo Horizonte)."
+        "score_1_to_5": 5,
+        "justification": "The agent demonstrated exceptional fidelity to the ground truth statistics. Key metrics such as total rows (99,441), unique customer count (96,096), duplicate rate (3.36%), top state concentration (SP at 42.0%), and zip code distribution statistics (mean, std, min, max) match the empirical dataset metrics precisely."
       },
       "chart_relevance_and_validity": {
-        "score_1_to_5": 3,
-        "justification": "75% of charts use valid columns. The agent hallucinated a column name ('count') for the Y-axis of the city bar chart instead of specifying an aggregation on existing schema columns. Additionally, using a pie chart for 'customer_state' (27 unique states) is poor visualization practice."
+        "score_1_to_5": 4,
+        "justification": "Most chart recommendations appropriately match data types to visualization styles (e.g., histogram for zip code prefix, box plot for state vs zip code). However, Chart 4 references 'duplicate_flag', which is a derived attribute not present in the native dataset schema, resulting in an 80% column validity rate."
       },
       "analytical_depth_and_trends": {
-        "score_1_to_5": 3,
-        "justification": "The analysis correctly identifies customer deduplication needs and key regional concentrations. However, depth is undermined by treating numeric zip code prefixes as pure continuous variables without acknowledging their categorical/geographic nature, as well as citing hallucinated city volume distributions."
+        "score_1_to_5": 5,
+        "justification": "The analysis correctly highlights the distinction between system-level customer records (`customer_id`) and individual business entities (`customer_unique_id`). It effectively explores state concentration, city fragmentation, and geographic spread using exact dataset distributions."
       },
       "strategic_actionability": {
-        "score_1_to_5": 3,
-        "justification": "Recommendations regarding data deduplication, Master Data Management (MDM), and SP market prioritization are solid and actionable. However, specific recommendations to focus on Osasco and Itapecerica stem from hallucinated data points."
+        "score_1_to_5": 5,
+        "justification": "Recommendations are concrete, proportional, and directly tied to data findings. Suggestions include specific budget allocations across top states (45% SP, 20% MG, 15% RJ), data deduplication workflows at ingestion, city-tier segmentation, and operational monitoring threshold alerts."
       },
       "schema_and_structure_compliance": {
         "score_1_to_5": 5,
-        "justification": "The output follows all requested structural components flawlessly, including Sandbox verification notes, Executive Summary, KPI table, Trends, Anomalies, Recommendations, and cleanly formatted Chart tables."
+        "justification": "The output strictly adheres to all expected JSON schema properties and markdown structures. Executive Summary, KPIs, Trends, Anomalies, and Recommendations are clearly separated and formatted cleanly."
       }
     },
-    "overall_score_pct": 68.0,
-    "verdict": "ACCEPTABLE",
+    "overall_score_pct": 96.0,
+    "verdict": "EXCELLENT",
     "strengths": [
-      "Accurate primary KPI calculations (Unique Customer Coverage, Duplicate Rate, and State SP dominance).",
-      "High-quality structure and formatting adhering strictly to executive reporting standards.",
-      "Strong, practical recommendations for data governance and Master Data Management (MDM) deduplication."
+      "Flawless calculation and alignment of KPIs against dataset ground truth values.",
+      "Highly actionable, executive-grade recommendations with explicit budget splits and alert thresholds.",
+      "Comprehensive statistical overview covering geographic dispersion, duplicate frequencies, and descriptive metrics."
     ],
     "weaknesses": [
-      "Hallucinated non-existent dataset column ('count') for chart specification.",
-      "Factual hallucinations in secondary trends (incorrect percentage estimates for MG/RJ and fabricated high-volume cities Osasco/Itapecerica).",
-      "Naive statistical treatment of numeric postal zip codes as continuous values without geographic context."
+      "Recommended a chart based on 'duplicate_flag', a column that does not exist in the raw dataset schema without prior feature engineering."
     ],
-    "judge_executive_summary": "The agent output delivers a visually professional executive dossier with high structural compliance and accurate primary KPIs. However, the evaluation uncovers significant secondary data hallucinations—including invented city rankings and inaccurate state percentage share estimates—alongside a hallucinated 'count' column in the chart specs. While the strategic recommendations around data deduplication are valuable, recommendations built on hallucinated city data pose operational risks."
+    "judge_executive_summary": "The evaluated BI agent produced a high-quality analysis of the customer dataset. Grounding against empirical dataset statistics was virtually perfect across count, uniqueness, duplicate, and geographic metrics. Strategic recommendations are highly actionable with concrete business logic. The only minor defect was referencing a derived column ('duplicate_flag') in visual recommendations without explicitly defining it in schema transformation steps."
   }
 }

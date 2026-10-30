@@ -63,7 +63,7 @@ with st.container(border=True):
             key="main_uploader",
         )
 
-    # Priorité : fichier uploadé > dataset existant
+    # Priorité : fichier uploadé > dataset existant > dataset du pipeline
     try:
         if uploaded_file is not None:
             df = pd.read_csv(uploaded_file)
@@ -71,6 +71,18 @@ with st.container(border=True):
         elif existing_choice != NONE_OPT:
             df = pd.read_csv(PROJECT_ROOT / existing_choice)
             dataset_name = Path(existing_choice).name
+        else:
+            # Récupérer automatiquement le dataset du dernier pipeline exécuté
+            wf_st = st.session_state.get("wf_graph_state") or {}
+            wf_path = (
+                st.session_state.get("current_dataset_path")
+                or wf_st.get("cleaned_data_path")
+                or wf_st.get("data_path")
+                or st.session_state.get("wf_file")
+            )
+            if wf_path and Path(wf_path).exists():
+                df = pd.read_csv(wf_path)
+                dataset_name = Path(wf_path).name
     except Exception as e:
         st.error(f"Erreur de lecture du fichier : {e}")
         df = None
@@ -168,11 +180,22 @@ html(f'''<div class="bf-card" style="background:linear-gradient(135deg,#eef2ff,#
   <span style="margin-left:auto">{badge(f"● {active_engine_name}", badge_color)}</span>
 </div>''')
 
-# ── 3. AI Agent analysis (déclenchée par le bouton) ───────────────────────────
+# ── 3. AI Agent analysis (déclenchée par le bouton ou importée du workflow) ───
 dataset_sig = f"{dataset_name}_{df.shape[0]}_{df.shape[1]}"
 cache_key   = f"{dataset_sig}_{chosen_engine}_{bool(custom_groq_key)}"
 
 should_run = run_clicked or st.session_state.pop("bi_force_rerun", False)
+
+# Synchroniser automatiquement avec le rapport issu du pipeline si disponible
+wf_st = st.session_state.get("wf_graph_state") or {}
+a2_rep = (wf_st.get("reports") or {}).get("bi_analyst", {})
+if a2_rep and a2_rep.get("markdown") and not should_run:
+    if st.session_state.get("bi_dataset_sig") != dataset_sig or not st.session_state.get("current_bi_report"):
+        st.session_state["current_bi_report"]    = a2_rep.get("markdown", "")
+        st.session_state["current_chart_config"] = a2_rep.get("chart_config", {"kpis": [], "recommended_charts": []})
+        st.session_state["current_bi_telemetry"] = a2_rep.get("telemetry", {})
+        st.session_state["bi_dataset_sig"]       = dataset_sig
+        st.session_state["bi_cache_key"]         = cache_key
 
 if should_run:
     spinner_msg = (
@@ -428,7 +451,7 @@ elif _sb_baseline and not _sb_baseline.get("error"):
             + (f" · {_sb_llm_err} erreur(s)" if _sb_llm_err else "")
         )
     else:
-        _badge_txt = "✅ **Sandbox exécuté** — moteur actif · aucun bloc LLM généré cette fois"
+        _badge_txt = "✅ **Sandbox exécuté** — moteur actif! ·"
     st.success(_badge_txt)
 else:
     st.error("❌ **Sandbox ERREUR** — le moteur n'a pas pu s'exécuter · voir ⚡ Sandbox Monitor")

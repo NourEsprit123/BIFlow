@@ -206,16 +206,36 @@ elif wf_state in ("running", "hitl_pause"):
         "Workspace › <b>Pipeline Actif</b>",
     )
 else:
-    page_header(
-        "Pipeline Terminé ✅",
-        "Tous les agents ont complété leur travail. Consultez les résultats.",
-        btn("+ Nouveau pipeline", True),
-        "Workspace › <b>Résultats</b>",
-    )
+    col_hdr1, col_hdr2 = st.columns([3, 1])
+    with col_hdr1:
+        page_header(
+            "Pipeline Termine ✅",
+            "Tous les agents ont complete leur travail. Modifiez les parametres dans la sidebar ou relancez.",
+            "",
+            "Workspace › <b>Resultats</b>",
+        )
+    with col_hdr2:
+        st.write("")
+        st.write("")
+        if st.button("➕ Nouveau pipeline", type="primary", use_container_width=True, key="hdr_btn_new_pl_top"):
+            _reset_pipeline()
+            st.rerun()
+
 
 # =============================================================================
 # SIDEBAR — Mode + Sandbox + Dataset
 # =============================================================================
+
+# Ne verrouiller la sidebar QUE si le pipeline est en cours d'execution
+is_locked = wf_state in ("running", "hitl_pause")
+
+if wf_state == "done":
+    col_sb1, col_sb2 = st.sidebar.columns([1, 1])
+    with col_sb1:
+        if st.sidebar.button("➕ Nouveau pipeline", type="primary", use_container_width=True, key="sb_btn_new_pl"):
+            _reset_pipeline()
+            st.rerun()
+    st.sidebar.markdown("---")
 
 st.sidebar.markdown("### ⚙️ Paramètres du pipeline")
 
@@ -231,7 +251,7 @@ selected_mode_label = st.sidebar.radio(
     list(mode_options.keys()),
     index=0,
     key="wf_mode_radio",
-    disabled=wf_state not in ("idle", "error"),
+    disabled=is_locked,
 )
 chosen_mode = mode_options[selected_mode_label]
 
@@ -244,7 +264,7 @@ selected_sandbox_label = st.sidebar.radio(
     list(sandbox_options.keys()),
     index=0,
     key="wf_sandbox_radio",
-    disabled=wf_state not in ("idle", "error"),
+    disabled=is_locked,
 )
 chosen_sandbox = sandbox_options[selected_sandbox_label]
 
@@ -276,7 +296,7 @@ selected_resource_label = st.sidebar.radio(
         "Cloud = Groq ou Gemini via API. "
         "Auto = Local d'abord, Cloud si indisponible."
     ),
-    disabled=wf_state not in ("idle", "error"),
+    disabled=is_locked,
 )
 chosen_resource = _resource_options[selected_resource_label]
 
@@ -344,7 +364,7 @@ selected_name = st.sidebar.selectbox(
     "Dataset source",
     [NONE_OPT] + file_names,
     key="wf_dataset_select",
-    disabled=wf_state not in ("idle", "error"),
+    disabled=is_locked,
 )
 selected_path = str(raw_dir / selected_name) if selected_name != NONE_OPT else None
 
@@ -722,18 +742,73 @@ if wf_state == "hitl_pause":
                             delta=k.get("subtitle", ""),
                         )
 
-            if markdown:
-                st.markdown('<div class="wf-narrative">', unsafe_allow_html=True)
-                st.markdown(markdown[:1500] + ("…" if len(markdown) > 1500 else ""))
-                st.markdown("</div>", unsafe_allow_html=True)
+            # Recuperer les donnees pour afficher les dashboards interactifs en HITL
+            _wf_data_path_hitl = (
+                graph_st.get("cleaned_data_path")
+                or graph_st.get("data_path")
+                or st.session_state.get("wf_file")
+            )
+            _df_wf_hitl = None
+            if _wf_data_path_hitl and Path(_wf_data_path_hitl).exists():
+                try:
+                    _df_wf_hitl = pd.read_csv(_wf_data_path_hitl)
+                except Exception:
+                    _df_wf_hitl = None
 
-            with st.expander("📊 Config des graphiques (technique)", expanded=False):
+            tab_hitl_rep, tab_hitl_viz = st.tabs(["📄 Rapport Executif BI", "📈 Dashboards IA"])
+            with tab_hitl_rep:
+                if markdown:
+                    st.markdown(markdown)
+                else:
+                    st.info("Aucun rapport texte disponible.")
+
+            with tab_hitl_viz:
                 charts = cfg.get("recommended_charts", [])
-                if charts:
-                    st.dataframe(
-                        pd.DataFrame(charts)[["title", "type", "column_x"]],
-                        use_container_width=True, hide_index=True,
-                    )
+                if _df_wf_hitl is not None and charts:
+                    try:
+                        import plotly.express as px
+                        cols = st.columns(2)
+                        for i, chart in enumerate(charts[:6]):
+                            c_title = chart.get("title", f"Graphique {i+1}")
+                            c_type  = str(chart.get("type", "bar")).lower()
+                            c_x     = chart.get("column_x")
+                            c_y     = chart.get("column_y")
+                            if not c_x or c_x not in _df_wf_hitl.columns:
+                                continue
+                            with cols[i % 2]:
+                                with st.container(border=True):
+                                    st.caption(f"**{c_title}** · `{c_type.upper()}`")
+                                    if c_type == "pie":
+                                        data_pie = _df_wf_hitl[c_x].value_counts().reset_index()
+                                        data_pie.columns = [c_x, "Count"]
+                                        fig = px.pie(data_pie.head(10), names=c_x, values="Count", hole=0.4)
+                                        st.plotly_chart(fig, use_container_width=True, key=f"hitl_wf_chart_{i}")
+                                    elif c_type == "bar":
+                                        if c_y and c_y in _df_wf_hitl.columns and pd.api.types.is_numeric_dtype(_df_wf_hitl[c_y]):
+                                            agg = _df_wf_hitl.groupby(c_x, observed=False)[c_y].mean().reset_index()
+                                            fig = px.bar(agg.head(15), x=c_x, y=c_y, color_discrete_sequence=["#6366f1"])
+                                        else:
+                                            data_bar = _df_wf_hitl[c_x].value_counts().reset_index()
+                                            data_bar.columns = [c_x, "Count"]
+                                            fig = px.bar(data_bar.head(15), x=c_x, y="Count", color_discrete_sequence=["#6366f1"])
+                                        st.plotly_chart(fig, use_container_width=True, key=f"hitl_wf_chart_{i}")
+                                    elif c_type == "histogram":
+                                        fig = px.histogram(_df_wf_hitl, x=c_x, color_discrete_sequence=["#8b5cf6"])
+                                        st.plotly_chart(fig, use_container_width=True, key=f"hitl_wf_chart_{i}")
+                                    elif c_type == "box":
+                                        y_col = c_y if c_y in _df_wf_hitl.columns else None
+                                        fig = px.box(_df_wf_hitl, x=c_x, y=y_col, color_discrete_sequence=["#c026d3"])
+                                        st.plotly_chart(fig, use_container_width=True, key=f"hitl_wf_chart_{i}")
+                                    elif c_type == "scatter":
+                                        fig = px.scatter(_df_wf_hitl, x=c_x, y=c_y if c_y in _df_wf_hitl.columns else None, color_discrete_sequence=["#06b6d4"])
+                                        st.plotly_chart(fig, use_container_width=True, key=f"hitl_wf_chart_{i}")
+                                    else:
+                                        fig = px.histogram(_df_wf_hitl, x=c_x, color_discrete_sequence=["#6366f1"])
+                                        st.plotly_chart(fig, use_container_width=True, key=f"hitl_wf_chart_{i}")
+                    except Exception as chart_err:
+                        st.caption(f"Visualisation : {chart_err}")
+                else:
+                    st.info("Aucun graphique configure ou dataset non disponible.")
 
         elif agent == "xai_auditor":
             a3_data   = reports.get("xai_auditor", {})
@@ -911,12 +986,81 @@ if wf_state == "done":
                     st.metric(k.get("title", "KPI"), str(k.get("value", "—")),
                               delta=k.get("subtitle", ""))
 
-        if md:
-            with st.expander("📄 Rapport BI complet (Markdown)", expanded=False):
-                st.markdown(md)
+        # Recuperer les donnees du dataset pour tracer les dashboards
+        _wf_data_path = (
+            graph_st.get("cleaned_data_path")
+            or graph_st.get("data_path")
+            or st.session_state.get("wf_file")
+        )
+        _df_wf = None
+        if _wf_data_path and Path(_wf_data_path).exists():
+            try:
+                _df_wf = pd.read_csv(_wf_data_path)
+            except Exception:
+                _df_wf = None
 
-        if st.button("→ Ouvrir la page BI Analysis", key="goto_bi"):
-            st.switch_page("pages/5_BI_Analysis.py")
+        tab_wf_rep, tab_wf_viz = st.tabs(["📄 Rapport Executif BI", "📈 Dashboards Interactifs"])
+
+        with tab_wf_rep:
+            if md:
+                st.markdown(md)
+            else:
+                st.info("Aucun rapport texte disponible.")
+
+        with tab_wf_viz:
+            charts = cfg.get("recommended_charts", [])
+            if _df_wf is not None and charts:
+                try:
+                    import plotly.express as px
+                    cols = st.columns(2)
+                    for i, chart in enumerate(charts[:6]):
+                        c_title = chart.get("title", f"Graphique {i+1}")
+                        c_type  = str(chart.get("type", "bar")).lower()
+                        c_x     = chart.get("column_x")
+                        c_y     = chart.get("column_y")
+                        if not c_x or c_x not in _df_wf.columns:
+                            continue
+                        with cols[i % 2]:
+                            with st.container(border=True):
+                                st.caption(f"**{c_title}** · `{c_type.upper()}`")
+                                if c_type == "pie":
+                                    data_pie = _df_wf[c_x].value_counts().reset_index()
+                                    data_pie.columns = [c_x, "Count"]
+                                    fig = px.pie(data_pie.head(10), names=c_x, values="Count", hole=0.4)
+                                    st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
+                                elif c_type == "bar":
+                                    if c_y and c_y in _df_wf.columns and pd.api.types.is_numeric_dtype(_df_wf[c_y]):
+                                        agg = _df_wf.groupby(c_x, observed=False)[c_y].mean().reset_index()
+                                        fig = px.bar(agg.head(15), x=c_x, y=c_y, color_discrete_sequence=["#6366f1"])
+                                    else:
+                                        data_bar = _df_wf[c_x].value_counts().reset_index()
+                                        data_bar.columns = [c_x, "Count"]
+                                        fig = px.bar(data_bar.head(15), x=c_x, y="Count", color_discrete_sequence=["#6366f1"])
+                                    st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
+                                elif c_type == "histogram":
+                                    fig = px.histogram(_df_wf, x=c_x, color_discrete_sequence=["#8b5cf6"])
+                                    st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
+                                elif c_type == "box":
+                                    y_col = c_y if c_y in _df_wf.columns else None
+                                    fig = px.box(_df_wf, x=c_x, y=y_col, color_discrete_sequence=["#c026d3"])
+                                    st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
+                                else:
+                                    fig = px.histogram(_df_wf, x=c_x, color_discrete_sequence=["#6366f1"])
+                                    st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
+                except Exception as chart_err:
+                    st.caption(f"Visualisation : {chart_err}")
+            else:
+                st.info("Aucun graphique configure ou dataset non disponible.")
+
+        col_b1, col_b2 = st.columns([2, 1])
+        with col_b1:
+            if st.button("→ Ouvrir la page BI Analysis complete (avec Sandbox Monitor)", key="goto_bi"):
+                st.session_state["current_bi_report"]    = md
+                st.session_state["current_chart_config"] = cfg
+                st.session_state["current_bi_telemetry"] = a2.get("telemetry", {})
+                if _wf_data_path:
+                    st.session_state["current_dataset_path"] = str(_wf_data_path)
+                st.switch_page("pages/5_BI_Analysis.py")
 
     # ── Résultats Agent 3 ─────────────────────────────────────────────────────
     if "xai_auditor" in reports:
