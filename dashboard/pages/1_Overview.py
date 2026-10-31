@@ -81,7 +81,7 @@ _act_col1, _act_col2, _act_spacer = st.columns([1.4, 1.8, 6])
 with _act_col1:
     st.button("☰ Filter View", use_container_width=True)
 with _act_col2:
-    if st.button("+ Create analysis ✨", type="primary", use_container_width=True):
+    if st.button("+ Create analysis ✨", type="primary", use_container_width=True, key="create_analysis"):
         st.switch_page("pages/3_Workflows.py")
 
 page_header(f"{greeting}, {first_name}.", "Here's what's happening with your data today.")
@@ -105,7 +105,7 @@ AGENTS = [
     ("⚙", "indigo", "Data Engineering Agent", "Normalized 7,043 clean records", "done", "2 min ago"),
     ("📊", "blue", "BI Analyst Agent", "Calculated KPIs & churn drivers", "done", "5 min ago"),
     ("🧭", "violet", "Orchestrator Agent", "Planned 3-stage execution", "done", "8 min ago"),
-    ("🛡", "teal", "XAI Auditor Agent", "Ready to verify data lineage", "standby", "Waiting"),
+    ("🛡", "teal", "XAI Auditor Agent", "verified data lineage", "done", "5 min ago"),
 ]
 done_count = sum(1 for a in AGENTS if a[4] == "done")
 progress = round(done_count / len(AGENTS) * 100)

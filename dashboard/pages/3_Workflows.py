@@ -244,10 +244,9 @@ st.sidebar.markdown("### ⚙️ Paramètres du pipeline")
 
 # Mode d'exécution
 mode_options = {
-    "⚡ Full-Auto (A1 → A2 → A3)":       "auto",
-    "🧑‍💼 Human-in-the-Loop (étape/étape)": "hitl",
-    "🎯 Exécution directe — Agent 2 (BI)": "direct_agent_2",
-    "🎯 Exécution directe — Agent 3 (XAI)":"direct_agent_3",
+    "⚡ Auto (A1 → A2 → A3)":       "auto",
+    #"🧑‍💼 Human-in-the-Loop (étape/étape)": "hitl",
+    #"🎯 Exécution directe — Agent 2 (BI)": "direct_agent_2",
 }
 selected_mode_label = st.sidebar.radio(
     "Mode d'exécution",
@@ -405,7 +404,7 @@ if wf_state == "idle":
     mode_icon = {"auto": "⚡", "hitl": "🧑‍💼",
                  "direct_agent_2": "🎯", "direct_agent_3": "🎯"}
     mode_desc = {
-        "auto":           "Enchaînement automatique A1 → A2 → A3 sans interruption.",
+        "auto":           "Enchaînement automatique A1 → A2 → A3.",
         "hitl":           "Pause après chaque agent — vous validez avant de continuer.",
         "direct_agent_2": "Lance directement l'Agent 2 (BI) sur le dataset sélectionné.",
         "direct_agent_3": "Lance directement l'Agent 3 (XAI) sur le dataset sélectionné.",
@@ -439,33 +438,6 @@ if wf_state == "idle":
         with st.expander("👀 Aperçu des données", expanded=False):
             st.dataframe(_df_preview, use_container_width=True)
 
-    # Tâches sélectionnées (informatif — l'orchestrateur exécute tout)
-    TASKS = [
-        ("Profiling & Qualité",  "Profiling statistique, scores de santé, cross-column checks", "A1", "~45s", True),
-        ("Nettoyage & ETL",      "Standardisation, imputation, détection des outliers",         "A1", "~60s", True),
-        ("KPI & Insights",       "Métriques business, tendances, recommandations IA",            "A2", "~50s", True),
-        ("Détection d'anomalies","Outliers statistiques et ruptures de patterns",                "A2", "~30s", False),
-        ("Audit XAI",            "Attributions SHAP, SHA-256, explication narrative",            "A3", "~40s", True),
-    ]
-
-    if chosen_mode not in ("direct_agent_3",):
-        st.markdown('<span style="font-size:.85rem;font-weight:600;color:#0f172a;">📋 Tâches incluses</span>',
-                    unsafe_allow_html=True)
-        cols = st.columns(2)
-        for i, (t, d, agent, dur, default) in enumerate(TASKS):
-            with cols[i % 2]:
-                c1, c2 = st.columns([0.07, 0.93])
-                with c1:
-                    st.checkbox("", value=default, key=f"wf_task_{i}", label_visibility="collapsed")
-                with c2:
-                    tone = "indigo" if agent == "A1" else "blue" if agent == "A2" else "purple"
-                    html(
-                        f'<div style="padding:.1rem 0 .5rem">'
-                        f'<b style="font-size:.88rem;color:#0f172a">{t}</b> '
-                        f'<span class="bf-badge {tone}" style="font-size:.62rem">{agent}</span> '
-                        f'<span style="color:#94a3b8;font-size:.72rem">{dur}</span>'
-                        f'<br><small style="color:#64748b;font-size:.78rem">{d}</small></div>'
-                    )
 
     st.markdown("---")
 

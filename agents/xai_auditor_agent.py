@@ -316,7 +316,7 @@ class XAIAuditorAgent:
             f"{top_lines}\n\n"
             "Produis une explication structurée en Markdown :\n"
             "1. **Résumé exécutif** — ce que le modèle prédit et avec quelle confiance.\n"
-            "2. **Analyse des features dominantes** — ampleur, direction, sens métier.\n"
+            "2. **Analyse des features dominantes** — présente chaque feature sous forme de liste à puces (avec son nom, son score SHAP, sa direction et son interprétation métier). N'utilise PAS de tableau Markdown.\n"
             "3. **Risques & biais potentiels** — features à surveiller.\n"
             "4. **Recommandations audit** — actions pour améliorer équité et transparence.\n"
             "Sois précis, professionnel, cite les noms de features exacts."

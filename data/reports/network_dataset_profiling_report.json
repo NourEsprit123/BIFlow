@@ -1,7 +1,7 @@
 {
   "schema_version": "2.1",
   "dataset_ref": {
-    "file_path": "C:\\Users\\moham\\Desktop\\Med\\biflow integ\\data\\raw\\network_dataset.csv",
+    "file_path": "C:\\Users\\hp\\Documents\\BIFlow\\BIFlow\\data\\raw\\network_dataset.csv",
     "file_name": "network_dataset.csv",
     "rows": 1001,
     "columns": 15,
@@ -16,8 +16,8 @@
   },
   "column_profiles": {
     "timestamp": {
-      "dtype": "object",
-      "inferred_role": "primary_key",
+      "dtype": "str",
+      "inferred_role": "timestamp",
       "missing_count": 0,
       "missing_pct": 0.0,
       "unique_count": 1001,
@@ -33,18 +33,7 @@
         "2024-05-11 12:03:34"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "2024-05-11 12:00:15": 1,
-        "2024-05-11 12:00:43": 1,
-        "2024-05-11 12:01:12": 1,
-        "2024-05-11 12:01:40": 1,
-        "2024-05-11 12:02:08": 1,
-        "2024-05-11 12:02:36": 1,
-        "2024-05-11 12:03:05": 1,
-        "2024-05-11 12:03:34": 1,
-        "2024-05-11 12:04:01": 1,
-        "2024-05-11 12:04:30": 1
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [
         {
@@ -60,8 +49,8 @@
           "llm_agreement": "agree"
         }
       ],
-      "agent_reasoning": "String column serving as a pseudo\u2011ID; unique for every row (1001 unique values) and acts as the temporal primary key for time\u2011series joins.",
-      "business_interpretation": "Critical join key for any temporal analysis, forecasting, or merging with external logs; any duplication or loss breaks downstream pipelines.",
+      "agent_reasoning": "Serves as the primary key and temporal identifier for each network snapshot with 1,0001 unique non-null timestamps. High severity assigned due to its role as the unique index column required for time-series aggregation and joins.",
+      "business_interpretation": "Critical for time-series auditing, trend detection, and joining network metrics with temporal logs. Duplicates or parsing failures break downstream SLA tracking.",
       "severity": "HIGH",
       "uncertainty": "LOW",
       "python_agreement": "agree",
@@ -112,8 +101,8 @@
           "evidence": {}
         }
       ],
-      "agent_reasoning": "Integer categorical field with a single constant value (2) across the dataset; no variance to model.",
-      "business_interpretation": "Provides no discriminative power for analytics; can be retained for schema completeness but ignored in modeling.",
+      "agent_reasoning": "Continuous numeric dimension that currently acts as a constant value (mean = median = min = max = 2.0, variance = 0.0). No missing values detected.",
+      "business_interpretation": "Represents static network pipe capacity (2 Gbps/Mbps). Useful for contextual reference but offers zero statistical variance for predictive models in this snapshot.",
       "severity": "LOW",
       "uncertainty": "LOW",
       "python_agreement": "agree",
@@ -171,13 +160,13 @@
           }
         }
       ],
-      "agent_reasoning": "Float continuous metric representing data rate; modest skew (0.48) and 303 distinct values, no type issues.",
-      "business_interpretation": "Key performance indicator for network capacity; used in SLA calculations and trend analysis.",
-      "severity": "MEDIUM",
+      "agent_reasoning": "Continuous numeric performance metric (range: 0.05 to 7.14, median: 1.98) with low skewness (0.479) and zero missing values.",
+      "business_interpretation": "Measures active data transmission rate. Provides baseline operational throughput metric for network quality dashboards.",
+      "severity": "LOW",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "median",
+      "imputation_strategy": "none",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
@@ -230,8 +219,8 @@
           }
         }
       ],
-      "agent_reasoning": "Float metric with high positive skew (1.43) and a max of 134.37, indicating occasional spikes.",
-      "business_interpretation": "Directly impacts QoS alerts; outlier spikes may trigger congestion mitigation workflows.",
+      "agent_reasoning": "Continuous numeric metric exhibiting right-skewness (1.4255) with extreme upper outliers reaching up to 134.37 relative to a median of 10.74. Imputation strategy defaulted to median due to non-normal distribution.",
+      "business_interpretation": "Tracks network bottleneck intensity. Extreme congestion spikes indicate localized traffic surges or routing failures impacting user experience.",
       "severity": "MEDIUM",
       "uncertainty": "LOW",
       "python_agreement": "agree",
@@ -289,8 +278,8 @@
           }
         }
       ],
-      "agent_reasoning": "Float metric heavily right\u2011skewed (2.07) with many zeros and a max of 52.5, typical of burst loss events.",
-      "business_interpretation": "Critical for SLA breach detection; high outliers can flag network incidents.",
+      "agent_reasoning": "Continuous numeric percentage metric with a median of 0.0% but severe positive skewness (2.065) and extreme peak values up to 52.5%. Non-zero values represent severe degradation.",
+      "business_interpretation": "Direct indicator of dropped network frames. High packet loss directly degrades video streaming quality and real-time communications.",
       "severity": "MEDIUM",
       "uncertainty": "LOW",
       "python_agreement": "agree",
@@ -348,8 +337,8 @@
           }
         }
       ],
-      "agent_reasoning": "Float metric with extreme skew (7.74) and a max of 3051.58 ms, indicating severe latency outliers.",
-      "business_interpretation": "Core QoE KPI; extreme values may distort averages and must be handled before reporting.",
+      "agent_reasoning": "Continuous numeric delay metric in milliseconds exhibiting extreme right-skewness (7.735) with severe outliers up to 3051.58 ms against a baseline median of 7.55 ms.",
+      "business_interpretation": "Measures round-trip response time. Massive latency spikes impact interactive sessions and indicate potential routing loops or node failures.",
       "severity": "MEDIUM",
       "uncertainty": "LOW",
       "python_agreement": "agree",
@@ -407,8 +396,8 @@
           }
         }
       ],
-      "agent_reasoning": "Float metric with strong right skew (5.82) and max 10.8 ms; outliers reflect bursty timing variations.",
-      "business_interpretation": "Affects video/voice quality assessments; outlier handling is required for stable KPI computation.",
+      "agent_reasoning": "Continuous numeric metric measuring delay variance, exhibiting high skewness (5.8176) with outliers reaching 10.8 relative to a median of 0.65.",
+      "business_interpretation": "Indicates network stability. High jitter causes buffer underruns in video playback and voice packet misordering.",
       "severity": "MEDIUM",
       "uncertainty": "LOW",
       "python_agreement": "agree",
@@ -420,7 +409,7 @@
       "custom_check_code": null
     },
     "Routers": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -437,26 +426,23 @@
         "up xrv6"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "up xrv6": 601,
-        "up xrv1,2,3": 400
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [],
-      "agent_reasoning": "Object categorical field with two distinct values (e.g., \"up xrv6\"); no missing data.",
-      "business_interpretation": "Used for grouping by router status; stable dimension for segmentation.",
+      "agent_reasoning": "Clean categorical dimension identifying router device state/model ('up xrv6'). 0% missing values across 2 unique values.",
+      "business_interpretation": "Used to segment network traffic performance by hardware infrastructure and router status.",
       "severity": "LOW",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "none",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "Planned route": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -473,26 +459,23 @@
         "Best effort"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "Best effort": 601,
-        "Redistribution": 400
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [],
-      "agent_reasoning": "Object categorical with two values (\"Best effort\"); clean and complete.",
-      "business_interpretation": "Defines routing policy; useful for stratified analysis but low risk.",
+      "agent_reasoning": "Categorical routing policy dimension ('Best effort'). Fully populated with 0% missing data across 2 unique values.",
+      "business_interpretation": "Differentiates QoS prioritization classes for traffic routing analytics.",
       "severity": "LOW",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "none",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "Network measure": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -509,9 +492,7 @@
         "S1"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "S1": 1001
-      },
+      "value_counts": {},
       "is_constant": true,
       "issues": [
         {
@@ -522,8 +503,8 @@
           "evidence": {}
         }
       ],
-      "agent_reasoning": "Constant categorical value \"S1\"; no variability.",
-      "business_interpretation": "Placeholder dimension; does not affect calculations.",
+      "agent_reasoning": "Constant categorical metadata dimension ('S1') with 0% missing values.",
+      "business_interpretation": "Source node or measurement probe identifier for data lineage tracking.",
       "severity": "LOW",
       "uncertainty": "LOW",
       "python_agreement": "agree",
@@ -535,7 +516,7 @@
       "custom_check_code": null
     },
     "Network target": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 0,
       "missing_pct": 0.0,
@@ -552,26 +533,23 @@
         "S2"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "S3": 701,
-        "S2": 300
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [],
-      "agent_reasoning": "Object categorical with two values (\"S2\"); clean.",
-      "business_interpretation": "Used for target segmentation; low impact on data quality.",
+      "agent_reasoning": "Categorical metadata dimension ('S2') with 0% missing values across 2 unique values.",
+      "business_interpretation": "Destination node identifier for point-to-point network telemetry.",
       "severity": "LOW",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "none",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
       "custom_check_code": null
     },
     "Video target": {
-      "dtype": "object",
+      "dtype": "str",
       "inferred_role": "categorical",
       "missing_count": 300,
       "missing_pct": 29.97,
@@ -588,10 +566,7 @@
         "S2"
       ],
       "numeric_stats": {},
-      "value_counts": {
-        "S3": 501,
-        "S2": 200
-      },
+      "value_counts": {},
       "is_constant": false,
       "issues": [
         {
@@ -603,10 +578,21 @@
             "count": 300,
             "pct": 29.97
           }
+        },
+        {
+          "issue_id": "sandbox_check_failed",
+          "source": "sandbox",
+          "severity": "MEDIUM",
+          "description": "Custom check failed: Found 200 missing, empty, or sentinel null values in 'Video target'.",
+          "evidence": {
+            "check_name": "Audit Video target column for null values, empty strings, and missing data exceeding expected baseline thresholds.",
+            "metric": "200 / 500 violations",
+            "sample_size": 500
+          }
         }
       ],
-      "agent_reasoning": "Object categorical with 29.97% missing entries; missingness likely represents unknown or unassigned video streams.",
-      "business_interpretation": "Essential for linking network metrics to video services; high missing rate can bias service\u2011level analyses.",
+      "agent_reasoning": "Categorical target attribute missing 300 values (29.97% missingness), significantly exceeding the 15% severe threshold.",
+      "business_interpretation": "High missingness disrupts downstream video service routing analysis and destination-based quality profiling.",
       "severity": "HIGH",
       "uncertainty": "LOW",
       "python_agreement": "agree",
@@ -615,12 +601,12 @@
       "etl_cast_to": "none",
       "sandbox_triggered": true,
       "sandbox_result": {
-        "passed": "False",
+        "passed": false,
         "metric": "200 / 500 violations",
-        "details": "200 non-conforming rows detected",
+        "details": "Found 200 missing, empty, or sentinel null values in 'Video target'.",
         "error": null
       },
-      "custom_check_code": "def custom_check(series: pd.Series) -> dict:\n    total=len(series)\n    sentinels={'n/a','na','null','none'}\n    mask_null=series.isna()\n    str_vals=series.astype(str)\n    mask_empty=str_vals.str.strip()==''\n    mask_sentinel=str_vals.str.strip().str.lower().isin(sentinels)\n    mask_dirty=str_vals.str.contains(r'\\$',na=False)\n    violations=(mask_null|mask_empty|mask_sentinel|mask_dirty).sum()\n    passed=violations==0\n    metric=f\"{violations} / {total} violations\" if not passed else \"0 violations\"\n    details=\"All values conform to quality constraint\" if passed else f\"{violations} non-conforming rows detected\"\n    return {\"passed\":passed,\"metric\":metric,\"details\":details}"
+      "custom_check_code": "def custom_check(series: pd.Series) -> dict:\n    total = len(series)\n    sentinels = {'', 'n/a', 'na', 'null', 'none', 'nan', 'undefined', 'missing', '-', '?'}\n    is_bad = series.apply(lambda x: pd.isna(x) or str(x).strip().lower() in sentinels)\n    violations = int(is_bad.sum())\n    \n    if violations > 0:\n        return {\n            \"passed\": False,\n            \"metric\": f\"{violations} / {total} violations\",\n            \"details\": f\"Found {violations} missing, empty, or sentinel null values in 'Video target'.\"\n        }\n    return {\n        \"passed\": True,\n        \"metric\": \"0 violations\",\n        \"details\": \"All values conform to quality constraint\"\n    }"
     },
     "Percentage video occupancy": {
       "dtype": "int64",
@@ -653,9 +639,21 @@
       },
       "value_counts": {},
       "is_constant": false,
-      "issues": [],
-      "agent_reasoning": "Integer categorical metric with moderate skew (1.15) and max 120%; values exceed 100% indicating possible data entry errors.",
-      "business_interpretation": "Used for capacity planning; values >100% must be flagged before reporting.",
+      "issues": [
+        {
+          "issue_id": "sandbox_check_failed",
+          "source": "sandbox",
+          "severity": "MEDIUM",
+          "description": "Custom check failed: Found 41 out-of-range or invalid percentage values (exceeding 100%, negative, or non-numeric).",
+          "evidence": {
+            "check_name": "Identify and flag cells where Percentage video occupancy exceeds 100% or contains out-of-range percentage values.",
+            "metric": "41 / 500 violations",
+            "sample_size": 500
+          }
+        }
+      ],
+      "agent_reasoning": "Numeric video telemetry metric incorrectly typed as categorical with an invalid maximum value of 120.0%, violating the valid domain boundary [0, 100%], and right-skewed (1.1493).",
+      "business_interpretation": "Over-100% occupancy values distort channel utilization capacity calculations and report invalid bandwidth consumption KPIs.",
       "severity": "MEDIUM",
       "uncertainty": "LOW",
       "python_agreement": "agree",
@@ -664,12 +662,12 @@
       "etl_cast_to": "none",
       "sandbox_triggered": true,
       "sandbox_result": {
-        "passed": null,
-        "metric": null,
-        "details": null,
-        "error": "SyntaxError: unmatched '}' (<string>, line 8)"
+        "passed": false,
+        "metric": "41 / 500 violations",
+        "details": "Found 41 out-of-range or invalid percentage values (exceeding 100%, negative, or non-numeric).",
+        "error": null
       },
-      "custom_check_code": "def custom_check(series: pd.Series) -> dict:\n    total = len(series)\n    invalid_idx = series[~series.apply(lambda x: isinstance(x, (int, np.integer)) and x <= 100)].index.tolist()\n    cnt = len(invalid_idx)\n    if cnt == 0:\n        return {\"passed\": true, \"metric\": \"0 violations\", \"details\": \"All values conform to quality constraint\"}\n    else:\n        return {\"passed\": false, \"metric\": f\"{cnt} / {total} violations\", \"details\": f\"Rows with invalid occupancy: {invalid_idx}\"}}"
+      "custom_check_code": "def custom_check(series: pd.Series) -> dict:\n    total = len(series)\n    numeric_s = pd.to_numeric(series, errors='coerce')\n    invalid_mask = numeric_s.isna() | (numeric_s < 0) | (numeric_s > 100)\n    violations = int(invalid_mask.sum())\n    \n    if violations > 0:\n        return {\n            \"passed\": False,\n            \"metric\": f\"{violations} / {total} violations\",\n            \"details\": f\"Found {violations} out-of-range or invalid percentage values (exceeding 100%, negative, or non-numeric).\"\n        }\n    return {\n        \"passed\": True,\n        \"metric\": \"0 violations\",\n        \"details\": \"All values conform to quality constraint\"\n    }"
     },
     "Bitrate video": {
       "dtype": "int64",
@@ -703,8 +701,8 @@
       "value_counts": {},
       "is_constant": false,
       "issues": [],
-      "agent_reasoning": "Integer metric with skew (1.15) and wide range (0\u20112004); potential outliers at high bitrate.",
-      "business_interpretation": "Key for video quality assessment; extreme bitrates may indicate mis\u2011recorded sessions.",
+      "agent_reasoning": "Numeric metric representing stream encoding bitrate (median: 167.0, max: 2004.0) misclassified as categorical, showing right-skewness (1.1493) and extreme tail values.",
+      "business_interpretation": "Measures video streaming bandwidth demand. Outliers impact capacity planning and adaptive bitrate (ABR) performance benchmarks.",
       "severity": "MEDIUM",
       "uncertainty": "LOW",
       "python_agreement": "agree",
@@ -762,13 +760,13 @@
           }
         }
       ],
-      "agent_reasoning": "Integer count with skew (1.48) and max 6; occasional high counts could be anomalies.",
-      "business_interpretation": "Feeds usage analytics; outlier counts may distort average session load.",
-      "severity": "MEDIUM",
+      "agent_reasoning": "Discrete numeric count metric (range: 0 to 6, median: 1.0) misassigned as categorical. Fully populated with 0% missing data.",
+      "business_interpretation": "Tracks concurrent video streams per session for user concurrency reporting.",
+      "severity": "LOW",
       "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "median",
+      "imputation_strategy": "none",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
@@ -781,14 +779,15 @@
   "recommended_cleaning_order": [
     "Video target",
     "timestamp",
-    "throughput",
     "congestion",
     "packet_loss",
     "latency",
     "jitter",
-    "Number videos",
+    "Percentage video occupancy",
     "bandwidth",
-    "Network measure"
+    "throughput",
+    "Network measure",
+    "Number videos"
   ],
   "etl_hints": {
     "type_casting_targets": {},
@@ -799,16 +798,18 @@
   },
   "imputation_plan": {},
   "outlier_columns": [
+    "congestion",
+    "packet_loss",
     "latency",
     "jitter",
-    "packet_loss",
-    "congestion"
+    "Percentage video occupancy",
+    "Bitrate video"
   ],
-  "agent_summary": "The dataset is largely clean with only the primary key and the Video target column flagged as high\u2011severity issues; most numeric fields exhibit right\u2011skewed distributions requiring median imputation and outlier handling. Primary business risk lies in missing Video target values and extreme latency/jitter outliers that could distort QoS reporting.",
+  "agent_summary": "The network dataset demonstrates overall strong completeness (96.3% health) across 1,001 telemetry records, but suffers from severe missingness (29.97%) in Video target and domain boundary violations such as 120% video occupancy. Additionally, telemetry metrics including latency (max 3051.58 ms), packet loss, congestion, and jitter exhibit extreme right-skewed outliers requiring robust median-based treatment.",
   "recommendation_summary": "",
   "metadata": {
     "agent_version": "2.0.0",
-    "profiling_timestamp": "2026-10-30T22:27:40.235463+00:00",
+    "profiling_timestamp": "2026-10-31T12:45:04.775317+00:00",
     "llm_model_used": "gemini-flash-latest",
     "sandbox_executions": 2,
     "llm_driven": true

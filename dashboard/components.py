@@ -8,7 +8,6 @@ NAV = [
     ("Overview", "pages/1_Overview.py", "🏠"),
     ("Datasets", "pages/2_Datasets.py", "🗄"),
     ("Workflows", "pages/3_Workflows.py", "⛓"),
-    ("Agent Ops", "pages/7_Agent_Ops.py", "🤖"),
 ]
 
 AGENTS = [
@@ -361,10 +360,10 @@ def setup(title, hub="Enterprise Analytics Hub"):
         </style>
         """, unsafe_allow_html=True)
 
-    html(f'''<div class="bf-top"><div class="crumb">Workspace › <b>{hub}</b></div>
-      <div class="bf-search"><span>🔍 Search BIFlow...</span><span>⌘ K</span></div><span>🔔</span>
-      <div class="bf-org">Northstar Labs <span class="bf-badge">Enterprise</span></div>
-      <div class="bf-avatar">👤</div></div>''')
+    #html(f'''<div class="bf-top"><div class="crumb">Workspace › <b>{hub}</b></div>
+    #  <div class="bf-search"><span>🔍 Search BIFlow...</span><span>⌘ K</span></div><span>🔔</span>
+    #  <div class="bf-org">Northstar Labs <span class="bf-badge">Enterprise</span></div>
+    #  <div class="bf-avatar">👤</div></div>''')
 
 def page_header(title, subtitle="", actions="", crumbs=""):
     sidebar_mode = st.session_state.get("sidebar_mode", "nav")
