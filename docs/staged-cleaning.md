@@ -107,6 +107,6 @@ Tests use controlled HTTP responses and trusted sandbox mocks. They verify the
 application's control and acceptance boundaries, not live Qwen decision quality
 or real Docker availability. A separate live behavioral evaluation is still needed.
 
-A failed builtin that cannot preserve values requires generated execution for that task. Once generated execution is selected, no builtin fallback is permitted. Docker infrastructure errors stop the run. Four unsuccessful local corrections trigger Groq code generation, followed by the same independent Docker and full-data checks. See [Groq generation](expert-generation.md).
+After a failed builtin the model may revise its parameters, choose another builtin, or write generated code. Once generated execution is selected, no builtin fallback is permitted. Docker infrastructure errors stop the run. Four unsuccessful local corrections trigger Groq code generation, followed by the same independent Docker and full-data checks. See [Groq generation](expert-generation.md).
 
 The blanket no_new_missing rejection is removed. Invalid entries may become NaN. The legacy lost_values audit field retains every affected original value for both accepted and rejected candidates. Committed new NaNs create missing-value obligations and tasks, including columns with no reported original missingness. Type conversion and missing-value handling remain separate; structural and unrelated-column checks still apply.

@@ -12,6 +12,7 @@ Risk assessment and approval decisions live outside these tools
 
 from __future__ import annotations
 
+import math
 from typing import Any, Dict, Literal, Optional, Sequence
 
 import pandas as pd
@@ -473,6 +474,158 @@ def clean_numeric_string(
             "became_null": became_null,
             "null_after": int(work[column].isna().sum()),
         },
+    )
+
+
+def parse_datetime(
+    df: pd.DataFrame,
+    column: str,
+    formats: Optional[Sequence[str]] = None,
+    dayfirst: bool = False,
+) -> CleaningResult:
+    """
+    Parse date/time strings into datetimes.
+
+    - formats: explicit strftime formats tried in order (e.g. ["%Y-%m-%d", "%d/%m/%Y"]).
+      A value matching two formats with different dates is ambiguous and fails
+      the operation instead of silently choosing one reading.
+    - without formats, pandas infers each value; dayfirst resolves 03/04 style dates.
+    Existing missing markers stay missing; unparseable values become NaT.
+    """
+    if column not in df.columns:
+        return CleaningResult(False, error=f"Column '{column}' not found")
+
+    work = df.copy()
+    original = work[column].copy()
+    if pd.api.types.is_datetime64_any_dtype(original):
+        return CleaningResult(True, df=work, message=f"'{column}' is already datetime")
+    text = original.astype("string").str.strip().where(present(original))
+
+    try:
+        if formats:
+            readings = [pd.to_datetime(text, format=f, errors="coerce") for f in formats]
+            conflict = pd.Series(False, index=text.index)
+            for i, first in enumerate(readings):
+                for second in readings[i + 1:]:
+                    conflict |= first.notna() & second.notna() & first.ne(second)
+            if conflict.any():
+                examples = text[conflict].unique()[:5].tolist()
+                return CleaningResult(
+                    False,
+                    error=(f"{int(conflict.sum())} values match more than one format with different dates "
+                           f"(e.g. {examples}); keep only one of the conflicting formats or flag_for_review"),
+                    details={"ambiguous_count": int(conflict.sum()), "ambiguous_examples": examples},
+                )
+            parsed = readings[0]
+            for reading in readings[1:]:
+                parsed = parsed.fillna(reading)
+        else:
+            # dayfirst would also flip ISO dates (2024-05-06), so ISO values are read first.
+            iso = pd.to_datetime(text, format="ISO8601", errors="coerce")
+            parsed = iso.fillna(pd.to_datetime(text.where(iso.isna()), format="mixed", dayfirst=dayfirst, errors="coerce"))
+    except Exception as e:
+        return CleaningResult(False, error=str(e))
+
+    work[column] = parsed
+    became_null = int((present(original) & parsed.isna()).sum())
+    return CleaningResult(
+        True,
+        df=work,
+        affected_rows=int(present(original).sum()),
+        message=f"Parsed '{column}' as datetime",
+        details={"formats": list(formats or []), "dayfirst": dayfirst, "became_null": became_null},
+    )
+
+
+def standardize_missing(
+    df: pd.DataFrame,
+    columns: Sequence[str],
+    markers: Optional[Sequence[str]] = None,
+) -> CleaningResult:
+    """
+    Replace missing-value markers with real nulls.
+
+    Blank strings and the shared markers (n/a, null, none, ?, missing) are always
+    replaced; `markers` adds dataset-specific tokens, compared after strip/lowercase.
+    """
+    missing = set(columns) - set(df.columns)
+    if missing:
+        return CleaningResult(False, error=f"Columns not found: {missing}")
+
+    tokens = {str(m).strip().lower() for m in markers or []}
+    work = df.copy()
+    affected = 0
+    for c in columns:
+        text = work[c].astype("string").str.strip().str.lower()
+        mask = work[c].notna() & (~present(work[c]) | text.isin(tokens))
+        affected += int(mask.sum())
+        work[c] = work[c].mask(mask)
+    return CleaningResult(
+        True,
+        df=work,
+        affected_rows=affected,
+        message=f"Standardized missing markers in {list(columns)}",
+        details={"columns": list(columns), "extra_markers": sorted(tokens)},
+    )
+
+
+def handle_outliers(
+    df: pd.DataFrame,
+    columns: Sequence[str],
+    action: str = "cap",
+    method: str = "iqr",
+    k: float = 1.5,
+    lower: Optional[float] = None,
+    upper: Optional[float] = None,
+) -> CleaningResult:
+    """
+    Cap or blank numeric values outside bounds.
+
+    - method="iqr": bounds are Q1 - k*IQR and Q3 + k*IQR of each column
+    - method="bounds": explicit lower and/or upper limits
+    - action="cap" clips to the bounds; action="set_missing" replaces them with NaN
+    """
+    missing = set(columns) - set(df.columns)
+    if missing:
+        return CleaningResult(False, error=f"Columns not found: {missing}")
+    if action not in ("cap", "set_missing"):
+        return CleaningResult(False, error=f"Unknown action: {action}")
+    if method == "bounds" and lower is None and upper is None:
+        return CleaningResult(False, error="method='bounds' requires lower and/or upper")
+    if method not in ("iqr", "bounds"):
+        return CleaningResult(False, error=f"Unknown method: {method}")
+
+    work = df.copy()
+    affected = 0
+    bounds = {}
+    for c in columns:
+        series = work[c]
+        if not pd.api.types.is_numeric_dtype(series) or pd.api.types.is_bool_dtype(series):
+            return CleaningResult(False, error=f"'{c}' is not numeric; convert it before handling outliers")
+        lo, hi = lower, upper
+        if method == "iqr":
+            if series.dropna().empty:
+                return CleaningResult(False, error=f"'{c}' has no values to compute IQR bounds")
+            q1, q3 = float(series.quantile(0.25)), float(series.quantile(0.75))
+            lo, hi = q1 - k * (q3 - q1), q3 + k * (q3 - q1)
+        if pd.api.types.is_integer_dtype(series) and action == "cap":
+            # Capping an integer column must not introduce fractional values.
+            lo = None if lo is None else math.ceil(lo)
+            hi = None if hi is None else math.floor(hi)
+        outside = pd.Series(False, index=series.index)
+        if lo is not None:
+            outside |= (series < lo).fillna(False).astype(bool)
+        if hi is not None:
+            outside |= (series > hi).fillna(False).astype(bool)
+        affected += int(outside.sum())
+        bounds[c] = {"lower": lo, "upper": hi, "outside": int(outside.sum())}
+        work[c] = series.clip(lower=lo, upper=hi) if action == "cap" else series.mask(outside)
+    return CleaningResult(
+        True,
+        df=work,
+        affected_rows=affected,
+        message=f"Applied outlier {action} on {list(columns)}",
+        details={"action": action, "method": method, "k": k, "bounds": bounds},
     )
 
 

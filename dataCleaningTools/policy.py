@@ -28,6 +28,9 @@ OP_RISK: Dict[str, RiskLevel] = {
     "clean_numeric_string": RiskLevel.MODERATE,
     "handle_missing_values": RiskLevel.MODERATE,
     "remove_duplicates": RiskLevel.MODERATE,
+    "parse_datetime": RiskLevel.MODERATE,
+    "standardize_missing": RiskLevel.MODERATE,
+    "handle_outliers": RiskLevel.MODERATE,
     "drop_column": RiskLevel.HIGH,
     "run_sandbox_code": RiskLevel.HIGH,
     "apply_experimental_method": RiskLevel.MODERATE,
@@ -62,6 +65,9 @@ def requires_approval(step: TransformationStep) -> bool:
         strategy = (step.parameters or {}).get("strategy", "")
         if strategy in ("drop_rows", "drop_columns"):
             return True
+    # Exact full-row duplicates are redundant; a business key is a judgement call
+    if step.operation == "remove_duplicates" and (step.parameters or {}).get("subset"):
+        return True
     return False
 
 

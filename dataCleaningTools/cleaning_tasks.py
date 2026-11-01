@@ -242,15 +242,24 @@ def check_scope(state, name, arguments):
     columns = arguments.get("columns", [])
     if name == "apply_candidate":
         columns = state.method_candidates.get(arguments.get("candidate_id"), {}).get("columns", [])
+    op = arguments.get("operation") if name == "test_builtin" else None
     if name in {"test_builtin", "test_generated", "apply_candidate", "flag_for_review"}:
-        if not columns or not set(columns).issubset(task["columns"]):
+        # A dataset-level duplicates finding may name no columns; its key is the model's choice.
+        dataset_level = op == "remove_duplicates" and not task["columns"]
+        if not columns or not (dataset_level or set(columns).issubset(task["columns"])):
             raise ValueError("Work only on the current task's columns; do not combine unrelated repairs")
     if name == "test_builtin" and task.get("generated_required"):
-        raise ValueError("This task requires test_generated; builtin conversion already failed or custom code was selected")
-    if name in {"test_builtin", "test_generated"}:
-        op = arguments.get("operation")
-        if op == "handle_missing_values" and task["category"] != "missing":
-            raise ValueError("Handle missing values in its own task after conversion, not in this repair")
+        raise ValueError("This task requires test_generated; custom code was selected for it")
+    if op == "handle_missing_values" and task["category"] != "missing":
+        raise ValueError("Handle missing values in its own task after conversion, not in this repair")
+    if op == "remove_duplicates" and task["category"] not in {"duplicates", "domain"}:
+        raise ValueError("Remove duplicates only in a duplicates task")
+    if op == "handle_outliers" and task["category"] not in {"outliers", "domain"}:
+        raise ValueError("Handle outliers only in an outliers task, after inspecting the distribution")
+    from .workflow import CATEGORY_OPERATIONS
+    allowed = CATEGORY_OPERATIONS.get(task["category"])
+    if op and allowed and op not in allowed:
+        raise ValueError(f"{op} is not available for this {task['category']} task; choose one of {list(allowed)}")
     if name == "inspect_data" and task["columns"]:
         selected = set(arguments.get("subset", [])) | ({arguments["column"]} if arguments.get("column") else set())
         if not selected.issubset(task["columns"]):

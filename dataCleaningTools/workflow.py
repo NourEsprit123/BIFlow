@@ -11,7 +11,10 @@ from .effects import assess_candidate, failure_summary
 from .experiments import assess_method, digest, experiment
 from .method_catalog import SCHEMAS as METHOD_SCHEMAS
 
-CATALOG = ("trim_whitespace", "normalize_values", "convert_data_types", "clean_numeric_string", "handle_missing_values")
+CATALOG = ("trim_whitespace", "normalize_values", "convert_data_types", "clean_numeric_string", "handle_missing_values",
+           "parse_datetime", "standardize_missing", "remove_duplicates", "handle_outliers")
+PER_COLUMN = {"convert_data_types", "clean_numeric_string", "normalize_values", "parse_datetime"}
+ROW_REMOVAL = {"remove_duplicates"}
 CHECK_KIND = {"numeric": "numeric", "float": "numeric", "integer": "integer", "boolean": "boolean",
               "datetime": "datetime", "string": "string"}
 STRING = {"type": "string", "minLength": 1, "pattern": r"\S"}
@@ -34,9 +37,39 @@ METHOD_FIELDS = {
         "properties": {k: STRING for k in ("evidence", "interpretation", "preservation", "ambiguities")},
         "required": ["evidence", "interpretation", "preservation", "ambiguities"]},
 }
-BUILTIN_PARAMETERS = {"type": "object", "additionalProperties": False,
-    "properties": {k: v for operation in CATALOG for k, v in METHOD_SCHEMAS[operation]["properties"].items()
-                   if k not in {"column", "columns"}}}
+OPERATION_HELP = {
+    "trim_whitespace": "trim_whitespace: {}",
+    "normalize_values": "normalize_values: mapping/case/strip_whitespace",
+    "convert_data_types": "convert_data_types: target_type, optional errors/date_format",
+    "clean_numeric_string": "clean_numeric_string: optional errors",
+    "handle_missing_values": "handle_missing_values: strategy fill_median/fill_mean/fill_mode/fill_constant, fill_value for constant",
+    "parse_datetime": "parse_datetime: formats (strftime list) or dayfirst",
+    "standardize_missing": "standardize_missing: extra markers to null",
+    "remove_duplicates": "remove_duplicates: columns=key, all columns=exact rows; optional keep",
+    "handle_outliers": "handle_outliers: action cap/set_missing, method iqr (k) or bounds (lower/upper)",
+}
+FORMATTING = ("trim_whitespace", "normalize_values", "standardize_missing")
+# Each focused task sees only the operations its category may use; other categories see the whole catalog.
+CATEGORY_OPERATIONS = {
+    "formatting": FORMATTING,
+    "types": FORMATTING + ("convert_data_types", "clean_numeric_string", "parse_datetime"),
+    "missing": ("standardize_missing", "handle_missing_values"),
+    "duplicates": ("remove_duplicates",),
+    "outliers": ("handle_outliers",),
+}
+
+
+def builtin_tool(operations=CATALOG):
+    parameters = {"type": "object", "additionalProperties": False,
+        "properties": {k: v for operation in operations for k, v in METHOD_SCHEMAS[operation]["properties"].items()
+                       if k not in {"column", "columns", "subset"}}}
+    return tool("test_builtin", "Test ONLY a catalog operation on a copy. Python code is not accepted. "
+         + "; ".join(OPERATION_HELP[operation] for operation in operations) + ". "
+         "Passing trials are applied automatically. If one fails, change parameters or operation, or use test_generated.",
+         {**METHOD_FIELDS, "operation": {"type": "string", "enum": list(operations)}, "parameters": parameters},
+         ["hypothesis", "columns", "operation", "parameters"])
+
+
 SCHEMAS_LIST = [
     tool("inspect_data", "Read working data. duplicates checks full rows or keys given by column/subset. reason explains the remaining question and why this view helps. Column views require column. distribution gives full-column numeric stats; extremes smallest/largest; filtered matching examples; relationships compares column with related_column. Repeats reuse evidence and do not advance a task.",
          {"reason": STRING, "question": STRING, "expected_evidence": STRING,
@@ -46,13 +79,7 @@ SCHEMAS_LIST = [
           "threshold": {"type": "number"},
           "column": STRING, "offset": {"type": "integer", "minimum": 0},
           "limit": {"type": "integer", "minimum": 1, "maximum": 100}}, ["reason", "view"]),
-    tool("test_builtin", "Test ONLY a catalog operation on a copy. Python code is not accepted. "
-         "convert_data_types: target_type, optional errors/date_format; clean_numeric_string: optional errors; "
-         "normalize_values: mapping/case/strip_whitespace; trim_whitespace: {}; "
-         "handle_missing_values: strategy fill_median/fill_mean/fill_mode/fill_constant, fill_value for constant. "
-         "Passing trials are automatically applied after full-data validation. If it cannot preserve values, use test_generated.",
-         {**METHOD_FIELDS, "operation": {"type": "string", "enum": list(CATALOG)}, "parameters": BUILTIN_PARAMETERS},
-         ["hypothesis", "columns", "operation", "parameters"]),
+    builtin_tool(),
     tool("test_generated", "Explicit method for YOUR generated Python code. Supply complete transform(df), returning a DataFrame, and checks. "
          "No operation or parameters. Docker unavailability stops the run; no builtin fallback. "
          "Passing trials are automatically applied after full-data validation.",
@@ -76,8 +103,17 @@ VALIDATORS = {name: Draft202012Validator(schema) for name, schema in SCHEMA.item
 def available_tools(state):
     from .cleaning_tasks import active
     task = active(state)
-    return [t for t in SCHEMAS_LIST if not (task and task.get("generated_required")
-            and t["function"]["name"] == "test_builtin")]
+    if not task:
+        return SCHEMAS_LIST
+    tools = []
+    for t in SCHEMAS_LIST:
+        if t["function"]["name"] == "test_builtin":
+            if task.get("generated_required"):
+                continue
+            if task["category"] in CATEGORY_OPERATIONS:
+                t = builtin_tool(CATEGORY_OPERATIONS[task["category"]])
+        tools.append(t)
+    return tools
 
 
 def fingerprint(arguments):
@@ -171,17 +207,21 @@ def builtin_parameters(operation, parameters, columns):
     if set(declared) != set(columns):
         raise ValueError("Parameters must target exactly the declared columns")
     schema = {**METHOD_SCHEMAS[operation], "properties": dict(METHOD_SCHEMAS[operation]["properties"])}
-    if operation in {"convert_data_types", "clean_numeric_string", "normalize_values"} and "column" not in parameters:
+    if operation in PER_COLUMN and "column" not in parameters:
         parameters["columns"] = columns
         schema["properties"]["columns"] = STRINGS
         schema["required"] = ["columns" if key == "column" else key for key in schema["required"]]
-    elif operation in {"trim_whitespace", "handle_missing_values"}:
+    elif operation == "remove_duplicates":
+        parameters["subset"] = columns
+    elif operation not in PER_COLUMN:
         parameters.setdefault("columns", columns)
     errors = list(Draft202012Validator(schema).iter_errors(parameters))
     if errors:
         raise ValueError("Invalid builtin parameters: " + "; ".join(e.message for e in errors))
     if operation == "handle_missing_values" and parameters.get("strategy") == "fill_constant" and parameters.get("fill_value") is None:
         raise ValueError("fill_constant requires an explicit non-null fill_value")
+    if operation == "handle_outliers" and parameters["method"] == "bounds" and "lower" not in parameters and "upper" not in parameters:
+        raise ValueError("handle_outliers method=bounds requires lower and/or upper")
     return parameters
 
 
@@ -199,14 +239,17 @@ def test_candidate(executor, arguments):
     arguments = dict(arguments)
     if not generated:
         arguments["parameters"] = builtin_parameters(arguments.get("operation"), arguments.get("parameters", {}), columns)
+        if arguments["operation"] == "remove_duplicates" and set(columns) == set(frame.columns):
+            arguments["parameters"]["subset"] = None  # exact full-row duplicates
+    removes_rows = arguments.get("operation") in ROW_REMOVAL
     checks = list(arguments.get("checks", []))
     if any(check["column"] not in columns for check in checks):
         raise ValueError("Checks must refer to selected columns")
     from .cleaning_tasks import active
     task = active(state) if state.focused_cleaning else None
-    arguments["verify_numeric_values"] = (task["category"] in {"types", "missing"} if task else
+    arguments["verify_numeric_values"] = not removes_rows and (task["category"] in {"types", "missing"} if task else
         generated or arguments.get("operation") in {"convert_data_types", "clean_numeric_string", "handle_missing_values"})
-    if task and task["category"] != "missing":
+    if task and task["category"] != "missing" and not removes_rows:
         checks += [{"column": c, "kind": "preserve_missing"} for c in columns]
     if generated or task:
         checks += [{"column": c, "kind": CHECK_KIND.get(canonical_type(state.required_targets[c]), canonical_type(state.required_targets[c]))}
@@ -309,7 +352,7 @@ def run_builtin(frame, operation, parameters):
         invalid = [c for c in parameters["columns"] if not cleaning.pd.api.types.is_numeric_dtype(frame[c]) or cleaning.pd.api.types.is_bool_dtype(frame[c])]
         if invalid:
             raise ValueError(f"{parameters['strategy']} requires numeric columns; inspect and convert first: {invalid}")
-    if operation in {"convert_data_types", "clean_numeric_string", "normalize_values"} and "columns" in parameters:
+    if operation in PER_COLUMN and "columns" in parameters:
         columns = parameters.pop("columns")
         current, affected = frame.copy(deep=True), 0
         for column in columns:

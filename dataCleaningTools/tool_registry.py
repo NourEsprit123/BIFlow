@@ -165,8 +165,6 @@ class ToolExecutor:
             result["recovery_prompt"] = guidance
             if "diagnostic" in guidance["context"]:
                 result["diagnostic"] = guidance["context"]["diagnostic"]
-        if task and name == "test_builtin" and result.get("success") is False and guidance and guidance["case"] in {"data_loss", "conversion", "validation"}:
-            task["generated_required"] = True
         if guidance and guidance["case"] == "sandbox_unavailable":
             self.stop("sandbox_unavailable", result.get("error") or "Docker execution is unavailable")
             result.update(fatal=True, error_kind="sandbox_unavailable")
@@ -337,9 +335,10 @@ class ToolExecutor:
                 and before.columns.equals(result.df.columns)
                 and before.astype("string").equals(result.df.astype("string"))))
             if same_values:
-                if name in ("convert_data_types", "clean_numeric_string"):
+                if name in ("convert_data_types", "clean_numeric_string", "parse_datetime"):
                     for column in ([function_arguments["column"]] if "column" in function_arguments else selected):
-                        self.state.required_targets.setdefault(column, function_arguments.get("target_type", "numeric"))
+                        self.state.required_targets.setdefault(column, "datetime" if name == "parse_datetime"
+                                                               else function_arguments.get("target_type", "numeric"))
                 prog = self.progress()
                 msg = ("No persisted values changed; all required type and missing obligations are satisfied. Call finish."
                        if not prog.get("pending_types") and not prog.get("pending_missing")
@@ -361,7 +360,8 @@ class ToolExecutor:
             # Newly coerced invalid values become ordinary missing-value work.
             # Register only committed data, never a sample/trial copy.
             for column in selected:
-                if column in result.df and not present(result.df[column]).all() and column not in self.state.required_missing:
+                if (column in result.df and column not in self.state.required_missing
+                        and (~present(result.df[column])).sum() > (~present(before[column])).sum()):
                     self.state.required_missing.append(column)
             if name == "drop_column" or (name == "handle_missing_values" and function_arguments.get("strategy") == "drop_columns"):
                 if self.state.expected_columns is not None:
@@ -369,9 +369,10 @@ class ToolExecutor:
                 for column in before.columns.difference(result.df.columns):
                     self.state.required_targets.pop(column, None)
                     self.state.required_missing = [c for c in self.state.required_missing if c != column]
-            if name in ("convert_data_types", "clean_numeric_string"):
+            if name in ("convert_data_types", "clean_numeric_string", "parse_datetime"):
                 for column in ([function_arguments["column"]] if "column" in function_arguments else selected):
-                    self.state.required_targets.setdefault(column, function_arguments.get("target_type", "numeric"))
+                    self.state.required_targets.setdefault(column, "datetime" if name == "parse_datetime"
+                                                           else function_arguments.get("target_type", "numeric"))
         else:
             record = self.state.manager.record_rejected(
                 self.state.current_ref, operation=name, columns=selected, parameters=function_arguments,

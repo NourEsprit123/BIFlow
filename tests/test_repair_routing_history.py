@@ -94,7 +94,7 @@ def test_data_loss_requires_proposal_and_still_checks_actual_data(session, monke
     assert state.current_ref.version == "V1"  # passing trial alone does not commit
 
 
-def test_failed_builtin_cannot_be_bypassed_with_another_builtin(tmp_path, monkeypatch):
+def test_failed_builtin_can_be_revised_with_another_builtin(tmp_path, monkeypatch):
     monkeypatch.setattr("agents.dataCleaning_agent.sandbox_status", lambda: {})
     calls = []
     def respond(messages, tools, **options):
@@ -108,5 +108,7 @@ def test_failed_builtin_cannot_be_bypassed_with_another_builtin(tmp_path, monkey
                           parameters={"target_type": "boolean"})
         return action("finish", summary="Flags converted")
     result = run(tmp_path, monkeypatch, respond, max_turns=5)
-    assert not result.validation.all_passed and result.final_dataset.version == "V1"
-    assert not any(e["tool"] == "apply_candidate" for e in result.metadata["events"])
+    # Identical failed retries are refused; a different, valid builtin is tested and applied.
+    tested = [e for e in result.metadata["events"] if e["tool"] == "test_builtin"]
+    assert sum(e["result"].get("error_kind") == "duplicate_method" for e in tested) == 2
+    assert result.validation.all_passed and result.final_dataset.version == "V2"

@@ -82,6 +82,10 @@ def _tool_feedback(result_json: str) -> str:
                              "lost_value_count": details["full_data_effect"].get("lost_value_count", 0),
                              "sandbox_log": details.get("sandbox_log", ""),
                              "failed_rules": [r for r in details["full_data_effect"]["rules"] if not r["passed"]]}
+        if result.get("failure_summary"):
+            # failure_summary already lists these full-data losses and failed checks.
+            result["details"].pop("lost_values")
+            result["details"].pop("failed_rules")
     effect = result.get("effect")
     if effect:
         result["effect"] = {
@@ -306,8 +310,20 @@ class DataCleaningAgent:
                     break
                 except Exception as exc:
                     if isinstance(exc, ValueError) and str(exc).startswith("Cleaning prompt exceeds"):
-                        state.stop("context_budget", str(exc))
-                        break
+                        if any(t["function"]["name"] == "test_builtin" for t in tools):
+                            # Shed the builtin schema before stopping; generated code and review stay available.
+                            tools = [t for t in tools if t["function"]["name"] != "test_builtin"]
+                            state.step_log.append({"turn": turn, "context_budget": "test_builtin omitted to fit the request"})
+                            try:
+                                response = chat_with_tools(_request_context(messages,tools=tools,
+                                    reserved_chars=len(json.dumps(context)))+context,tools,model=self.model,
+                                    temperature=0.1,on_provider_event=state.on_event,timeout=state.deadline-time.monotonic())
+                                break
+                            except Exception as retry_exc:
+                                exc = retry_exc
+                        if isinstance(exc, ValueError) and str(exc).startswith("Cleaning prompt exceeds"):
+                            state.stop("context_budget", str(exc))
+                            break
                     retry = _tool_generation_failed(exc) and attempt == 0
                     state.provider_errors.append({"turn":turn,"type":type(exc).__name__,"status_code":getattr(exc,"status_code",None),
                         "message":str(exc),"retrying":retry})
@@ -403,9 +419,10 @@ class DataCleaningAgent:
             state.step_log.append({"turn": turn, "tool": "apply_candidate",
                 "source": "automatic_after_trial", "args": application_args,
                 "result_preview": json.dumps(application)[:300]})
+            # The passing trial is saved in full as its own event; the model needs only the reference.
             result = {**application, "tested": True,
                 "applied": bool(application.get("success")),
-                "trial": json.loads(_tool_feedback(json.dumps(trial)))}
+                "trial": {"candidate_id": trial["candidate_id"], "passed": True}}
         return result
 
     def _build_user_message(

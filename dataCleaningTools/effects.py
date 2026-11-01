@@ -101,6 +101,17 @@ def assess_candidate(before: pd.DataFrame, after: pd.DataFrame, operation: str,
         for c in affected:
             if c in after:
                 check(f"target_type:{c}", target_matches(after[c], target), f"Values must match {target}")
+    if operation == "parse_datetime":
+        for c in affected:
+            if c in after:
+                check(f"target_type:{c}", target_matches(after[c], "datetime"), "Values must match datetime")
+    if operation == "standardize_missing" and len(before) == len(after):
+        for c in affected:
+            if c in after:
+                old, new = before[c].reset_index(drop=True), after[c].reset_index(drop=True)
+                rewritten = old.astype("string").ne(new.astype("string")).fillna(True) & old.notna()
+                check(f"markers_only:{c}", (~present(new[rewritten])).all(),
+                      "Only missing markers may change, and only into nulls")
     if operation == "handle_missing_values" and strategy.startswith("fill_"):
         for c in affected:
             if c in after:

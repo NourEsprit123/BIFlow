@@ -59,7 +59,7 @@ def test_docker_unavailable_stops_before_code_repair_or_builtin_fallback(tmp_pat
     assert not result.metadata["expert_generations"]
 
 
-def test_failed_builtin_removes_builtin_from_task_tools(tmp_path, monkeypatch):
+def test_failed_builtin_leaves_builtin_and_generated_routes_open(tmp_path, monkeypatch):
     monkeypatch.setattr(experiments, "run_isolated_transform", sandbox)
     calls = []
     def respond(messages, tools, **kwargs):
@@ -68,8 +68,8 @@ def test_failed_builtin_removes_builtin_from_task_tools(tmp_path, monkeypatch):
             return action("test_builtin", columns=["flag"], hypothesis="Wrong numeric conversion",
                           operation="convert_data_types", parameters={"target_type": "float"})
         if len(calls) == 2:
-            assert "test_builtin" not in {t["function"]["name"] for t in tools}
-            assert json.loads(messages[-1]["content"])["cleaning_focus"]["task"]["generated_required"]
+            assert {"test_builtin", "test_generated"} <= {t["function"]["name"] for t in tools}
+            assert not json.loads(messages[-1]["content"])["cleaning_focus"]["task"].get("generated_required")
             return action("test_generated", **request())
         return action("finish", summary="A generated method resolved the failed builtin")
     result = run(tmp_path, monkeypatch, respond)
