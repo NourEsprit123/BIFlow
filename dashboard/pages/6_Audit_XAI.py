@@ -11,7 +11,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -32,12 +32,12 @@ from chat_widget import render_chat
 
 # ── Chat widget & page setup ──────────────────────────────────────────────────
 render_chat("Audit XAI")
-setup("Audit & XAI")
+setup("Audit & XAI", hub="Agent 3 · XAI Auditor")
 page_header(
     "🛡️ Cockpit de Gouvernance & Explicabilité XAI",
     "Conformité, traçabilité cryptographique et attribution causale des décisions IA.",
-    btn("⭳ Exporter le rapport") + btn("🛡 Certifier l'audit", True),
-    "Workspace › <b>Gouvernance & XAI</b>",
+    badge("Agent 3", "purple"),
+    "Agent 3 · XAI Auditor > <b>Governance & Audit</b>",
 )
 
 # ── Inline CSS — identité visuelle XAI ───────────────────────────────────────
@@ -125,337 +125,136 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =============================================================================
-# SIDEBAR — Moteur LLM + Source de données
+# SIDEBAR — Gouvernance & Navigation
 # =============================================================================
 
-st.sidebar.markdown("### 🤖 Moteur d'explication XAI")
-
-engine_options = [
-    "🦙 Local — Ollama (qwen2.5:7b)",
-    "☁️ Cloud — Groq / Gemini",
-    "⚡ Auto (Local → Cloud → Fallback)",
-]
-if "xai_engine_choice" not in st.session_state:
-    st.session_state["xai_engine_choice"] = engine_options[2]
-
-selected_engine_label = st.sidebar.radio(
-    "Moteur actif",
-    engine_options,
-    index=engine_options.index(st.session_state["xai_engine_choice"]),
-    key="xai_engine_radio",
-    help="Local = Ollama hors-ligne · Cloud = Groq/Gemini · Auto = cascade intelligente",
+st.sidebar.markdown("### 🛡️ Gouvernance & Audit")
+st.sidebar.caption(
+    "L'**Agent 3 (XAI Auditor)** certifie automatiquement le pipeline complet "
+    "(A1 Profiling/Qualité ➔ A2 BI Insights ➔ A3 Audit)."
 )
-st.session_state["xai_engine_choice"] = selected_engine_label
 
-# Résoudre l'engine string pour l'agent
-if "Local" in selected_engine_label:
-    chosen_engine = "local"
-elif "Cloud" in selected_engine_label:
-    chosen_engine = "api"
-else:
-    chosen_engine = "auto"
+# Récupérer l'audit du pipeline
+wf_st = st.session_state.get("wf_graph_state") or {}
+pipe_res = st.session_state.get("pipeline_results") or {}
+a3_rep = (wf_st.get("reports") or {}).get("xai_auditor") or pipe_res.get("agent3")
+audit_report = st.session_state.get("xai_audit_report") or (a3_rep.get("audit_report") if a3_rep else None)
 
-# Options spécifiques au moteur
-groq_key = ""
-if "Cloud" in selected_engine_label or "Auto" in selected_engine_label:
+if audit_report:
     st.sidebar.markdown("---")
-    # Charger la clé depuis l'env SANS l'afficher comme valeur par défaut du widget
-    _env_groq = os.environ.get("GROQ_API_KEY", "")
-    _groq_configured = bool(_env_groq)
-    groq_key = st.sidebar.text_input(
-        "Groq API Key (optionnel)",
-        value="",                  # jamais pré-rempli avec la valeur réelle
-        type="password",
-        key="xai_groq_key",
-        placeholder="Saisir une clé pour la remplacer…" if _groq_configured else "gsk_…",
-        help="Laissez vide pour utiliser GROQ_API_KEY du .env, ou Gemini en fallback.",
-    )
-    # Affichage du statut sans jamais montrer la valeur
-    if groq_key:
-        # L'utilisateur vient de saisir une nouvelle clé → l'injecter dans l'env
-        os.environ["GROQ_API_KEY"] = groq_key
-        st.sidebar.success("🔑 Clé API : Configurée [Sécurisée] ✅")
-    elif _groq_configured:
-        st.sidebar.success("🔑 Clé API : Configurée via `.env` ✅")
-        groq_key = _env_groq   # utiliser la clé env sans l'afficher
-    else:
-        st.sidebar.warning("🔑 Clé API : Non configurée ❌")
-
-ollama_url     = "http://localhost:11434/api/generate"
-ollama_model   = "qwen2.5:7b"
-ollama_timeout = 120
-
-if "Local" in selected_engine_label or "Auto" in selected_engine_label:
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("**🦙 Paramètres Ollama**")
-    ollama_url     = st.sidebar.text_input("URL Ollama", value=ollama_url, key="xai_ollama_url")
-    ollama_model   = st.sidebar.text_input("Modèle", value=ollama_model, key="xai_ollama_model")
-    ollama_timeout = st.sidebar.slider("Timeout (s)", 30, 300, 120, 10, key="xai_ollama_timeout")
-    # Statut de connexion — URL affichée sans credential, port uniquement
-    _ollama_host_display = ollama_url.split("//")[-1].split("/")[0]  # ex: localhost:11434
-    st.sidebar.caption(f"📡 Endpoint : `{_ollama_host_display}`")
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 🗄 Source de données")
-
-data_dir      = PROJECT_ROOT / "data"
-available_csv = (
-    [p.relative_to(PROJECT_ROOT) for p in data_dir.glob("**/*.csv")]
-    if data_dir.exists() else []
-)
-NONE_OPT = "— Aucun —"
-existing_choice = st.sidebar.selectbox(
-    "Dataset existant",
-    [NONE_OPT] + [str(p) for p in available_csv],
-    key="xai_existing_choice",
-)
-
-# ── Agent — instanciation via session_state pour éviter le cache opaque ──────
-# @st.cache_resource est intentionnellement évité ici : il conserve l'ancienne
-# instance après un hot-reload et lève un TypeError si la signature a changé.
-# On indexe sur un tuple de paramètres : toute modification recrée l'instance.
-_agent_key = (chosen_engine, ollama_url, ollama_model, int(ollama_timeout),
-              groq_key or "")
-if st.session_state.get("_xai_agent_key") != _agent_key:
-    st.session_state["_xai_agent_key"] = _agent_key
-    st.session_state["_xai_agent"] = XAIAuditorAgent(
-        engine=chosen_engine,
-        ollama_url=ollama_url,
-        ollama_model=ollama_model,
-        ollama_timeout=int(ollama_timeout),
-        groq_api_key=groq_key or None,
-    )
-
-agent: XAIAuditorAgent = st.session_state["_xai_agent"]
+    st.sidebar.markdown("**📋 Audit actif :**")
+    st.sidebar.success(f"● {audit_report.get('dataset_name', 'Dataset')}")
+    _ts = audit_report.get("timestamp", "")[:19].replace("T", " ")
+    if _ts:
+        st.sidebar.caption(f"📅 Scellé le : `{_ts}`")
+    _hash = audit_report.get("integrity", {}).get("audit_hash", "")
+    if _hash:
+        st.sidebar.caption(f"🔐 Hash : `{_hash[:12]}…`")
 
 # =============================================================================
-# 1. SÉLECTEUR DE FICHIER
+# 1. ÉTAT D'AUDIT DU PIPELINE
 # =============================================================================
 
-st.markdown('<span class="xai-pill">📂 Jeu de données à auditer</span>', unsafe_allow_html=True)
-st.markdown("")
+_wf_res = st.session_state.get("wf_resource_mode", "auto")
+_xai_eng = "api" if _wf_res == "cloud" else ("local" if _wf_res == "local" else "auto")
+agent = XAIAuditorAgent(engine=_xai_eng, ollama_model="qwen2.5:3b")
 
-df: Optional[pd.DataFrame] = None
-dataset_name = ""
+if not audit_report:
+    st.markdown("""
+    <div style="background:#ffffff; border:1px solid #e0e7ff; border-radius:18px; padding:3rem 2rem; text-align:center; max-width:760px; margin:2.5rem auto; box-shadow:0 10px 25px -5px rgba(99,102,241,0.08);">
+      <div style="font-size:3.5rem; margin-bottom:1rem;">🛡️</div>
+      <h2 style="color:#1e1b4b; font-weight:700; margin-bottom:0.75rem;">Aucun audit actif en mémoire</h2>
+      <p style="color:#475569; font-size:1rem; line-height:1.7; margin-bottom:1.5rem;">
+        L'<b>Agent 3 (Audit & XAI)</b> est le certificateur final de la plateforme BIFlow.<br>
+        Il s'exécute automatiquement lors de l'exécution du pipeline complet (<b>Agent 1 ➔ Agent 2 ➔ Agent 3</b>) afin d'auditer la conformité, vérifier le nettoyage des données et expliquer les décisions via SHAP.
+      </p>
+      <div style="background:#f8fafc; border-left:4px solid #6366f1; border-radius:0 10px 10px 0; padding:0.9rem 1.2rem; text-align:left; margin-bottom:2rem; font-size:0.88rem; color:#334155; line-height:1.6;">
+        ℹ️ <b>Règle de gouvernance BIFlow :</b><br>
+        Si vous avez sélectionné uniquement l'Agent 2 en mode direct (<code>direct_agent_2</code>), l'Agent 3 est intentionnellement ignoré car il ne dispose pas des métriques de qualité et de traçabilité de l'Agent 1.
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-with st.container(border=True):
-    col_up, col_btn = st.columns([3, 1], vertical_alignment="bottom")
-    with col_up:
-        uploaded_file = st.file_uploader(
-            "Glissez votre fichier CSV ici — ou sélectionnez-en un dans la sidebar",
-            type=["csv"], key="xai_uploader",
-        )
-    try:
-        if uploaded_file is not None:
-            df = pd.read_csv(uploaded_file)
-            dataset_name = uploaded_file.name
-        elif existing_choice != NONE_OPT:
-            df = pd.read_csv(PROJECT_ROOT / existing_choice)
-            dataset_name = Path(existing_choice).name
-        else:
-            # Fallback automatique sur le dataset actif du pipeline / Agent 1
-            wf_st = st.session_state.get("wf_graph_state") or {}
-            wf_path = (
-                st.session_state.get("current_dataset_path")
-                or wf_st.get("cleaned_data_path")
-                or wf_st.get("data_path")
-                or st.session_state.get("wf_file")
-            )
-            if wf_path and Path(wf_path).exists():
-                df = pd.read_csv(wf_path)
-                dataset_name = Path(wf_path).name
-    except Exception as e:
-        st.error(f"Erreur de lecture : {e}")
-        df = None
-
-    with col_btn:
-        launch_audit = st.button(
-            "🔬 Lancer l'Audit Forensique",
-            type="primary", use_container_width=True, disabled=df is None,
-        )
-
-    if df is not None:
-        st.caption(f"✅ **{dataset_name}** · {df.shape[0]:,} lignes · {df.shape[1]} colonnes")
-        with st.expander("👀 Aperçu des données brutes", expanded=False):
-            st.dataframe(df.head(10), use_container_width=True)
-
-if df is None:
-    st.info("⬆️ Importez un CSV (ou choisissez-en un dans la sidebar), puis cliquez sur **🔬 Lancer l'Audit Forensique**.")
+    c_l, c_btn, c_r = st.columns([1, 2, 1])
+    with c_btn:
+        if st.button("🚀 Aller dans Workflows pour exécuter le pipeline complet", type="primary", use_container_width=True, key="btn_goto_wf_from_xai"):
+            st.session_state.sidebar_mode = "nav"
+            st.switch_page("pages/3_Workflows.py")
     st.stop()
 
 # =============================================================================
-# 2. CONFIGURATION AUDIT
+# 2. RESTITUTION DE L'AUDIT CERTIFIÉ
 # =============================================================================
 
-st.markdown("---")
-st.markdown('<span class="xai-pill">⚙️ Paramètres de l\'audit</span>', unsafe_allow_html=True)
-st.markdown("")
-
-cfg1, cfg2, cfg3 = st.columns(3)
-with cfg1:
-    target_column = st.selectbox(
-        "🎯 Variable cible à expliquer",
-        options=df.columns.tolist(),
-        index=len(df.columns) - 1,
-        key="xai_target_col",
-        help="Le surrogate RandomForest sera entraîné à prédire cette colonne.",
-    )
-with cfg2:
-    top_n = st.slider(
-        "🔢 Top N features SHAP",
-        min_value=3, max_value=min(20, df.shape[1] - 1),
-        value=min(10, df.shape[1] - 1), key="xai_top_n",
-    )
-with cfg3:
-    max_rows = st.number_input(
-        "📏 Lignes max pour SHAP",
-        min_value=50, max_value=min(2000, df.shape[0]),
-        value=min(500, df.shape[0]), step=50, key="xai_max_rows",
-        help="500 est un bon compromis performance / représentativité.",
-    )
-
-# =============================================================================
-# 3. SURROGATE MODEL
-# =============================================================================
-
-@st.cache_data(show_spinner=False)
-def train_surrogate(_df: pd.DataFrame, target_col: str, _max_rows: int):
-    from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-    from sklearn.metrics import accuracy_score
-    from sklearn.preprocessing import LabelEncoder
-
-    df_work = _df.copy()
-    if len(df_work) > _max_rows:
-        df_work = df_work.sample(n=_max_rows, random_state=42)
-
-    feature_cols = [c for c in df_work.columns if c != target_col]
-    X_raw = df_work[feature_cols].copy()
-    y_raw = df_work[target_col].copy()
-
-    for col in X_raw.select_dtypes(include=["object", "category"]).columns:
-        try:
-            X_raw[col] = pd.to_numeric(X_raw[col], errors="coerce")
-        except Exception:
-            pass
-        if X_raw[col].dtype == object:
-            le = LabelEncoder()
-            X_raw[col] = le.fit_transform(X_raw[col].astype(str))
-
-    X_raw = X_raw.apply(pd.to_numeric, errors="coerce")
-    X_raw = X_raw.fillna(X_raw.median(numeric_only=True))
-    X = X_raw.astype(float)
-
-    try:
-        y_numeric = pd.to_numeric(y_raw, errors="coerce")
-        if y_numeric.isna().sum() / len(y_raw) > 0.5:
-            raise ValueError("mostly non-numeric")
-        if int(y_numeric.nunique()) <= 20:
-            le_y = LabelEncoder()
-            y    = le_y.fit_transform(y_raw.astype(str))
-            mdl  = RandomForestClassifier(n_estimators=80, max_depth=8, random_state=42, n_jobs=-1)
-            task = "classification"
-        else:
-            y    = y_numeric.fillna(y_numeric.median()).values
-            mdl  = RandomForestRegressor(n_estimators=80, max_depth=8, random_state=42, n_jobs=-1)
-            task = "regression"
-    except Exception:
-        le_y = LabelEncoder()
-        y    = le_y.fit_transform(y_raw.astype(str))
-        mdl  = RandomForestClassifier(n_estimators=80, max_depth=8, random_state=42, n_jobs=-1)
-        task = "classification"
-
-    try:
-        mdl.fit(X, y)
-    except Exception as e:
-        return None, None, None, feature_cols, "unknown", None, str(e)
-
-    accuracy = None
-    if task == "classification":
-        try:
-            accuracy = round(float(accuracy_score(y, mdl.predict(X))), 4)
-        except Exception:
-            pass
-
-    return mdl, X, y, feature_cols, task, accuracy, None
-
-
-# =============================================================================
-# 4. EXÉCUTION AU CLIC
-# =============================================================================
-
-dataset_sig = f"{dataset_name}_{df.shape[0]}_{df.shape[1]}_{target_column}_{chosen_engine}"
-
-if launch_audit or st.session_state.get("xai_force_rerun", False):
-    st.session_state.pop("xai_force_rerun", None)
-
-    with st.spinner("⚙️ Entraînement du surrogate RandomForest…"):
-        mdl, X, y, feature_names, task_type, surrogate_accuracy, fit_err = (
-            train_surrogate(df, target_column, int(max_rows))
-        )
-
-    if fit_err or mdl is None:
-        st.error(f"❌ Échec du surrogate model : {fit_err}")
-        st.stop()
-
-    engine_label_short = (
-        "🦙 Ollama local" if chosen_engine == "local"
-        else "☁️ Cloud API"  if chosen_engine == "api"
-        else "⚡ Auto"
-    )
-    with st.spinner(
-        f"🔬 Audit forensique en cours — SHAP · SHA-256 · LLM ({engine_label_short})…  "
-        "⏳ L'appel LLM peut prendre 30 à 90 secondes."
-    ):
-        try:
-            audit_report = agent.audit(
-                model=mdl, X=X, predictions=None,
-                feature_names=feature_names,
-                dataset_name=dataset_name,
-                top_n_features=int(top_n),
-            )
-        except Exception as e:
-            st.error(f"❌ Erreur audit : {e}")
-            st.stop()
-
-    st.session_state["xai_audit_report"]      = audit_report
-    st.session_state["xai_dataset_sig"]        = dataset_sig
-    st.session_state["xai_task_type"]          = task_type
-    st.session_state["xai_feature_names"]      = feature_names
-    st.session_state["xai_surrogate_accuracy"] = surrogate_accuracy
-
-if st.session_state.get("xai_dataset_sig") != dataset_sig:
-    wf_st = st.session_state.get("wf_graph_state") or {}
-    a3_rep = (wf_st.get("reports") or {}).get("xai_auditor") or st.session_state.get("pipeline_results", {}).get("agent3")
-    if a3_rep and a3_rep.get("audit_report"):
-        st.session_state["xai_audit_report"] = a3_rep["audit_report"]
-        st.session_state["xai_dataset_sig"] = dataset_sig
-        st.session_state["xai_task_type"] = a3_rep["audit_report"].get("task_type", "classification")
-        st.session_state["xai_feature_names"] = a3_rep["audit_report"].get("feature_names", [f.get("feature") for f in a3_rep["audit_report"].get("shap", {}).get("summary", {}).get("top_features", []) if isinstance(f, dict)])
-        st.session_state["xai_surrogate_accuracy"] = a3_rep["audit_report"].get("surrogate_accuracy")
-    else:
-        st.info("👆 Configurez les paramètres ci-dessus puis cliquez sur **🔬 Lancer l'Audit Forensique**.")
-        st.stop()
-
-# ── Lecture des résultats ─────────────────────────────────────────────────────
-audit_report       = st.session_state["xai_audit_report"]
-task_type          = st.session_state.get("xai_task_type", "unknown")
-feature_names      = st.session_state.get("xai_feature_names", [])
-surrogate_accuracy = st.session_state.get("xai_surrogate_accuracy")
-telemetry          = audit_report.get("telemetry", {})
+dataset_name       = audit_report.get("dataset_name", "Dataset")
+n_samples          = audit_report.get("n_samples", 0)
+n_features         = audit_report.get("n_features", 0)
 integrity          = audit_report.get("integrity", {})
+telemetry          = audit_report.get("telemetry", {})
 shap_block         = audit_report.get("shap", {})
 shap_summary       = shap_block.get("summary", {})
 top_features       = shap_summary.get("top_features", [])
 pred_dist          = audit_report.get("predictions_distribution", {})
 narrative          = audit_report.get("narrative_explanation", "")
 explainer_type     = shap_block.get("explainer_type", "N/A")
-global_shap        = shap_summary.get("global_mean_abs_shap", 0.0)
-n_samples          = audit_report.get("n_samples", 0)
-n_features_kpi     = audit_report.get("n_features", 0)
+upstream_ctx       = audit_report.get("upstream_context", {})
+surrogate_accuracy = audit_report.get("surrogate_accuracy")
+task_type          = audit_report.get("task_type", "classification")
+
+# Carte de synthèse Dataset & Certification
+col_card, col_badge = st.columns([3, 1], vertical_alignment="center")
+with col_card:
+    html(f'''<div class="bf-card" style="background:linear-gradient(135deg,#eef2ff,#f8faff);
+      border:1px solid #c7d2fe;display:flex;gap:1.25rem;align-items:center;
+      border-radius:16px;padding:1rem 1.4rem;margin-bottom:0.5rem">
+      <span style="font-size:1.8rem;">🛡️</span>
+      <div>
+        <small style="color:#4338ca;font-weight:700;letter-spacing:0.04em;">DATASET CERTIFIÉ PAR LE PIPELINE</small>
+        <div style="font-size:1.15rem;font-weight:700;color:#1e1b4b;">{dataset_name}</div>
+        <span style="color:#64748b;font-size:0.85rem;">{n_samples:,} observations analysées · {n_features} features auditées</span>
+      </div>
+    </div>''')
+with col_badge:
+    st.markdown("""
+    <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:14px;padding:0.85rem 1rem;text-align:center;">
+      <span class="xai-badge-ok" style="font-size:0.82rem;padding:0.35rem 0.9rem;">● CERTIFIÉ COMPLIANT</span>
+      <div style="color:#15803d;font-size:0.75rem;margin-top:0.35rem;font-weight:600;">Traçabilité scellée</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# Lignée Tri-Agents
+if upstream_ctx.get("has_a1") or upstream_ctx.get("has_a2"):
+    c_t1, c_t2, c_t3 = st.columns([1.5, 1.5, 1.2], vertical_alignment="center")
+    with c_t1:
+        if upstream_ctx.get("has_a1"):
+            h_s = upstream_ctx.get("a1_health_score", "N/A")
+            st.markdown(f"""
+            <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:0.5rem 0.85rem;font-size:0.8rem;">
+              <b style="color:#166534;">⚙️ Agent 1 · Data Engineering</b><br>
+              <span style="color:#15803d;">✅ Qualité connectée</span> · Score : <b>{h_s}%</b>
+            </div>
+            """, unsafe_allow_html=True)
+    with c_t2:
+        if upstream_ctx.get("has_a2"):
+            st.markdown("""
+            <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:0.5rem 0.85rem;font-size:0.8rem;">
+              <b style="color:#166534;">📊 Agent 2 · BI Analyst</b><br>
+              <span style="color:#15803d;">✅ Insights BI connectés</span> · KPIs intégrés
+            </div>
+            """, unsafe_allow_html=True)
+    with c_t3:
+        st.markdown("""
+        <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:0.5rem 0.85rem;text-align:center;font-size:0.8rem;">
+          <b style="color:#4338ca;">🔗 Lineage Tri-Agents</b><br>
+          <span style="color:#6366f1;">Scellé SHA-256</span>
+        </div>
+        """, unsafe_allow_html=True)
+
+n_features_kpi     = n_features
 llm_ok             = telemetry.get("is_llm", False)
 hash_ok            = bool(integrity.get("audit_hash"))
 shap_ok            = bool(top_features)
-engine_used        = audit_report.get("engine_used", chosen_engine)
+engine_used        = audit_report.get("engine_used", "auto")
 
 # =============================================================================
 # 5. BARRE MOTEUR ACTIF + BADGE CONFORMITÉ
@@ -468,8 +267,8 @@ _provider_display = telemetry.get("provider", "—")
 # Masquer tout ce qui ressemble à un identifiant de modèle interne dans le provider
 _provider_safe = _provider_display.split("(")[0].strip()  # ex: "☁️ Groq" sans "(llama-…)"
 engine_label = (
-    f"Ollama local · <b>{ollama_model}</b>"   if engine_used == "local"
-    else f"Cloud API · <b>{_provider_safe}</b>"   if engine_used == "api"
+    f"Ollama local · <b>{telemetry.get('model', 'qwen2.5:7b')}</b>" if engine_used == "local"
+    else f"Cloud API · <b>{_provider_safe}</b>" if engine_used == "api"
     else f"Auto → <b>{_provider_safe}</b>"
 )
 _llm_status_badge = '<b style="color:#34d399">✅ actif</b>' if llm_ok else '<b style="color:#f87171">❌ fallback</b>'
@@ -539,6 +338,17 @@ tab_narrative, tab_shap, tab_telemetry = st.tabs([
 with tab_narrative:
     st.markdown('<span class="xai-pill">💬 Explication en langage naturel</span>', unsafe_allow_html=True)
     st.markdown("")
+
+    up_ctx = audit_report.get("upstream_context", {})
+    if up_ctx.get("has_a1") or up_ctx.get("has_a2"):
+        a1_pill = f"<b>⚙️ Qualité (Agent 1)</b> : Score santé <b>{up_ctx.get('a1_health_score', 'N/A')}%</b>" if up_ctx.get("has_a1") else ""
+        a2_pill = "<b>📊 Insights (Agent 2)</b> : KPIs et tendances intégrés" if up_ctx.get("has_a2") else ""
+        details = " &nbsp;·&nbsp; ".join([p for p in [a1_pill, a2_pill] if p])
+        st.markdown(f"""
+        <div style="background:#f0fdf4;border-left:4px solid #16a34a;border-radius:0 10px 10px 0;padding:0.75rem 1.1rem;margin-bottom:1rem;font-size:0.86rem;color:#166534;">
+          🔗 <b>Synthèse Tri-Agents active :</b> {details}
+        </div>
+        """, unsafe_allow_html=True)
 
     if not llm_ok:
         st.markdown("""
@@ -637,6 +447,7 @@ with tab_shap:
         with col_table:
             st.markdown("##### Tableau des attributions")
             max_shap = float(shap_df["Mean |SHAP|"].max()) if len(shap_df) else 1.0
+            global_shap = float(shap_df["Mean |SHAP|"].mean()) if len(shap_df) else 0.0
             st.dataframe(
                 shap_df[["Rang", "Feature", "Mean |SHAP|", "Direction"]],
                 use_container_width=True, hide_index=True,

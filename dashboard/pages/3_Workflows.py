@@ -157,6 +157,9 @@ def _reset_pipeline() -> None:
         "wf_state", "wf_mode", "wf_step", "wf_file", "wf_sandbox",
         "wf_resource_mode", "wf_thread_id", "wf_app", "wf_graph_state",
         "wf_done_steps", "wf_hitl_pending", "wf_direct_start",
+        "pipeline_results", "current_bi_report", "current_chart_config",
+        "current_bi_telemetry", "bi_dataset_sig",
+        "xai_audit_report", "xai_dataset_sig",
     ]
     for k in keys:
         st.session_state.pop(k, None)
@@ -244,9 +247,9 @@ st.sidebar.markdown("### ⚙️ Paramètres du pipeline")
 
 # Mode d'exécution
 mode_options = {
-    "⚡ Auto (A1 → A2 → A3)":       "auto",
-    #"🧑‍💼 Human-in-the-Loop (étape/étape)": "hitl",
-    #"🎯 Exécution directe — Agent 2 (BI)": "direct_agent_2",
+    "⚡ Auto (A1 → A2 → A3)":              "auto",
+    # "🧑‍💼 Human-in-the-Loop (étape/étape)": "hitl",  # Masqué temporairement
+    "🎯 Exécution directe — Agent 2 (BI)": "direct_agent_2",
 }
 selected_mode_label = st.sidebar.radio(
     "Mode d'exécution",
@@ -288,10 +291,18 @@ _resource_options = {
     "☁️ Cloud — Groq / Gemini (API)":        "cloud",
     "🔄 Hybride / Auto (Local → Cloud → Fallback)": "auto",
 }
+_res_labels = list(_resource_options.keys())
+_cur_rm = st.session_state.get("wf_resource_mode", "auto")
+_default_res_idx = 2
+if _cur_rm == "local":
+    _default_res_idx = 0
+elif _cur_rm == "cloud":
+    _default_res_idx = 1
+
 selected_resource_label = st.sidebar.radio(
     "Moteur LLM des agents",
-    list(_resource_options.keys()),
-    index=2,   # Auto par défaut
+    _res_labels,
+    index=_default_res_idx,
     key="wf_resource_radio",
     help=(
         "Local = Ollama tourne sur cette machine. "
@@ -301,40 +312,50 @@ selected_resource_label = st.sidebar.radio(
     disabled=is_locked,
 )
 chosen_resource = _resource_options[selected_resource_label]
+st.session_state.wf_resource_mode = chosen_resource
+if chosen_resource == "cloud":
+    st.session_state["bi_engine_choice"] = "☁️ Cloud API (Groq / Gemini)"
+elif chosen_resource == "local":
+    st.session_state["bi_engine_choice"] = "⚡ Local Fine-Tuned (Qwen 2.5 3B LoRA)"
 
 # ── Statut des ressources (sans exposer les clés) ─────────────────────────────
 if chosen_resource in ("cloud", "auto"):
     _groq_configured   = bool(os.environ.get("GROQ_API_KEY"))
     _gemini_configured = bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"))
 
-    if _groq_configured:
-        st.sidebar.success("🔑 Groq API : Configurée [Masquée] ✅")
-    else:
-        st.sidebar.warning("🔑 Groq API : Non configurée ❌")
-
-    if _gemini_configured:
-        st.sidebar.success("🔑 Gemini API : Configurée [Masquée] ✅")
-    else:
-        st.sidebar.caption("🔑 Gemini API : Non configurée")
-
     if not _groq_configured and not _gemini_configured and chosen_resource == "cloud":
         st.sidebar.error(
             "⚠️ Aucune clé Cloud configurée. "
             "Ajoutez `GROQ_API_KEY` ou `GEMINI_API_KEY` dans votre `.env`."
         )
+    elif chosen_resource == "cloud":
+        st.sidebar.success("☁️ Mode Cloud API actif (Groq / Gemini)")
+        with st.sidebar.expander("☁️ Modèles Cloud des 3 agents", expanded=True):
+            st.markdown("""
+- **Agent 1 (Data Eng.)** :  
+  `Groq (Llama-3.3 70B / 8B Instant)`
+- **Agent 2 (BI Analyst)** :  
+  `Groq API` *(Llama-3.3 / GPT-OSS 120B)*
+- **Agent 3 (XAI Auditor)** :  
+  `Groq API / Gemini Flash`
+""")
 
 if chosen_resource in ("local", "auto"):
-    # Vérifier Ollama (même cache que Docker — TTL 30 s)
+    # Vérifier Ollama (test direct 127.0.0.1 puis localhost)
     _ollama_cache_key = "_wf_ollama_ok"
     _ollama_cache_ts  = "_wf_ollama_ts"
     _now = time.time()
-    if st.session_state.get(_ollama_cache_ts, 0) + 30 < _now:
-        try:
-            import requests as _req
-            _r = _req.get("http://localhost:11434/api/tags", timeout=3)
-            _ollama_ok = _r.status_code == 200
-        except Exception:
-            _ollama_ok = False
+    if st.session_state.get(_ollama_cache_ts, 0) + 15 < _now:
+        _ollama_ok = False
+        import requests as _req
+        for _host in ("http://127.0.0.1:11434", "http://localhost:11434"):
+            try:
+                _r = _req.get(f"{_host}/api/tags", timeout=1.5)
+                if _r.status_code == 200:
+                    _ollama_ok = True
+                    break
+            except Exception:
+                pass
         st.session_state[_ollama_cache_key] = _ollama_ok
         st.session_state[_ollama_cache_ts]  = _now
     else:
@@ -342,12 +363,41 @@ if chosen_resource in ("local", "auto"):
 
     if _ollama_ok:
         st.sidebar.success("🦙 Ollama : En ligne ✅")
+        if chosen_resource == "local":
+            with st.sidebar.expander("⚙️ Modèles locaux des 3 agents", expanded=True):
+                st.markdown("""
+- **Agent 1 (Data Eng.)** :  
+  `qwen2.5:3b` *(Ollama local)*
+- **Agent 2 (BI Analyst)** :  
+  `Qwen 2.5 3B LoRA (4-bit)` *(100% VRAM GPU)*
+- **Agent 3 (XAI Auditor)** :  
+  `qwen2.5:3b` *(Ollama non-finetuné)*
+                """)
+                _has_lora = (PROJECT_ROOT / "adapter" / "adapter_model.safetensors").exists()
+                if _has_lora:
+                    st.caption("✅ Poids LoRA `adapter_model.safetensors` chargés (119.8 Mo)")
+                else:
+                    st.caption("⚠️ Poids LoRA absents dans `adapter/`")
     else:
         if chosen_resource == "local":
             st.sidebar.warning(
                 "⚠️ **Ollama hors ligne.** "
-                "Démarrez-le avec `ollama serve` ou basculez sur le mode **Cloud** ou **Hybride**."
+                "Cliquez pour démarrer Ollama automatiquement :"
             )
+            if st.sidebar.button("▶ Démarrer Ollama (Serve)", key="start_ollama_btn", use_container_width=True):
+                try:
+                    import subprocess
+                    subprocess.Popen(
+                        ["C:\\Users\\moham\\AppData\\Local\\Programs\\Ollama\\ollama.exe", "serve"],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
+                    time.sleep(2)
+                    st.session_state[_ollama_cache_key] = True
+                    st.session_state[_ollama_cache_ts] = time.time()
+                    st.rerun()
+                except Exception as e:
+                    st.sidebar.error(f"Erreur démarrage : {e}")
         else:
             st.sidebar.caption("🦙 Ollama : Hors ligne — Cloud en fallback")
 
@@ -388,6 +438,11 @@ selected_name = st.sidebar.selectbox(
     disabled=is_locked,
 )
 selected_path = dataset_map.get(selected_name) if selected_name != NONE_OPT else None
+
+# Synchronisation immédiate avec la session globale pour toutes les pages (Agent 1, Agent 2, etc.)
+if selected_path:
+    st.session_state["current_dataset_path"] = selected_path
+    st.session_state["wf_file"] = selected_path
 
 # Pour les modes directs — chemin nettoyé optionnel
 direct_cleaned_path = None
@@ -438,37 +493,41 @@ if wf_state == "idle":
         with st.expander("👀 Aperçu des données", expanded=False):
             st.dataframe(_df_preview, use_container_width=True)
 
-
     st.markdown("---")
 
-    # Bouton de lancement + bouton mock côte à côte
-    col_spacer, col_mock, col_launch = st.columns([2, 1, 1])
-    with col_mock:
-        mock_clicked = st.button(
-            "🧪 Données Mock",
-            use_container_width=True,
-            help=(
-                "Lance directement l'Agent 2 ou 3 avec un dataset synthétique fictif — "
-                "aucun fichier réel requis, zéro clé API exposée."
-            ),
-            disabled=chosen_mode not in ("direct_agent_2", "direct_agent_3"),
-        )
-    with col_launch:
-        can_launch = bool(selected_path)
+    can_launch = bool(selected_path)
+    if chosen_mode == "direct_agent_2":
         launch_clicked = st.button(
-            "▷  Lancer le pipeline",
+            "🚀 Lancer l'analyse BI (Agent 2)",
             type="primary",
             use_container_width=True,
             disabled=not can_launch,
+            key="btn_launch_agent2_direct",
         )
+        mock_clicked = False
+    else:
+        # Bouton de lancement + bouton mock côte à côte
+        col_spacer, col_mock, col_launch = st.columns([2, 1, 1])
+        with col_mock:
+            mock_clicked = st.button(
+                "🧪 Données Mock",
+                use_container_width=True,
+                help=(
+                    "Lance directement l'Agent 2 ou 3 avec un dataset synthétique fictif — "
+                    "aucun fichier réel requis, zéro clé API exposée."
+                ),
+                disabled=chosen_mode not in ("direct_agent_2", "direct_agent_3"),
+            )
+        with col_launch:
+            launch_clicked = st.button(
+                "▷  Lancer le pipeline",
+                type="primary",
+                use_container_width=True,
+                disabled=not can_launch,
+            )
 
     if not can_launch and not mock_clicked:
         st.info("⬆️ Sélectionnez un dataset dans la sidebar pour activer le lancement.")
-    if chosen_mode not in ("direct_agent_2", "direct_agent_3") and not can_launch:
-        st.caption(
-            "💡 Le bouton **Données Mock** est disponible uniquement en mode "
-            "**Exécution directe** (Agent 2 ou Agent 3)."
-        )
 
     if launch_clicked and selected_path:
         # Importer et compiler le graphe
@@ -496,7 +555,12 @@ if wf_state == "idle":
         st.session_state.wf_app        = app
         st.session_state.wf_done_steps = []
 
-        with st.spinner("⚡ Exécution du pipeline multi-agents (A1 Profiling/ETL ➔ A2 BI Insights ➔ A3 Audit XAI)…"):
+        spinner_text = (
+            "📊 Analyse BI en cours par l'Agent 2..."
+            if chosen_mode == "direct_agent_2"
+            else "⚡ Exécution du pipeline multi-agents (A1 Profiling/ETL ➔ A2 BI Insights ➔ A3 Audit XAI)…"
+        )
+        with st.spinner(spinner_text):
             try:
                 result = app.invoke(initial, thread_cfg)
                 st.session_state.wf_graph_state = result
@@ -512,6 +576,10 @@ if wf_state == "idle":
                     st.session_state["pipeline_results"]["agent2"] = res_reps["bi_analyst"]
                 if "xai_auditor" in res_reps:
                     st.session_state["pipeline_results"]["agent3"] = res_reps["xai_auditor"]
+                    a3 = res_reps["xai_auditor"]
+                    if a3.get("audit_report"):
+                        st.session_state["xai_audit_report"] = a3["audit_report"]
+                        st.session_state["xai_dataset_sig"]  = f"{Path(selected_path).name}_audit"
 
                 _cleaned_p = (
                     result.get("cleaned_data_path")
@@ -529,8 +597,34 @@ if wf_state == "idle":
                     st.session_state.wf_hitl_pending = True
                 elif result.get("current_step") == "done":
                     st.session_state.wf_state = "done"
-                    st.session_state.sidebar_mode = "agent1"
-                    st.switch_page("pages/A1_Profiling.py")
+                    if chosen_mode == "direct_agent_2":
+                        st.session_state.sidebar_mode = "agent2"
+                        # En mode direct Agent 2, Agent 3 ne s'exécute pas (pas de données Agent 1)
+                        st.session_state.pop("xai_audit_report", None)
+                        st.session_state.pop("xai_dataset_sig", None)
+                        if "pipeline_results" in st.session_state:
+                            st.session_state["pipeline_results"].pop("agent3", None)
+
+                        a2 = res_reps.get("bi_analyst", {})
+                        if a2:
+                            st.session_state["current_bi_report"]    = a2.get("markdown", "")
+                            st.session_state["current_chart_config"] = a2.get("chart_config", {})
+                            st.session_state["current_bi_telemetry"] = a2.get("telemetry", {})
+                        st.session_state["current_dataset_path"] = str(selected_path)
+                        st.session_state["wf_file"] = str(selected_path)
+                        try:
+                            _df_tmp = pd.read_csv(selected_path)
+                            _sig = f"{Path(selected_path).name}_{_df_tmp.shape[0]}_{_df_tmp.shape[1]}"
+                            st.session_state["bi_dataset_sig"] = _sig
+                        except Exception:
+                            pass
+                        st.switch_page("pages/5_BI_Analysis.py")
+                    elif chosen_mode == "direct_agent_3":
+                        st.session_state.sidebar_mode = "agent3"
+                        st.switch_page("pages/6_Audit_XAI.py")
+                    else:
+                        st.session_state.sidebar_mode = "agent1"
+                        st.switch_page("pages/A1_Profiling.py")
             except Exception as e:
                 st.session_state.wf_state       = "error"
                 st.session_state.wf_graph_state = {"error_message": str(e)}
@@ -759,6 +853,17 @@ if wf_state == "hitl_pause":
             markdown = a2_data.get("markdown", "")
             cfg      = a2_data.get("chart_config", {})
             kpis     = cfg.get("kpis", [])
+
+            a2_telem = a2_data.get("telemetry", {})
+            if a2_telem:
+                tc1, tc2, tc3 = st.columns(3)
+                with tc1:
+                    prov = a2_telem.get("provider", a2_telem.get("execution_mode", "—"))
+                    st.metric("🔑 Fournisseur LLM", str(prov))
+                with tc2:
+                    st.metric("🧠 Modèle", str(a2_telem.get("model", "—")))
+                with tc3:
+                    st.metric("⏱ Durée", f"{a2_telem.get('duration_s', 0)}s")
 
             if kpis:
                 metric_cols = st.columns(min(4, len(kpis)))
@@ -1074,6 +1179,17 @@ if wf_state == "done":
             kpis = cfg.get("kpis", [])
             md   = a2.get("markdown", "")
 
+            a2_telem = a2.get("telemetry", {})
+            if a2_telem:
+                tc1, tc2, tc3 = st.columns(3)
+                with tc1:
+                    prov = a2_telem.get("provider", a2_telem.get("execution_mode", "—"))
+                    st.metric("🔑 Fournisseur LLM", str(prov))
+                with tc2:
+                    st.metric("🧠 Modèle", str(a2_telem.get("model", "—")))
+                with tc3:
+                    st.metric("⏱ Durée", f"{a2_telem.get('duration_s', 0)}s")
+
             if kpis:
                 kpi_cols = st.columns(min(4, len(kpis)))
                 for i, k in enumerate(kpis[:4]):
@@ -1196,21 +1312,6 @@ if wf_state == "done":
         else:
             st.info("Aucun rapport XAI Auditor disponible.")
 
-    # ── Actions finales ───────────────────────────────────────────────────────
-    st.markdown("---")
-    act1, act2, act3 = st.columns(3)
-    with act1:
-        if st.button("📊 Profiling & Qualité (Agent 1)", use_container_width=True):
-            st.session_state.sidebar_mode = "agent1"
-            st.switch_page("pages/A1_Profiling.py")
-    with act2:
-        if st.button("📈 Analyse BI complète (Agent 2)", use_container_width=True):
-            st.session_state.sidebar_mode = "agent2"
-            st.switch_page("pages/5_BI_Analysis.py")
-    with act3:
-        if st.button("🛡️ Audit XAI complet (Agent 3)", use_container_width=True):
-            st.session_state.sidebar_mode = "agent3"
-            st.switch_page("pages/6_Audit_XAI.py")
 
 # =============================================================================
 # ÉTAT ERROR

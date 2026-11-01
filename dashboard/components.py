@@ -37,7 +37,11 @@ def kpi(label, value, sub="", icon="📊", tone="indigo", sub_tone=""):  # Rempl
             f'<div class="val">{value}</div><div class="sub {sub_tone}">{sub}</div></div>')
 
 def bar(pct, color="#38bdf8"):
-    return f'<div class="bf-bar"><span style="width:{pct}%;background:{color}"></span></div>'
+    try:
+        p = max(0.0, min(100.0, float(pct)))
+    except (ValueError, TypeError):
+        p = 0.0
+    return f'<div class="bf-bar"><span style="width:{p}%;background:{color}"></span></div>'
 
 def donut(pct, color="#4f46e5", label="OF TOTAL", size=150):
     return (f'<div class="bf-donut" style="--p:{pct};--c:{color};width:{size}px;height:{size}px">'
@@ -53,10 +57,10 @@ def grid(items, cls="g2"):
 def table(headers, rows, max_height: int = 0):
     th = "".join(f"<th>{h}</th>" for h in headers)
     tr = "".join("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in rows)
-    style_scroll = f"max-height:{max_height}px;overflow-y:auto;" if max_height > 0 else ""
+    style_scroll = f"max-height:{max_height}px;overflow-y:auto;border-radius:12px;border:1px solid #eef2ff;" if max_height > 0 else ""
     return (
         f'<div style="overflow-x:auto;width:100%;{style_scroll}">'
-        f'<table class="bf-table" style="min-width:max-content">'
+        f'<table class="bf-table" style="width:100%;min-width:max-content">'
         f'<thead><tr>{th}</tr></thead><tbody>{tr}</tbody></table>'
         f'</div>'
     )
@@ -214,10 +218,18 @@ def setup(title, hub="Enterprise Analytics Hub"):
     wf_st      = st.session_state.get("wf_graph_state") or {}
     wf_reports = wf_st.get("reports") or {}
     pipe_res   = st.session_state.get("pipeline_results") or {}
+    wf_state   = st.session_state.get("wf_state", "idle")
 
-    a1_done = bool(wf_reports.get("data_engineer") or pipe_res.get("agent1") or st.session_state.get("current_dataset_path"))
-    a2_done = bool(wf_reports.get("bi_analyst") or pipe_res.get("agent2") or st.session_state.get("current_bi_report"))
-    a3_done = bool(wf_reports.get("xai_auditor") or pipe_res.get("agent3"))
+    # Un agent n'est vert/terminé QUE si le pipeline est actif ou terminé et que cet agent a effectivement produit un rapport
+    if wf_state in ("running", "hitl_pause", "done"):
+        a1_done = bool(wf_reports.get("data_engineer") or pipe_res.get("agent1"))
+        a2_done = bool(wf_reports.get("bi_analyst") or pipe_res.get("agent2") or st.session_state.get("current_bi_report"))
+        a3_done = bool(wf_reports.get("xai_auditor") or pipe_res.get("agent3"))
+    else:
+        # En mode idle (nouveau pipeline / accueil), rien n'a encore été exécuté pour ce run
+        a1_done = False
+        a2_done = False
+        a3_done = False
 
     AGENT_STEPS = [
         ("Agent 1", "Data Engineering", "⚙", "#4f46e5", "agent1", a1_done, "pages/A1_Profiling.py"),

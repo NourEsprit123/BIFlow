@@ -21,7 +21,7 @@ class LLMClient:
         self.ollama_host = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
         if "localhost" in self.ollama_host:
             self.ollama_host = self.ollama_host.replace("localhost", "127.0.0.1")
-        self.model_name = model_name or os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+        self.model_name = model_name or os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
         self.gemini_api_key = os.getenv("GEMINI_API_KEY", "")
         self.groq_api_key = os.getenv("GROQ_API_KEY", "")
 
@@ -36,10 +36,18 @@ class LLMClient:
         """
         Generates text output from the configured LLM provider with auto-fallback.
         """
-        if self.provider == "groq" or (not self.gemini_api_key and self.groq_api_key):
+        if self.provider in ("groq", "cloud") or (not self.gemini_api_key and self.groq_api_key):
             res = self._call_groq(prompt, system_prompt)
             if res and res.strip() and res.strip() != "{}":
                 return res
+            # Fallback vers Gemini si Groq échoue en mode cloud
+            if self.gemini_api_key:
+                logger.info("Falling back from Groq to Gemini...")
+                res_gem = self._call_gemini(prompt, system_prompt)
+                if res_gem and res_gem.strip() and res_gem.strip() != "{}":
+                    return res_gem
+            if self.provider in ("groq", "cloud"):
+                return "{}"
 
         if self.provider == "gemini":
             res = self._call_gemini(prompt, system_prompt)
@@ -52,8 +60,22 @@ class LLMClient:
                 if res_groq and res_groq.strip() and res_groq.strip() != "{}":
                     return res_groq
 
-        if self.provider == "ollama":
-            return self._call_ollama(prompt, system_prompt)
+        if self.provider in ("ollama", "local"):
+            res = self._call_ollama(prompt, system_prompt)
+            if res and res.strip() and res.strip() != "{}":
+                return res
+            # Fallback vers Groq / Gemini si Ollama échoue ou timeout
+            if self.groq_api_key:
+                logger.info("Ollama failed or timed out. Falling back to Groq API...")
+                res_groq = self._call_groq(prompt, system_prompt)
+                if res_groq and res_groq.strip() and res_groq.strip() != "{}":
+                    return res_groq
+            elif self.gemini_api_key:
+                logger.info("Ollama failed or timed out. Falling back to Gemini API...")
+                res_gem = self._call_gemini(prompt, system_prompt)
+                if res_gem and res_gem.strip() and res_gem.strip() != "{}":
+                    return res_gem
+            return "{}"
 
         return "{}"
 
@@ -116,13 +138,18 @@ class LLMClient:
             "model": self.model_name,
             "prompt": prompt,
             "stream": False,
-            "format": "json"
+            "format": "json",
+            "options": {
+                "temperature": 0.2,
+                "num_predict": 2048,
+            }
         }
         if system_prompt:
             payload["system"] = system_prompt
 
+        timeout_sec = int(os.getenv("OLLAMA_TIMEOUT", "180"))
         try:
-            response = requests.post(url, json=payload, timeout=60)
+            response = requests.post(url, json=payload, timeout=timeout_sec)
             response.raise_for_status()
             data = response.json()
             return data.get("response", "")
