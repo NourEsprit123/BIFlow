@@ -46,7 +46,7 @@ def generation_context(executor, arguments, result, attempts, runtime=None):
     # Migrate only the exact obsolete dashboard-generated instruction; preserve custom user objectives.
     objective = objective.replace("If the isolated runtime is unavailable or the method fails, explain that result and test builtin catalog methods where appropriate.",
         "If Docker is unavailable, stop. Failed generated methods use bounded correction without builtin fallback.")
-    return {"trigger": "four_failed_local_corrections", "dataset": {"rows": len(frame), "version": state.current_ref.version,
+    return {"trigger": trigger(attempts), "dataset": {"rows": len(frame), "version": state.current_ref.version,
                 "schema": {str(c): str(frame[c].dtype) for c in frame}},
             "user_objective": objective,
             "cleaning_focus": focused.get("cleaning_focus"),
@@ -72,6 +72,10 @@ def generation_context(executor, arguments, result, attempts, runtime=None):
                 "tests": "Disjoint sample/holdout, deterministic repeatability, then exact-code full-data checks"}}
 
 
+def trigger(attempts):
+    return "four_failed_local_corrections" if len(attempts) == 4 else "unproductive_local_corrections"
+
+
 def generate_candidate(executor, arguments, result, *, attempts):
     state = executor.state
     from .experiments import runtime_status
@@ -82,11 +86,11 @@ def generate_candidate(executor, arguments, result, *, attempts):
     if key in state.expert_generations:
         return state.expert_generations[key]
     record = {"provider": "groq", "model": os.environ.get("BIFLOW_CLEANING_EXPERT_MODEL", "openai/gpt-oss-120b"),
-              "version": state.current_ref.version, "trigger": "four_failed_local_corrections",
+              "version": state.current_ref.version, "trigger": trigger(attempts),
               "decision": "unavailable", "request_sent": False}
     try:
-        if len(attempts) != 4:
-            raise ValueError("Groq generation requires exactly four unsuccessful local corrections")
+        if not 1 <= len(attempts) <= 4:
+            raise ValueError("Groq generation requires one to four unsuccessful local corrections")
         if os.environ.get("BIFLOW_CLEANING_EXPERT_ENABLED", "false").lower() != "true":
             raise ValueError("Groq expert code generation is disabled")
         if not runtime.get("available"):

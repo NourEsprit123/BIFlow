@@ -155,8 +155,10 @@ def chat_with_tools(messages, tools, *, model=None, temperature=0.1, on_provider
     if options["num_predict"] >= options["num_ctx"]:
         raise ValueError("BIFLOW_OLLAMA_NUM_PREDICT must be smaller than BIFLOW_OLLAMA_NUM_CTX")
     started = time.monotonic()
+    # Thinking models (qwen3) otherwise emit thousands of hidden reasoning tokens per call; the agent never reads them.
+    think = os.environ.get("BIFLOW_OLLAMA_THINK", "false").strip().lower() == "true"
     payload = {"model": model, "messages": _ollama_messages(messages), "tools": tools,
-               "stream": False, "keep_alive": "15m", "options": options}
+               "stream": False, "keep_alive": "15m", "options": options, "think": think}
     if structured:
         if len(tools) != 1:
             raise ValueError("Structured correction requires exactly one response schema")
@@ -166,6 +168,10 @@ def chat_with_tools(messages, tools, *, model=None, temperature=0.1, on_provider
         payload["messages"].append({"role": "user", "content": "Return only a JSON object matching this response schema: " + json.dumps(schema)})
     try:
         response = _post_with_progress(host + "/api/chat", payload, timeout, on_provider_event)
+        if getattr(response, "status_code", 200) == 400 and "thinking" in str(getattr(response, "text", "")).lower():
+            # Models without a thinking mode may reject the field; retry once without it.
+            payload.pop("think")
+            response = _post_with_progress(host + "/api/chat", payload, max(timeout - (time.monotonic() - started), 0.001), on_provider_event)
         response.raise_for_status()
         data = response.json()
     except TimeoutError:
@@ -224,4 +230,4 @@ def chat_with_tools(messages, tools, *, model=None, temperature=0.1, on_provider
             "timing": {"request_seconds": time.monotonic() - started, "load_seconds": seconds("load_duration"),
                        "prompt_seconds": seconds("prompt_eval_duration"), "generation_seconds": generated_seconds,
                        "tokens_per_second": tokens / generated_seconds if isinstance(tokens, (int, float)) and generated_seconds else None},
-            "options": options}
+            "options": {**options, "think": payload.get("think")}}

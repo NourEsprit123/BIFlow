@@ -76,7 +76,7 @@ def test_truncated_local_reply_evidence_reaches_groq(session, monkeypatch):
                 "raw_response": "def transform(df): ... incomplete"}
     execute_and_fix_loop(args, initial, executor=executor, generate=truncated)
     payload = json.loads(requests[0][1]["json"]["messages"][1]["content"])
-    assert len(payload["local_corrections"]) == 4
+    assert len(payload["local_corrections"]) == 2  # two unusable replies end local correction
     for attempt in payload["local_corrections"]:
         assert attempt["finish_reason"] == "length"
         assert attempt["response_issue"] == "truncated"
@@ -117,17 +117,28 @@ def test_success_before_escalation_never_calls_groq(session, monkeypatch, succes
     state, executor, evidence = session
     args, failure = initial_failure(executor, evidence)
     calls = provider(monkeypatch)
-    monkeypatch.setattr(experiments, "run_isolated_transform", trusted_test_runner([]))
+    trusted = trusted_test_runner([])
+    def runner(frame, code, **kwargs):
+        # The new-but-wrong methods leave amount unparsed, so their checks fail.
+        if "attempt =" in code:
+            return {"success": True, "df": frame.copy(), "image_id": "sha256:tested", "repeatable": True}
+        return trusted(frame, code, **kwargs)
+    monkeypatch.setattr(experiments, "run_isolated_transform", runner)
     attempts = []
-    def generate(*a, **k):
+    def generate(messages, tools, **k):
         attempts.append(1)
-        return action("repair_method", code=CODE if len(attempts) == success_at else args["code"], hypothesis="Correction")
+        # Earlier replies are new methods that still fail, so local correction keeps going.
+        failing = f"def transform(df):\n    attempt = {len(attempts)}\n    return df"
+        reply = {"code": CODE if len(attempts) == success_at else failing, "hypothesis": "Correction"}
+        if "proposal" in tools[0]["function"]["parameters"]["required"]:
+            reply["proposal"] = {k: "Parse currency text" for k in ("supported_interpretations", "preservation", "ambiguities")}
+        return action("repair_method", **reply)
     _, result = execute_and_fix_loop(args, failure, executor=executor, generate=generate)
     assert result["success"] and len(attempts) == success_at and not calls
     assert not state.expert_generations
 
 
-def test_four_malformed_or_unchanged_corrections_are_bounded_and_escalate(session, monkeypatch):
+def test_unproductive_corrections_stop_early_and_escalate(session, monkeypatch):
     _, executor, evidence = session
     args, failure = initial_failure(executor, evidence)
     calls = provider(monkeypatch)
@@ -137,7 +148,8 @@ def test_four_malformed_or_unchanged_corrections_are_bounded_and_escalate(sessio
         attempts.append(1)
         return action("repair_method", code=args["code"], **({"hypothesis": "Unchanged"} if len(attempts) % 2 else {}))
     _, result = execute_and_fix_loop(args, failure, executor=executor, generate=generate)
-    assert result["success"] and len(attempts) == 4 and len(calls) == 1
+    # Two consecutive replies without a new method end local correction; Groq gets the task.
+    assert result["success"] and len(attempts) == 2 and len(calls) == 1
 
 
 @pytest.mark.parametrize("status,finish,code,decision", [
@@ -152,7 +164,7 @@ def test_unusable_expert_output_stops_without_applying(session, monkeypatch, sta
     _, result = execute_and_fix_loop(args, failure, executor=executor,
         generate=lambda *a, **k: (attempts.append(1) or action("repair_method", code=args["code"], hypothesis="Unchanged")))
     assert not result["success"] and state.finished and state.current_ref.version == "V1"
-    assert state.stop_reason == "expert_generation_failed" and len(calls) == 1 and len(attempts) == 4
+    assert state.stop_reason == "expert_generation_failed" and len(calls) == 1 and len(attempts) == 2
 
 
 def test_groq_code_must_pass_dataset_checks(session, monkeypatch):
@@ -219,3 +231,19 @@ def test_large_repeated_evidence_is_sent_under_budget(session, monkeypatch):
     assert record["request_bytes"] <= record["request_limit_bytes"]
     assert record["context"]["local_corrections"][0]["failure_summary"]["mismatches"]["total_cells"] == 200
     assert len(record["audit_context"]["local_corrections"][0]["failure_summary"]["mismatches"]) == 200
+
+
+def test_truncated_then_repeated_corrections_escalate_after_two(session, monkeypatch):
+    state, executor, evidence = session
+    args, failure = initial_failure(executor, evidence)
+    calls = provider(monkeypatch)
+    monkeypatch.setattr(experiments, "run_isolated_transform", trusted_test_runner([]))
+    replies = [action("repair_method", hypothesis="Cut off before the code"),
+               action("repair_method", code=args["code"], hypothesis="Same code again")]
+    attempts = []
+    def generate(*a, **k):
+        attempts.append(1)
+        return replies[len(attempts) - 1]
+    _, result = execute_and_fix_loop(args, failure, executor=executor, generate=generate)
+    assert result["success"] and len(attempts) == 2 and len(calls) == 1
+    assert [g["trigger"] for g in state.expert_generations.values()] == ["unproductive_local_corrections"]

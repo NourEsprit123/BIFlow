@@ -116,6 +116,10 @@ With a task queue, a failure confined to one task drops that task instead of end
 
 A dropped task gets status `dropped`, a `drop_reason` and its failed attempts. Pending tasks that share its columns become `blocked` with `blocked_by`. Measured type and missing-value obligations among them are frozen as review flags, so the result is `partial` rather than `failed`, and every dropped or blocked task is listed in the validation exceptions and `task_drops`. Dropped tasks are not retried. When Docker is unavailable, `test_generated` is withdrawn and tasks already committed to generated code are dropped; builtin work continues. Only the run budget, provider errors, controller errors and stops without a task queue still end the run.
 
+## Request cost controls
+
+Cleaning requests send `think: false` to Ollama unless `BIFLOW_OLLAMA_THINK=true`. With qwen3:8b, hidden reasoning was 3–10K characters per request and was never read by the agent; one correction exhausted `num_predict` while still reasoning. A model that rejects the field is retried once without it. Local code correction ends after two consecutive replies that produce no new executable method (repeated code, or an unusable or truncated reply) instead of always spending four requests; Groq, when enabled, then receives the attempts with trigger `unproductive_local_corrections`.
+
 ## Builtin execution and Docker execution
 
 **Builtin methods:** run trusted Python functions on a full-data copy in the host process. Docker is not involved. Passing candidates are rerun and independently checked before a version is committed.

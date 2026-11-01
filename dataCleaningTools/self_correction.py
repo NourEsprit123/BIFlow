@@ -13,6 +13,8 @@ from .cleaning_tasks import active, closed
 REPAIR_TOOL = tool("repair_method", "Return a corrected complete transform(df) and explain the correction.",
                    {"code": STRING, "hypothesis": STRING}, ["code", "hypothesis"])
 PROMPT = Path(__file__).resolve().parent / "prompts" / "code_correction.md"
+# Consecutive local replies that produced no new executable method before giving up on local correction.
+MAX_UNPRODUCTIVE = 2
 PROPOSAL = {"type": "object", "additionalProperties": False,
             "properties": {k: STRING for k in ("supported_interpretations", "preservation", "ambiguities")},
             "required": ["supported_interpretations", "preservation", "ambiguities"]}
@@ -58,8 +60,11 @@ def execute_and_fix_loop(arguments, initial_result, *, executor, generate, max_r
     current, result = dict(arguments), initial_result
     seen = {implementation_key(current)}
     attempts = []
+    unproductive = 0
     for retry in range(1, min(max_retries, 4) + 1):
         if result.get("success") or closed(state, task) or time.monotonic() >= state.deadline:
+            break
+        if unproductive >= MAX_UNPRODUCTIVE:
             break
         route = (result.get("recovery_prompt") or {}).get("case")
         if route in {"sandbox_unavailable", "approval_required", "stale_candidate"}:
@@ -87,6 +92,7 @@ def execute_and_fix_loop(arguments, initial_result, *, executor, generate, max_r
                 attempt["raw_response"] = response.get("raw_response")
                 result = {**result, "repair_error": "Return a complete correction matching the schema: " + "; ".join(e.message for e in errors)}
                 attempt["error"] = result["repair_error"]
+                unproductive += 1
                 continue
             revised = {**current, "code": repair["code"], "hypothesis": repair["hypothesis"]}
             attempt.update(code=repair["code"], hypothesis=repair["hypothesis"])
@@ -96,8 +102,10 @@ def execute_and_fix_loop(arguments, initial_result, *, executor, generate, max_r
             if key in seen:
                 result = {**result, "repair_error": "This exact code already failed. Change its implementation, not just its explanation."}
                 attempt["error"] = result["repair_error"]
+                unproductive += 1
                 continue
             seen.add(key)
+            unproductive = 0
             current = revised
             result = json.loads(executor.execute("test_generated", current, origin="self_correction"))
             attempt.update(error=result.get("error"), diagnostic=result.get("diagnostic"),
@@ -117,7 +125,7 @@ def execute_and_fix_loop(arguments, initial_result, *, executor, generate, max_r
             return current, result
     if result.get("success") or closed(state, task):
         return current, result
-    if len(attempts) == 4 and time.monotonic() < state.deadline:
+    if (len(attempts) == 4 or unproductive >= MAX_UNPRODUCTIVE) and time.monotonic() < state.deadline:
         proposal = generate_candidate(executor, current, result, attempts=attempts)
         if closed(state, task):
             return current, {**result, "expert_generation": proposal}

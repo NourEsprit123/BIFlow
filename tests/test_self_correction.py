@@ -44,10 +44,10 @@ def test_repeated_code_is_bounded_and_not_executed(session):
         calls.append(json.loads(messages[-1]["content"]))
         return action("repair_method", code=BAD, hypothesis="Changed explanation")
     _, result = execute_and_fix_loop(args, failure, executor=executor, generate=generate)
-    assert len(calls) == 4
+    assert len(calls) == 2  # a second unchanged reply ends local correction
     assert "exact code already failed" in calls[1]["failure"]["repair_error"]
     assert not result["success"] and len(state.events) == 2
-    assert len([s for s in state.step_log if s.get("source") == "self_correction"]) == 4
+    assert len([s for s in state.step_log if s.get("source") == "self_correction"]) == 2
 
 
 def test_setup_failures_and_expired_deadlines_do_not_request_repairs(session):

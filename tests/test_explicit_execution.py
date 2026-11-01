@@ -113,6 +113,6 @@ def test_groq_generated_code_is_auto_applied_only_after_checks(tmp_path, monkeyp
         return action("finish", summary="Groq-authored repair passed the same full-data checks")
     result = run(tmp_path, monkeypatch, respond)
     assert result.validation.all_passed and result.final_dataset.version == "V2"
-    assert len(calls) == 6 and len(providers) == 1
+    assert len(calls) == 4 and len(providers) == 1  # main, two unchanged local corrections, finish
     assert any(e["origin"] == "groq_generation" for e in result.metadata["events"])
     assert result.metadata["expert_generations"]

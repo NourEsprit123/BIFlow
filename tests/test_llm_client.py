@@ -266,3 +266,28 @@ def test_generation_budget_must_leave_room_for_input(monkeypatch):
     with pytest.raises(ValueError, match="must be smaller"):
         llm_client.chat_with_tools([], TOOLS)
     assert not calls
+
+
+def test_thinking_is_disabled_by_default_and_can_be_enabled(monkeypatch):
+    monkeypatch.delenv("BIFLOW_OLLAMA_THINK", raising=False)
+    calls = mock_local(monkeypatch)
+    result = llm_client.chat_with_tools([{"role": "user", "content": "Inspect"}], TOOLS)
+    assert calls[0][1]["json"]["think"] is False and result["options"]["think"] is False
+    monkeypatch.setenv("BIFLOW_OLLAMA_THINK", "true")
+    llm_client.chat_with_tools([{"role": "user", "content": "Inspect"}], TOOLS)
+    assert calls[1][1]["json"]["think"] is True
+
+
+def test_models_without_thinking_are_retried_without_the_field(monkeypatch):
+    payload = {"message": {"content": "", "tool_calls": [{"function": {"name": "inspect_schema", "arguments": {}}}]}, "done_reason": "stop"}
+    sent = []
+    def post(url, **kwargs):
+        sent.append(dict(kwargs["json"]))
+        if "think" in kwargs["json"]:
+            return SimpleNamespace(status_code=400, text='{"error":"model does not support thinking"}',
+                                   raise_for_status=lambda: None, json=lambda: {})
+        return SimpleNamespace(status_code=200, text="", raise_for_status=lambda: None, json=lambda: payload)
+    monkeypatch.setattr(llm_client.httpx, "post", post)
+    result = llm_client.chat_with_tools([{"role": "user", "content": "Inspect"}], TOOLS)
+    assert len(sent) == 2 and "think" not in sent[1]
+    assert result["tool_calls"][0]["name"] == "inspect_schema" and result["options"]["think"] is None
