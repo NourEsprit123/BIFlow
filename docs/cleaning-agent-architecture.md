@@ -126,6 +126,10 @@ The Docker boundary serializes frames with pandas' table JSON, which rounds floa
 
 Any value change committed during an `outliers` task requires host approval, whatever the method, and `handle_outliers` is HIGH risk everywhere. A passing trial only records the pending approval and its `step_id`; an earlier run had automatically capped 11% of an order-total column to a single IQR bound. Approval for a generated method is tied to its candidate, so a rerun that writes different code needs a new approval; builtin approvals are stable for identical parameters.
 
+Approval is requested only after the change has been evaluated and accepted on a copy. If no values would change (for example only `int64 -> float64`), nothing is committed and no approval is recorded. Otherwise the pending approval states the impact ("would change N of M rows") and the result carries `impact` with per-column changed values and dtype changes (`change_impact` in effects.py). The task then becomes `awaiting_approval` with its `step_id`, and the run moves on: its columns are not frozen, so their type and missing-value checks still run in final validation.
+
+`test_generated` no longer requires `checks`. When they are omitted, each selected column must keep its current type (outside type tasks, which use their targets), alongside the existing preserved-missing and required-target checks; qwen3:8b omitted `checks` on every generated request, costing one request-correction call each.
+
 ## Builtin execution and Docker execution
 
 **Builtin methods:** run trusted Python functions on a full-data copy in the host process. Docker is not involved. Passing candidates are rerun and independently checked before a version is committed.

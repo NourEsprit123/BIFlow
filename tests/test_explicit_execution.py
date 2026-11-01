@@ -23,7 +23,8 @@ def test_testing_interfaces_are_separate():
     assert "code" not in workflow.SCHEMA["test_builtin"]["properties"]
     assert not {"operation", "parameters"} & set(workflow.SCHEMA["test_generated"]["properties"])
     assert workflow.SCHEMA["test_builtin"]["properties"]["parameters"]["additionalProperties"] is False
-    assert {"code", "checks"}.issubset(workflow.SCHEMA["test_generated"]["required"])
+    assert "code" in workflow.SCHEMA["test_generated"]["required"]
+    assert "checks" in workflow.SCHEMA["test_generated"]["properties"]  # optional: the host supplies defaults
 
 
 def test_misplaced_custom_code_is_reconstructed_and_tested(tmp_path, monkeypatch):

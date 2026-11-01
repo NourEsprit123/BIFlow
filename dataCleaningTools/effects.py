@@ -129,6 +129,29 @@ def assess_candidate(before: pd.DataFrame, after: pd.DataFrame, operation: str,
     }
 
 
+def change_impact(before: pd.DataFrame, after: pd.DataFrame, columns: list[str]) -> dict:
+    """What an approval would commit: changed rows and values, separate from dtype-only changes."""
+    impact = {"rows": len(before), "rows_after": len(after), "columns_removed": [str(c) for c in before if c not in after]}
+    if len(before) != len(after):
+        return impact
+    changed_rows = pd.Series(False, index=range(len(before)))
+    values, dtypes = {}, {}
+    for c in columns:
+        if c not in before or c not in after:
+            continue
+        old, new = before[c].reset_index(drop=True), after[c].reset_index(drop=True)
+        numeric = all(pd.api.types.is_numeric_dtype(s) and not pd.api.types.is_bool_dtype(s) for s in (old, new))
+        # Numeric equality, so 34 -> 34.0 counts as a dtype change rather than a value change.
+        same = (old == new) if numeric else old.astype("string").eq(new.astype("string"))
+        diff = ~(same.fillna(False).astype(bool) | (old.isna() & new.isna()))
+        values[str(c)] = int(diff.sum())
+        changed_rows |= diff
+        if str(old.dtype) != str(new.dtype):
+            dtypes[str(c)] = f"{old.dtype} -> {new.dtype}"
+    impact.update(rows_changed=int(changed_rows.sum()), values_changed=values, dtype_changes=dtypes)
+    return impact
+
+
 def failure_summary(result):
     """Collect all loss evidence, separate from the five general examples."""
     effects = []

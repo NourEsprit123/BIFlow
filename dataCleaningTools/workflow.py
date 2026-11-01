@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
+import pandas as pd
 from jsonschema import Draft202012Validator
 from . import cleaning
 from .contracts import canonical_type
@@ -80,11 +81,11 @@ SCHEMAS_LIST = [
           "column": STRING, "offset": {"type": "integer", "minimum": 0},
           "limit": {"type": "integer", "minimum": 1, "maximum": 100}}, ["reason", "view"]),
     builtin_tool(),
-    tool("test_generated", "Explicit method for YOUR generated Python code. Supply complete transform(df), returning a DataFrame, and checks. "
+    tool("test_generated", "Explicit method for YOUR generated Python code. Supply complete transform(df), returning a DataFrame; checks are optional (default: columns keep their type). "
          "No operation or parameters. Docker unavailability stops the run; no builtin fallback. "
          "Passing trials are automatically applied after full-data validation.",
          {**METHOD_FIELDS, "code": {"type": "string", "minLength": 1, "maxLength": 8000}},
-         ["hypothesis", "columns", "code", "checks"]),
+         ["hypothesis", "columns", "code"]),
     tool("apply_candidate", "Apply a passing candidate after full-data checks. Assessment refers to measured trial results.",
          {"candidate_id": STRING, "assessment": STRING}, ["candidate_id", "assessment"]),
     tool("flag_for_review", "Set ambiguous columns aside for human review. They cannot change again this run.",
@@ -227,6 +228,18 @@ def builtin_parameters(operation, parameters, columns):
     return parameters
 
 
+def current_kind(series):
+    if pd.api.types.is_bool_dtype(series):
+        return "boolean"
+    if pd.api.types.is_integer_dtype(series):
+        return "integer"
+    if pd.api.types.is_numeric_dtype(series):
+        return "numeric"
+    if pd.api.types.is_datetime64_any_dtype(series):
+        return "datetime"
+    return "string"
+
+
 def test_candidate(executor, arguments):
     state = executor.state
     if time.monotonic() >= state.deadline:
@@ -259,6 +272,10 @@ def test_candidate(executor, arguments):
     if generated:
         checks += [{"column": c, "kind": "no_missing"} for c in columns if c in state.required_missing
                    and (not task or task["category"] == "missing")]
+        if not arguments.get("checks") and not (task and task["category"] == "types"):
+            # Omitted outcomes default to each column keeping its current type; type tasks rely on their targets.
+            checks += [{"column": c, "kind": current_kind(frame[c])} for c in columns
+                       if not any(k["column"] == c and k["kind"] in CHECK_KIND.values() for k in checks)]
     arguments["checks"] = [dict(items) for items in dict.fromkeys(tuple(sorted(c.items())) for c in checks)]
     key = fingerprint(arguments)
     if state.failures.get(key, 0) >= 3:

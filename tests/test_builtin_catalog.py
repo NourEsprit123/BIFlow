@@ -108,15 +108,50 @@ def test_each_category_sees_and_accepts_only_its_operations(tmp_path, category, 
     assert any(text in result.get("original_error", result["error"]) for text in ("not available", "only in"))
 
 
-def test_outlier_value_changes_wait_for_host_approval(tmp_path):
-    state, executor = executor_for(tmp_path, pd.DataFrame({"x": [10.0, 11.0, 12.0, 13.0, 1000.0]}))
+def outlier_task(tmp_path, frame, **state_options):
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    state, executor = executor_for(tmp_path, frame, **state_options)
     state.focused_cleaning = True
     state.cleaning_tasks = [{"id": "task-1", "category": "outliers", "columns": ["x"], "evidence": [], "status": "pending"}]
-    trial = builtin(executor, "handle_outliers", ["x"], {"action": "cap", "method": "iqr"})
-    applied = call(executor, "apply_candidate", candidate_id=trial["candidate_id"], assessment="Cap the extreme value")
-    assert trial["success"] and applied["approval_required"] and state.current_ref.version == "V1"
-    assert state.pending_approvals
+    return state, executor
 
-    state.approved_step_ids.add(applied["step_id"])
-    approved = call(executor, "apply_candidate", candidate_id=trial["candidate_id"], assessment="Approved by host")
+
+def cap(executor):
+    trial = builtin(executor, "handle_outliers", ["x"], {"action": "cap", "method": "iqr"})
+    return trial, call(executor, "apply_candidate", candidate_id=trial["candidate_id"], assessment="Cap the extreme value")
+
+
+def test_outlier_value_changes_wait_for_host_approval_and_close_the_task(tmp_path):
+    frame = pd.DataFrame({"x": [10.0, 11.0, 12.0, 13.0, 1000.0]})
+    state, executor = outlier_task(tmp_path / "first", frame)
+    trial, applied = cap(executor)
+    assert trial["success"] and applied["approval_required"] and state.current_ref.version == "V1"
+    assert applied["impact"]["rows_changed"] == 1 and "would change 1 of 5 rows" in state.pending_approvals[0]
+    # The task waits for the host without freezing its columns.
+    assert state.cleaning_tasks[0]["status"] == "awaiting_approval" and not state.flagged
+
+    # A later run started with that approval commits the same builtin change.
+    state, executor = outlier_task(tmp_path / "approved", frame, approved_step_ids={applied["step_id"]})
+    _, approved = cap(executor)
     assert approved["success"] and state.current_ref.version == "V2" and not state.pending_approvals
+
+
+def test_dtype_only_outlier_change_needs_no_approval(tmp_path):
+    state, executor = outlier_task(tmp_path, pd.DataFrame({"x": [10, 11, 12, 13, 14]}))
+    trial, applied = cap(executor)  # nothing is outside the bounds
+    assert applied["success"] and applied["no_op"] and not state.pending_approvals
+    assert state.current_ref.version == "V1"
+
+
+def test_generated_method_without_checks_keeps_column_types(tmp_path, monkeypatch):
+    seen = []
+    def experiment(state, arguments):
+        seen.append(arguments["checks"])
+        return {"success": False, "tested": False, "candidate_id": "x1", "error": "not run in this test"}
+    monkeypatch.setattr(workflow, "experiment", experiment)
+    state, executor = outlier_task(tmp_path, pd.DataFrame({"x": [1.5, 2.5]}))
+    state.sandbox_checked = True  # no Docker probe in this unit test
+    result = call(executor, "test_generated", hypothesis="No checks given", columns=["x"],
+                  code="def transform(df):\n    return df")
+    assert result.get("error_kind") != "invalid_tool_arguments"
+    assert {"column": "x", "kind": "numeric"} in seen[0] and {"column": "x", "kind": "preserve_missing"} in seen[0]

@@ -4,7 +4,7 @@ inspect_data: always include reason AND view. In reason, explain the question an
 
 test_builtin: supply operation explicitly, hypothesis, columns, parameters ({} if no options), and value_assessment. Use only supported catalog parameters. Describing custom parsing does not implement it.
 
-test_generated: supply hypothesis, columns, complete code defining transform(df) and returning a DataFrame, checks, and value_assessment. code/checks are top-level fields; operation/parameters do not belong here. Encode newlines once so decoded Python contains actual line breaks. checks contains objects with column and kind. value_assessment has four nonblank strings: evidence, interpretation, preservation, ambiguities. Keep each concise. Preserve existing missing values; parsing and imputation are separate tasks.
+test_generated: supply hypothesis, columns, complete code defining transform(df) and returning a DataFrame, optional checks, and value_assessment. code/checks are top-level fields; operation/parameters do not belong here. Encode newlines once so decoded Python contains actual line breaks. checks contains objects with column and kind. value_assessment has four nonblank strings: evidence, interpretation, preservation, ambiguities. Keep each concise. Preserve existing missing values; parsing and imputation are separate tasks.
 
 Passing trials apply automatically after full-data checks: read applied and remaining. apply_candidate requires candidate_id and assessment, only for a passing candidate not already applied. Failed candidates must be revised, not repeated.
 

@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set
 from jsonschema import Draft202012Validator
 from .contracts import canonical_type, model_arguments
-from .effects import assess_candidate, snapshot, present, target_matches, failure_summary
+from .effects import assess_candidate, change_impact, snapshot, present, target_matches, failure_summary
 from .experiments import digest, promote
 from .inspection import inspect_schema, inspect_column, inspect_duplicates, check_value_patterns
 from .method_catalog import SCHEMAS as METHOD_SCHEMAS
@@ -185,6 +185,12 @@ class ToolExecutor:
             candidate = self.state.method_candidates.get(candidate_id) if isinstance(candidate_id, str) else None
             if candidate:
                 remember(self.state, candidate, result)
+        if task and result.get("approval_required") and not task.get("measured") and task["status"] == "pending":
+            # The decision now belongs to the host; the run moves on without freezing the columns.
+            task.update(status="awaiting_approval", step_id=result["step_id"], reason=result["message"],
+                        assessed_version=self.state.current_ref.version)
+            self.state.validation = None
+            result["task_closed"] = "awaiting_approval"
         return self._record(name, arguments, result, source, started, origin=origin, task_id=task_id)
 
     def stop(self, reason, error):
@@ -283,22 +289,11 @@ class ToolExecutor:
             # Capping or blanking unusual values changes business figures; a passing trial is not enough.
             requires_approval=bool(task and task["category"] == "outliers"),
         )
-        if requires_approval(step) and not (
-            self.state.approve_all or step_id in self.state.approved_step_ids
-        ):
-            message = f"Approval required: {name} {columns} (step_id={step_id})"
-            if message not in self.state.pending_approvals:
-                self.state.pending_approvals.append(message)
-            return {
-                "success": False,
-                "approval_required": True,
-                "step_id": step_id,
-                "message": message,
-            }
-
-        approval_message = f"Approval required: {name} {columns} (step_id={step_id})"
-        if approval_message in self.state.pending_approvals:
-            self.state.pending_approvals.remove(approval_message)
+        # Evaluated on a copy first: approval is requested only for an accepted change to actual values.
+        needs_approval = requires_approval(step) and not (
+            self.state.approve_all or step_id in self.state.approved_step_ids)
+        if not needs_approval:
+            self.state.pending_approvals = [p for p in self.state.pending_approvals if f"(step_id={step_id})" not in p]
         function_arguments = {key: value for key, value in arguments.items()
                               if key not in ("step_id", "rationale", "evidence_ids")}
         before = self.state.manager.load(self.state.current_ref)
@@ -372,6 +367,20 @@ class ToolExecutor:
                         "rationale": rationale, "version": self.state.current_ref.version,
                         "message": msg,
                         "progress": prog}
+            if needs_approval:
+                impact = change_impact(before, result.df, selected)
+                if (impact["rows_after"] == impact["rows"] and not impact["columns_removed"]
+                        and not any(impact["values_changed"].values())):
+                    return {**result.to_dict(), "success": True, "accepted": True, "no_op": True,
+                            "effect": assessment, "impact": impact, "version": self.state.current_ref.version,
+                            "message": "No values would change (only the dtype); nothing committed and no approval needed."}
+                change = (f"would change {impact['rows_changed']} of {impact['rows']} rows" if "rows_changed" in impact
+                          else f"would keep {impact['rows_after']} of {impact['rows']} rows")
+                message = f"Approval required: {name} {columns} {change} (step_id={step_id})"
+                self.state.pending_approvals = [p for p in self.state.pending_approvals if f"(step_id={step_id})" not in p]
+                self.state.pending_approvals.append(message)
+                return {"success": False, "approval_required": True, "step_id": step_id,
+                        "message": message, "impact": impact}
             new_ref, record = self.state.manager.commit_transformation(
                 self.state.current_ref, result.df, operation=name, columns=selected,
                 parameters=function_arguments, rationale=rationale, step_id=step_id,
@@ -446,7 +455,7 @@ class ToolExecutor:
             check("cleaning_tasks_assessed", not pending, "All reported cleaning tasks must be addressed or explicitly flagged")
             exceptions += [f"{t['category']} ({', '.join(t['columns']) or 'dataset'}): {t.get('reason', 'Needs review')}"
                            for t in self.state.cleaning_tasks
-                           if t["status"] in {"needs_review", "dropped", "blocked"} and not t.get("measured")]
+                           if t["status"] in {"needs_review", "dropped", "blocked", "awaiting_approval"} and not t.get("measured")]
         failed = [r for r in rules if not r.passed]
         status = ValidationStatus.FAILED if failed else ValidationStatus.PARTIAL if exceptions else ValidationStatus.PASSED
         self.state.validation = ValidationReport(dataset_ref=self.state.current_ref,status=status,rules=rules,

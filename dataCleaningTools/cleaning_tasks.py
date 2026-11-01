@@ -16,7 +16,7 @@ CATEGORIES = (
 ORDER = {key: index for index, (key, _) in enumerate(CATEGORIES)}
 GUIDANCE = json.loads((Path(__file__).with_name("prompts") / "categories.json").read_text(encoding="utf-8"))
 # Terminal statuses set by the host; measurements never reopen them.
-CLOSED = {"dropped", "blocked"}
+CLOSED = {"dropped", "blocked", "awaiting_approval"}
 
 
 def informational(finding):
@@ -205,6 +205,7 @@ def summary(state):
         status = ("pending" if any(t["status"] == "pending" for t in tasks) else
                   "dropped" if any(t["status"] == "dropped" for t in tasks) else
                   "blocked" if any(t["status"] == "blocked" for t in tasks) else
+                  "awaiting_approval" if any(t["status"] == "awaiting_approval" for t in tasks) else
                   "needs_review" if any(t["status"] == "needs_review" for t in tasks) else
                   "not_required" if tasks and all(t["status"] == "not_required" for t in tasks) else
                   "done" if tasks else "no_reported_findings")

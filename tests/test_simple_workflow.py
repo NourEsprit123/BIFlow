@@ -241,9 +241,8 @@ def test_invalid_request_is_validated_before_failed_method_lookup(flat, monkeypa
     def forbidden(*args):
         raise AssertionError("Invalid requests must not reach duplicate lookup")
     monkeypatch.setattr("dataCleaningTools.repair_history.repeated_failure", forbidden)
-    result = call(executor, "test_generated", hypothesis="Missing checks", columns=["amount"],
-                  code="def transform(df): return df")
-    assert result["error_kind"] == "invalid_tool_arguments" and "checks" in result["error"]
+    result = call(executor, "test_generated", columns=["amount"], code="def transform(df): return df")
+    assert result["error_kind"] == "invalid_tool_arguments" and "hypothesis" in result["error"]
     assert not state.method_candidates
 
 
