@@ -25,9 +25,9 @@ def remember_experiment_preference():
     st.session_state["prefer_generated_methods"] = st.session_state["experiment_mode_widget"]
 
 
-st.checkbox("Prefer sandbox method experimentation", value=st.session_state.get("prefer_generated_methods", True),
+st.checkbox("Encourage sandbox method experimentation", value=st.session_state.get("prefer_generated_methods", False),
             key="experiment_mode_widget", on_change=remember_experiment_preference,
-            help="Ask the LLM to generate and test a cleaning method before promotion. Uncheck to prefer the registered cleaning tools.")
+            help="Builtin cleaning operations are always preferred. Check this to also encourage the LLM to try generated methods where they add value.")
 render_cleaning_limits()
 render_experiment_runtime()
 

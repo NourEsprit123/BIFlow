@@ -317,7 +317,7 @@ def render_cleaning_limits():
                                  value=float(settings.get("max_seconds", positive_setting("BIFLOW_CLEANING_MAX_SECONDS", 300))) / 60, key="cleaning_minutes")
         st.session_state["cleaning_run_settings"] = {"max_turns": int(turns), "max_seconds": int(minutes * 60)}
         st.caption(f"Ollama only Â· {default_model()} Â· Request timeout: {positive_setting('BIFLOW_OLLAMA_TIMEOUT', 90):.0f}s Â· Context: {positive_setting('BIFLOW_OLLAMA_NUM_CTX', 8192, True):,} tokens Â· Maximum output: {positive_setting('BIFLOW_OLLAMA_NUM_PREDICT', 1024, True):,} tokens")
-        st.write("A smaller turn limit bounds exploration; it does not make one model request faster. Uncheck sandbox experimentation for a quicker registered-tool comparison.")
+        st.write("A smaller turn limit bounds exploration; it does not make one model request faster. Leave sandbox experimentation unchecked for the quicker builtin-first behaviour.")
         st.code("ollama ps", language="powershell")
         st.caption("While a request is running, check PROCESSOR for GPU versus CPU offloading. The run trace records model-load, prompt-processing and generation times.")
         st.caption("The run budget is checked before model calls and tools, and before accepting a change. An already-running sandbox operation can take up to its own 60-second limit to return.")

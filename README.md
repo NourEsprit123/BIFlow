@@ -829,9 +829,9 @@ up to its own 60-second limit to return, but an expired cleaning budget prevents
 promotion/commit and starting further trials. Initial profiling, when needed, is
 a separate step with its own provider settings.
 
-For a faster registered-tool baseline, uncheck sandbox experimentation. Keep it
-enabled when evaluating generated methods; validation and isolation checks apply
-in both modes.
+Builtin operations are preferred by default; generated code is used only when no
+builtin can express the rule. Check **Encourage sandbox method experimentation**
+when evaluating generated methods; validation and isolation checks apply in both modes.
 
 ## Agent roadmap and feature availability
 

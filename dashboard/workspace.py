@@ -262,13 +262,12 @@ def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = 
         search_roots=[RAW_DATA, ROOT / "data"],
         use_llm=None,
     )
-    objective = "Improve data quality for BI analysis while preserving the uploaded original."
-    if st.session_state.get("prefer_generated_methods", True):
+    objective = ("Improve data quality for BI analysis while preserving the uploaded original. "
+                 "Prefer builtin operations; write generated code only when no builtin can express the justified rule.")
+    if st.session_state.get("prefer_generated_methods", False):
         objective += (
-            " This is an academic experimentation run: propose and test a generated cleaning method "
-            "with test_generated using complete transform(df) code when it adds value, then apply a passing "
-            "candidate with apply_candidate with an assessment. If Docker is unavailable, stop with a clear error. "
-            "For a failed generated method, use the bounded correction pipeline; do not fall back to builtin methods."
+            " This is also an experimentation run: when a generated transform(df) would add value "
+            "beyond the builtins, test it with test_generated."
         )
     cleaning = agent.run(
         result["profiling_report"],

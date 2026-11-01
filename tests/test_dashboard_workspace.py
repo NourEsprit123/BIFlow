@@ -216,3 +216,23 @@ def test_profile_report_verification_checks_saved_content_and_source(tmp_path):
 
     assert verification["verified"] is False
     assert "content" in verification["reason"]
+
+
+@pytest.mark.parametrize("experiment", [False, True])
+def test_cleaning_objective_puts_builtins_first(tmp_path, monkeypatch, experiment):
+    monkeypatch.setattr(workspace.st, "session_state", {"prefer_generated_methods": experiment} if experiment else {})
+    path = tmp_path / "orders.csv"
+    path.write_text("amount\n10\n", encoding="utf-8")
+    monkeypatch.setattr(workspace, "get_workspace_result", lambda key, p: {"profiling_report": {}})
+    requests = []
+    class FakeCleaningAgent:
+        def __init__(self, **kwargs):
+            pass
+        def run(self, report, **kwargs):
+            requests.append(kwargs["user_request"])
+            return "cleaning-result"
+    monkeypatch.setattr(workspace, "DataCleaningAgent", FakeCleaningAgent)
+    workspace.clean_profiled_dataset(path)
+    assert "Prefer builtin operations" in requests[0]
+    assert "do not fall back to builtin" not in requests[0]
+    assert ("experimentation run" in requests[0]) is experiment
