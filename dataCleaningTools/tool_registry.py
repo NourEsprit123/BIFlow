@@ -15,6 +15,11 @@ from .models import DatasetReference, TransformationStep, ValidationReport, Vali
 from .policy import requires_approval
 from .versioning import DatasetVersionManager
 
+# Failures confined to one task: with a task queue they drop that task instead of ending the run.
+TASK_LEVEL_FAILURES = {"correction_exhausted", "expert_generation_failed", "request_correction_failed",
+                       "local_correction_error", "tool_execution_error", "sandbox_unavailable",
+                       "no_tool_calls", "context_budget"}
+
 @dataclass
 class AgentSessionState:
     manager: DatasetVersionManager
@@ -56,7 +61,11 @@ class AgentSessionState:
     cleaning_tasks: List[Dict[str, Any]] = field(default_factory=list)
     focused_cleaning: bool = False
     sandbox_checked: bool = False
+    sandbox_error: Optional[str] = None
     inspection_progress: Dict[str, Any] = field(default_factory=dict)
+    max_task_turns: int = 6
+    max_task_failures: int = 4
+    task_drops: List[Dict[str, Any]] = field(default_factory=list)
 
     def stop(self, reason, error=None):
         """Set the terminal state; persistence is handled at the caller's boundary."""
@@ -70,7 +79,8 @@ class AgentSessionState:
         return {name: getattr(self, name) for name in (
             "events", "evidence", "experiments", "method_candidates", "decisions", "repair_history",
             "expert_generations", "flagged", "failures", "finish_attempts", "step_log", "provider_errors",
-            "unresolved", "model_unresolved", "pending_approvals", "working_context", "cleaning_tasks", "inspection_progress")}
+            "unresolved", "model_unresolved", "pending_approvals", "working_context", "cleaning_tasks", "inspection_progress",
+            "task_drops")}
 
     def persist_trace(self):
         """Save state without loading data or changing task completion."""
@@ -178,7 +188,16 @@ class ToolExecutor:
         return self._record(name, arguments, result, source, started, origin=origin, task_id=task_id)
 
     def stop(self, reason, error):
-        self.state.stop(reason, error)
+        """Stop the run, or only drop the active task when the failure is confined to it."""
+        from .cleaning_tasks import active, drop
+        task = active(self.state) if self.state.focused_cleaning else None
+        if reason == "sandbox_unavailable":
+            # Later tasks lose generated code but keep builtins.
+            self.state.sandbox_error = error
+        if task and reason in TASK_LEVEL_FAILURES:
+            drop(self.state, task, reason, error)
+        else:
+            self.state.stop(reason, error)
         self.state.persist_trace()
 
     def _record(self, name, arguments, result, source, started, *, origin="host", task_id=None):
@@ -422,7 +441,8 @@ class ToolExecutor:
             pending = [t for t in self.state.cleaning_tasks if t["status"] == "pending"]
             check("cleaning_tasks_assessed", not pending, "All reported cleaning tasks must be addressed or explicitly flagged")
             exceptions += [f"{t['category']} ({', '.join(t['columns']) or 'dataset'}): {t.get('reason', 'Needs review')}"
-                           for t in self.state.cleaning_tasks if t["status"] == "needs_review" and not t.get("measured")]
+                           for t in self.state.cleaning_tasks
+                           if t["status"] in {"needs_review", "dropped", "blocked"} and not t.get("measured")]
         failed = [r for r in rules if not r.passed]
         status = ValidationStatus.FAILED if failed else ValidationStatus.PARTIAL if exceptions else ValidationStatus.PASSED
         self.state.validation = ValidationReport(dataset_ref=self.state.current_ref,status=status,rules=rules,

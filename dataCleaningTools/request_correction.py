@@ -6,7 +6,7 @@ from pathlib import Path
 from jsonschema import Draft202012Validator
 
 from . import workflow
-from .cleaning_tasks import active, context
+from .cleaning_tasks import active, closed, context
 from .contracts import canonical_type
 
 PROMPT = Path(__file__).with_name("prompts") / "request_correction.md"
@@ -14,14 +14,14 @@ PROMPT = Path(__file__).with_name("prompts") / "request_correction.md"
 
 def correct_request(name, arguments, result, *, executor, generate, max_retries=2):
     state = executor.state
+    task = active(state) if state.focused_cleaning else None
     for attempt in range(1, max_retries + 1):
-        if result.get("success") or state.finished:
+        if result.get("success") or closed(state, task):
             break
         if (result.get("recovery_prompt") or {}).get("case") != "arguments":
             break
         if time.monotonic() >= state.deadline:
             break
-        task = active(state)
         nested = arguments.get("parameters", {})
         generated = name == "test_generated" or arguments.get("code") or (
             isinstance(nested, dict) and nested.get("code")) or (task and task.get("generated_required"))
@@ -69,6 +69,6 @@ def correct_request(name, arguments, result, *, executor, generate, max_retries=
             log["result"] = {"success": result.get("success"), "error": result.get("error")}
             state.step_log.append(log)
             state.persist_trace()
-    if not state.finished and (result.get("recovery_prompt") or {}).get("case") == "arguments":
+    if not closed(state, task) and (result.get("recovery_prompt") or {}).get("case") == "arguments":
         executor.stop("request_correction_failed", "Could not construct a valid cleaning request within the request-correction limit")
     return name, arguments, result

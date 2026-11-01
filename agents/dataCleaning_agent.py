@@ -248,6 +248,8 @@ class DataCleaningAgent:
                               **{c: p.etl_cast_to for c, p in report.column_profiles.items()
                                  if p.etl_cast_to and p.etl_cast_to.lower() != "none"}},
             required_missing=[c for c, p in report.column_profiles.items() if p.missing_count > 0],
+            max_task_turns=positive_setting("BIFLOW_CLEANING_TASK_MAX_TURNS", 6, integer=True),
+            max_task_failures=positive_setting("BIFLOW_CLEANING_TASK_MAX_FAILURES", 4, integer=True),
         )
 
 
@@ -282,6 +284,7 @@ class DataCleaningAgent:
                 break
             state.current_turn = turn
             try:
+                cleaning_tasks.drop_unrunnable(state)
                 focused = cleaning_tasks.model_view(state, executor)
                 focus = focused["cleaning_focus"]
                 task_id = (focus["task"] or {}).get("id")
@@ -322,7 +325,7 @@ class DataCleaningAgent:
                             except Exception as retry_exc:
                                 exc = retry_exc
                         if isinstance(exc, ValueError) and str(exc).startswith("Cleaning prompt exceeds"):
-                            state.stop("context_budget", str(exc))
+                            executor.stop("context_budget", str(exc))  # drops only the active task when there is one
                             break
                     retry = _tool_generation_failed(exc) and attempt == 0
                     state.provider_errors.append({"turn":turn,"type":type(exc).__name__,"status_code":getattr(exc,"status_code",None),
@@ -336,7 +339,9 @@ class DataCleaningAgent:
                     reason = ("time_budget" if time.monotonic()>=state.deadline else "request_timeout") if isinstance(exc,TimeoutError) else "provider_error"
                     state.stop(reason, f"Ollama error: {exc}")
                     break
-            if response is None: break
+            if response is None:
+                if state.finished: break
+                continue
             state.llm_provider = response.get("provider",state.llm_provider)
             state.llm_model = response.get("model",state.llm_model)
             state.step_log.append({"turn":turn,"provider":response.get("provider"),"model":response.get("model"),
@@ -352,13 +357,16 @@ class DataCleaningAgent:
             if not calls:
                 empty_responses += 1
                 if empty_responses >= 3:
-                    state.stop("no_tool_calls", "three consecutive responses without a usable tool call")
-                    break
+                    executor.stop("no_tool_calls", "three consecutive responses without a usable tool call")
+                    empty_responses = 0
+                    if state.finished: break
+                    continue
                 issue = response.get("response_issue") or {"message":"No usable tool call was received"}
                 guidance = build_prompt(executor, "model_response", {}, {"success":False,
                     "error":issue.get("message"),"error_kind":issue.get("kind")})
                 messages.append({"role":"user","content":json.dumps(guidance)})
                 state.step_log.append({"turn":turn,"recovery_prompt":guidance})
+                if task_id: cleaning_tasks.enforce_budget(state, task_id)
                 state.persist_trace()
                 continue
             empty_responses = 0
@@ -380,6 +388,8 @@ class DataCleaningAgent:
                         feedback.append({"role":"user","content":json.dumps(result["recovery_prompt"])})
                 messages.append({"role":"tool","tool_call_id":call["id"],"content":_tool_feedback(json.dumps(result))})
             messages.extend(feedback)
+            if task_id and not state.finished:
+                cleaning_tasks.enforce_budget(state, task_id)
             state.persist_trace()
             if halted: break
             if state.finished:
@@ -396,16 +406,17 @@ class DataCleaningAgent:
         """Execute one action, repair if needed, then promote only a passing trial."""
         state = executor.state
         turn = state.current_turn
+        task = cleaning_tasks.active(state) if state.focused_cleaning else None
         result = json.loads(executor.execute(name,args))
         state.step_log.append({"turn":turn,"tool":name,"args":args,"result_preview":json.dumps(result)[:300]})
         def generate_repair(messages, tools, **options):
             return chat_with_tools(messages, tools, model=self.model, temperature=0.1,
                                    on_provider_event=state.on_event, structured=True, **options)
-        if name in workflow.TEST_TOOLS and not result.get("success") and not state.finished:
+        if name in workflow.TEST_TOOLS and not result.get("success") and not cleaning_tasks.closed(state, task):
             name, args, result = correct_request(name, args, result, executor=executor, generate=generate_repair)
-        if name == "test_generated" and not result.get("success") and not state.finished and result.get("error_kind") != "inspection_no_progress":
+        if name == "test_generated" and not result.get("success") and not cleaning_tasks.closed(state, task) and result.get("error_kind") != "inspection_no_progress":
             args, result = execute_and_fix_loop(args, result, executor=executor, generate=generate_repair)
-        if name in workflow.TEST_TOOLS and result.get("success") and result.get("tested"):
+        if name in workflow.TEST_TOOLS and result.get("success") and result.get("tested") and not cleaning_tasks.closed(state, task):
             trial = result
             application_args = {
                 "candidate_id": trial["candidate_id"],

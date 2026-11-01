@@ -15,6 +15,8 @@ CATEGORIES = (
 )
 ORDER = {key: index for index, (key, _) in enumerate(CATEGORIES)}
 GUIDANCE = json.loads((Path(__file__).with_name("prompts") / "categories.json").read_text(encoding="utf-8"))
+# Terminal statuses set by the host; measurements never reopen them.
+CLOSED = {"dropped", "blocked"}
 
 
 def informational(finding):
@@ -108,6 +110,8 @@ def refresh(state):
             state.cleaning_tasks.sort(key=lambda task: ORDER[task["category"]])
             state.validation = None
     for task in state.cleaning_tasks:
+        if task["status"] in CLOSED:
+            continue
         previous_status = task["status"]
         measured = task.get("measured")
         if measured:
@@ -130,6 +134,62 @@ def active(state):
     return next((t for t in state.cleaning_tasks if t["status"] == "pending"), None)
 
 
+def closed(state, task):
+    """True once the run stopped or the given task left pending (e.g. it was dropped mid-pipeline)."""
+    return state.finished or bool(task and task["status"] != "pending")
+
+
+def failed_attempts(state, task):
+    """Distinct methods the model chose for this task that ran and failed."""
+    return [e for e in state.events if e.get("task_id") == task["id"] and e["origin"] == "model"
+            and e["tool"] in {"test_builtin", "test_generated"} and e["result"].get("candidate_id")
+            and not e["result"].get("success") and e["result"].get("error_kind") != "duplicate_method"]
+
+
+def drop(state, task, reason, detail):
+    """Give up on a task without certifying it, and block later tasks on its columns."""
+    attempts = [{"event_id": e["event_id"], "tool": e["tool"], "error": str(e["result"].get("error", ""))[:300]}
+                for e in failed_attempts(state, task)]
+    task.update(status="dropped", drop_reason=reason, reason=f"Dropped ({reason}): {detail}",
+                failed_attempts=attempts, assessed_version=state.current_ref.version)
+    closed = [task]
+    for other in state.cleaning_tasks:
+        if other["status"] == "pending" and set(other["columns"]) & set(task["columns"]):
+            other.update(status="blocked", blocked_by=task["id"],
+                         reason=f"Blocked: {task['id']} on the same columns was dropped ({reason})")
+            closed.append(other)
+    # Measured obligations on these columns can no longer be met this run; freeze them for review.
+    for item in closed:
+        if item.get("measured"):
+            state.flagged.update({c: item["reason"] for c in item["columns"] if c not in state.flagged})
+    state.validation = None
+    state.task_drops.append({"task_id": task["id"], "reason": reason, "detail": detail,
+                             "blocked": [t["id"] for t in closed[1:]], "turn": state.current_turn})
+    return task
+
+
+def drop_unrunnable(state):
+    """Tasks committed to generated code cannot proceed once Docker is known to be unavailable."""
+    while state.sandbox_error and (task := active(state)) and task.get("generated_required"):
+        drop(state, task, "sandbox_unavailable", state.sandbox_error)
+
+
+def enforce_budget(state, task_id):
+    """After a turn: charge it to the task it started on, and drop that task once over budget."""
+    task = next((t for t in state.cleaning_tasks if t["id"] == task_id), None)
+    if not task:
+        return None
+    task["turns"] = task.get("turns", 0) + 1
+    if task["status"] != "pending":
+        return None
+    if task["turns"] >= state.max_task_turns:
+        return drop(state, task, "turn_budget", f"no resolution after {task['turns']} model turns")
+    failures = len(failed_attempts(state, task))
+    if failures >= state.max_task_failures:
+        return drop(state, task, "attempt_budget", f"{failures} distinct methods failed")
+    return None
+
+
 def context(state):
     task = active(state)
     category = task["category"] if task else "validation"
@@ -143,6 +203,8 @@ def summary(state):
     for key, title in CATEGORIES:
         tasks = [t for t in state.cleaning_tasks if t["category"] == key]
         status = ("pending" if any(t["status"] == "pending" for t in tasks) else
+                  "dropped" if any(t["status"] == "dropped" for t in tasks) else
+                  "blocked" if any(t["status"] == "blocked" for t in tasks) else
                   "needs_review" if any(t["status"] == "needs_review" for t in tasks) else
                   "not_required" if tasks and all(t["status"] == "not_required" for t in tasks) else
                   "done" if tasks else "no_reported_findings")

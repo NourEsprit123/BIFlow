@@ -25,6 +25,8 @@ def write_cleaning_report(result, directory):
             "rejected_changes": sum(not item.success for item in result.change_log.entries),
             "generated_candidates": len(result.metadata.get("experiments", {})),
             "generated_changes_applied": sum(item.operation == "apply_experimental_method" for item in applied),
+            "tasks_dropped": sum(t["status"] == "dropped" for t in result.metadata.get("cleaning_tasks", [])),
+            "tasks_blocked": sum(t["status"] == "blocked" for t in result.metadata.get("cleaning_tasks", [])),
             "note": "Technical checks do not establish business correctness. Builtin methods run on the host; generated methods require isolated Docker trials.",
         },
     )

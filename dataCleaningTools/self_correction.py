@@ -8,6 +8,7 @@ from .workflow import STRING, tool
 from .repair_history import implementation_key, model_history
 from jsonschema import Draft202012Validator
 from .expert_generator import generate_candidate
+from .cleaning_tasks import active, closed
 
 REPAIR_TOOL = tool("repair_method", "Return a corrected complete transform(df) and explain the correction.",
                    {"code": STRING, "hypothesis": STRING}, ["code", "hypothesis"])
@@ -53,11 +54,12 @@ def execute_and_fix_loop(arguments, initial_result, *, executor, generate, max_r
     Infrastructure failures stop immediately and never trigger Groq.
     """
     state = executor.state
+    task = active(state) if state.focused_cleaning else None
     current, result = dict(arguments), initial_result
     seen = {implementation_key(current)}
     attempts = []
     for retry in range(1, min(max_retries, 4) + 1):
-        if result.get("success") or state.finished or time.monotonic() >= state.deadline:
+        if result.get("success") or closed(state, task) or time.monotonic() >= state.deadline:
             break
         route = (result.get("recovery_prompt") or {}).get("case")
         if route in {"sandbox_unavailable", "approval_required", "stale_candidate"}:
@@ -113,10 +115,12 @@ def execute_and_fix_loop(arguments, initial_result, *, executor, generate, max_r
             state.persist_trace()
         if result.get("success"):
             return current, result
-    if result.get("success") or state.finished:
+    if result.get("success") or closed(state, task):
         return current, result
     if len(attempts) == 4 and time.monotonic() < state.deadline:
         proposal = generate_candidate(executor, current, result, attempts=attempts)
+        if closed(state, task):
+            return current, {**result, "expert_generation": proposal}
         if proposal["decision"] != "generated":
             executor.stop("expert_generation_failed", proposal.get("error") or proposal.get("hypothesis") or "Groq could not generate a justified method")
             return current, {**result, "expert_generation": proposal}
@@ -128,6 +132,6 @@ def execute_and_fix_loop(arguments, initial_result, *, executor, generate, max_r
         current = revised
         if result.get("success"):
             return current, result
-    if not state.finished:
-        executor.stop("correction_exhausted", "Generated method did not pass the correction pipeline; no builtin fallback is permitted")
+    if not closed(state, task):
+        executor.stop("correction_exhausted", "Generated method did not pass the correction pipeline")
     return current, result

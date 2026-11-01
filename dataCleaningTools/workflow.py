@@ -104,9 +104,11 @@ def available_tools(state):
     from .cleaning_tasks import active
     task = active(state)
     if not task:
-        return SCHEMAS_LIST
+        return [t for t in SCHEMAS_LIST if not (state.sandbox_error and t["function"]["name"] == "test_generated")]
     tools = []
     for t in SCHEMAS_LIST:
+        if t["function"]["name"] == "test_generated" and state.sandbox_error:
+            continue
         if t["function"]["name"] == "test_builtin":
             if task.get("generated_required"):
                 continue

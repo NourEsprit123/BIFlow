@@ -46,14 +46,17 @@ def test_misplaced_custom_code_is_reconstructed_and_tested(tmp_path, monkeypatch
         ("test_builtin", "model"), ("test_generated", "request_correction"), ("apply_candidate", "automatic_after_trial")]
 
 
-def test_docker_unavailable_stops_before_code_repair_or_builtin_fallback(tmp_path, monkeypatch):
+def test_docker_unavailable_drops_the_generated_task_without_repair(tmp_path, monkeypatch):
     monkeypatch.setattr(experiments, "runtime_status", lambda: {"available": False, "error": "Docker Desktop is stopped"})
     calls = []
-    def respond(*a, **k):
+    def respond(messages, tools, **k):
         calls.append(1)
-        return action("test_generated", **request(BAD))
+        if len(calls) == 1:
+            return action("test_generated", **request(BAD))
+        assert "test_generated" not in {t["function"]["name"] for t in tools}
+        return action("finish", summary="Flag conversion needs Docker")
     result = run(tmp_path, monkeypatch, respond)
-    assert len(calls) == 1 and result.metadata["stop_reason"] == "sandbox_unavailable"
+    assert len(calls) == 2 and [d["reason"] for d in result.metadata["task_drops"]] == ["sandbox_unavailable"]
     assert result.final_dataset.version == "V1" and not result.validation.all_passed
     assert any("Docker Desktop is stopped" in text for text in result.unresolved_issues)
     assert not result.metadata["expert_generations"]
@@ -81,10 +84,12 @@ def test_invalid_request_correction_is_bounded(tmp_path, monkeypatch):
     calls = []
     def respond(*a, **k):
         calls.append(1)
+        if len(calls) > 3:
+            return action("finish", summary="Could not form a valid request")
         return action("test_generated", columns=["flag"], code=CODE)  # missing required fields
     result = run(tmp_path, monkeypatch, respond)
-    assert len(calls) == 3  # original request + two request-envelope corrections
-    assert result.metadata["stop_reason"] == "request_correction_failed"
+    assert len(calls) == 4  # original request + two request-envelope corrections, then finish
+    assert [d["reason"] for d in result.metadata["task_drops"]] == ["request_correction_failed"]
     assert result.final_dataset.version == "V1" and not result.metadata["expert_generations"]
 
 

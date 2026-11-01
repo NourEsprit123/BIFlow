@@ -83,9 +83,11 @@ def test_auto_application_rechecks_full_data_before_commit(tmp_path,monkeypatch)
     assert result.metadata['working_context']['columns']['flag']['steps']['type_conversion']['status']=='needs_review'
     assert not result.metadata['working_context']['completed_actions']
 
-def test_three_empty_responses_are_bounded(tmp_path,monkeypatch):
+def test_three_empty_responses_drop_the_task_then_stop_without_one(tmp_path,monkeypatch):
     result=run(tmp_path,monkeypatch,lambda *a,**k:{'content':'I will clean','tool_calls':[]})
-    assert result.metadata['stop_reason']=='no_tool_calls' and result.metadata['turns_used']==3
+    # Three on the task drop it; three more with no task left stop the run.
+    assert [d['reason'] for d in result.metadata['task_drops']]==['no_tool_calls']
+    assert result.metadata['stop_reason']=='no_tool_calls' and result.metadata['turns_used']==6
     assert not result.validation.all_passed
 
 def test_repeated_inspection_is_bounded(tmp_path,monkeypatch):
