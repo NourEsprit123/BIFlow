@@ -283,6 +283,25 @@ def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = 
     return cleaning
 
 
+def resolve_cleaning_approvals(path: Path, cleaning: Any, decisions: dict[str, str]) -> Any:
+    """Apply approve/reject decisions to the saved run; no model call."""
+    limits = cleaning.metadata.get("limits", {})
+    agent = DataCleaningAgent(
+        max_turns=limits.get("max_turns"),
+        max_seconds=limits.get("max_seconds"),
+        data_root=ROOT / "data" / "versions" / "dashboard",
+        report_root=ROOT / "data" / "reports" / "cleaningReports",
+        search_roots=[RAW_DATA, ROOT / "data"],
+        use_llm=cleaning.metadata.get("mode") == "llm",
+    )
+    resolved = agent.resolve_approvals(cleaning, decisions)
+    st.session_state[CLEANING_STATE_KEY] = {
+        "signature": dataset_signature(path),
+        "result": resolved,
+    }
+    return resolved
+
+
 def profiling_report_json() -> bytes | None:
     state = st.session_state.get(PROFILE_STATE_KEY)
     if not state:

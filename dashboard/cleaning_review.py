@@ -133,7 +133,48 @@ def render_event(event: dict, evidence: dict | None = None) -> None:
             st.json(result)
 
 
+def render_pending_approvals(cleaning, *, key: str) -> None:
+    from dataCleaningTools.approvals import pending
+    from dashboard.workspace import resolve_cleaning_approvals, selected_dataset_path
+
+    items = pending(cleaning)
+    if not items:
+        return
+    st.subheader(f"Changes awaiting your approval ({len(items)})")
+    st.caption("None of these has been applied. Approving re-tests the recorded method on the current version and "
+               "commits it only if the same checks pass. Rejecting keeps the data. No model is called.")
+    decisions = {}
+    for item in items:
+        impact = item.get("impact") or {}
+        with st.container(border=True):
+            st.write(f"**{item['category'].title()} · {', '.join(item['columns'])}** · "
+                     + (item["operation"] or "generated method"))
+            if impact.get("rows_changed") is not None:
+                share = impact["rows_changed"] / impact["rows"] if impact["rows"] else 0
+                st.caption(f"Would change {impact['rows_changed']:,} of {impact['rows']:,} rows ({share:.1%})")
+            elif impact.get("rows_after") is not None:
+                st.caption(f"Would keep {impact['rows_after']:,} of {impact['rows']:,} rows")
+            if impact.get("dtype_changes"):
+                st.caption("Type changes: " + ", ".join(f"{c}: {d}" for c, d in impact["dtype_changes"].items()))
+            if item.get("hypothesis"):
+                st.write("Model's reason: " + item["hypothesis"])
+            if item.get("code"):
+                with st.expander("Generated code"):
+                    st.code(item["code"], language="python")
+            elif item.get("parameters"):
+                st.json({k: v for k, v in item["parameters"].items() if k not in ("column", "columns", "subset")})
+            decisions[item["step_id"]] = st.radio("Decision", ["Leave pending", "Approve", "Reject"],
+                                                  key=f"{key}_approval_{item['step_id']}", horizontal=True)
+    chosen = {step: choice.lower() for step, choice in decisions.items() if choice != "Leave pending"}
+    if st.button("Apply decisions", type="primary", disabled=not chosen, key=f"{key}_apply_approvals"):
+        path = selected_dataset_path()
+        with st.spinner("Re-testing approved changes and revalidating the dataset..."):
+            resolve_cleaning_approvals(path, cleaning, chosen)
+        st.rerun()
+
+
 def render_cleaning_result(cleaning, *, key: str = "cleaning_review") -> None:
+    render_pending_approvals(cleaning, key=key)
     st.subheader("Cleaning run: decisions and measured effects")
     st.caption(f"Mode: {cleaning.metadata.get('mode', 'unknown')} Â· Run: {cleaning.run_id} Â· Final version: {cleaning.final_dataset.version}")
     (st.success if cleaning.validation.all_passed else st.warning)(

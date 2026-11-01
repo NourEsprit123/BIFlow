@@ -66,6 +66,7 @@ class AgentSessionState:
     max_task_turns: int = 6
     max_task_failures: int = 4
     task_drops: List[Dict[str, Any]] = field(default_factory=list)
+    host_decisions: List[Dict[str, Any]] = field(default_factory=list)
 
     def stop(self, reason, error=None):
         """Set the terminal state; persistence is handled at the caller's boundary."""
@@ -80,7 +81,7 @@ class AgentSessionState:
             "events", "evidence", "experiments", "method_candidates", "decisions", "repair_history",
             "expert_generations", "flagged", "failures", "finish_attempts", "step_log", "provider_errors",
             "unresolved", "model_unresolved", "pending_approvals", "working_context", "cleaning_tasks", "inspection_progress",
-            "task_drops")}
+            "task_drops", "host_decisions", "required_targets", "required_missing", "expected_columns")}
 
     def persist_trace(self):
         """Save state without loading data or changing task completion."""

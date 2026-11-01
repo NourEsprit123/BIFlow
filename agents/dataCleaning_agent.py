@@ -47,7 +47,7 @@ from dataCleaningTools.request_correction import correct_request
 from dataCleaningTools.reporting import write_cleaning_report
 from dataCleaningTools.working_context import initialize as initialize_working_context
 from dataCleaningTools.llm_client import chat_with_tools, default_model, llm_configured, positive_setting
-from dataCleaningTools import cleaning_tasks
+from dataCleaningTools import approvals, cleaning_tasks
 
 logger = logging.getLogger("biflow.agent2")
 
@@ -266,6 +266,16 @@ class DataCleaningAgent:
             self._run_deterministic(state, report)
 
         return self._build_result(state, report, user_request)
+
+    def resolve_approvals(self, result: CleaningResult, decisions: Dict[str, str]) -> CleaningResult:
+        """Apply host approve/reject decisions to a finished run, then revalidate and re-export.
+
+        No model is called. Approved methods are re-tested and checked on full data exactly as during the run.
+        """
+        state, report = approvals.restore(result)
+        approvals.apply_decisions(state, decisions)
+        state.finished = True
+        return self._build_result(state, report, result.metadata.get("user_request", ""))
 
     def _run_llm_loop(self, state, user_request):
         state.focused_cleaning = True
