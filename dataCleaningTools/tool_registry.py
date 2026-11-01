@@ -18,7 +18,7 @@ from .versioning import DatasetVersionManager
 # Failures confined to one task: with a task queue they drop that task instead of ending the run.
 TASK_LEVEL_FAILURES = {"correction_exhausted", "expert_generation_failed", "request_correction_failed",
                        "local_correction_error", "tool_execution_error", "sandbox_unavailable",
-                       "no_tool_calls", "context_budget"}
+                       "sandbox_timeout", "no_tool_calls", "context_budget"}
 
 @dataclass
 class AgentSessionState:
@@ -176,7 +176,10 @@ class ToolExecutor:
             if "diagnostic" in guidance["context"]:
                 result["diagnostic"] = guidance["context"]["diagnostic"]
         if guidance and guidance["case"] == "sandbox_unavailable":
-            self.stop("sandbox_unavailable", result.get("error") or "Docker execution is unavailable")
+            # A timed-out Docker reply drops this task only; later tasks check Docker again.
+            transient = result.get("transient") or any(t.get("transient") for t in result.get("trials", []))
+            self.stop("sandbox_timeout" if transient else "sandbox_unavailable",
+                      result.get("error") or "Docker execution is unavailable")
             result.update(fatal=True, error_kind="sandbox_unavailable")
         if name in TEST_TOOLS and isinstance(canonical, dict) and not previous:
             remember(self.state, canonical, result)

@@ -153,7 +153,7 @@ def dispatch(executor, name, arguments):
         if not runtime.get("available"):
             return {"success": False, "tested": False, "error_kind": "sandbox_unavailable",
                     "error": "Docker sandbox unavailable: " + runtime.get("error", "Unknown runtime error"),
-                    "setup": runtime.get("setup")}
+                    "setup": runtime.get("setup"), "transient": runtime.get("transient", False)}
         executor.state.sandbox_checked = True
     if name == "complete_task":
         return complete(executor, arguments)

@@ -26,6 +26,18 @@ TRANSFORM_SIGNATURE_ERROR = "Define exactly one transform(df) function with one 
 EXECUTION_TIMEOUT = 60
 RUNTIME_VERSIONS = {}  # Actual versions reported by this process's sandbox executions, keyed by image ID.
 
+
+def docker_timeout() -> float:
+    """Docker Desktop can take several seconds to answer while busy or waking from Resource Saver."""
+    from .llm_client import positive_setting
+    return positive_setting("BIFLOW_DOCKER_TIMEOUT", 30)
+
+
+def is_timeout(exc: BaseException) -> bool:
+    """A slow Docker API reply, as opposed to Docker not running or the image missing."""
+    return (isinstance(exc, TimeoutError) or type(exc).__name__ in {"ReadTimeout", "ConnectTimeout", "ReadTimeoutError"}
+            or "timed out" in str(exc).lower())
+
 # pandas JSON rounds floats (at most 15 decimals), which made untouched columns look changed
 # and committed rounding noise. Float columns also travel as exact float.hex() strings.
 # One source, used by the host and inside the sandbox wrapper.
@@ -104,21 +116,25 @@ def validate_code(code: str) -> None:
         raise ValueError(TRANSFORM_SIGNATURE_ERROR)
 
 
-def runtime_status() -> dict:
-    client = None
-    try:
-        import docker
-        client = docker.from_env(timeout=5)
-        client.ping()
-        image = client.images.get(os.environ.get("BIFLOW_EXPERIMENT_IMAGE", IMAGE))
-        return {"available": True, "backend": "docker", "image_id": image.id,
-                "versions": RUNTIME_VERSIONS.get(image.id, {})}
-    except Exception as exc:
-        return {"available": False, "backend": "docker", "error": str(exc),
-                "setup": f"Start Docker Desktop (Linux containers), then run: {BUILD_COMMAND}"}
-    finally:
-        if client is not None:
-            client.close()
+def runtime_status(attempts: int = 2) -> dict:
+    """Check Docker and the image; a timed-out reply is retried and reported as transient."""
+    for attempt in range(1, attempts + 1):
+        client = None
+        try:
+            import docker
+            client = docker.from_env(timeout=docker_timeout())
+            client.ping()
+            image = client.images.get(os.environ.get("BIFLOW_EXPERIMENT_IMAGE", IMAGE))
+            return {"available": True, "backend": "docker", "image_id": image.id,
+                    "versions": RUNTIME_VERSIONS.get(image.id, {})}
+        except Exception as exc:
+            if is_timeout(exc) and attempt < attempts:
+                continue
+            return {"available": False, "backend": "docker", "error": str(exc), "transient": is_timeout(exc),
+                    "attempts": attempt, "setup": f"Start Docker Desktop (Linux containers), then run: {BUILD_COMMAND}"}
+        finally:
+            if client is not None:
+                client.close()
 
 
 def run_isolated_transform(frame: pd.DataFrame, code: str, *, image_id: str | None = None) -> dict:
@@ -132,7 +148,7 @@ def run_isolated_transform(frame: pd.DataFrame, code: str, *, image_id: str | No
         import docker
         from docker.types import LogConfig
         from docker.utils.socket import frames_iter
-        client = docker.from_env(timeout=5)
+        client = docker.from_env(timeout=docker_timeout())
         image = client.images.get(image_id or os.environ.get("BIFLOW_EXPERIMENT_IMAGE", IMAGE))
         pinned_image = image.id
         payload = json.dumps({"data": frame.to_json(orient="table", date_format="iso"),
@@ -206,7 +222,7 @@ def run_isolated_transform(frame: pd.DataFrame, code: str, *, image_id: str | No
         if timed_out.is_set():
             return {"success": False, "error": f"Sandbox execution timed out after {EXECUTION_TIMEOUT}s",
                     "error_kind": "sandbox_execution"}
-        return {"success": False, "error": str(exc),
+        return {"success": False, "error": str(exc), "transient": is_timeout(exc),
                 "error_kind": "sandbox_unavailable" if container is None else "sandbox_execution" if phase == "sandbox_execution" else "sandbox_infrastructure",
                 "failure_stage": phase,
                 "setup": f"Use an isolated Docker runtime. {BUILD_COMMAND}"}

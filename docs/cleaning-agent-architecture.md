@@ -120,6 +120,10 @@ A dropped task gets status `dropped`, a `drop_reason` and its failed attempts. P
 
 Cleaning requests send `think: false` to Ollama unless `BIFLOW_OLLAMA_THINK=true`. With qwen3:8b, hidden reasoning was 3–10K characters per request and was never read by the agent; one correction exhausted `num_predict` while still reasoning. A model that rejects the field is retried once without it. Local code correction ends after two consecutive replies that produce no new executable method (repeated code, or an unusable or truncated reply) instead of always spending four requests; Groq, when enabled, then receives the attempts with trigger `unproductive_local_corrections`.
 
+## Slow Docker replies
+
+Docker API calls wait `BIFLOW_DOCKER_TIMEOUT` seconds (default 30; previously a fixed 5). A timed-out runtime check is retried once. If it still times out, the result is marked `transient` and only the current task is dropped with `sandbox_timeout`; later tasks check Docker again and keep `test_generated`. Only a non-timeout failure (Docker not running, image missing) is recorded as `sandbox_unavailable` and withdraws generated code for the rest of the run. A run on 1 November lost generated code entirely because Docker Desktop took just over 5 seconds to answer one ping.
+
 ## Exact data transfer and outlier approval
 
 The Docker boundary serializes frames with pandas' table JSON, which rounds floats to at most 15 decimal places. That made unselected float columns fail `untouched:` checks and let rounding noise be committed with applied changes. Float columns now also travel as exact `float.hex()` strings in both directions (`FLOAT_CODEC` in experiments.py, shared by the host and the sandbox wrapper), and are restored after parsing.

@@ -94,7 +94,8 @@ def generate_candidate(executor, arguments, result, *, attempts):
         if os.environ.get("BIFLOW_CLEANING_EXPERT_ENABLED", "false").lower() != "true":
             raise ValueError("Groq expert code generation is disabled")
         if not runtime.get("available"):
-            executor.stop("sandbox_unavailable", "Docker sandbox unavailable before Groq code generation: " + runtime.get("error", "Unknown runtime error"))
+            executor.stop("sandbox_timeout" if runtime.get("transient") else "sandbox_unavailable",
+                          "Docker sandbox unavailable before Groq code generation: " + runtime.get("error", "Unknown runtime error"))
             raise ValueError("Docker sandbox unavailable; no Groq request was sent")
         maximum = positive_setting("BIFLOW_CLEANING_EXPERT_MAX_CALLS", 2, integer=True)
         if sum(r.get("request_sent", False) for r in state.expert_generations.values()) >= maximum:
