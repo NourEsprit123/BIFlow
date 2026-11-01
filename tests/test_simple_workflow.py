@@ -20,13 +20,14 @@ def flat(tmp_path):
 
 def call(ex,name,**args): return json.loads(ex.execute(name,args))
 def trial(ex,**changes):
-    return call(ex,'test_method',**{'hypothesis':'Parse currency strings','columns':['amount'],
+    return call(ex,("test_generated" if ({'hypothesis':'Parse currency strings','columns':['amount'],
+        'operation':'clean_numeric_string','parameters':{},**changes}).get("code") else "test_builtin"),**{'hypothesis':'Parse currency strings','columns':['amount'],
         'operation':'clean_numeric_string','parameters':{},**changes})
 def apply(ex,candidate): return call(ex,'apply_candidate',candidate_id=candidate['candidate_id'],assessment='Trial preserved values and passed the declared checks')
 
-def test_only_five_tools_are_public(flat):
+def test_only_workflow_tools_are_public(flat):
     state,ex=flat
-    assert {t['function']['name'] for t in workflow.SCHEMAS_LIST}=={'inspect_data','test_method','apply_candidate','flag_for_review','finish'}
+    assert {t['function']['name'] for t in workflow.SCHEMAS_LIST}=={'inspect_data',"test_builtin",'test_generated','apply_candidate','flag_for_review','complete_task','finish'}
     for name in ['review_candidate','request_approval','convert_data_types','run_custom_check']:
         assert not call(ex,name)['success']
     assert not hasattr(state,'workflow_stage') and not hasattr(state,'issues')
@@ -48,7 +49,7 @@ def test_apply_requires_an_assessment_and_passing_trial(flat):
     state,ex=flat
     candidate=trial(ex)
     assert not call(ex,'apply_candidate',candidate_id=candidate['candidate_id'])['success']
-    failed=trial(ex,operation='convert_data_types',parameters={'target_type':'float','errors':'coerce'})
+    failed=trial(ex,operation='convert_data_types',parameters={'target_type':'float','errors':'raise'})
     assert not failed['tested'] and not apply(ex,failed)['success']
     assert state.current_ref.version=='V1'
 
@@ -122,7 +123,7 @@ def test_generated_candidate_uses_internal_experiment_id_and_mandatory_checks(fl
         return {'success':True,'df':after,'image_id':'sha256:test','repeatable':True}
     monkeypatch.setattr(experiments,'run_isolated_transform',runner)
     code="def transform(df):\n    df['amount']=pd.to_numeric(df.amount.str.replace('$','',regex=False))\n    return df\n"
-    candidate=call(ex,'test_method',hypothesis='Currency parser',columns=['amount'],code=code,checks=[{'column':'amount','kind':'no_missing'}])
+    candidate=call(ex,"test_generated",hypothesis='Currency parser',columns=['amount'],code=code,checks=[{'column':'amount','kind':'no_missing'}])
     assert candidate['tested'] and candidate['candidate_id']=='c1'
     stored=state.method_candidates['c1']
     assert stored['experiment_id'] in state.experiments and stored['experiment_id']!='c1'
@@ -137,11 +138,143 @@ def test_generated_missing_obligation_cannot_be_omitted(flat,monkeypatch):
         after=frame.copy();after['amount']=pd.to_numeric(after.amount.str.replace('$','',regex=False))
         return {'success':True,'df':after,'image_id':'sha256:test','repeatable':True}
     monkeypatch.setattr(experiments,'run_isolated_transform',runner)
-    candidate=call(ex,'test_method',hypothesis='Only parse',columns=['amount'],code='def transform(df):\n    return df\n',checks=[{'column':'amount','kind':'numeric'}])
+    candidate=call(ex,"test_generated",hypothesis='Only parse',columns=['amount'],code='def transform(df):\n    return df\n',checks=[{'column':'amount','kind':'numeric'}])
     assert not candidate['tested'] and state.current_ref.version=='V1'
 
 def test_unknown_arguments_do_not_reach_execution(flat):
     state,ex=flat
     assert not call(ex,'inspect_data',view='column')['success']
-    assert not call(ex,'test_method',hypothesis='missing method',columns=['amount'])['success']
-    assert not call(ex,'test_method',hypothesis='invalid',columns=['amount'],code='def transform(df):\n    return df')['success']
+    assert not call(ex,"test_builtin",hypothesis='missing method',columns=['amount'])['success']
+    assert not call(ex,"test_generated",hypothesis='invalid',columns=['amount'],code='def transform(df):\n    return df')['success']
+
+@pytest.mark.parametrize("operation,parameters", [
+    ("convert_data_types", {"dtype": "float"}),
+    ("convert_data_types", {"target_type": "float", "fill_value": 0}),
+    ("handle_missing_values", {"strategy": "median", "value": 0}),
+])
+def test_builtin_options_are_rejected_instead_of_silently_rewritten(flat, operation, parameters):
+    state, ex = flat
+    with pytest.raises(ValueError, match="Invalid builtin parameters"):
+        workflow.builtin_parameters(operation, parameters, ["amount"])
+    result = call(ex, "test_builtin", hypothesis="Test the supplied options", columns=["amount"],
+                  operation=operation, parameters=parameters)
+    assert not result["success"] and not state.method_candidates
+    assert state.current_ref.version == "V1"
+
+
+def test_model_arguments_never_invents_a_missing_hypothesis(flat):
+    state, ex = flat
+    from dataCleaningTools.contracts import model_arguments
+    # When operation is provided but hypothesis is omitted (common LLM failure mode)
+    raw_args = {
+        "operation": "convert_data_types",
+        "parameters": {"target_type": "boolean"},
+        "columns": ["flag"],
+    }
+    normalized = model_arguments("test_builtin", raw_args)
+    assert "hypothesis" not in normalized
+
+    # When neither operation nor code is present, hypothesis is NOT synthesized (schema error retained)
+    raw_bare = {"columns": ["flag"]}
+    bare_norm = model_arguments("test_builtin", raw_bare)
+    assert "hypothesis" not in bare_norm
+
+    # A concrete operation is not a substitute for model reasoning.
+    res = call(
+        ex,
+        "test_builtin",
+        columns=["flag"],
+        operation="convert_data_types",
+        parameters={"target_type": "boolean"},
+    )
+    assert not res["success"] and "hypothesis" in res["error"]
+    assert not state.method_candidates
+
+
+def test_nested_columns_are_canonicalized_without_losing_model_reasoning(flat):
+    state,ex=flat
+    reason='Observed Yes/No values encode binary flags; convert representation without filling or losing values.'
+    result=call(ex,"test_builtin",hypothesis=reason,operation='convert_data_types',
+        parameters={'columns':['flag'],'target_type':'boolean'})
+    assert result['tested'] and result['hypothesis']==reason
+    event=state.events[-1]
+    assert event['arguments']['columns']==['flag']
+    assert 'columns' not in event['arguments']['parameters']
+    assert event['raw_arguments']['parameters']['columns']==['flag']
+    assert event['explanation']==reason
+
+
+def test_conflicting_column_declarations_cannot_execute(flat):
+    state,ex=flat
+    result=call(ex,"test_builtin",hypothesis='Convert flags',columns=['flag'],
+        operation='convert_data_types',parameters={'columns':['amount'],'target_type':'boolean'})
+    assert not result['success'] and 'Conflicting' in result['error']
+    assert not state.method_candidates and state.current_ref.version=='V1'
+
+
+@pytest.mark.parametrize('hypothesis',['','   ','\n'])
+def test_blank_explanation_cannot_test_or_commit(flat,hypothesis):
+    state,ex=flat
+    result=trial(ex,hypothesis=hypothesis)
+    assert not result['success'] and not state.method_candidates
+    assert state.current_ref.version=='V1'
+
+
+def test_inspection_requires_its_own_reason(flat):
+    state,ex=flat
+    assert not call(ex,'inspect_data',view='schema')['success']
+    assert call(ex,'inspect_data',view='schema',reason='Check current types before choosing a parser')['shape']['rows']==4
+
+
+@pytest.mark.parametrize("arguments", [None, [], "not an object", 42])
+def test_non_object_arguments_return_audited_validation_errors(flat, arguments):
+    state, executor = flat
+    result = json.loads(executor.execute("test_generated", arguments))
+    assert not result["success"] and result["error_kind"] == "invalid_tool_arguments"
+    assert result["recovery_prompt"]["case"] == "arguments"
+    assert state.events[-1]["arguments"] == arguments
+    assert not state.method_candidates and state.current_ref.version == "V1"
+
+
+def test_invalid_request_is_validated_before_failed_method_lookup(flat, monkeypatch):
+    state, executor = flat
+    def forbidden(*args):
+        raise AssertionError("Invalid requests must not reach duplicate lookup")
+    monkeypatch.setattr("dataCleaningTools.repair_history.repeated_failure", forbidden)
+    result = call(executor, "test_generated", hypothesis="Missing checks", columns=["amount"],
+                  code="def transform(df): return df")
+    assert result["error_kind"] == "invalid_tool_arguments" and "checks" in result["error"]
+    assert not state.method_candidates
+
+
+def test_internal_key_error_is_not_reported_as_a_missing_model_argument(flat, monkeypatch):
+    state, executor = flat
+    def broken(*args):
+        raise KeyError("internal_lookup")
+    monkeypatch.setattr(workflow, "read_inspection", broken)
+    result = call(executor, "inspect_data", reason="Inspect structure", view="schema")
+    assert result["error_kind"] == "tool_execution" and result["fatal"]
+    assert state.finished and state.stop_reason == "tool_execution_error"
+    assert "Missing argument" not in result["error"] and "internal_lookup" in result["error"]
+
+
+
+def test_missing_working_file_is_audited_without_rereading_it_for_recovery(flat):
+    state, executor = flat
+    Path(state.current_ref.path).unlink()
+    result = call(executor, "inspect_data", reason="Read the current schema", view="schema")
+    assert result["fatal"] and result["error_kind"] == "tool_execution"
+    assert "FileNotFoundError" in result["error"]
+    assert "recovery_prompt" not in result
+    assert state.finished and state.stop_reason == "tool_execution_error"
+    trace = json.loads((state.manager.root / state.dataset_id / "execution_trace.json").read_text())
+    assert trace["events"][-1]["result"]["error"] == result["error"]
+
+
+
+def test_invalid_candidate_id_does_not_reach_history_lookup(flat):
+    state, executor = flat
+    result = call(executor, "apply_candidate", candidate_id=["c1"], assessment="Invalid id shape")
+    assert result["error_kind"] == "invalid_tool_arguments"
+    assert "not of type" in result["error"] and not state.method_candidates
+    assert state.events[-1]["arguments"]["candidate_id"] == ["c1"]

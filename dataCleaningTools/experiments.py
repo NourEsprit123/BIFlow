@@ -10,8 +10,8 @@ import hashlib
 import io
 import json
 import os
-import tarfile
 import time
+import threading
 from pathlib import Path
 from uuid import uuid4
 
@@ -23,28 +23,37 @@ IMAGE = "biflow-cleaning-sandbox:latest"
 MAX_BYTES = 64 * 1024 * 1024
 BUILD_COMMAND = "docker build -t biflow-cleaning-sandbox:latest -f sandbox/Dockerfile sandbox"
 TRANSFORM_SIGNATURE_ERROR = "Define exactly one transform(df) function with one positional argument"
+EXECUTION_TIMEOUT = 60
+RUNTIME_VERSIONS = {}  # Actual versions reported by this process's sandbox executions, keyed by image ID.
 
 # This trusted wrapper runs inside Docker, not on the host. Each invocation
 # uses fresh globals and fixed random seeds, and must produce repeatable output.
 WRAPPER = r'''
-import io, json, math, random, re, time
-from pathlib import Path
+import contextlib, io, json, math, random, re, sys
 import numpy as np
 import pandas as pd
-request = Path('/workspace/request.json')
-for _ in range(800):
-    if Path('/workspace/ready').exists():
-        break
-    time.sleep(0.05)
-payload = json.loads(request.read_text())
+print('BIFLOW_RUNTIME=' + json.dumps({'python': sys.version.split()[0], 'pandas': pd.__version__, 'numpy': np.__version__}), file=sys.stderr)
+# Length framing avoids waiting for EOF on Docker's attached stdin socket.
+header = sys.stdin.buffer.read(8)
+if len(header) != 8:
+    raise ValueError('Incomplete sandbox input header')
+size = int.from_bytes(header, 'big')
+if not 0 < size <= 64 * 1024 * 1024:
+    raise ValueError('Invalid sandbox input size')
+raw = sys.stdin.buffer.read(size)
+if len(raw) != size:
+    raise ValueError('Incomplete sandbox input payload')
+payload = json.loads(raw)
 before = pd.read_json(io.StringIO(payload['data']), orient='table')
 code = payload['code']
 def invoke():
     random.seed(0)
     np.random.seed(0)
     scope = {'pd': pd, 'np': np, 're': re, 'math': math}
-    exec(compile(code, '<cleaning-candidate>', 'exec'), scope)
-    result = scope['transform'](before.copy(deep=True))
+    # Candidate prints are diagnostics, never part of the JSON result stream.
+    with contextlib.redirect_stdout(sys.stderr):
+        exec(compile(code, '<cleaning-candidate>', 'exec'), scope)
+        result = scope['transform'](before.copy(deep=True))
     if not isinstance(result, pd.DataFrame):
         raise TypeError('transform(df) must return a pandas DataFrame')
     if not result.columns.is_unique:
@@ -54,8 +63,8 @@ first = invoke()
 second = invoke()
 if not first.equals(second):
     raise ValueError('Candidate produced different outputs on repeated identical inputs')
-Path('/workspace/output.json').write_text(first.to_json(orient='table', date_format='iso'))
-print(json.dumps({'rows': len(first), 'columns': len(first.columns), 'repeatable': True}))
+sys.stdout.buffer.write(first.to_json(orient='table', date_format='iso').encode())
+sys.stdout.buffer.flush()
 '''
 
 
@@ -82,7 +91,8 @@ def runtime_status() -> dict:
         client = docker.from_env(timeout=5)
         client.ping()
         image = client.images.get(os.environ.get("BIFLOW_EXPERIMENT_IMAGE", IMAGE))
-        return {"available": True, "backend": "docker", "image_id": image.id}
+        return {"available": True, "backend": "docker", "image_id": image.id,
+                "versions": RUNTIME_VERSIONS.get(image.id, {})}
     except Exception as exc:
         return {"available": False, "backend": "docker", "error": str(exc),
                 "setup": f"Start Docker Desktop (Linux containers), then run: {BUILD_COMMAND}"}
@@ -94,10 +104,14 @@ def runtime_status() -> dict:
 def run_isolated_transform(frame: pd.DataFrame, code: str, *, image_id: str | None = None) -> dict:
     """No host fallback, mounts, network, secrets, or runtime package downloads."""
     validate_code(code)
-    client = container = None
+    client = container = input_socket = None
+    watchdog = None
+    timed_out = threading.Event()
+    phase = "sandbox_setup"
     try:
         import docker
         from docker.types import LogConfig
+        from docker.utils.socket import frames_iter
         client = docker.from_env(timeout=5)
         image = client.images.get(image_id or os.environ.get("BIFLOW_EXPERIMENT_IMAGE", IMAGE))
         pinned_image = image.id
@@ -106,6 +120,7 @@ def run_isolated_transform(frame: pd.DataFrame, code: str, *, image_id: str | No
             raise ValueError("Experiment input exceeds the 64 MB limit")
         container = client.containers.create(
             pinned_image, command=["python", "-I", "-c", WRAPPER],
+            stdin_open=True,
             working_dir="/workspace", user="65534:65534", network_disabled=True,
             read_only=True, cap_drop=["ALL"], security_opt=["no-new-privileges:true"],
             mem_limit="768m", memswap_limit="768m", nano_cpus=1_000_000_000, pids_limit=64,
@@ -113,43 +128,74 @@ def run_isolated_transform(frame: pd.DataFrame, code: str, *, image_id: str | No
             environment={"PYTHONUNBUFFERED": "1", "OMP_NUM_THREADS": "1", "OPENBLAS_NUM_THREADS": "1"},
             log_config=LogConfig(type="json-file", config={"max-size": "1m", "max-file": "1"}),
         )
+        # Docker's archive upload rejects read-only root filesystems even for
+        # this tmpfs destination. Send input over stdin without filesystem writes.
+        phase = "sandbox_input_transfer"
+        input_socket = container.attach_socket(params={"stdin": 1, "stream": 1, "stdout": 1, "stderr": 0})
         container.start()
-        archive = io.BytesIO()
-        with tarfile.open(fileobj=archive, mode="w") as bundle:
-            info = tarfile.TarInfo("request.json")
-            info.size, info.mode = len(payload), 0o444
-            bundle.addfile(info, io.BytesIO(payload))
-            # Written after the payload, so the reader cannot consume a
-            # partially transferred JSON file on large inputs.
-            ready = tarfile.TarInfo("ready")
-            ready.size, ready.mode = 0, 0o444
-            bundle.addfile(ready, io.BytesIO())
-        container.put_archive("/workspace", archive.getvalue())
-        outcome = container.wait(timeout=60)
-        logs = container.logs(tail=100).decode("utf-8", errors="replace")[-12000:]
-        if outcome["StatusCode"] != 0:
-            return {"success": False, "error": logs or "Sandbox process failed", "image_id": pinned_image,
-                    "error_kind": "sandbox_execution"}
-        chunks, _ = container.get_archive("/workspace/output.json")
+        # Named-pipe reads on Windows can ignore socket timeouts. Killing the
+        # container independently unblocks the stream as well as stopping code.
+        def stop_execution():
+            timed_out.set()
+            try:
+                container.kill()
+            except Exception:
+                pass
+        watchdog = threading.Timer(EXECUTION_TIMEOUT, stop_execution)
+        watchdog.daemon = True
+        watchdog.start()
+        transport = getattr(input_socket, "_sock", input_socket)
+        transport.settimeout(EXECUTION_TIMEOUT)
+        transport.sendall(len(payload).to_bytes(8, "big") + payload)
+        phase = "sandbox_execution"
         output = bytearray()
-        for chunk in chunks:
+        for stream, chunk in frames_iter(transport, tty=False):
+            if stream != 1:
+                continue
             output.extend(chunk)
             if len(output) > MAX_BYTES:
                 raise ValueError("Experiment output exceeds the 64 MB limit")
-        # Read one named member; never extract paths from an untrusted archive.
-        with tarfile.open(fileobj=io.BytesIO(output)) as bundle:
-            member = bundle.getmember("output.json")
-            if not member.isfile() or member.size > MAX_BYTES:
-                raise ValueError("Invalid sandbox output file")
-            data = bundle.extractfile(member).read()
+        outcome = container.wait(timeout=60)
+        if timed_out.is_set():
+            return {"success": False, "error": f"Sandbox execution timed out after {EXECUTION_TIMEOUT}s",
+                    "error_kind": "sandbox_execution", "image_id": pinned_image}
+        logs = container.logs(tail=100, stdout=False, stderr=True).decode("utf-8", errors="replace")[-12000:]
+        diagnostic_lines = []
+        for line in logs.splitlines():
+            if line.startswith("BIFLOW_RUNTIME=") and pinned_image not in RUNTIME_VERSIONS:
+                try:
+                    versions = json.loads(line.removeprefix("BIFLOW_RUNTIME="))
+                    if set(versions) == {"python", "pandas", "numpy"} and all(isinstance(v, str) for v in versions.values()):
+                        RUNTIME_VERSIONS[pinned_image] = versions
+                except (ValueError, TypeError):
+                    pass
+            elif not line.startswith("BIFLOW_RUNTIME="):
+                diagnostic_lines.append(line)
+        logs = "\n".join(diagnostic_lines)
+        if outcome["StatusCode"] != 0:
+            return {"success": False, "error": logs or "Sandbox process failed", "image_id": pinned_image,
+                    "error_kind": "sandbox_execution"}
+        data = bytes(output)
+        phase = "sandbox_output_transfer"
         result = pd.read_json(io.StringIO(data.decode()), orient="table")
         return {"success": True, "df": result, "image_id": pinned_image,
                 "repeatable": True, "output_hash": digest(data), "log": logs}
     except Exception as exc:
+        if timed_out.is_set():
+            return {"success": False, "error": f"Sandbox execution timed out after {EXECUTION_TIMEOUT}s",
+                    "error_kind": "sandbox_execution"}
         return {"success": False, "error": str(exc),
-                "error_kind": "sandbox_unavailable" if container is None else "sandbox_execution",
+                "error_kind": "sandbox_unavailable" if container is None else "sandbox_execution" if phase == "sandbox_execution" else "sandbox_infrastructure",
+                "failure_stage": phase,
                 "setup": f"Use an isolated Docker runtime. {BUILD_COMMAND}"}
     finally:
+        if watchdog is not None:
+            watchdog.cancel()
+        if input_socket is not None:
+            try:
+                input_socket.close()
+            except Exception:
+                pass
         if container is not None:
             try:
                 container.remove(force=True)
@@ -159,7 +205,7 @@ def run_isolated_transform(frame: pd.DataFrame, code: str, *, image_id: str | No
             client.close()
 
 
-def assess_method(before, after, columns, checks):
+def assess_method(before, after, columns, checks, *, verify_numeric_values=True):
     effect = assess_candidate(before, after, "apply_experimental_method", columns, {})
     rules = effect["rules"]
     rules.append({"rule_name": "row_identity", "passed": before.index.equals(after.index),
@@ -171,6 +217,9 @@ def assess_method(before, after, columns, checks):
             series = after[column]
             if kind == "no_missing":
                 passed = bool(present(series).all())
+            elif kind == "preserve_missing":
+                passed = (column in before and before.index.equals(after.index)
+                          and bool((present(before[column]) | ~present(series)).all()))
             elif kind == "unique":
                 passed = bool(series.is_unique)
             elif kind == "non_negative":
@@ -180,6 +229,16 @@ def assess_method(before, after, columns, checks):
                 passed = target_matches(series, kind)
         rules.append({"rule_name": f"expected:{kind}:{column}", "passed": passed,
                       "message": f"Declared outcome: {column} must satisfy {kind}"})
+    if verify_numeric_values:
+        from .numeric_expectations import numeric_rules
+        from .value_interpretation import boolean_rules
+        numeric_columns = {c["column"] for c in checks if c["kind"] in {"numeric", "integer", "non_negative"}}
+        numeric_columns.update(c for c in columns if c in after and pd.api.types.is_numeric_dtype(after[c])
+                               and not pd.api.types.is_bool_dtype(after[c]))
+        rules.extend(numeric_rules(before, after, [c for c in columns if c in numeric_columns]))
+        boolean_columns = {c["column"] for c in checks if c["kind"] == "boolean"}
+        boolean_columns.update(c for c in columns if c in after and pd.api.types.is_bool_dtype(after[c]))
+        rules.extend(boolean_rules(before, after, [c for c in columns if c in boolean_columns]))
     effect["column_metrics"] = {}
     for column in columns:
         effect["column_metrics"][column] = {}
@@ -209,7 +268,7 @@ def experiment(state, arguments) -> dict:
     if before.empty:
         raise ValueError("Cannot experiment on an empty dataset")
     checks = arguments["checks"]
-    valid_checks = {"no_missing", "unique", "non_negative", "numeric", "integer", "boolean", "datetime", "string"}
+    valid_checks = {"no_missing", "unique", "non_negative", "numeric", "integer", "boolean", "datetime", "string", "preserve_missing"}
     if not checks or any(c.get("column") not in columns or c.get("kind") not in valid_checks for c in checks):
         raise ValueError("Declare at least one supported outcome check on an affected column")
     evidence_ids = arguments.get("evidence_ids", [])
@@ -227,6 +286,7 @@ def experiment(state, arguments) -> dict:
             "base_version": state.current_ref.version,
             "dataset_hash": digest(Path(state.current_ref.path).read_bytes()),
             "columns": list(columns), "checks": checks, "rationale": arguments["rationale"],
+            "verify_numeric_values": arguments.get("verify_numeric_values", True),
             "expected_effect": arguments["expected_effect"], "evidence_ids": evidence_ids,
             "code_path": str((directory / "method.py").resolve()), "trials": [], "tested": False}
     Path(spec["code_path"]).write_text(code, encoding="utf-8", newline="\n")
@@ -252,7 +312,8 @@ def experiment(state, arguments) -> dict:
             if execution["image_id"] != spec["image_id"]:
                 trial.update(success=False, error="Sandbox image changed between trials")
             else:
-                trial["effect"] = assess_method(frame, execution["df"], columns, checks)
+                trial["effect"] = assess_method(frame, execution["df"], columns, checks,
+                    verify_numeric_values=spec["verify_numeric_values"])
                 trial["success"] = trial["effect"]["accepted"]
         spec["trials"].append(trial)
         if not trial["success"]:
@@ -287,12 +348,13 @@ def promote(state, candidate_id, before):
     execution = run_isolated_transform(before, code, image_id=spec["image_id"])
     if not execution["success"]:
         return CleaningResult(False, error=execution["error"], details={"candidate_id": candidate_id,
-            "error_kind": execution.get("error_kind"), "setup": execution.get("setup")})
+            "error_kind": execution.get("error_kind"), "setup": execution.get("setup"), "sandbox_log": execution.get("log", "")})
     if execution["image_id"] != spec["image_id"]:
         return CleaningResult(False, error="Sandbox runtime differs from the tested runtime")
-    effect = assess_method(before, execution["df"], spec["columns"], spec["checks"])
+    effect = assess_method(before, execution["df"], spec["columns"], spec["checks"],
+        verify_numeric_values=spec.get("verify_numeric_values", True))
     details = {"candidate_id": candidate_id, "code_hash": spec["code_hash"], "image_id": spec["image_id"],
-               "full_data_effect": effect, "code_path": spec["code_path"]}
+               "full_data_effect": effect, "code_path": spec["code_path"], "sandbox_log": execution.get("log", "")}
     (Path(spec["code_path"]).parent / "full_data_validation.json").write_text(json.dumps(details, indent=2, default=str), encoding="utf-8")
     if not effect["accepted"]:
         return CleaningResult(False, error="Full-data validation failed; working version preserved", details=details)

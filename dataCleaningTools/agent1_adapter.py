@@ -1,20 +1,10 @@
-"""
-Adapter: Agent 1 profiling report → Agent 2 internal structures.
-
-Responsibilities:
-  1. Parse / validate the raw JSON from Agent 1 (schema_version 2.1).
-  2. Map Agent1DatasetRef → a filesystem path Agent 2 can register.
-  3. Extract normalized Finding list for planning.
-  4. Suggest initial TransformationSteps from recommended_cleaning_order,
-     imputation_plan, etl_hints and column issues — still only *proposals*.
-"""
+"""Load profiling reports and build proposals for the optional deterministic baseline."""
 
 from __future__ import annotations
 
 from .contracts import canonical_type
 
-import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any, Dict, List, Optional, Union
 
 from .models import (
@@ -29,356 +19,115 @@ from .models import (
 )
 
 
-def parse_profiling_report(
-    payload: Union[str, Path, Dict[str, Any], ProfilingReport],
-) -> ProfilingReport:
-    """
-    Accept a file path, JSON string, dict, or already-parsed model
-    and return a validated ProfilingReport.
-    """
-    if isinstance(payload, ProfilingReport):
-        return payload
-
-    if isinstance(payload, (str, Path)):
-        path = Path(payload)
-        if path.exists() and path.is_file():
-            raw = json.loads(path.read_text(encoding="utf-8"))
-        else:
-            # treat as JSON string
-            raw = json.loads(str(payload))
-    elif isinstance(payload, dict):
-        raw = payload
-    else:
-        raise TypeError(f"Unsupported payload type: {type(payload)}")
-
-    return ProfilingReport.model_validate(raw)
+def parse_profiling_report(payload: Union[str, Path, Dict[str, Any], ProfilingReport]) -> ProfilingReport:
+    """Validate a report model/dict, JSON object string, or UTF-8 report file."""
+    if isinstance(payload, (ProfilingReport, dict)):
+        return ProfilingReport.model_validate(payload)
+    if isinstance(payload, Path):
+        return ProfilingReport.model_validate_json(payload.read_text(encoding="utf-8-sig"))
+    if isinstance(payload, str):
+        text = payload if payload.lstrip().startswith(("{", "[")) else Path(payload).read_text(encoding="utf-8-sig")
+        return ProfilingReport.model_validate_json(text)
+    raise TypeError(f"Unsupported payload type: {type(payload).__name__}")
 
 
-def resolve_source_path(
-    report: ProfilingReport,
-    search_roots: Optional[List[Union[str, Path]]] = None,
-) -> Path:
-    """
-    Resolve the dataset file path from Agent 1's dataset_ref.
-
-    Agent 1 may emit absolute Windows paths that don't exist on the
-    machine running Agent 2. We try, in order:
-      1. The exact file_path if it exists
-      2. file_name under each search_root
-      3. Raise FileNotFoundError with a clear message
-    """
+def resolve_source_path(report: ProfilingReport, search_roots=None) -> Path:
+    """Use the exact source file, then its filename under the supplied roots."""
     ref = report.dataset_ref
-    candidate = Path(ref.file_path)
-    if candidate.exists():
-        return candidate.resolve()
-
-    # Windows path on Linux → only keep the basename
-    name = ref.file_name or candidate.name
-    roots = search_roots or [
-        Path("data"),
-        Path("data/raw"),
-        Path("."),
-    ]
-    for root in roots:
-        root = Path(root)
-        hit = root / name
-        if hit.exists():
-            return hit.resolve()
-
-    raise FileNotFoundError(
-        f"Cannot locate dataset '{name}'. "
-        f"Agent 1 reported path: {ref.file_path}. "
-        f"Searched: {[str(r) for r in roots]}"
-    )
+    name = PureWindowsPath(ref.file_name or ref.file_path).name
+    roots = search_roots or [Path("data"), Path("data/raw"), Path(".")]
+    candidates = [Path(ref.file_path), *(Path(root) / name for root in roots)]
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate.resolve()
+    raise FileNotFoundError(f"Cannot locate dataset '{name}'. Searched: {[str(p) for p in candidates]}")
 
 
 def extract_findings(report: ProfilingReport) -> List[Finding]:
-    """Flatten column issues + top-level hints into normalized Findings."""
-    findings: List[Finding] = []
-
-    for col_name, prof in report.column_profiles.items():
-        for issue in prof.issues:
-            findings.append(
-                Finding(
-                    column=col_name,
-                    issue_id=issue.issue_id,
-                    description=issue.description,
-                    severity=issue.severity,
-                    evidence=issue.evidence or {},
-                    recommendation=_recommendation_from_issue(col_name, prof, issue),
-                    is_hypothesis=issue.source == "llm",
-                    source=issue.source,
-                )
-            )
-
-        # Flag high uncertainty even without explicit issues
-        if prof.uncertainty.upper() == "HIGH" and not prof.issues:
-            findings.append(
-                Finding(
-                    column=col_name,
-                    issue_id="high_uncertainty",
-                    description=f"High uncertainty on role/type for '{col_name}' "
-                                f"(inferred_role={prof.inferred_role})",
-                    severity="LOW",
-                    evidence={"uncertainty": prof.uncertainty, "dtype": prof.dtype},
-                    recommendation="Verify before aggressive transforms",
-                    is_hypothesis=True,
-                    source="agent1",
-                )
-            )
-
-    for item in report.cross_column_issues:
-        findings.append(
-            Finding(
-                column=None,
-                issue_id="cross_column",
-                description=str(item),
-                severity="MEDIUM",
-                is_hypothesis=True,
-                source="agent1",
-            )
-        )
-
-    for item in report.llm_discovered_issues:
-        findings.append(
-            Finding(
-                column=None,
-                issue_id="llm_discovered",
-                description=str(item),
-                severity="MEDIUM",
-                is_hypothesis=True,
-                source="llm",
-            )
-        )
-
+    """Flatten profiler findings without treating recommendations as commands."""
+    findings = []
+    for column, profile in report.column_profiles.items():
+        for issue in profile.issues:
+            findings.append(Finding(column=column, issue_id=issue.issue_id,
+                description=issue.description, severity=issue.severity, evidence=issue.evidence,
+                recommendation=_recommendation_from_issue(column, profile, issue),
+                is_hypothesis=issue.source == "llm", source=issue.source))
+        if profile.uncertainty.upper() == "HIGH" and not profile.issues:
+            findings.append(Finding(column=column, issue_id="high_uncertainty",
+                description=f"High uncertainty on role/type for '{column}' (inferred_role={profile.inferred_role})",
+                severity="LOW", evidence={"uncertainty": profile.uncertainty, "dtype": profile.dtype},
+                recommendation="Verify before aggressive transforms", is_hypothesis=True, source="agent1"))
+    for items, issue_id, source in ((report.cross_column_issues, "cross_column", "agent1"),
+                                   (report.llm_discovered_issues, "llm_discovered", "llm")):
+        findings.extend(Finding(issue_id=issue_id, description=str(item), severity="MEDIUM",
+                                is_hypothesis=True, source=source) for item in items)
     return findings
 
 
-def propose_initial_steps(
-    report: ProfilingReport,
-    source_ref: DatasetReference,
-) -> TransformationPlan:
-    """
-    Build a *draft* TransformationPlan from Agent 1 signals.
+def propose_initial_steps(report: ProfilingReport, source_ref: DatasetReference) -> TransformationPlan:
+    """Build proposals for the explicit deterministic baseline, not the LLM task queue."""
+    steps = []
+    finding_ids = {(f.column, f.issue_id): f.finding_id for f in extract_findings(report) if f.column}
 
-    Rules of thumb (deterministic, overridable by the agent):
-      - Follow recommended_cleaning_order when present.
-      - type_mismatch + numeric-looking → convert_data_types (coerce)
-      - type_mismatch + timestamp → convert to datetime
-      - type_mismatch + boolean → map Yes/No → bool
-      - missing_values → handle_missing using imputation_plan strategy
-      - drop_recommended → only propose after approval (high risk)
+    def add(operation, column, parameters, rationale, expected="", *,
+            risk=RiskLevel.MODERATE, approval=False, issue=None):
+        finding_id = finding_ids.get((column, issue))
+        steps.append(TransformationStep(operation=operation, columns=[column], parameters=parameters,
+            rationale=rationale, expected_effect=expected, risk_level=risk, requires_approval=approval,
+            source_finding_ids=[finding_id] if finding_id else []))
 
-    Every step starts as PROPOSED. Risk / approval flags are set
-    conservatively; the policy layer can still block execution.
-    """
-    steps: List[TransformationStep] = []
-    findings = extract_findings(report)
-    finding_by_col_issue = {
-        (f.column, f.issue_id): f.finding_id for f in findings if f.column
-    }
-
-    # Prefer Agent 1's suggested order; fall back to column_profiles order
-    order = report.recommended_cleaning_order or list(report.column_profiles.keys())
-
-    for col in order:
-        prof = report.column_profiles.get(col)
-        if prof is None:
+    for column in report.recommended_cleaning_order or report.column_profiles:
+        profile = report.column_profiles.get(column)
+        if profile is None:
             continue
-
-        issue_ids = {i.issue_id for i in prof.issues}
-
-        # --- type conversions ---
+        issue_ids = {issue.issue_id for issue in profile.issues}
+        role = profile.inferred_role.lower()
+        cast = (profile.etl_cast_to or "none").lower()
         if "type_mismatch" in issue_ids:
-            role = (prof.inferred_role or "").lower()
-            cast = (prof.etl_cast_to or "none").lower()
-            mismatch_desc = " ".join(
-                i.description for i in prof.issues if i.issue_id == "type_mismatch"
-            ).lower()
-            is_dirty_numeric = (
-                "dirty numeric" in mismatch_desc
-                or "numeric stored as text" in mismatch_desc
-                or _looks_like_dirty_numeric(prof)
-            )
+            descriptions = " ".join(i.description for i in profile.issues if i.issue_id == "type_mismatch").lower()
+            dirty = "dirty numeric" in descriptions or "numeric stored as text" in descriptions or _looks_like_dirty_numeric(profile)
+            if role in {"continuous_numeric", "numeric"} or cast in {"float", "int", "numeric"} or dirty:
+                add("clean_numeric_string" if dirty else "convert_data_types", column,
+                    {"errors": "coerce"} if dirty else {"target_type": "numeric", "errors": "coerce"},
+                    f"type_mismatch on '{column}' (role={profile.inferred_role}, dirty_numeric={dirty})",
+                    "Parse numeric values; unparseable entries become NaN",
+                    approval=_needs_approval_for_numeric(profile), issue="type_mismatch")
+            elif role in {"timestamp", "date", "datetime"} or cast in {"datetime", "date"}:
+                add("convert_data_types", column, {"target_type": "datetime", "errors": "coerce"},
+                    f"Date/time stored as text in '{column}'", "Column becomes datetime64", issue="type_mismatch")
+            elif role in {"boolean", "bool"} or cast in {"bool", "boolean"}:
+                add("normalize_values", column, {"mapping": {
+                    "yes": "true", "no": "false", "Yes": "true", "No": "false", "YES": "true", "NO": "false",
+                    "Y": "true", "N": "false", "1": "true", "0": "false", "true": "true", "false": "false"},
+                    "case": "lower", "strip_whitespace": True},
+                    f"Boolean flag stored as text in '{column}'", "Normalize boolean text before casting",
+                    risk=RiskLevel.LOW, issue="type_mismatch")
+                add("convert_data_types", column, {"target_type": "boolean", "errors": "coerce"},
+                    f"Cast normalized '{column}' to boolean", "bool dtype", risk=RiskLevel.LOW)
+        elif profile.inferred_role == "categorical" and _looks_like_dirty_numeric(profile):
+            add("clean_numeric_string", column, {"errors": "coerce"},
+                f"'{column}' looks like currency/numeric text (samples: {profile.sample_values[:4]})",
+                "Parsed numeric; unparseable entries become NaN", approval=True)
 
-            if (
-                role in ("continuous_numeric", "numeric")
-                or cast in ("float", "int", "numeric")
-                or is_dirty_numeric
-            ):
-                if is_dirty_numeric:
-                    steps.append(
-                        TransformationStep(
-                            operation="clean_numeric_string",
-                            columns=[col],
-                            parameters={"errors": "coerce"},
-                            rationale=f"type_mismatch / dirty numeric strings on '{col}'",
-                            risk_level=RiskLevel.MODERATE,
-                            requires_approval=_needs_approval_for_numeric(prof),
-                            source_finding_ids=[
-                                finding_by_col_issue.get((col, "type_mismatch"), "")
-                            ],
-                            expected_effect="Currency/k/m suffixes parsed; garbage → NaN",
-                        )
-                    )
-                else:
-                    steps.append(
-                        TransformationStep(
-                            operation="convert_data_types",
-                            columns=[col],
-                            parameters={"target_type": "numeric", "errors": "coerce"},
-                            rationale=f"type_mismatch on '{col}' (role={prof.inferred_role})",
-                            risk_level=RiskLevel.MODERATE,
-                            requires_approval=_needs_approval_for_numeric(prof),
-                            source_finding_ids=[
-                                finding_by_col_issue.get((col, "type_mismatch"), "")
-                            ],
-                            expected_effect="Numeric values parsable; garbage → NaN",
-                        )
-                    )
-            elif role in ("timestamp", "date", "datetime") or cast in ("datetime", "date"):
-                steps.append(
-                    TransformationStep(
-                        operation="convert_data_types",
-                        columns=[col],
-                        parameters={"target_type": "datetime", "errors": "coerce"},
-                        rationale=f"Date/time stored as text in '{col}'",
-                        risk_level=RiskLevel.MODERATE,
-                        requires_approval=False,
-                        source_finding_ids=[
-                            finding_by_col_issue.get((col, "type_mismatch"), "")
-                        ],
-                        expected_effect="Column becomes datetime64",
-                    )
-                )
-            elif role in ("boolean", "bool") or cast in ("bool", "boolean"):
-                steps.append(
-                    TransformationStep(
-                        operation="normalize_values",
-                        columns=[col],
-                        parameters={
-                            "mapping": {
-                                "yes": "true", "no": "false",
-                                "Yes": "true", "No": "false",
-                                "YES": "true", "NO": "false",
-                                "Y": "true", "N": "false",
-                                "1": "true", "0": "false",
-                                "true": "true", "false": "false",
-                            },
-                            "case": "lower",
-                            "strip_whitespace": True,
-                        },
-                        rationale=f"Boolean flag stored as text in '{col}'",
-                        risk_level=RiskLevel.LOW,
-                        requires_approval=False,
-                        source_finding_ids=[
-                            finding_by_col_issue.get((col, "type_mismatch"), "")
-                        ],
-                        expected_effect="Normalized yes/no → true/false strings (cast later)",
-                    )
-                )
-                steps.append(
-                    TransformationStep(
-                        operation="convert_data_types",
-                        columns=[col],
-                        parameters={"target_type": "boolean", "errors": "coerce"},
-                        rationale=f"Cast normalized '{col}' to boolean",
-                        risk_level=RiskLevel.LOW,
-                        requires_approval=False,
-                        expected_effect="bool dtype",
-                    )
-                )
+        if "missing_values" in issue_ids or profile.missing_count > 0:
+            strategy = _imputation_strategy(report, column, profile)
+            add("handle_missing_values", column, {"strategy": strategy},
+                f"Missing {profile.missing_pct}% in '{column}'", f"Apply {strategy}",
+                risk=RiskLevel.HIGH if strategy == "drop_rows" else RiskLevel.MODERATE,
+                approval=strategy == "drop_rows", issue="missing_values")
+        if profile.drop_recommended:
+            add("drop_column", column, {}, f"Agent 1 marked '{column}' drop_recommended=True",
+                f"Column '{column}' removed", risk=RiskLevel.HIGH, approval=True)
 
-        # --- dirty numeric strings that profiler labelled categorical ---
-        # Revenue-like columns often land here
-        if (
-            "type_mismatch" not in issue_ids
-            and prof.inferred_role == "categorical"
-            and _looks_like_dirty_numeric(prof)
-        ):
-            steps.append(
-                TransformationStep(
-                    operation="clean_numeric_string",
-                    columns=[col],
-                    parameters={"errors": "coerce"},
-                    rationale=(
-                        f"'{col}' looks like currency/numeric text "
-                        f"(samples: {prof.sample_values[:4]})"
-                    ),
-                    risk_level=RiskLevel.MODERATE,
-                    requires_approval=True,   # ambiguous values like "1.5k", "banana"
-                    source_finding_ids=[],
-                    expected_effect="Parsed numeric; unparseable → NaN",
-                )
-            )
-
-        # --- missing values ---
-        if "missing_values" in issue_ids or prof.missing_count > 0:
-            strategy = _imputation_strategy(report, col, prof)
-            # Dropping rows is higher risk than filling
-            risk = RiskLevel.HIGH if strategy == "drop_rows" else RiskLevel.MODERATE
-            steps.append(
-                TransformationStep(
-                    operation="handle_missing_values",
-                    columns=[col],
-                    parameters={"strategy": strategy},
-                    rationale=f"Missing {prof.missing_pct}% in '{col}'",
-                    risk_level=risk,
-                    requires_approval=risk in (RiskLevel.HIGH, RiskLevel.CRITICAL),
-                    source_finding_ids=[
-                        finding_by_col_issue.get((col, "missing_values"), "")
-                    ],
-                    expected_effect=f"Apply {strategy}",
-                )
-            )
-
-        # --- drop recommended ---
-        if prof.drop_recommended:
-            steps.append(
-                TransformationStep(
-                    operation="drop_column",
-                    columns=[col],
-                    parameters={},
-                    rationale=f"Agent 1 marked '{col}' drop_recommended=True",
-                    risk_level=RiskLevel.HIGH,
-                    requires_approval=True,
-                    expected_effect=f"Column '{col}' removed",
-                )
-            )
-
-    # ETL hint: explicit cast targets
-    for col, target in (report.etl_hints.type_casting_targets or {}).items():
-        if not any(s.columns == [col] and s.operation == "convert_data_types" for s in steps):
-            steps.append(
-                TransformationStep(
-                    operation="convert_data_types",
-                    columns=[col],
-                    parameters={"target_type": canonical_type(target), "errors": "coerce"},
-                    rationale=f"etl_hints.type_casting_targets['{col}'] = {target}",
-                    risk_level=RiskLevel.MODERATE,
-                    requires_approval=False,
-                )
-            )
-
-    overall = RiskLevel.LOW
-    if any(s.risk_level == RiskLevel.CRITICAL for s in steps):
-        overall = RiskLevel.CRITICAL
-    elif any(s.risk_level == RiskLevel.HIGH for s in steps):
-        overall = RiskLevel.HIGH
-    elif any(s.risk_level == RiskLevel.MODERATE for s in steps):
-        overall = RiskLevel.MODERATE
-
-    return TransformationPlan(
-        source_dataset=source_ref,
-        steps=steps,
-        overall_risk=overall,
+    for column, target in report.etl_hints.type_casting_targets.items():
+        if not any(s.columns == [column] and s.operation == "convert_data_types" for s in steps):
+            add("convert_data_types", column, {"target_type": canonical_type(target), "errors": "coerce"},
+                f"etl_hints.type_casting_targets['{column}'] = {target}")
+    return TransformationPlan(source_dataset=source_ref, steps=steps,
+        overall_risk=max((s.risk_level for s in steps), key=list(RiskLevel).index, default=RiskLevel.LOW),
         human_approval_required=any(s.requires_approval for s in steps),
-        notes=[
-            report.agent_summary,
-            report.recommendation_summary,
-        ],
-        derived_from_report_summary=report.recommendation_summary,
-    )
+        notes=[report.agent_summary, report.recommendation_summary],
+        derived_from_report_summary=report.recommendation_summary)
 
 
 # ---------------------------------------------------------------------------

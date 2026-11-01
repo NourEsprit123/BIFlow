@@ -3,11 +3,13 @@ from __future__ import annotations
 
 import pandas as pd
 
+MISSING_MARKERS = frozenset({"", "n/a", "null", "none", "?", "missing"})
+
 
 def present(series: pd.Series) -> pd.Series:
     """Whitespace and common missing markers do not count as populated values."""
     text = series.astype("string").str.strip().str.lower()
-    return series.notna() & ~text.isin(["", "n/a", "null", "none", "?", "missing"])
+    return series.notna() & ~text.isin(MISSING_MARKERS)
 
 
 def snapshot(df: pd.DataFrame) -> dict:
@@ -45,7 +47,7 @@ def target_matches(series: pd.Series, target: str) -> bool:
 
 def assess_candidate(before: pd.DataFrame, after: pd.DataFrame, operation: str,
                      columns: list[str], parameters: dict) -> dict:
-    """Reject unexpected structural changes and loss of populated values."""
+    """Check structure and declared outcomes; audit populated-to-missing coercions."""
     rules = []
 
     def check(name, passed, message):
@@ -67,6 +69,7 @@ def assess_candidate(before: pd.DataFrame, after: pd.DataFrame, operation: str,
           "Only explicitly requested columns may be removed")
     changed_cells = None
     changed_examples = []
+    lost_values = []
     if row_removal:
         expected_rows = (before.drop_duplicates(subset=parameters.get("subset") or None,
                                                keep=parameters.get("keep", "first"))
@@ -86,8 +89,11 @@ def assess_candidate(before: pd.DataFrame, after: pd.DataFrame, operation: str,
                 changed_examples.append({"row_position": int(index), "column": str(c),
                                          "before": None if pd.isna(old[index]) else str(old[index])[:200],
                                          "after": None if pd.isna(new[index]) else str(new[index])[:200]})
-            check(f"no_new_missing:{c}", not (present(old) & ~present(new)).any(),
-                  "Previously populated values must not become missing")
+            lost = present(old) & ~present(new)
+            for index in lost.index[lost]:
+                lost_values.append({"row_position": int(index), "row_index": str(before.index[index]),
+                    "column": str(c), "before": str(old[index]),
+                    "after": None if pd.isna(new[index]) else str(new[index])})
             if c not in affected:
                 check(f"untouched:{c}", same.all(), "Unselected column values must stay unchanged")
     if operation in ("convert_data_types", "clean_numeric_string"):
@@ -107,5 +113,31 @@ def assess_candidate(before: pd.DataFrame, after: pd.DataFrame, operation: str,
         "before": snapshot(before), "after": snapshot(after),
         "changed_cells": changed_cells, "rows_removed": len(before) - len(after),
         "changed_examples": changed_examples,
+        "lost_values": lost_values, "lost_value_count": len(lost_values),
         "columns_removed": [c for c in before if c not in after],
     }
+
+
+def failure_summary(result):
+    """Collect all loss evidence, separate from the five general examples."""
+    effects = []
+    effect = result.get("effect") or (result.get("details") or {}).get("full_data_effect")
+    if effect:
+        effects.append((None, effect))
+    for trial in result.get("trials", []):
+        if trial.get("effect"):
+            effects.append((trial.get("partition"), trial["effect"]))
+    failed, losses = [], []
+    for partition, effect in effects:
+        scope = {"partition": partition} if partition else {}
+        failed.extend({**rule, **scope} for rule in effect.get("rules", []) if not rule["passed"])
+        losses.extend({**cell, **scope} for cell in effect.get("lost_values", []))
+    errors = [str(result["error"])] if result.get("error") else []
+    errors += [f"{rule['rule_name']}: {rule.get('message', '')}" for rule in failed]
+    errors += [f"{trial['partition']}: {trial['error']}" for trial in result.get("trials", []) if trial.get("error")]
+    reason = "; ".join(dict.fromkeys(errors)) or "Candidate did not pass its required trial checks."
+    if losses:
+        reason += f" {len(losses)} populated cells would become missing (permitted coercions; see affected values)."
+    return {"reason": reason, "failed_checks": failed,
+            "lost_value_count": len(losses), "lost_values": losses,
+            "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."}

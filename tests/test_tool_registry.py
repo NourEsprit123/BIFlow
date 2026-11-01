@@ -2,6 +2,7 @@
 import json
 from pathlib import Path
 import pandas as pd
+import pytest
 from dataCleaningTools.tool_registry import AgentSessionState,ToolExecutor
 from dataCleaningTools.versioning import DatasetVersionManager
 
@@ -38,3 +39,41 @@ def test_measurements_and_rejected_attempts_remain_in_trace(tmp_path):
     trace=json.loads((Path(state.current_ref.path).parent/'execution_trace.json').read_text())
     assert 'issues' not in trace and 'workflow_stage' not in trace
     assert 'flagged' in trace and 'failures' in trace
+
+
+@pytest.mark.parametrize('failure',['type','missing','schema'])
+def test_empty_finish_assessment_cannot_override_dataset_failures(tmp_path,failure):
+    state,ex=executor(tmp_path)
+    if failure=='type':
+        state.required_targets={'name':'boolean'}
+    elif failure=='missing':
+        frame=state.manager.load(state.current_ref)
+        frame.loc[0,'score']=None
+        frame.to_csv(state.current_ref.path,index=False)
+        state.required_missing=['score']
+    else:
+        state.expected_columns=['name','score','required_extra']
+    state.model_unresolved=['Old model concern']
+    result=json.loads(ex.execute('finish',{'summary':'No concerns claimed','unresolved':[]}))
+    assert not result['success'] and not state.validation.all_passed
+    assert state.validation.status.value=='failed'
+    assert any(not rule.passed for rule in state.validation.rules)
+    assert not state.model_unresolved
+
+
+@pytest.mark.parametrize('protection',['human_review','approval','host_failure'])
+def test_empty_finish_assessment_preserves_independent_exceptions(tmp_path,protection):
+    state,ex=executor(tmp_path)
+    if protection=='human_review':
+        json.loads(ex.execute('flag_for_review',{'columns':['name'],'reason':'Business meaning unknown'}))
+    elif protection=='approval':
+        state.pending_approvals=['Approval required for structural change']
+    else:
+        state.unresolved=['Host execution failure']
+    state.model_unresolved=['Old model concern']
+    result=json.loads(ex.execute('finish',{'summary':'No concerns claimed','unresolved':[]}))
+    assert result['validation']['status']=='partial' and not state.validation.all_passed
+    assert state.validation.exceptions and 'Old model concern' not in state.validation.exceptions
+    if protection=='human_review': assert state.flagged['name']=='Business meaning unknown'
+    elif protection=='approval': assert state.pending_approvals
+    else: assert state.unresolved==['Host execution failure']

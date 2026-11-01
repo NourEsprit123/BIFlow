@@ -1,0 +1,6 @@
+This exact method was already tested on the current version. Read candidate_status before choosing an action:
+- failed: This candidate failed. Do not apply or repeat it. Read the recorded failure_summary and ALL lost_values. Inspect the unparsed values or actual error, revise the method, or flag genuine ambiguity for review. A failed candidate is never eligible for application.
+- For a failed candidate, a new hypothesis or different checks do not implement a new repair. Explain what transformation behavior must change and submit code or supported builtin parameters that actually change it. When the builtin cannot express your evidence-based rule, create a complete transform(df) and test it with checks.
+- passed: The trial passed but application has not succeeded. Assess the recorded results and application blockers; apply only the returned passing candidate when justified. Do not repeat the same test.
+- already_applied: The candidate was applied successfully. Do not apply or test it again. Address pending work in working_context.
+Do not invent a new failure or claim a rejected duplicate repaired the data. Keep already-done steps done. If no justified repair remains, report the blocker honestly.

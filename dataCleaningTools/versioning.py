@@ -10,8 +10,8 @@ Design principles:
 
 from __future__ import annotations
 
-import json
 import shutil
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
@@ -61,18 +61,20 @@ class DatasetVersionManager:
         Copies the file into the managed store; never modifies the source.
         """
         source_path = Path(source_path)
-        if not source_path.exists():
+        if not source_path.is_file():
             raise FileNotFoundError(f"Source file not found: {source_path}")
 
         dataset_id = dataset_id or str(uuid4())
-        fmt = format or source_path.suffix.lstrip(".").lower() or "csv"
+        fmt = (format or source_path.suffix.lstrip(".") or "csv").lower()
         if fmt == "xlsx":
             fmt = "excel"
+        extension = self._ext(fmt)
 
         dest_dir = self.root / dataset_id
-        dest_dir.mkdir(parents=True, exist_ok=True)
+        # A dataset ID is registered once. Never overwrite an existing V0.
+        dest_dir.mkdir(parents=True, exist_ok=False)
 
-        dest_path = dest_dir / f"V0_original.{self._ext(fmt)}"
+        dest_path = dest_dir / f"V0_original.{extension}"
         shutil.copy2(source_path, dest_path)
 
         # Read lightweight stats
@@ -89,7 +91,7 @@ class DatasetVersionManager:
             metadata=metadata or {},
         )
         self._write_meta(dest_dir, "V0", ref)
-        self._init_changelog(dataset_id)
+        (dest_dir / "changelog.json").write_text(ChangeLog(dataset_id=dataset_id).model_dump_json(indent=2), encoding="utf-8")
         return ref
 
     def create_working_copy(
@@ -176,18 +178,11 @@ class DatasetVersionManager:
         path = self.root / dataset_id / "changelog.json"
         if not path.exists():
             return ChangeLog(dataset_id=dataset_id)
-        data = json.loads(path.read_text(encoding="utf-8"))
-        return ChangeLog.model_validate(data)
+        return ChangeLog.model_validate_json(path.read_text(encoding="utf-8"))
 
     def list_versions(self, dataset_id: str) -> List[DatasetReference]:
-        dest_dir = self.root / dataset_id
-        if not dest_dir.exists():
-            return []
-        refs = []
-        for meta_file in sorted(dest_dir.glob("*_meta.json")):
-            data = json.loads(meta_file.read_text(encoding="utf-8"))
-            refs.append(DatasetReference.model_validate(data))
-        return refs
+        return [DatasetReference.model_validate_json(path.read_text(encoding="utf-8"))
+                for path in self._version_paths(dataset_id)]
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -207,49 +202,33 @@ class DatasetVersionManager:
         fmt = source_ref.format
         dest_path = dest_dir / f"{next_ver}_{label or 'transform'}.{self._ext(fmt)}"
 
+        updates = {"version": next_ver, "path": str(dest_path.resolve()),
+                   "parent_version": source_ref.version, "status": status,
+                   "created_at": datetime.now(timezone.utc), "metadata": dict(source_ref.metadata),
+                   "columns": list(source_ref.columns)}
+        if df is not None:
+            updates.update(row_count=len(df), column_count=len(df.columns), columns=list(df.columns))
+        ref = DatasetReference.model_validate({**source_ref.model_dump(), **updates})
         if df is None:
-            # pure copy
             shutil.copy2(source_ref.path, dest_path)
-            df = self._read(dest_path, fmt)
         else:
             self._write(df, dest_path, fmt)
-
-        ref = DatasetReference(
-            dataset_id=source_ref.dataset_id,
-            version=next_ver,
-            path=str(dest_path.resolve()),
-            format=fmt,
-            row_count=len(df),
-            column_count=len(df.columns),
-            columns=list(df.columns),
-            parent_version=source_ref.version,
-            status=status,
-            metadata=dict(source_ref.metadata),
-        )
         self._write_meta(dest_dir, next_ver, ref)
         return ref
 
+    def _version_paths(self, dataset_id: str) -> List[Path]:
+        paths = (self.root / dataset_id).glob("V*_meta.json")
+        return sorted((p for p in paths if p.stem.split("_")[0][1:].isdigit()),
+                      key=lambda p: int(p.stem.split("_")[0][1:]))
+
     def _next_version_label(self, dataset_id: str) -> str:
-        existing = self.list_versions(dataset_id)
-        if not existing:
-            return "V1"
-        nums = []
-        for r in existing:
-            try:
-                nums.append(int(r.version.lstrip("Vv")))
-            except ValueError:
-                continue
-        return f"V{max(nums) + 1}" if nums else "V1"
+        paths = self._version_paths(dataset_id)
+        number = int(paths[-1].stem.split("_")[0][1:]) + 1 if paths else 1
+        return f"V{number}"
 
     def _write_meta(self, dest_dir: Path, version: str, ref: DatasetReference) -> None:
         path = dest_dir / f"{version}_meta.json"
         path.write_text(ref.model_dump_json(indent=2), encoding="utf-8")
-
-    def _init_changelog(self, dataset_id: str) -> None:
-        path = self.root / dataset_id / "changelog.json"
-        if not path.exists():
-            log = ChangeLog(dataset_id=dataset_id)
-            path.write_text(log.model_dump_json(indent=2), encoding="utf-8")
 
     def _append_change(self, dataset_id: str, record: ChangeRecord) -> None:
         log = self.get_changelog(dataset_id)
@@ -259,8 +238,10 @@ class DatasetVersionManager:
 
     @staticmethod
     def _ext(fmt: str) -> str:
-        mapping = {"csv": "csv", "parquet": "parquet", "excel": "xlsx", "json": "json"}
-        return mapping.get(fmt.lower(), "csv")
+        mapping = {"csv": "csv", "parquet": "parquet", "excel": "xlsx", "xlsx": "xlsx", "json": "json"}
+        if fmt.lower() not in mapping:
+            raise ValueError(f"Unsupported format: {fmt}")
+        return mapping[fmt.lower()]
 
     @staticmethod
     def _read(path: Path, fmt: str) -> pd.DataFrame:

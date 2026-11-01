@@ -1,6 +1,8 @@
 """
 Shared contracts for BiFlow Agent 2 (Data Cleaning & ETL).
 
+Unknown input fields use Pydantic's default behavior: ignore them for forward compatibility.
+
 Agent 1 input schema matches the real profiling report (schema_version 2.1).
 Agent 2 internal models cover planning, execution, validation and hand-off.
 
@@ -71,8 +73,6 @@ class DatasetReference(BaseModel):
     status: DatasetStatus = DatasetStatus.WORKING
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
-    model_config = {"extra": "ignore"}
-
 
 # ===========================================================================
 # Agent 1 → Agent 2  (schema_version 2.1 — matches real profiler output)
@@ -86,8 +86,6 @@ class Agent1DatasetRef(BaseModel):
     columns: int
     size_bytes: Optional[int] = None
 
-    model_config = {"extra": "ignore"}
-
 
 class HealthScores(BaseModel):
     overall: float = 0.0
@@ -95,8 +93,6 @@ class HealthScores(BaseModel):
     validity: float = 0.0
     uniqueness: float = 0.0
     consistency: float = 0.0
-
-    model_config = {"extra": "ignore"}
 
 
 class ColumnIssue(BaseModel):
@@ -107,8 +103,6 @@ class ColumnIssue(BaseModel):
     description: str = ""
     evidence: Dict[str, Any] = Field(default_factory=dict)
     llm_agreement: Optional[str] = None
-
-    model_config = {"extra": "ignore"}
 
 
 class ColumnProfile(BaseModel):
@@ -139,8 +133,6 @@ class ColumnProfile(BaseModel):
     sandbox_result: Optional[Any] = None
     custom_check_code: Optional[str] = None
 
-    model_config = {"extra": "ignore"}
-
 
 class ETLHints(BaseModel):
     type_casting_targets: Dict[str, str] = Field(default_factory=dict)
@@ -149,13 +141,9 @@ class ETLHints(BaseModel):
     recommended_output_format: str = "parquet"
     synonym_mappings: Dict[str, Any] = Field(default_factory=dict)
 
-    model_config = {"extra": "ignore"}
-
 
 class ImputationPlanEntry(BaseModel):
     strategy: str = "median"
-
-    model_config = {"extra": "ignore"}
 
 
 class Agent1Metadata(BaseModel):
@@ -166,8 +154,6 @@ class Agent1Metadata(BaseModel):
     llm_status: str = "fallback"
     sandbox_executions: int = 0
     llm_driven: bool = False
-
-    model_config = {"extra": "ignore"}
 
 
 class ProfilingReport(BaseModel):
@@ -191,34 +177,6 @@ class ProfilingReport(BaseModel):
     agent_summary: str = ""
     recommendation_summary: str = ""
     metadata: Agent1Metadata = Field(default_factory=Agent1Metadata)
-
-    model_config = {"extra": "ignore"}
-
-    # ----- convenience helpers for Agent 2 -----
-
-    def columns_with_issues(self) -> List[str]:
-        return [name for name, prof in self.column_profiles.items() if prof.issues]
-
-    def issues_by_id(self, issue_id: str) -> List[tuple[str, ColumnIssue]]:
-        found = []
-        for col, prof in self.column_profiles.items():
-            for issue in prof.issues:
-                if issue.issue_id == issue_id:
-                    found.append((col, issue))
-        return found
-
-    def type_mismatch_columns(self) -> List[str]:
-        return [col for col, _ in self.issues_by_id("type_mismatch")]
-
-    def missing_value_columns(self) -> List[str]:
-        return [col for col, _ in self.issues_by_id("missing_values")]
-
-    def high_severity_columns(self) -> List[str]:
-        return [
-            name for name, prof in self.column_profiles.items()
-            if prof.severity.upper() in ("HIGH", "CRITICAL", "MEDIUM")
-        ]
-
 
 # ===========================================================================
 # Agent 2 internal planning / execution / validation
@@ -270,11 +228,6 @@ class TransformationPlan(BaseModel):
     human_approval_required: bool = False
     derived_from_report_summary: Optional[str] = None
 
-    def pending_approval_steps(self) -> List[TransformationStep]:
-        return [
-            s for s in self.steps
-            if s.requires_approval and s.status == TransformationStatus.PROPOSED
-        ]
 
 
 class ChangeRecord(BaseModel):

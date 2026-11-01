@@ -16,17 +16,72 @@ def run(tmp_path,monkeypatch,respond,**settings):
     monkeypatch.setattr('agents.dataCleaning_agent.chat_with_tools',respond)
     return DataCleaningAgent(data_root=tmp_path/'versions',use_llm=True,**settings).run(report(tmp_path))
 
-def test_flat_tools_stay_constant_and_apply_needs_no_review_turn(tmp_path,monkeypatch):
+def test_successful_trial_applies_before_the_next_model_turn(tmp_path,monkeypatch):
     calls=[]
     def respond(messages,tools,**kwargs):
         calls.append(messages)
-        assert {t['function']['name'] for t in tools}=={'inspect_data','test_method','apply_candidate','flag_for_review','finish'}
-        if len(calls)==1: return action('test_method',hypothesis='Yes/No flags',columns=['flag'],operation='convert_data_types',parameters={'target_type':'boolean'})
-        result=json.loads(next(m['content'] for m in reversed(messages) if m['role']=='tool'))
-        if len(calls)==2: return action('apply_candidate',candidate_id=result['candidate_id'],assessment='Both values parsed in the full copy')
+        assert {t['function']['name'] for t in tools}=={'inspect_data',"test_builtin",'test_generated','apply_candidate','flag_for_review','complete_task','finish'}
+        guide=json.loads(messages[-1]['content'])['request_guide']
+        assert '<column>' not in guide
+        if len(calls)==1:
+            assert 'always include reason AND view' in guide and 'supply operation explicitly' in guide
+            assert '"flag"' in guide
+            return action("test_builtin",hypothesis='Yes/No flags',columns=['flag'],operation='convert_data_types',parameters={'target_type':'boolean'})
+        assert 'Call finish' in guide
+        context=json.loads(messages[-1]['content'])
+        assert context['cleaning_focus']['category']=='validation'
+        assert context['working_context']['version']=='V2'
+        assert context['working_context']['completed_actions'][0]['columns']==['flag']
+        assert not context['outstanding']['pending_types']
+        assert pd.read_csv(tmp_path/'input.csv')['flag'].tolist()==['Yes','No']
         return action('finish',summary='Flag prepared')
     result=run(tmp_path,monkeypatch,respond)
-    assert result.validation.all_passed and len(calls)==3 and result.metadata['stop_reason']=='completed'
+    assert result.validation.all_passed and len(calls)==2 and result.metadata['stop_reason']=='completed'
+    assert [event['tool'] for event in result.metadata['events']]==["test_builtin",'apply_candidate','finish']
+    events=result.metadata['events']
+    assert events[0]['origin']=='model' and events[0]['explanation']=='Yes/No flags'
+    assert events[1]['origin']=='automatic_after_trial'
+    assert events[0]['explanation'] in events[1]['explanation']
+
+
+def test_failed_trial_never_auto_applies(tmp_path,monkeypatch):
+    calls=[]
+    def respond(messages,tools,**kwargs):
+        calls.append(messages)
+        if len(calls)==1:
+            return action("test_builtin",hypothesis='Invalid numeric conversion',columns=['flag'],operation='convert_data_types',parameters={'target_type':'float','errors':'coerce'})
+        return action('flag_for_review',columns=['flag'],reason='Needs review') if len(calls)==2 else action('finish',summary='Review needed')
+    result=run(tmp_path,monkeypatch,respond)
+    assert result.final_dataset.version=='V1'
+    assert not result.change_log.successful_ops()
+    assert 'apply_candidate' not in [event['tool'] for event in result.metadata['events']]
+
+
+def test_auto_application_rechecks_full_data_before_commit(tmp_path,monkeypatch):
+    from dataCleaningTools import workflow
+    original=workflow.run_builtin
+    executions=[]
+    def changed(frame,operation,parameters):
+        executions.append(1)
+        output=original(frame,operation,parameters)
+        if len(executions)==2:
+            output.df['flag']=None
+        return output
+    monkeypatch.setattr(workflow,'run_builtin',changed)
+    calls=[]
+    def respond(messages,tools,**kwargs):
+        calls.append(messages)
+        if len(calls)==1:
+            return action("test_builtin",hypothesis='Yes/No flags',columns=['flag'],operation='convert_data_types',parameters={'target_type':'boolean'})
+        feedback=json.loads(next(m['content'] for m in reversed(messages) if m['role']=='tool'))
+        assert feedback['tested'] and not feedback['applied'] and not feedback['success']
+        assert json.loads(messages[-1]['content'])['working_context']['columns']['flag']['steps']['type_conversion']['status']=='pending'
+        return action('flag_for_review',columns=['flag'],reason='Full-data execution failed')
+    result=run(tmp_path,monkeypatch,respond,max_turns=2)
+    assert len(executions)==2 and result.final_dataset.version=='V1'
+    assert not result.change_log.successful_ops()
+    assert result.metadata['working_context']['columns']['flag']['steps']['type_conversion']['status']=='needs_review'
+    assert not result.metadata['working_context']['completed_actions']
 
 def test_three_empty_responses_are_bounded(tmp_path,monkeypatch):
     result=run(tmp_path,monkeypatch,lambda *a,**k:{'content':'I will clean','tool_calls':[]})
@@ -34,13 +89,36 @@ def test_three_empty_responses_are_bounded(tmp_path,monkeypatch):
     assert not result.validation.all_passed
 
 def test_repeated_inspection_is_bounded(tmp_path,monkeypatch):
-    result=run(tmp_path,monkeypatch,lambda *a,**k:action('inspect_data',view='schema'))
-    assert result.metadata['stop_reason']=='stalled' and result.metadata['turns_used']==3
+    result=run(tmp_path,monkeypatch,lambda *a,**k:action('inspect_data',view='schema',reason='Inspect current types'))
+    assert result.metadata['stop_reason']=='inspection_stalled' and result.metadata['turns_used']<=7
+    assert any(e['result'].get('task_deferred') for e in result.metadata['events'])
 
 def test_finish_rechecks_once_and_then_stops(tmp_path,monkeypatch):
     result=run(tmp_path,monkeypatch,lambda *a,**k:action('finish',summary='Unable to resolve flag'))
     assert result.metadata['turns_used']==2 and result.metadata['stop_reason']=='incomplete'
     assert not result.validation.all_passed
+
+
+@pytest.mark.parametrize('last_assessment',[{'unresolved':[]},{}])
+def test_finish_replaces_resolved_assessment_and_preserves_audit_history(tmp_path,monkeypatch,last_assessment):
+    responses=iter([
+        action('finish',summary='Flag still needs conversion',unresolved=['flag']),
+        action("test_builtin",hypothesis='Observed Yes/No flags encode binary values',columns=['flag'],
+               operation='convert_data_types',parameters={'target_type':'boolean'}),
+        action('finish',summary='Flag conversion verified',**last_assessment),
+    ])
+    result=run(tmp_path,monkeypatch,lambda *a,**k:next(responses))
+    assert result.validation.all_passed and not result.unresolved_issues
+    assert result.metadata['stop_reason']=='completed' and result.final_dataset.status.value=='validated'
+    trace=json.loads(Path(result.metadata['result_path']).with_name('execution_trace.json').read_text())
+    finishes=[event for event in trace['events'] if event['tool']=='finish']
+    assert finishes[0]['arguments']['unresolved']==['flag']
+    assert finishes[0]['result']['unresolved']==['flag']
+    assert finishes[0]['result']['validation']['status']=='failed'
+    assert finishes[1]['result']['previous_unresolved']==['flag']
+    assert finishes[1]['result']['unresolved']==[]
+    assert finishes[1]['result']['validation']['status']=='passed'
+    assert trace['model_unresolved']==[] and result.metadata['model_unresolved']==[]
 
 def test_flagging_finishes_with_visible_exceptions_not_full_success(tmp_path,monkeypatch):
     calls=iter([action('flag_for_review',columns=['flag'],reason='Meaning undocumented'),action('finish',summary='Needs human review')])
@@ -69,7 +147,7 @@ def test_format_retry_is_bounded(tmp_path,monkeypatch,code,count):
 def test_time_budget_prevents_a_late_tool_call(tmp_path,monkeypatch):
     now=[100.0]
     monkeypatch.setattr('agents.dataCleaning_agent.time.monotonic',lambda:now[0])
-    def respond(*a,**k): now[0]=106;return action('test_method',hypothesis='Flags',columns=['flag'],operation='convert_data_types',parameters={'target_type':'boolean'})
+    def respond(*a,**k): now[0]=106;return action("test_builtin",hypothesis='Flags',columns=['flag'],operation='convert_data_types',parameters={'target_type':'boolean'})
     result=run(tmp_path,monkeypatch,respond,max_seconds=5)
     assert result.metadata['stop_reason']=='time_budget' and not result.change_log.entries
 

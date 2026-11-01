@@ -90,7 +90,7 @@ if run_clicked:
             or (selected["Data cleaning (versioned copy)"] and profile_result is None)
         ):
             st.write("Data Profiling Agent: inspecting the selected dataset...")
-            profile_result = profile_dataset_for_workspace(path, refresh=True)
+            profile_result = profile_dataset_for_workspace(path)
             used_llm, message = profiling_execution_status(profile_result)
             (st.write if used_llm else st.warning)(message)
 

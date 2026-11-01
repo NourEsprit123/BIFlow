@@ -48,6 +48,7 @@ def test_agent_audit_handoff(tmp_path, monkeypatch):
     assert report["metadata"]["llm_status"] == "fallback"
     assert report["metadata"]["llm_driven"] is False
     assert Path(audit_res["report_path"]).is_file()
+    assert Path(audit_res["report_path"]).parent.name == "profilingReports"
 
 
 def test_agent_profiles_boolean_columns_as_categorical():

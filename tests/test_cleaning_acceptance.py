@@ -25,25 +25,27 @@ def session(tmp_path):
     return state, ToolExecutor(state)
 
 
-def test_lossy_conversion_is_rejected_without_changing_working_version(tmp_path):
+def test_invalid_value_coercion_is_applied_audited_and_added_to_missing_work(tmp_path):
     state, executor = session(tmp_path)
     state.required_targets["score"] = "numeric"
     original_bytes = open(state.source_ref.path, "rb").read()
     result = json.loads(executor.execute_trusted("convert_data_types", {"column": "score", "target_type": "numeric"}))
-    assert not result["accepted"]
-    assert state.current_ref.version == "V1"
+    assert result["accepted"]
+    assert state.current_ref.version == "V2"
 
-    assert state.manager.load(state.current_ref)["score"].tolist() == ["1", "bad"]
-    assert any(r["rule_name"] == "no_new_missing:score" and not r["passed"] for r in result["effect"]["rules"])
+    output = state.manager.load(state.current_ref)["score"]
+    assert output.iloc[0] == 1 and pd.isna(output.iloc[1])
+    assert result["effect"]["lost_values"][0]["before"] == "bad"
+    assert state.required_missing == ["score"]
     record = state.manager.get_changelog("test").entries[-1]
-    assert not record.success and record.source_version == record.result_version
+    assert record.success and record.source_version != record.result_version
     assert open(state.source_ref.path, "rb").read() == original_bytes
     assert not json.loads(executor.execute_trusted("finish", {"summary": "Done"}))["success"]
 
 
 def test_rejected_trusted_attempts_are_logged_without_poisoning_final_state(tmp_path):
     state, executor = session(tmp_path)
-    args = {"column": "score", "target_type": "numeric"}
+    args = {"column": "score", "target_type": "numeric", "errors": "raise"}
     executor.execute_trusted("convert_data_types", args)
     count = len(state.manager.get_changelog("test").entries)
     result = json.loads(executor.execute_trusted("convert_data_types", {**args, "rationale": "try again"}))
@@ -89,13 +91,15 @@ def test_missing_columns_returns_actionable_feedback_without_poisoning_validatio
     assert not state.unresolved
 
 
-def test_median_on_text_requires_explicit_repair_and_lossy_cast_stays_rejected(tmp_path):
+def test_median_requires_numeric_conversion_before_imputation(tmp_path):
     state, executor = session(tmp_path)
     result = json.loads(executor.execute_trusted("handle_missing_values", {"columns": ["score"], "strategy": "fill_median"}))
     assert not result["success"] and "requires numeric" in result["error"]
     result = json.loads(executor.execute_trusted("convert_data_types", {"column": "score", "target_type": "float64"}))
-    assert not result["accepted"]
-    assert state.current_ref.version == "V1"
+    assert result["accepted"]
+    assert state.current_ref.version == "V2"
+    filled = json.loads(executor.execute_trusted("handle_missing_values", {"columns": ["score"], "strategy": "fill_median"}))
+    assert filled["accepted"] and state.manager.load(state.current_ref)["score"].tolist() == [1, 1]
 
 
 def test_inspection_evidence_and_effect_are_saved_with_action(tmp_path):
@@ -216,14 +220,11 @@ def test_successful_cleaning_checks_telco_column_and_emits_live_events(tmp_path,
     def respond(messages,*a,**k):
         turns.append(1)
         turn = len(turns)
-        if turn in [1,3]:
-            name="test_method"
+        if turn in [1,2]:
+            name="test_builtin"
             arguments={"hypothesis":"Prepare charges using the selected test strategy","columns":["TotalCharges"],
                 "operation":"convert_data_types" if turn==1 else "handle_missing_values",
                 "parameters":{"target_type":"numeric","errors":"coerce"} if turn==1 else {"strategy":"fill_median"}}
-        elif turn in [2,4]:
-            trial=json.loads(next(m["content"] for m in reversed(messages) if m["role"]=="tool"))
-            name,arguments="apply_candidate",{"candidate_id":trial["candidate_id"],"assessment":"Copy passed without losing populated values"}
         else: name,arguments="finish",{"summary":"Charges prepared"}
         return {"content":None,"tool_calls":[{"id":str(turn),"name":name,"arguments":arguments}]}
     monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
@@ -240,7 +241,7 @@ def test_successful_cleaning_checks_telco_column_and_emits_live_events(tmp_path,
 
 
 @pytest.mark.parametrize("live", [False, True])
-def test_review_ui_shows_rejection_evidence_and_final_failed_checks(tmp_path, live):
+def test_review_ui_shows_rejection_evidence_and_final_failed_checks(tmp_path, live, monkeypatch):
     import socket
     from streamlit.testing.v1 import AppTest
     from dataCleaningTools.models import CleaningResult
@@ -260,6 +261,13 @@ def test_review_ui_shows_rejection_evidence_and_final_failed_checks(tmp_path, li
 
     state, executor = session(tmp_path)
     state.required_targets["score"]="numeric"
+    from dataCleaningTools import cleaning
+    original = cleaning.convert_data_types
+    def modifies_unselected_column(frame, *args, **kwargs):
+        output = original(frame, *args, **kwargs)
+        output.df["name"] = "unexpected mutation"
+        return output
+    monkeypatch.setattr(cleaning, "convert_data_types", modifies_unselected_column)
     executor.execute_trusted("convert_data_types", {"column": "score", "target_type": "numeric"})
     executor.execute_trusted("finish", {"summary": "Conversion rejected; original values retained"})
     result = CleaningResult(source_dataset=state.source_ref, final_dataset=state.current_ref,

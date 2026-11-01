@@ -1,6 +1,5 @@
 import io
 import json
-import tarfile
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -28,7 +27,7 @@ def session(tmp_path):
     state = AgentSessionState(manager=manager, dataset_id="dirty", source_ref=original,
                               current_ref=manager.create_working_copy(original), expected_columns=["customer", "amount"])
     executor = ToolExecutor(state)
-    observed = json.loads(executor.execute("inspect_data", {"view":"column", "column": "amount"}))
+    observed = json.loads(executor.execute("inspect_data", {"reason":"Inspect currency formats before designing a parser", "view":"column", "column": "amount"}))
     return state, executor, observed["event_id"]
 
 
@@ -57,7 +56,7 @@ def test_trials_are_disjoint_and_exact_method_is_promoted_after_full_checks(sess
     original = Path(state.source_ref.path).read_bytes()
     calls = []
     monkeypatch.setattr(experiments, "run_isolated_transform", trusted_test_runner(calls))
-    trial = json.loads(executor.execute("test_method", request(evidence)))
+    trial = json.loads(executor.execute(('test_generated'), request(evidence)))
     assert trial["tested"] and trial["success"]
     assert state.current_ref.version == "V1"
     assert set(calls[0]["index"]).isdisjoint(calls[1]["index"])
@@ -76,7 +75,7 @@ def test_trials_are_disjoint_and_exact_method_is_promoted_after_full_checks(sess
 def test_full_data_failure_rejects_sample_success_without_mutating_working_copy(session, monkeypatch):
     state, executor, evidence = session
     monkeypatch.setattr(experiments, "run_isolated_transform", trusted_test_runner([], fail_full=True))
-    trial = json.loads(executor.execute("test_method", request(evidence)))
+    trial = json.loads(executor.execute(('test_generated'), request(evidence)))
     assert trial["tested"]
     result = json.loads(executor.execute("apply_candidate", {"candidate_id": trial["candidate_id"],"assessment":"Trial outcomes satisfy the checks"}))
     assert not result["success"] and state.current_ref.version == "V1"
@@ -89,7 +88,7 @@ def test_changed_code_or_input_requires_a_new_experiment(session, monkeypatch, c
     state, executor, evidence = session
     calls = []
     monkeypatch.setattr(experiments, "run_isolated_transform", trusted_test_runner(calls))
-    trial = json.loads(executor.execute("test_method", request(evidence)))
+    trial = json.loads(executor.execute(('test_generated'), request(evidence)))
     if change == "code":
         Path(state.experiments[state.method_candidates[trial["candidate_id"]]["experiment_id"]]["code_path"]).write_text(CODE + "\n# changed", encoding="utf-8")
     elif change == "version":
@@ -107,7 +106,7 @@ def test_unavailable_runtime_is_a_failed_trial_with_no_host_fallback(session, mo
     state, executor, evidence = session
     monkeypatch.setattr(experiments, "run_isolated_transform", lambda *a, **k: {
         "success": False, "error": "Docker unavailable", "setup": experiments.BUILD_COMMAND})
-    trial = json.loads(executor.execute("test_method", request(evidence)))
+    trial = json.loads(executor.execute(('test_generated'), request(evidence)))
     assert not trial["tested"] and state.current_ref.version == "V1"
     assert trial["trials"][0]["setup"] == experiments.BUILD_COMMAND
     result = json.loads(executor.execute("apply_candidate", {"candidate_id": trial["candidate_id"],"assessment":"Trial outcomes satisfy the checks"}))
@@ -121,7 +120,7 @@ def test_syntax_error_is_feedback_for_revision_not_an_agent_crash(session, monke
     monkeypatch.setattr(experiments, "run_isolated_transform", unexpected)
     arguments = request(evidence)
     arguments["code"] = "def transform(df):\n    return ("
-    result = json.loads(executor.execute("test_method", arguments))
+    result = json.loads(executor.execute(('test_generated'), arguments))
     assert not result["success"] and "Invalid candidate Python" in result["error"]
     assert state.current_ref.version == "V1" and not state.experiments
 
@@ -133,7 +132,7 @@ def test_methods_cannot_change_unselected_columns_or_remove_rows(session, monkey
         after["customer"] = "changed"
         return {"success": True, "df": after, "image_id": "sha256:test"}
     monkeypatch.setattr(experiments, "run_isolated_transform", run)
-    trial = json.loads(executor.execute("test_method", request(evidence)))
+    trial = json.loads(executor.execute(('test_generated'), request(evidence)))
     assert not trial["tested"]
     assert any(r["rule_name"] == "untouched:customer" and not r["passed"] for r in trial["trials"][0]["effect"]["rules"])
     before = state.manager.load(state.current_ref)
@@ -152,18 +151,20 @@ def test_runner_refuses_missing_docker_instead_of_executing_on_host(tmp_path, mo
 def test_container_is_resource_limited_and_has_no_network_or_host_mounts(monkeypatch):
     import docker
     output = pd.DataFrame({"a": [1]}).to_json(orient="table").encode()
-    archive = io.BytesIO()
-    with tarfile.open(fileobj=archive, mode="w") as bundle:
-        member = tarfile.TarInfo("output.json")
-        member.size = len(output)
-        bundle.addfile(member, io.BytesIO(output))
     calls = {}
+    class InputSocket:
+        def sendall(self, data): calls["input"] = data
+        def settimeout(self, timeout): calls["socket_timeout"] = timeout
+        def close(self): calls["input_closed"] = True
     class Container:
+        def attach_socket(self, params):
+            calls["attach"] = params
+            return InputSocket()
         def start(self): pass
-        def put_archive(self, path, data): calls["input_path"] = path
+        def put_archive(self, path, data): raise AssertionError("Read-only containers cannot use archive input")
         def wait(self, **kwargs): return {"StatusCode": 0}
         def logs(self, **kwargs): return b"repeatable"
-        def get_archive(self, path): return [archive.getvalue()], {}
+        def get_archive(self, path): raise AssertionError("Results must use stdout, not an expired tmpfs file")
         def remove(self, **kwargs): calls["removed"] = kwargs
     def create(*args, **kwargs):
         calls.update(kwargs)
@@ -171,6 +172,7 @@ def test_container_is_resource_limited_and_has_no_network_or_host_mounts(monkeyp
     client = SimpleNamespace(images=SimpleNamespace(get=lambda image: SimpleNamespace(id="sha256:pinned")),
                              containers=SimpleNamespace(create=create), close=lambda: None)
     monkeypatch.setattr(docker, "from_env", lambda **kw: client)
+    monkeypatch.setattr("docker.utils.socket.frames_iter", lambda *a, **k: iter([(1, output[:10]), (1, output[10:])]))
     result = experiments.run_isolated_transform(pd.DataFrame({"a": [1]}), "def transform(df):\n    return df\n")
     assert result["success"]
     assert calls["network_disabled"] and calls["read_only"]
@@ -178,6 +180,14 @@ def test_container_is_resource_limited_and_has_no_network_or_host_mounts(monkeyp
     assert "volumes" not in calls and "mounts" not in calls
     assert calls["mem_limit"] and calls["pids_limit"] and calls["nano_cpus"]
     assert calls["removed"] == {"force": True}
+    assert calls["stdin_open"] and calls["input_closed"]
+    assert calls["attach"] == {"stdin": 1, "stream": 1, "stdout": 1, "stderr": 0}
+    assert calls["socket_timeout"] == 60
+    size = int.from_bytes(calls["input"][:8], "big")
+    assert size == len(calls["input"][8:])
+    payload = json.loads(calls["input"][8:])
+    assert payload["code"] == "def transform(df):\n    return df\n"
+    assert pd.read_json(io.StringIO(payload["data"]), orient="table").equals(pd.DataFrame({"a": [1]}))
 
 
 def test_llm_can_invent_test_and_promote_a_method_through_registered_tools(tmp_path, monkeypatch):
@@ -187,28 +197,38 @@ def test_llm_can_invent_test_and_promote_a_method_through_registered_tools(tmp_p
     report = {"dataset_ref": {"file_path": str(source), "file_name": source.name, "rows": 4, "columns": 2},
               "column_profiles": {"amount": {"dtype": "str", "missing_count": 1, "etl_cast_to": "numeric"}}}
     calls = []
-    monkeypatch.setattr(experiments, "run_isolated_transform", trusted_test_runner(calls))
+    def parser_runner(frame, code, *, image_id=None):
+        calls.append({"code": code, "rows": len(frame)})
+        output = frame.copy()
+        output["amount"] = pd.to_numeric(output["amount"].str.replace("$", "", regex=False))
+        return {"success": True, "df": output, "image_id": "sha256:test", "repeatable": True}
+    monkeypatch.setattr(experiments, "run_isolated_transform", parser_runner)
     monkeypatch.setattr("agents.dataCleaning_agent.sandbox_status", lambda: {"selected": "docker"})
     turns = []
     def respond(messages, *args, **kwargs):
         turn = len(turns)
         turns.append(turn)
         if turn == 0:
-            name, arguments = "inspect_data", {"view":"column", "column": "amount"}
+            name, arguments = "inspect_data", {"reason":"Inspect currency formats before designing a parser", "view":"column", "column": "amount"}
         elif turn == 1:
-            name, arguments = "test_method", request("event-1")
+            name, arguments = "test_generated", request("event-1")
+            arguments["code"] = CODE.replace("values.fillna(values.median())", "values")
+            arguments["checks"] = [{"column": "amount", "kind": "numeric"}]
         elif turn == 2:
-            result = json.loads(next(m["content"] for m in reversed(messages) if m["role"] == "tool"))
-            name, arguments = "apply_candidate", {"candidate_id": result["candidate_id"],"assessment":"Trials passed without losing populated values"}
+            name, arguments = "test_builtin", {"columns": ["amount"], "hypothesis": "Numeric conversion completed; impute the synthetic charge with median",
+                "operation": "handle_missing_values", "parameters": {"strategy": "fill_median"}}
         else:
             name, arguments = "finish", {"summary": "Tested a generated method and validated its full-data result"}
         return {"content": None, "tool_calls": [{"id": str(turn), "name": name, "arguments": arguments}]}
     monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
     result = DataCleaningAgent(data_root=tmp_path / "runs", use_llm=True).run(report)
-    assert result.validation.all_passed and result.final_dataset.version == "V2"
+    assert result.validation.all_passed and result.final_dataset.version == "V3"
     assert len(result.metadata["experiments"]) == 1
     assert len(calls) == 3  # development, holdout, then full data
     assert result.change_log.entries[0].operation == "apply_experimental_method"
+    steps = result.metadata["working_context"]["columns"]["amount"]["steps"]
+    assert steps["type_conversion"]["status"] == "done" and steps["missing_values"]["status"] == "done"
+    assert result.metadata["working_context"]["completed_actions"][0]["operation"] == "generated_transform"
     assert Path(result.metadata["result_path"]).is_file()
 
 
@@ -227,7 +247,7 @@ def test_trial_ui_shows_generated_code_results_and_promotion_requirements(sessio
         socket.setdefaulttimeout(timeout)
     state, executor, evidence = session
     monkeypatch.setattr(experiments, "run_isolated_transform", trusted_test_runner([]))
-    executor.execute("test_method", request(evidence))
+    executor.execute(('test_generated'), request(evidence))
     event = state.events[-1]
     app = AppTest.from_string(
         "import json\nfrom dashboard.cleaning_review import render_event\n"

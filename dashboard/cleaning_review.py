@@ -7,16 +7,24 @@ import streamlit as st
 def render_event(event: dict, evidence: dict | None = None) -> None:
     result = event["result"]
     evidence = evidence or event.get("evidence", {})
-    outcome = ("No change" if result.get("no_op") else ("Trials passed" if result.get("tested") else "Trial failed") if event["tool"] in ("experiment_cleaning_method", "test_method") and "tested" in result else "Awaiting approval" if result.get("approval_required") or result.get("approved") is False
+    outcome = ("No change" if result.get("no_op") else ("Trials passed" if result.get("tested") else "Trial failed") if event["tool"] in ("experiment_cleaning_method", "test_method", "test_builtin", "test_generated") and "tested" in result else "Awaiting approval" if result.get("approval_required") or result.get("approved") is False
                else "Rejected" if result.get("accepted") is False
                else "Failed" if result.get("success") is False
                else "Accepted" if result.get("accepted") else "Completed")
-    label = f"{event['event_id']} · {event['tool']} · {outcome} · {event['source_version']} → {event['version']}"
+    label = f"{event['event_id']} Â· {event['tool']} Â· {outcome} Â· {event['source_version']} â†’ {event['version']}"
+    if result.get("error_kind") == "duplicate_method":
+        label = f"{event['event_id']} Â· {event['tool']} Â· Duplicate ({result.get('candidate_status', 'unknown')}) Â· {event['source_version']} â†’ {event['version']}"
     with st.expander(label, expanded=outcome in ("Rejected", "Failed", "Awaiting approval")):
         if event.get("duration_seconds") is not None:
             st.caption(f"Tool execution: {event['duration_seconds']:.2f}s")
+        if event.get("explanation"):
+            if event.get("origin") == "automatic_after_trial":
+                st.caption("Automatic application Â· original model hypothesis and measured trial results")
+            st.write("Action explanation: " + event["explanation"])
+        if event.get("raw_arguments"):
+            st.caption("Argument layout normalized to the public tool contract; original model arguments are retained in the JSON trace.")
         if event.get("stage"):
-            st.caption(f"Stage: {event.get('source_stage', event['stage'])} → {event['stage']}")
+            st.caption(f"Stage: {event.get('source_stage', event['stage'])} â†’ {event['stage']}")
         if result.get("hypothesis"):
             st.write("Hypothesis: " + result["hypothesis"])
             st.write("Assumptions", result.get("assumptions", []))
@@ -29,11 +37,17 @@ def render_event(event: dict, evidence: dict | None = None) -> None:
             st.json(result["revision_feedback"])
         if result.get("recovery_prompt"):
             guidance = result["recovery_prompt"]
-            st.write("Guidance returned to the LLM · " + guidance["case"])
+            st.write("Guidance returned to the LLM Â· " + guidance["case"])
             st.write(guidance["instruction"])
             st.json(guidance["context"])
         if result.get("rationale"):
             st.write(result["rationale"])
+        if result.get("failure_summary"):
+            st.error(result["failure_summary"]["reason"])
+            st.info(result["failure_summary"]["next_action"])
+            if result["failure_summary"].get("lost_values"):
+                st.write("All populated values that would become missing (not applied)")
+                st.dataframe(result["failure_summary"]["lost_values"], hide_index=True, use_container_width=True)
         if result.get("no_op"):
             st.info(result["message"])
             st.json(result.get("progress", {}))
@@ -44,24 +58,27 @@ def render_event(event: dict, evidence: dict | None = None) -> None:
         else:
             st.json(event["arguments"])
         if result.get("candidate_id"):
-            st.caption(f"Candidate: {result['candidate_id']} · Code SHA-256: {result.get('code_hash', '')}")
+            st.caption(f"Candidate: {result['candidate_id']} Â· Code SHA-256: {result.get('code_hash', '')}")
         if result.get("expected_effect"):
             st.write(f"Expected effect: {result['expected_effect']}")
         for trial in result.get("trials", []):
-            st.write(f"{trial['partition'].title()} trial · {trial['rows']} rows · {'Passed' if trial['success'] else 'Failed'}")
+            st.write(f"{trial['partition'].title()} trial Â· {trial['rows']} rows Â· {'Passed' if trial['success'] else 'Failed'}")
             if trial.get("error"):
                 st.error(trial["error"])
             if trial.get("setup"):
                 st.code(trial["setup"], language="text")
             if trial.get("effect"):
                 trial_effect = trial["effect"]
-                st.caption(f"Changed cells: {trial_effect['changed_cells']} · Rows removed: {trial_effect['rows_removed']}")
+                st.caption(f"Changed cells: {trial_effect['changed_cells']} Â· Rows removed: {trial_effect['rows_removed']}")
                 st.dataframe(trial_effect["rules"], hide_index=True, use_container_width=True)
                 if trial_effect.get("column_metrics"):
                     st.write("Column distributions before and after")
                     st.json(trial_effect["column_metrics"])
                 if trial_effect.get("changed_examples"):
                     st.dataframe(trial_effect["changed_examples"], hide_index=True, use_container_width=True)
+                if trial_effect.get("lost_values"):
+                    st.write("All populated values that would become missing in this partition")
+                    st.dataframe(trial_effect["lost_values"], hide_index=True, use_container_width=True)
         if result.get("trials"):
             st.info(result["message"])
             if result.get("holdout_available") is False:
@@ -82,7 +99,7 @@ def render_event(event: dict, evidence: dict | None = None) -> None:
                 {"Measurement": "Missing cells", "Before": sum(before["missing"].values()), "After": sum(after["missing"].values())},
                 {"Measurement": "Duplicate rows", "Before": before["duplicate_rows"], "After": after["duplicate_rows"]},
             ], hide_index=True, use_container_width=True)
-            st.caption(f"Changed cells: {effect['changed_cells'] if effect['changed_cells'] is not None else 'Not compared after row removal'} · Rows removed: {effect['rows_removed']}")
+            st.caption(f"Changed cells: {effect['changed_cells'] if effect['changed_cells'] is not None else 'Not compared after row removal'} Â· Rows removed: {effect['rows_removed']}")
             affected = event["arguments"].get("columns") or [event["arguments"].get("column")]
             columns = [c for c in before["dtypes"] if c in affected or before["dtypes"].get(c) != after["dtypes"].get(c) or before["missing"].get(c) != after["missing"].get(c)]
             if columns:
@@ -96,6 +113,10 @@ def render_event(event: dict, evidence: dict | None = None) -> None:
             if effect.get("changed_examples"):
                 st.write("Examples of changed values (up to 5)")
                 st.dataframe(effect["changed_examples"], hide_index=True, use_container_width=True)
+            if effect.get("lost_values") and not result.get("failure_summary"):
+                st.write("All populated values converted to missing" if result.get("accepted")
+                         else "All populated values converted to missing in this candidate (not yet applied)")
+                st.dataframe(effect["lost_values"], hide_index=True, use_container_width=True)
             if not effect["accepted"]:
                 st.warning("Candidate rejected. The working dataset stayed at the previous version. Measurements above describe the rejected candidate.")
         if result.get("normalized_arguments"):
@@ -114,18 +135,39 @@ def render_event(event: dict, evidence: dict | None = None) -> None:
 
 def render_cleaning_result(cleaning, *, key: str = "cleaning_review") -> None:
     st.subheader("Cleaning run: decisions and measured effects")
-    st.caption(f"Mode: {cleaning.metadata.get('mode', 'unknown')} · Run: {cleaning.run_id} · Final version: {cleaning.final_dataset.version}")
+    st.caption(f"Mode: {cleaning.metadata.get('mode', 'unknown')} Â· Run: {cleaning.run_id} Â· Final version: {cleaning.final_dataset.version}")
     (st.success if cleaning.validation.all_passed else st.warning)(
         f"Final validation: {cleaning.validation.status.value}. "
         + ("All required checks passed." if cleaning.validation.all_passed else "Review the checks and unresolved items below.")
     )
     st.write(cleaning.metadata.get("finish_summary", ""))
+    report_summary = cleaning.metadata.get("report_summary")
+    if report_summary:
+        with st.expander("Cleaning report Â· measured before and after"):
+            st.json(report_summary)
+            st.caption("Saved report: " + cleaning.metadata["report_path"])
+        st.download_button("Download cleaning report (JSON)", cleaning.model_dump_json(indent=2),
+            file_name=f"{cleaning.source_dataset.dataset_id}_cleaning_report.json", mime="application/json", key=key + "_report")
+    if cleaning.metadata.get("report_export_error"):
+        st.warning("Cleaning result saved, but report export failed: " + cleaning.metadata["report_export_error"])
+    working_context = cleaning.metadata.get("working_context", {})
+    if working_context:
+        with st.expander("Working report Â· cleaning progress"):
+            st.caption("Per-run progress checked against the working dataset. The original profiling report is unchanged.")
+            rows = [{"Column": column, "Step": step, "Status": details["status"],
+                     "Checked version": details["verified_version"],
+                     "Target / remaining": str(details.get("target", details.get("remaining", "")))}
+                    for column, item in working_context.get("columns", {}).items()
+                    for step, details in item.get("steps", {}).items()]
+            if rows:
+                st.dataframe(rows, hide_index=True, use_container_width=True)
+            st.json(working_context.get("completed_actions", []))
     for exception in cleaning.validation.exceptions:
-        st.warning("Exception · " + exception)
+        st.warning("Exception Â· " + exception)
     for switch in cleaning.metadata.get("provider_switches", []):
-        st.warning(f"Switched to {switch['provider']} · {switch['model']} at turn {switch['turn']}: {switch['reason']}")
+        st.warning(f"Switched to {switch['provider']} Â· {switch['model']} at turn {switch['turn']}: {switch['reason']}")
     if cleaning.metadata.get("stop_reason"):
-        st.caption(f"Stop reason: {cleaning.metadata['stop_reason']} · Model: {cleaning.metadata.get('model') or 'deterministic'}")
+        st.caption(f"Stop reason: {cleaning.metadata['stop_reason']} Â· Model: {cleaning.metadata.get('model') or 'deterministic'}")
     for error in cleaning.metadata.get("provider_errors", []):
         if error.get("recovered"):
             st.caption(f"Provider request error at turn {error['turn']} was retried successfully.")
@@ -133,7 +175,7 @@ def render_cleaning_result(cleaning, *, key: str = "cleaning_review") -> None:
         st.error(f"Provider failure at turn {error['turn']} ({error['type']}): {error['message']}")
     limits = cleaning.metadata.get("limits", {})
     if limits:
-        st.caption(f"Model turns used: {cleaning.metadata.get('turns_used', 0)} / {limits['max_turns']} maximum · Elapsed: {cleaning.metadata.get('elapsed_seconds', 0):.0f}s / {limits['max_seconds']:.0f}s budget")
+        st.caption(f"Model turns used: {cleaning.metadata.get('turns_used', 0)} / {limits['max_turns']} maximum Â· Elapsed: {cleaning.metadata.get('elapsed_seconds', 0):.0f}s / {limits['max_seconds']:.0f}s budget")
     inference = [step for step in cleaning.metadata.get("step_log", []) if step.get("timing")]
     if inference:
         with st.expander("Local model timing"):
@@ -186,15 +228,15 @@ def run_cleaning_with_progress(path):
                 elapsed = time.monotonic() - started
                 turn = event.get("turn", 0)
                 maximum = event.get("max_turns", "?")
-                label = (f"{event['phase']} · elapsed {elapsed:.0f}s" if event.get("stage") == "profiling"
-                         else f"{event['phase']} · model turn {turn}/{maximum} max · elapsed {elapsed:.0f}s")
+                label = (f"{event['phase']} Â· elapsed {elapsed:.0f}s" if event.get("stage") == "profiling"
+                         else f"{event['phase']} Â· model turn {turn}/{maximum} max Â· elapsed {elapsed:.0f}s")
                 status.update(label=label)
             else:
                 render_event(event)
         result = clean_profiled_dataset(path, on_event=on_event)
         st.write(result.metadata.get("finish_summary", ""))
         for switch in result.metadata.get("provider_switches", []):
-            st.warning(f"Switched to {switch['provider']} · {switch['model']} at turn {switch['turn']}: {switch['reason']}")
+            st.warning(f"Switched to {switch['provider']} Â· {switch['model']} at turn {switch['turn']}: {switch['reason']}")
         for error in result.metadata.get("provider_errors", []):
             if error.get("recovered"):
                 st.caption(f"Provider request error at turn {error['turn']} was retried successfully.")
@@ -204,14 +246,14 @@ def run_cleaning_with_progress(path):
         if failed:
             st.write("Remaining validation failures")
             st.dataframe([{"Check": r.rule_name, "Details": r.message} for r in failed], hide_index=True, use_container_width=True)
-        status.update(label=f"Cleaning finished · validation {result.validation.status.value}",
+        status.update(label=f"Cleaning finished Â· validation {result.validation.status.value}",
                       state="complete" if result.validation.all_passed else "error", expanded=True)
     return result
 
 
 def render_experiment_runtime():
     from dataCleaningTools.experiments import runtime_status, BUILD_COMMAND
-    with st.expander("Generated cleaning methods · sandbox setup"):
+    with st.expander("Generated cleaning methods Â· sandbox setup"):
         st.write("The agent can invent a transform(df) function, test it on sample and holdout copies, and promote it only after full-data checks. Generated code runs in Docker with no host mounts or network.")
         st.code(BUILD_COMMAND, language="powershell")
         if st.button("Check experiment runtime", key="check_experiment_runtime"):
@@ -233,7 +275,7 @@ def render_cleaning_limits():
         minutes = st.number_input("Run time budget (minutes)", min_value=0.1, max_value=120.0, step=0.5,
                                  value=float(settings.get("max_seconds", positive_setting("BIFLOW_CLEANING_MAX_SECONDS", 300))) / 60, key="cleaning_minutes")
         st.session_state["cleaning_run_settings"] = {"max_turns": int(turns), "max_seconds": int(minutes * 60)}
-        st.caption(f"Ollama only · {default_model()} · Request timeout: {positive_setting('BIFLOW_OLLAMA_TIMEOUT', 90):.0f}s · Context: {positive_setting('BIFLOW_OLLAMA_NUM_CTX', 8192, True):,} tokens · Maximum output: {positive_setting('BIFLOW_OLLAMA_NUM_PREDICT', 1024, True):,} tokens")
+        st.caption(f"Ollama only Â· {default_model()} Â· Request timeout: {positive_setting('BIFLOW_OLLAMA_TIMEOUT', 90):.0f}s Â· Context: {positive_setting('BIFLOW_OLLAMA_NUM_CTX', 8192, True):,} tokens Â· Maximum output: {positive_setting('BIFLOW_OLLAMA_NUM_PREDICT', 1024, True):,} tokens")
         st.write("A smaller turn limit bounds exploration; it does not make one model request faster. Uncheck sandbox experimentation for a quicker registered-tool comparison.")
         st.code("ollama ps", language="powershell")
         st.caption("While a request is running, check PROCESSOR for GPU versus CPU offloading. The run trace records model-load, prompt-processing and generation times.")

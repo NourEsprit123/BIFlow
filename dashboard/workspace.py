@@ -11,7 +11,7 @@ import streamlit as st
 
 from agents.data_engineering_agent import DataEngineeringAgent
 from analytics.data_quality import calculate_health_scores, detect_cross_column_issues
-from analytics.profiler import load_dataset as _load_dataset
+from analytics.profiler import load_dataset as _load_dataset, profile_dataset
 from agents.dataCleaning_agent import DataCleaningAgent
 from dataCleaningTools.models import CleaningResult
 from dataCleaningTools.agent1_adapter import parse_profiling_report
@@ -89,22 +89,61 @@ def save_uploaded_dataset(uploaded_file: Any) -> Path:
     return destination.resolve()
 
 
+def profiling_report_path(path: Path) -> Path:
+    return ROOT / "data" / "reports" / "profilingReports" / f"{path.stem}_profiling_report.json"
+
+
+def load_saved_profile(path: Path) -> dict[str, Any] | None:
+    """Reuse saved reasoning without invoking a model or executing sandbox code."""
+    path = path.resolve()
+    report_path = profiling_report_path(path)
+    try:
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+        parsed = parse_profiling_report(report)
+        ref = parsed.dataset_ref
+        if Path(ref.file_path).resolve() != path or ref.file_name != path.name:
+            return None
+        saved_hash = report.get("metadata", {}).get("source_sha256")
+        if saved_hash:
+            with path.open("rb") as source:
+                if hashlib.file_digest(source, "sha256").hexdigest() != saved_hash:
+                    return None
+        elif ref.size_bytes != path.stat().st_size or path.stat().st_mtime_ns > report_path.stat().st_mtime_ns:
+            # Older reports lack content hashes: require matching source metadata
+            # and a report newer than the source, then check shape and columns.
+            return None
+        profile = profile_dataset(str(path))
+        if (ref.rows != profile["rows"] or ref.columns != profile["columns"]
+                or set(parsed.column_profiles) != set(profile["column_names"])):
+            return None
+        return {"profile": profile, "health": calculate_health_scores(_load_dataset(str(path))),
+                "cleaning_strategy": {}, "profiling_report": report,
+                "report_path": str(report_path), "reused_report": True,
+                "report_match": "sha256" if saved_hash else "legacy_source_metadata"}
+    except (OSError, ValueError, TypeError, KeyError):
+        return None
+
+
 def profile_dataset_for_workspace(path: Path, *, refresh: bool = False) -> dict[str, Any]:
     path = path.resolve()
     signature = dataset_signature(path)
-    cached = st.session_state.get(PROFILE_STATE_KEY)
-    if not refresh and cached and cached.get("signature") == signature:
-        return cached["result"]
+    cached = get_workspace_result(PROFILE_STATE_KEY, path) if not refresh else None
+    if cached is not None:
+        return cached
 
-    result = DataEngineeringAgent().run_audit(str(path))
+    result = load_saved_profile(path) if not refresh else None
+    if result is None:
+        result = DataEngineeringAgent().run_audit(str(path))
     st.session_state[PROFILE_STATE_KEY] = {"signature": signature, "result": result}
     st.session_state.pop(CLEANING_STATE_KEY, None)
     return result
 
 
 def profiling_execution_status(result: dict[str, Any]) -> tuple[bool, str]:
-    metadata = result["profiling_report"]["metadata"]
+    metadata = result["profiling_report"].get("metadata", {})
     status = metadata.get("llm_status")
+    if result.get("reused_report"):
+        return status == "llm", "Reused saved profiling report; no profiling LLM call was made."
     if status == "llm":
         model = metadata.get("llm_model_used")
         model_suffix = f" ({model})" if model else ""
@@ -124,7 +163,15 @@ def dataset_signature(path: Path) -> tuple[str, int, int]:
 def get_workspace_result(key: str, path: Path) -> Any | None:
     state = st.session_state.get(key)
     if isinstance(state, dict) and state.get("signature") == dataset_signature(path):
-        return state.get("result")
+        result = state.get("result")
+        if (key != PROFILE_STATE_KEY or not isinstance(result, dict) or not result.get("report_path")
+                or Path(result["report_path"]).resolve() == profiling_report_path(path).resolve()):
+            return result
+    if key == PROFILE_STATE_KEY:
+        result = load_saved_profile(path)
+        if result is not None:
+            st.session_state[key] = {"signature": dataset_signature(path), "result": result}
+        return result
     if key == CLEANING_STATE_KEY:
         # Recover the latest matching run after a browser refresh or app restart.
         candidates = (ROOT / "data" / "versions" / "dashboard").glob(f"*/{path.stem}/cleaning_result.json")
@@ -203,7 +250,7 @@ def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = 
     result = get_workspace_result(PROFILE_STATE_KEY, path)
     if result is None:
         if on_event:
-            on_event({"phase": "profiling report missing · running profiling first", "stage": "profiling"})
+            on_event({"phase": "profiling report missing Â· running profiling first", "stage": "profiling"})
         result = profile_dataset_for_workspace(path)
 
     settings = st.session_state.get("cleaning_run_settings", {})
@@ -211,6 +258,7 @@ def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = 
         max_turns=settings.get("max_turns"),
         max_seconds=settings.get("max_seconds"),
         data_root=ROOT / "data" / "versions" / "dashboard",
+        report_root=ROOT / "data" / "reports" / "cleaningReports",
         search_roots=[RAW_DATA, ROOT / "data"],
         use_llm=None,
     )
@@ -218,9 +266,9 @@ def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = 
     if st.session_state.get("prefer_generated_methods", True):
         objective += (
             " This is an academic experimentation run: propose and test a generated cleaning method "
-            "with test_method using generated code when it adds value, then apply a passing "
-            "candidate with apply_candidate with an assessment. If the isolated runtime is unavailable or "
-            "the method fails, explain that result and test builtin catalog methods where appropriate."
+            "with test_generated using complete transform(df) code when it adds value, then apply a passing "
+            "candidate with apply_candidate with an assessment. If Docker is unavailable, stop with a clear error. "
+            "For a failed generated method, use the bounded correction pipeline; do not fall back to builtin methods."
         )
     cleaning = agent.run(
         result["profiling_report"],

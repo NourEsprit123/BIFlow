@@ -359,6 +359,28 @@ Le nettoyage écrit une copie versionnée sous `data/versions/dashboard/` et ne
 modifie pas le fichier source. La page permet de télécharger le rapport de
 profilage et, après nettoyage, le CSV résultant.
 
+Profiling reuses a matching saved report from `data/reports/profilingReports/` before invoking
+the profiling model, including after a session restart and when cleaning needs
+a report. New reports record a SHA-256 fingerprint of the source. Legacy reports
+without a fingerprint require a matching source path, filename, size, dimensions
+and columns, with a report newer than the source; these checks do not provide
+the same content guarantee as a hash. Missing, invalid or stale reports trigger
+fresh profiling. To deliberately rerun the model, select **Regenerate profiling
+report** on the Profiling page, then run the agent. Reused reports are identified
+in the UI; deterministic statistics are recomputed locally without an LLM call.
+
+Cleaning exports JSON reports to `data/reports/cleaningReports/` in the dashboard.
+`<dataset>_cleaning_report.json` is the latest report; a file including the run ID
+preserves each exported run. Reports contain measured before/after statistics,
+source and final dataset references, model explanations, applied and rejected
+transformations, validation, exceptions and the execution trace. Export uses the
+saved results and deterministic measurements, without an additional LLM request.
+The Data Quality and Workflows pages provide a cleaning-report JSON download.
+Per-run `cleaning_result.json` files remain in the version directories for recovery.
+The CLI defaults to a reports/cleaningReports directory beside its versions folder;
+Python callers can set report_root explicitly. Profiling reports are read only
+from data/reports/profilingReports; the former location is no longer used.
+
 ### 🧹 Data Quality
 
 Les métriques et problèmes sont calculés sur le fichier actif. **Run quality
@@ -621,12 +643,23 @@ Les fonctionnalités suivantes pourront être intégrées progressivement :
 ## Cleaning acceptance and execution trace
 
 Agent 2 evaluates each transformation on a candidate DataFrame before committing
-it. Checks reject unexpected row/column changes, changes to unselected columns,
-and conversion of populated values into missing values. Conversion targets,
+it. Checks reject unexpected row/column changes and changes to unselected columns.
+Invalid nonsensical entries may be converted to NaN; there is no blanket
+no_new_missing rejection. Conversion targets,
 requested imputation, and duplicate removal have additional operation-specific
 checks. A rejected attempt is logged against the unchanged working version.
-The conservative conversion rule does not permit discarding unparseable populated
-values automatically; inspect and resolve those values explicitly instead.
+The model must explain which entries are invalid and parse recognizable numeric
+representations instead of discarding them. Every populated-to-missing conversion
+is audited, and committed new NaNs become later missing-value tasks even if the
+profiling report did not originally identify missing values.
+
+Numeric conversion/imputation also checks the meaning of supported numeric
+representations independently of the model's code: `1.5k` must remain `1500`,
+and recognizable currency amounts cannot disappear as NaN. Common English
+number phrases are included; unknown tokens can still become NaN. Every
+input/expected/actual mismatch is reported, and full-data application reruns
+the checks. Captured Docker warnings reach local correction and Groq context,
+including guidance for chained inplace assignments that did not update a column.
 
 Each accepted change records its rationale, supporting profiling/inspection
 references, before/after shape, missing counts, dtypes, duplicate counts, acceptance
@@ -684,9 +717,16 @@ files cannot retrospectively recover provider errors.
 
 ## Sandbox-based cleaning method experiments
 
-Agent 2 exposes five tools: `inspect_data`, `test_method`, `apply_candidate`,
-`flag_for_review`, and `finish`. One prompt (`agents/prompts/cleaning.md`) drives
-the flat loop; there are no stages, issue IDs, or separate review calls. Builtin
+Agent 2 exposes seven tools: `inspect_data`, `test_builtin`, `test_generated`, `apply_candidate`,
+`flag_for_review`, `complete_task`, and `finish`. The shared prompt (`dataCleaningTools/prompts/cleaning.md`)
+and category guidance (`dataCleaningTools/prompts/categories.json`) drive one small
+repair at a time. A queue derived from Agent 1's existing report covers understanding,
+formatting, types/invalid values, duplicates, missing values, outliers, domain rules,
+and final validation. Only the active task's columns and detailed evidence are sent;
+earlier conversations stay in the audit. Type conversion preserves existing nulls
+for the later missing-value task. Measured tasks advance after dataset checks;
+advisory findings require a recorded assessment. There are no model-supplied issue IDs.
+After four unsuccessful local corrections, Groq can author one replacement method, tested by the same Docker and full-data checks. Docker unavailability stops the run; there is no builtin fallback after selecting generated execution. Builtin
 trials run once on a full-data copy. Generated code retains isolated trials.
 It can generate a Python `transform(df)` function, test it on random disjoint
 sample/holdout copies, inspect the measured effects, revise a failed method, and
@@ -707,8 +747,8 @@ unselected values. They may parse, normalize, impute, or implement statistical/M
 methods using pandas, NumPy and scikit-learn. Existing policy-controlled tools
 handle structural changes. Each method declares at least one independently
 checked outcome (numeric, integer, boolean, datetime, string, no_missing,
-non_negative, or unique). Existing no-data-loss checks and final run validation
-also apply. Trials report distributions, missing counts, types, changed-value
+non_negative, or unique). Structural/scope checks and final run validation
+also apply; invalid-value coercions to NaN are allowed and audited. Trials report distributions, missing counts, types, changed-value
 examples, and every acceptance rule; semantic correctness remains an evaluation
 question for the team.
 
@@ -722,8 +762,8 @@ Optionally set `BIFLOW_EXPERIMENT_IMAGE` to another compatible local image. The
 runner never pulls images or installs packages during experiments. It runs as a
 nonroot user with a read-only root filesystem, no host mounts, no network, dropped
 capabilities, no privilege escalation, 768 MB memory, one CPU, 64 processes, bounded
-temporary storage, and a 60-second execution timeout. Only disposable input JSON
-is copied in; only a bounded regular JSON result is read back. Generated Python
+temporary storage, and a 60-second execution watchdog. Input JSON is streamed
+through stdin and bounded JSON results return through stdout. Generated Python
 is never executed on the host, including when Docker is unavailable. This route
 is independent of the development-only host fallback in the older sandbox helper.
 
@@ -734,10 +774,10 @@ promotion/rejection. Candidate code and reports are saved under each run's
 A sample passing is never displayed as an applied change.
 
 
-## Local-only cleaning: setup and performance
+## Local cleaning: setup and performance
 
-Cleaning uses Ollama only, with `qwen2.5:7b` by default. It does not import a cloud
-SDK, read a cloud API key, or attempt cloud failover. Profiling's `LLM_PROVIDER`
+Cleaning code generation uses Ollama, with `qwen2.5:7b` by default. An optional
+[Groq code generator](docs/expert-generation.md) authors a complete replacement only after four failed local corrections. Its code must pass Docker and full-data checks before application. Profiling's `LLM_PROVIDER`
 configuration remains independent. Old cleaning provider/fallback variables are
 ignored. The native message adapter follows the
 [Ollama tool-calling API](https://github.com/ollama/ollama/blob/main/docs/api.md).

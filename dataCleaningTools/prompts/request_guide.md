@@ -1,0 +1,11 @@
+Explain decisive evidence, intended effect and uncertainty briefly inside the required explanation field. Submit exactly one complete tool call. JSON fallback contains only name/arguments, without surrounding prose. Use exact column names from cleaning_focus.
+
+inspect_data: always include reason AND view. In reason, explain the question and why this view helps. Column views require column. values supports offset/limit (1–100) and next_offset pagination; distribution measures min/max, signs and IQR counts; extremes shows smallest/largest observations; filtered requires filter and comparisons require threshold; relationships requires related_column. duplicates checks full rows by default; use column or subset for documented keys. Use schema for dataset structure. Supply only options used by the chosen view. Do not repeat unchanged queries.
+
+test_builtin: supply operation explicitly, hypothesis, columns, parameters ({} if no options), and value_assessment. Use only supported catalog parameters. Describing custom parsing does not implement it.
+
+test_generated: supply hypothesis, columns, complete code defining transform(df) and returning a DataFrame, checks, and value_assessment. code/checks are top-level fields; operation/parameters do not belong here. Encode newlines once so decoded Python contains actual line breaks. checks contains objects with column and kind. value_assessment has four nonblank strings: evidence, interpretation, preservation, ambiguities. Keep each concise. Preserve existing missing values; parsing and imputation are separate tasks.
+
+Passing trials apply automatically after full-data checks: read applied and remaining. apply_candidate requires candidate_id and assessment, only for a passing candidate not already applied. Failed candidates must be revised; failed builtins require generated execution.
+
+flag_for_review requires columns and reason describing the unresolved decision; affected columns freeze. complete_task requires the ACTIVE advisory task_id, disposition=reviewed or needs_review, and reason based on current evidence. Measured tasks advance through actual dataset checks. At validation, call finish with summary and optional unresolved list; this assessment never overrides independent checks or review flags.

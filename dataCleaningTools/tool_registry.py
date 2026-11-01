@@ -1,12 +1,13 @@
-"""Five public tools and a single independently checked commit boundary."""
+"""Focused public tools and a single independently checked commit boundary."""
 from __future__ import annotations
 import json
 import time
+import pandas as pd
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set
 from jsonschema import Draft202012Validator
-from .contracts import canonical_type
-from .effects import assess_candidate, snapshot, present, target_matches
+from .contracts import canonical_type, model_arguments
+from .effects import assess_candidate, snapshot, present, target_matches, failure_summary
 from .experiments import digest, promote
 from .inspection import inspect_schema, inspect_column, inspect_duplicates, check_value_patterns
 from .method_catalog import SCHEMAS as METHOD_SCHEMAS
@@ -20,16 +21,18 @@ class AgentSessionState:
     dataset_id: str
     current_ref: DatasetReference
     source_ref: DatasetReference
-    profiling_summary: str = ""
     approve_all: bool = False
     approved_step_ids: Set[str] = field(default_factory=set)
     pending_approvals: List[str] = field(default_factory=list)
     unresolved: List[str] = field(default_factory=list)
+    model_unresolved: List[str] = field(default_factory=list)
     step_log: List[Dict[str, Any]] = field(default_factory=list)
     events: List[Dict[str, Any]] = field(default_factory=list)
     evidence: Dict[str, Any] = field(default_factory=dict)
     experiments: Dict[str, Any] = field(default_factory=dict)
     method_candidates: Dict[str, Any] = field(default_factory=dict)
+    repair_history: List[Dict[str, Any]] = field(default_factory=list)
+    expert_generations: Dict[str, Any] = field(default_factory=dict)
     decisions: List[Dict[str, Any]] = field(default_factory=list)
     flagged: Dict[str, str] = field(default_factory=dict)
     failures: Dict[str, int] = field(default_factory=dict)
@@ -48,24 +51,49 @@ class AgentSessionState:
     llm_model: Optional[str] = None
     stop_reason: str = "running"
     provider_errors: List[Dict[str, Any]] = field(default_factory=list)
+    working_report: Dict[str, Any] = field(default_factory=dict)
+    working_context: Dict[str, Any] = field(default_factory=dict)
+    cleaning_tasks: List[Dict[str, Any]] = field(default_factory=list)
+    focused_cleaning: bool = False
+    sandbox_checked: bool = False
+    inspection_progress: Dict[str, Any] = field(default_factory=dict)
+
+    def stop(self, reason, error=None):
+        """Set the terminal state; persistence is handled at the caller's boundary."""
+        self.finished, self.stop_reason = True, reason
+        if error:
+            self.finish_summary = f"Stopped: {error}"
+            if error not in self.unresolved:
+                self.unresolved.append(error)
+
+    def audit(self):
+        return {name: getattr(self, name) for name in (
+            "events", "evidence", "experiments", "method_candidates", "decisions", "repair_history",
+            "expert_generations", "flagged", "failures", "finish_attempts", "step_log", "provider_errors",
+            "unresolved", "model_unresolved", "pending_approvals", "working_context", "cleaning_tasks", "inspection_progress")}
 
     def persist_trace(self):
+        """Save state without loading data or changing task completion."""
         path = self.manager.root / self.dataset_id / "execution_trace.json"
         payload = {"current_dataset": self.current_ref.model_dump(mode="json"),
             "stop_reason": self.stop_reason, "finish_summary": self.finish_summary,
             "elapsed_seconds": time.monotonic()-self.run_started, "current_turn": self.current_turn,
             "llm_provider": self.llm_provider, "llm_model": self.llm_model,
-            "events": self.events, "evidence": self.evidence, "experiments": self.experiments,
-            "method_candidates": self.method_candidates, "decisions": self.decisions,
-            "flagged": self.flagged, "failures": self.failures, "finish_attempts": self.finish_attempts,
-            "step_log": self.step_log, "provider_errors": self.provider_errors,
-            "unresolved": self.unresolved, "pending_approvals": self.pending_approvals}
+            **self.audit()}
+        self._write_snapshot(path, payload)
+        if self.working_report:
+            self._write_snapshot(path.with_name("cleaning_context.json"), {
+                "profiling_report_copy": self.working_report,
+                "progress": self.working_context, "cleaning_tasks": self.cleaning_tasks})
+
+    @staticmethod
+    def _write_snapshot(path, payload):
         temporary = path.with_suffix(".tmp")
         temporary.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
         for attempt in range(4):
             try:
                 temporary.replace(path)
-                break
+                return
             except PermissionError:
                 if attempt == 3: raise
                 time.sleep(0.05)
@@ -74,8 +102,9 @@ class ToolExecutor:
     def __init__(self, state):
         self.state = state
 
-    def progress(self):
-        frame = self.state.manager.load(self.state.current_ref)
+    def progress(self, frame=None):
+        if frame is None:
+            frame = self.state.manager.load(self.state.current_ref)
         return {"version": self.state.current_ref.version,
             "pending_types": {c: canonical_type(t) for c,t in self.state.required_targets.items()
                 if c not in self.state.flagged and (c not in frame or not target_matches(frame[c],t))},
@@ -84,41 +113,111 @@ class ToolExecutor:
                 and (c not in frame or not present(frame[c]).all())},
             "flagged": dict(self.state.flagged)}
 
-    def execute(self, name, arguments):
+    def execute(self, name, arguments, *, origin="model"):
+        from .cleaning_tasks import active
+        task = active(self.state)
+        task_id = task["id"] if task else None
         source = self.state.current_ref.version
         if self.state.on_event: self.state.on_event({"phase": f"running {name} on {source}"})
         started = time.monotonic()
-        result = json.loads(self._dispatch(name, arguments))
+        from .repair_history import repeated_failure, remember
+        canonical = model_arguments(name, arguments)
+        from .workflow import TEST_TOOLS, validate_request
+        # Selecting generated execution commits this task to that path. A wrong
+        # code layout must be repaired, never interpreted as permission to fall back.
+        if task and (name == "test_generated" or (isinstance(canonical, dict)
+                and (canonical.get("code") or isinstance(canonical.get("parameters"), dict)
+                     and canonical["parameters"].get("code")))):
+            task["generated_required"] = True
+        result = validate_request(name, canonical)
+        previous = repeated_failure(self.state, canonical) if result is None and name in TEST_TOOLS else None
+        if previous:
+            result = {"success": False, "error_kind": "duplicate_method", "candidate_status": "failed",
+                      "candidate_id": previous.get("candidate_id"), "tested": False,
+                      "failure_summary": previous.get("failure_summary") or {},
+                      "previous_attempt": previous["attempt_id"],
+                      "error": "Already tested on this version. This candidate failed. Do not apply or repeat it. Change the actual transformation, inspect missing evidence, or flag genuine ambiguity and continue other pending columns."}
+        elif result is None:
+            result = self._dispatch(name, canonical)
+        if task and result.get("success") is False and (result.get("error_kind") == "invalid_tool_arguments"
+                or name in {"inspect_data", "complete_task"} and result.get("error_kind") not in {"inspection_no_progress", "tool_execution"}):
+            from .investigation import stalled
+            original_error = result.get("error", "Invalid request")
+            result = stalled(self, original_error + f" Active task: {task['id']}; exact columns: {task['columns']}. "
+                "Use these column names, not row values, 'value', or placeholders.", task=task)
+            result["original_error"] = original_error
+            if name != "inspect_data" and not result.get("task_deferred"):
+                result["error_kind"] = "invalid_tool_arguments"
+        elif task and name in TEST_TOOLS and (result.get("trials") or result.get("tested")):
+            progress = self.state.inspection_progress.get(f"{source}:{task['id']}")
+            if progress:
+                progress["consecutive_stalls"] = 0
+        if result.get("error_kind") == "tool_execution":
+            self.stop("tool_execution_error", result["error"])
+            result["fatal"] = True
+        details = result.get("details") if isinstance(result.get("details"), dict) else {}
+        if result.get("success") is False and not result.get("failure_summary") and (result.get("effect") or details.get("full_data_effect")):
+            result["failure_summary"] = failure_summary(result)
+            result["error"] = result["failure_summary"]["reason"]
         from .recovery import build_prompt
-        guidance = build_prompt(self, name, arguments, result)
+        guidance = None if result.get("fatal") else build_prompt(self, name, arguments, result)
         if guidance:
             result["recovery_prompt"] = guidance
-        return self._record(name, arguments, result, source, started)
+            if "diagnostic" in guidance["context"]:
+                result["diagnostic"] = guidance["context"]["diagnostic"]
+        if task and name == "test_builtin" and result.get("success") is False and guidance and guidance["case"] in {"data_loss", "conversion", "validation"}:
+            task["generated_required"] = True
+        if guidance and guidance["case"] == "sandbox_unavailable":
+            self.stop("sandbox_unavailable", result.get("error") or "Docker execution is unavailable")
+            result.update(fatal=True, error_kind="sandbox_unavailable")
+        if name in TEST_TOOLS and isinstance(canonical, dict) and not previous:
+            remember(self.state, canonical, result)
+        elif name == "apply_candidate" and result.get("success") is False and isinstance(canonical, dict):
+            candidate_id = canonical.get("candidate_id")
+            candidate = self.state.method_candidates.get(candidate_id) if isinstance(candidate_id, str) else None
+            if candidate:
+                remember(self.state, candidate, result)
+        return self._record(name, arguments, result, source, started, origin=origin, task_id=task_id)
 
-    def _record(self, name, arguments, result, source, started):
+    def stop(self, reason, error):
+        self.state.stop(reason, error)
+        self.state.persist_trace()
+
+    def _record(self, name, arguments, result, source, started, *, origin="host", task_id=None):
+        from .contracts import model_arguments
+        canonical_arguments = model_arguments(name, arguments)
         event_id = f"event-{len(self.state.events)+1}"
         if name.startswith("inspect_") or name == "check_value_patterns":
             self.state.evidence[event_id] = {"source": "inspection", "tool": name,
                 "arguments": arguments, "version": source, "result": result}
         event = {"duration_seconds": time.monotonic()-started, "event_id": event_id,
-            "tool": name, "arguments": arguments, "source_version": source,
+            "task_id": task_id,
+            "tool": name, "arguments": canonical_arguments, "source_version": source, "origin": origin,
             "version": self.state.current_ref.version, "result": result,
             "evidence": {k:self.state.evidence[k] for k in result.get("evidence_ids",[])}}
+        if canonical_arguments != arguments:
+            event["raw_arguments"] = arguments
+        explanation_field = {"inspect_data": "reason", "test_builtin": "hypothesis", "test_generated": "hypothesis",
+            "apply_candidate": "assessment", "flag_for_review": "reason", "complete_task": "reason", "finish": "summary"}.get(name)
+        if isinstance(canonical_arguments, dict) and explanation_field:
+            event["explanation"] = canonical_arguments.get(explanation_field)
         self.state.events.append(event)
+        from .working_context import refresh
+        if not result.get("fatal") and (name != "inspect_data" or result.get("task_deferred")):
+            refresh(self.state)
         self.state.persist_trace()
         if self.state.on_event: self.state.on_event(event)
         return self._json({**result,"event_id":event_id})
 
     def _dispatch(self, name, arguments):
-        from .workflow import SCHEMA, dispatch
-        if name not in SCHEMA:
-            return self._json({"success":False,"error":f"Unknown tool: {name}"})
+        from .workflow import dispatch
         try:
-            return self._json(dispatch(self,name,arguments))
-        except KeyError as exc:
-            return self._json({"success":False,"error":f"Missing argument: {exc}"})
-        except (TypeError,ValueError) as exc:
-            return self._json({"success":False,"error":str(exc)})
+            return dispatch(self,name,arguments)
+        except ValueError as exc:
+            return {"success":False,"error":str(exc)}
+        except Exception as exc:
+            return {"success":False,"error_kind":"tool_execution",
+                    "error":f"Tool execution failed ({type(exc).__name__}): {exc}"}
 
     def execute_trusted(self, name, arguments):
         """Host-only deterministic baseline/core checks, never model dispatch."""
@@ -151,6 +250,8 @@ class ToolExecutor:
         arguments: Dict[str, Any],
         columns: List[str],
     ) -> Dict[str, Any]:
+        if self.state.finished:
+            return {"success": False, "error": "Run is finished; start a new run before applying transformations"}
         step_id = "step-" + digest(json.dumps({"op": name, "cols": sorted(columns),
             "args": {k: v for k, v in arguments.items() if k not in {"rationale", "evidence_ids", "step_id"}}},
             sort_keys=True, default=str).encode())[:12]
@@ -202,6 +303,20 @@ class ToolExecutor:
         rationale = step.rationale or f"Apply {name} to {', '.join(map(str, selected))}; verify its measured effect."
         result = function(before.copy(), **function_arguments)
         assessment = assess_candidate(before, result.df, name, columns, function_arguments) if result.success and result.df is not None else None
+        if assessment and name in {"convert_data_types", "clean_numeric_string", "handle_missing_values"}:
+            from .cleaning_tasks import active
+            from .numeric_expectations import numeric_rules
+            from .value_interpretation import boolean_rules
+            task = active(self.state) if self.state.focused_cleaning else None
+            if not task or task["category"] in {"types", "missing"}:
+                numeric_columns = [c for c in selected if c in result.df and pd.api.types.is_numeric_dtype(result.df[c])
+                                   and not pd.api.types.is_bool_dtype(result.df[c])]
+                assessment["rules"].extend(numeric_rules(before, result.df, numeric_columns))
+                boolean_columns = [c for c in selected if c in result.df and (
+                    pd.api.types.is_bool_dtype(result.df[c]) or
+                    canonical_type(self.state.required_targets.get(c, "")) == "boolean")]
+                assessment["rules"].extend(boolean_rules(before, result.df, boolean_columns))
+                assessment["accepted"] = all(rule["passed"] for rule in assessment["rules"])
         if assessment and time.monotonic() >= self.state.deadline:
             assessment["rules"].append({"rule_name": "run_budget", "passed": False,
                                         "message": "Run time budget expired before committing the change"})
@@ -225,11 +340,16 @@ class ToolExecutor:
                 if name in ("convert_data_types", "clean_numeric_string"):
                     for column in ([function_arguments["column"]] if "column" in function_arguments else selected):
                         self.state.required_targets.setdefault(column, function_arguments.get("target_type", "numeric"))
+                prog = self.progress()
+                msg = ("No persisted values changed; all required type and missing obligations are satisfied. Call finish."
+                       if not prog.get("pending_types") and not prog.get("pending_missing")
+                       and not any(t["status"] == "pending" for t in self.state.cleaning_tasks)
+                       else "No persisted values changed; no new version created. Choose an unmet requirement.")
                 return {**result.to_dict(), "success": True, "accepted": True,
                         "no_op": True, "effect": assessment, "evidence_ids": evidence_ids,
                         "rationale": rationale, "version": self.state.current_ref.version,
-                        "message": "No persisted values changed; no new version created. Choose an unmet requirement.",
-                        "progress": self.progress()}
+                        "message": msg,
+                        "progress": prog}
             new_ref, record = self.state.manager.commit_transformation(
                 self.state.current_ref, result.df, operation=name, columns=selected,
                 parameters=function_arguments, rationale=rationale, step_id=step_id,
@@ -238,6 +358,11 @@ class ToolExecutor:
             )
             self.state.current_ref = new_ref
             self.state.validation = None
+            # Newly coerced invalid values become ordinary missing-value work.
+            # Register only committed data, never a sample/trial copy.
+            for column in selected:
+                if column in result.df and not present(result.df[column]).all() and column not in self.state.required_missing:
+                    self.state.required_missing.append(column)
             if name == "drop_column" or (name == "handle_missing_values" and function_arguments.get("strategy") == "drop_columns"):
                 if self.state.expected_columns is not None:
                     self.state.expected_columns = list(result.df.columns)
@@ -268,20 +393,22 @@ class ToolExecutor:
     def _inspect_schema(self, args):
         return inspect_schema(self.state.current_ref,self.state.manager)
     def _inspect_column(self, args):
-        return inspect_column(self.state.current_ref,args["column"],args.get("sample_size",20),self.state.manager)
+        return inspect_column(self.state.current_ref,args["column"],args.get("limit",args.get("sample_size",20)),self.state.manager)
     def _inspect_duplicates(self, args):
-        return inspect_duplicates(self.state.current_ref,args.get("subset"),self.state.manager)
+        return inspect_duplicates(self.state.current_ref,args.get("subset"),self.state.manager,args.get("limit",10))
     def _check_value_patterns(self, args):
         return check_value_patterns(self.state.current_ref,args["column"],self.state.manager)
 
     def _validate_dataset(self, args):
+        for c in args.get("numeric_columns",[]): self.state.required_targets.setdefault(c,"numeric")
         frame = self.state.manager.load(self.state.current_ref)
+        from .working_context import refresh
+        refresh(self.state, frame=frame)
         rules = []
         def check(name,passed,message): rules.append(ValidationRuleResult(rule_name=name,passed=bool(passed),message=message))
         check("non_empty",not frame.empty,f"rows={len(frame)}")
         if self.state.expected_columns is not None:
             check("expected_columns",list(frame.columns)==self.state.expected_columns,"Required columns must be preserved unless removal was approved")
-        for c in args.get("numeric_columns",[]): self.state.required_targets.setdefault(c,"numeric")
         for c,target in self.state.required_targets.items():
             if c not in self.state.flagged:
                 check(f"target_type:{c}",c in frame and target_matches(frame[c],target),f"{c} must match {target}")
@@ -289,7 +416,12 @@ class ToolExecutor:
             if c not in self.state.flagged:
                 check(f"missing_resolved:{c}",c in frame and present(frame[c]).all(),f"Reported missing values in {c} must be resolved")
         exceptions = list(dict.fromkeys([f"{c}: {reason}" for c,reason in self.state.flagged.items()]
-            + self.state.unresolved + self.state.pending_approvals))
+            + self.state.unresolved + self.state.model_unresolved + self.state.pending_approvals))
+        if self.state.focused_cleaning:
+            pending = [t for t in self.state.cleaning_tasks if t["status"] == "pending"]
+            check("cleaning_tasks_assessed", not pending, "All reported cleaning tasks must be addressed or explicitly flagged")
+            exceptions += [f"{t['category']} ({', '.join(t['columns']) or 'dataset'}): {t.get('reason', 'Needs review')}"
+                           for t in self.state.cleaning_tasks if t["status"] == "needs_review" and not t.get("measured")]
         failed = [r for r in rules if not r.passed]
         status = ValidationStatus.FAILED if failed else ValidationStatus.PARTIAL if exceptions else ValidationStatus.PASSED
         self.state.validation = ValidationReport(dataset_ref=self.state.current_ref,status=status,rules=rules,
@@ -300,11 +432,16 @@ class ToolExecutor:
 
     def _finish(self, args):
         self.state.finish_summary = args["summary"]
-        self.state.unresolved.extend(item for item in args.get("unresolved",[]) if item not in self.state.unresolved)
+        previous_unresolved = list(self.state.model_unresolved)
+        # A finish call is the model's current assessment. Host failures,
+        # review flags and pending approvals have independent lifetimes.
+        self.state.model_unresolved = list(dict.fromkeys(args.get("unresolved", [])))
         validation = self._validate_dataset({})
         self.state.finish_attempts += 1
         self.state.finished = validation["success"] or self.state.finish_attempts >= 2
-        return {"success":validation["success"],"validation":validation,"summary":args["summary"],"exceptions":validation["exceptions"]}
+        return {"success":validation["success"],"validation":validation,"summary":args["summary"],
+                "unresolved": list(self.state.model_unresolved), "previous_unresolved": previous_unresolved,
+                "exceptions":validation["exceptions"]}
 
     @staticmethod
     def _json(value): return json.dumps(value,default=str)

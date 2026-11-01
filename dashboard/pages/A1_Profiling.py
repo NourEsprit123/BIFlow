@@ -25,8 +25,10 @@ if path is None or frame is None:
     st.stop()
 
 st.caption(f"Dataset: {path.name} · {len(frame):,} rows × {len(frame.columns)} columns")
+force_refresh = st.checkbox("Regenerate profiling report", value=False,
+    help="Ignore the saved report and call the profiling model again.")
 if st.button("Run Data Profiling Agent", type="primary", use_container_width=True):
-    profile_dataset_for_workspace(path, refresh=True)
+    profile_dataset_for_workspace(path, refresh=force_refresh)
     st.rerun()
 
 result = get_workspace_result(PROFILE_STATE_KEY, path)

@@ -24,7 +24,7 @@ if path is None or frame is None:
 
 st.caption(f"Dataset: {path.name} · {len(frame):,} rows × {len(frame.columns)} columns")
 if st.button("Run Agent 1 quality check", type="primary", use_container_width=True):
-    profile_dataset_for_workspace(path, refresh=True)
+    profile_dataset_for_workspace(path)
     st.rerun()
 
 result = get_workspace_result(PROFILE_STATE_KEY, path)

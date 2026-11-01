@@ -1,8 +1,9 @@
 import os
 import json
+import hashlib
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional, List, Protocol
+from typing import Dict, Any, Optional, List, Protocol, cast
 
 import pandas as pd
 
@@ -83,14 +84,16 @@ class DataEngineeringAgent:
             file_path, df, profile, health, column_evidence,
             llm_report, sandbox_results, cross_issues
         )
+        with open(file_path, "rb") as source:
+            profiling_report["metadata"]["source_sha256"] = hashlib.file_digest(source, "sha256").hexdigest()
 
         # ── Step 6: Extract backward-compatible cleaning_strategy ────────────
         cleaning_strategy = self._extract_cleaning_strategy(health, llm_report, profile, df)
 
         # ── Step 7: Save ProfilingReport JSON for Agent 2 (Cleaning) ─────────
-        os.makedirs("data/reports", exist_ok=True)
+        os.makedirs("data/reports/profilingReports", exist_ok=True)
         base_name   = os.path.splitext(os.path.basename(file_path))[0]
-        report_path = f"data/reports/{base_name}_profiling_report.json"
+        report_path = f"data/reports/profilingReports/{base_name}_profiling_report.json"
         try:
             with open(report_path, "w", encoding="utf-8") as f:
                 json.dump(profiling_report, f, indent=2, default=str)
@@ -109,6 +112,22 @@ class DataEngineeringAgent:
     # ────────────────────────────────────────────────────────────────────────
     # PRIVATE HELPERS
     # ────────────────────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _safe_float(value: Any, default: float = 0.0) -> float:
+        """Convert pandas scalars to float while tolerating complex/NA values."""
+        if value is None or pd.isna(value):
+            return default
+
+        if isinstance(value, complex):
+            if abs(value.imag) > 1e-12:
+                return default
+            value = value.real
+
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return default
 
     def _build_column_evidence(
         self,
@@ -170,14 +189,14 @@ class DataEngineeringAgent:
                 and len(non_null) > 0
             ):
                 col_ev["numeric_stats"] = {
-                    "mean":   round(float(non_null.mean()), 4),
-                    "median": round(float(non_null.median()), 4),
-                    "std":    round(float(non_null.std()), 4),
-                    "min":    round(float(non_null.min()), 4),
-                    "max":    round(float(non_null.max()), 4),
-                    "q1":     round(float(non_null.quantile(0.25)), 4),
-                    "q3":     round(float(non_null.quantile(0.75)), 4),
-                    "skewness": round(float(non_null.skew()), 4),
+                    "mean":      round(self._safe_float(non_null.mean()), 4),
+                    "median":    round(self._safe_float(non_null.median()), 4),
+                    "std":       round(self._safe_float(non_null.std()), 4),
+                    "min":       round(self._safe_float(non_null.min()), 4),
+                    "max":       round(self._safe_float(non_null.max()), 4),
+                    "q1":        round(self._safe_float(non_null.quantile(0.25)), 4),
+                    "q3":        round(self._safe_float(non_null.quantile(0.75)), 4),
+                    "skewness":  round(self._safe_float(non_null.skew()), 4),
                     "zeros_count": int((non_null == 0).sum()),
                     "negative_count": int((non_null < 0).sum()),
                 }

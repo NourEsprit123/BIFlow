@@ -58,6 +58,8 @@ def test_agent_controls_are_visible_and_search_is_local_to_dataset_library(app):
 
 
 def test_profile_button_runs_on_selected_dataset_and_updates_status(app, monkeypatch):
+    monkeypatch.setattr("dashboard.workspace.load_saved_profile", lambda path: None)
+    monkeypatch.setattr("workspace.load_saved_profile", lambda path: None)
     calls = []
     def audit(self, path):
         calls.append(path)

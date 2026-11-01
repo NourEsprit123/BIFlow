@@ -40,7 +40,7 @@ st.caption(f"Dataset: {path.name} · {len(frame):,} rows × {len(frame.columns)}
 run_col, clean_col = st.columns(2)
 with run_col:
     if st.button("Run quality audit", type="primary", use_container_width=True):
-        result = profile_dataset_for_workspace(path, refresh=True)
+        result = profile_dataset_for_workspace(path)
         st.success(
             f"Profiling and quality audit finished. Report created for "
             f"{result['profile']['rows']:,} rows."

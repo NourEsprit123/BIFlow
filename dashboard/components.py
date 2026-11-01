@@ -147,7 +147,7 @@ def _agent_controls(active):
         pipeline_slot.markdown(pipeline_html(profile, cleaning, running="profiler"), unsafe_allow_html=True)
         try:
             with st.status("Profiling the active dataset...", expanded=True) as progress:
-                result = profile_dataset_for_workspace(active, refresh=True)
+                result = profile_dataset_for_workspace(active)
                 used_llm, message = profiling_execution_status(result)
                 st.write(message)
                 profile = result

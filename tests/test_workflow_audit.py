@@ -46,26 +46,23 @@ def test_telco_like_workflow_finishes_within_default_budget_through_ollama_adapt
         assert url.endswith("/api/chat")
         assert_matched_history(payload["messages"])
         turn = len(calls)
-        if turn in [1, 3, 5]:
-            name = "test_method"
-            if turn == 1:
+        focus = json.loads(payload["messages"][-1]["content"])["cleaning_focus"]
+        if focus["task"]:
+            name = "test_builtin"
+            if focus["category"] == "types" and focus["task"]["columns"] == ["TotalCharges"]:
                 args = {"hypothesis": "Charges need numeric conversion before imputation", "columns": ["TotalCharges"],
                         "operation": "convert_data_types",
                         "parameters": {"target_type": "float", "errors": "coerce"},
                         "checks": [{"column": "TotalCharges", "kind": "numeric"}]}
-            elif turn == 3:
+            elif focus["category"] == "missing":
                 args = {"hypothesis": "Use median for the explicitly authorized synthetic test", "columns": ["TotalCharges"],
                         "operation": "handle_missing_values", "parameters": {"strategy": "fill_median"},
                         "checks": [{"column": "TotalCharges", "kind": "no_missing"}]}
             else:
-                args = {"hypothesis": "All five observed flags use Yes/No encoding", "columns": flags,
+                columns = focus["task"]["columns"]
+                args = {"hypothesis": "This observed flag uses Yes/No encoding", "columns": columns,
                         "operation": "convert_data_types", "parameters": {"target_type": "boolean", "errors": "raise"},
-                        "checks": [{"column": c, "kind": "boolean"} for c in flags]}
-        elif turn in [2, 4, 6]:
-            name = "apply_candidate"
-            candidate = json.loads(next(m["content"] for m in reversed(payload["messages"]) if m["role"] == "tool"))
-            args = {"candidate_id": candidate["candidate_id"],
-                    "assessment": "Trials meet the declared checks without losing populated values; apply with full-data checks"}
+                        "checks": [{"column": c, "kind": "boolean"} for c in columns]}
         else:
             name, args = "finish", {"summary": "Charges and all flags validated"}
         schema = next(t["function"]["parameters"] for t in payload["tools"] if t["function"]["name"] == name)
@@ -75,9 +72,9 @@ def test_telco_like_workflow_finishes_within_default_budget_through_ollama_adapt
     monkeypatch.setattr(llm_client.httpx, "post", post)
     result = DataCleaningAgent(data_root=tmp_path / "versions", use_llm=True).run(report)
     assert result.validation.all_passed, result.unresolved_issues
-    assert len(calls) == 7 and result.metadata["stop_reason"] == "completed"
+    assert len(calls) == 8 and result.metadata["stop_reason"] == "completed"
     assert "issues" not in result.metadata and "workflow_stage" not in result.metadata
-    assert len(result.change_log.successful_ops()) == 3
+    assert len(result.change_log.successful_ops()) == 7
     frame = pd.read_csv(result.final_dataset.path)
     assert not frame.TotalCharges.isna().any()
     assert all(pd.api.types.is_bool_dtype(frame[c]) for c in flags)
@@ -104,8 +101,8 @@ def test_argument_repair_waits_until_all_tool_results_are_matched(tmp_path, monk
         messages = kwargs["json"]["messages"]
         assert_matched_history(messages)
         if count == 1:
-            calls = [{"function": {"name": "test_method", "arguments": {}}},
-                     {"function": {"name": "inspect_data", "arguments": {"view": "schema"}}}]
+            calls = [{"function": {"name": "inspect_data", "arguments": {}}},
+                     {"function": {"name": "inspect_data", "arguments": {"reason":"Check available column types", "view": "schema"}}}]
         else:
             assert any('"case": "arguments"' in (m.get("content") or "") for m in messages if m["role"] == "user")
             calls = [{"function": {"name": "finish", "arguments": {"summary": "No data cleaning required"}}}]
@@ -133,16 +130,12 @@ def test_sales_id_confusion_cannot_block_testing_or_leak_back_into_prompts(tmp_p
         for tool in payload["tools"]:
             assert "issue_ids" not in tool["function"]["parameters"]["properties"]
             assert "evidence_ids" not in tool["function"]["parameters"]["properties"]
-        if count == 1:
-            name, args = "test_method", {"hypothesis": "Both columns contain numeric currency strings",
-                "columns": ["Revenue", "MonthlyCost"], "operation": "clean_numeric_string", "parameters": {},
-                "checks": [{"column": c, "kind": "numeric"} for c in ["Revenue", "MonthlyCost"]],
+        if count in [1, 2]:
+            columns = json.loads(payload["messages"][-1]["content"])["cleaning_focus"]["task"]["columns"]
+            name, args = "test_builtin", {"hypothesis": "This column contains numeric currency strings",
+                "columns": columns, "operation": "clean_numeric_string", "parameters": {},
+                "checks": [{"column": c, "kind": "numeric"} for c in columns],
                 "issue_ids": ["profile:Revenue", "profile:MonthlyCost"], "evidence_ids": ["nonexistent"]}
-        elif count == 2:
-            trial = json.loads(next(m["content"] for m in reversed(payload["messages"]) if m["role"] == "tool"))
-            assert trial["tested"]
-            name, args = "apply_candidate", {"candidate_id": trial["candidate_id"],
-                "assessment": "Trials parse both columns and preserve populated values"}
         else:
             name, args = "finish", {"summary": "Both currency columns validated"}
         return SimpleNamespace(raise_for_status=lambda: None, json=lambda: {
@@ -150,6 +143,6 @@ def test_sales_id_confusion_cannot_block_testing_or_leak_back_into_prompts(tmp_p
     monkeypatch.setattr(llm_client.httpx, "post", post)
     result = DataCleaningAgent(data_root=tmp_path / "versions", use_llm=True).run(report)
     assert result.validation.all_passed and count == 3, result.unresolved_issues
-    candidate = next(iter(result.metadata["method_candidates"].values()))
-    assert set(candidate["columns"]) == {"Revenue", "MonthlyCost"}
-    assert result.metadata["events"][0]["arguments"]["issue_ids"][0] == "profile:Revenue"
+    assert [c["columns"] for c in result.metadata["method_candidates"].values()] == [["Revenue"], ["MonthlyCost"]]
+    assert result.metadata["events"][0]["raw_arguments"]["issue_ids"][0] == "profile:Revenue"
+    assert "issue_ids" not in result.metadata["events"][0]["arguments"]
