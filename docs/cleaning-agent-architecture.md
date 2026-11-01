@@ -120,6 +120,12 @@ A dropped task gets status `dropped`, a `drop_reason` and its failed attempts. P
 
 Cleaning requests send `think: false` to Ollama unless `BIFLOW_OLLAMA_THINK=true`. With qwen3:8b, hidden reasoning was 3–10K characters per request and was never read by the agent; one correction exhausted `num_predict` while still reasoning. A model that rejects the field is retried once without it. Local code correction ends after two consecutive replies that produce no new executable method (repeated code, or an unusable or truncated reply) instead of always spending four requests; Groq, when enabled, then receives the attempts with trigger `unproductive_local_corrections`.
 
+## Exact data transfer and outlier approval
+
+The Docker boundary serializes frames with pandas' table JSON, which rounds floats to at most 15 decimal places. That made unselected float columns fail `untouched:` checks and let rounding noise be committed with applied changes. Float columns now also travel as exact `float.hex()` strings in both directions (`FLOAT_CODEC` in experiments.py, shared by the host and the sandbox wrapper), and are restored after parsing.
+
+Any value change committed during an `outliers` task requires host approval, whatever the method, and `handle_outliers` is HIGH risk everywhere. A passing trial only records the pending approval and its `step_id`; an earlier run had automatically capped 11% of an order-total column to a single IQR bound. Approval for a generated method is tied to its candidate, so a rerun that writes different code needs a new approval; builtin approvals are stable for identical parameters.
+
 ## Builtin execution and Docker execution
 
 **Builtin methods:** run trusted Python functions on a full-data copy in the host process. Docker is not involved. Passing candidates are rerun and independently checked before a version is committed.

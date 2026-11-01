@@ -150,7 +150,7 @@ def test_runner_refuses_missing_docker_instead_of_executing_on_host(tmp_path, mo
 
 def test_container_is_resource_limited_and_has_no_network_or_host_mounts(monkeypatch):
     import docker
-    output = pd.DataFrame({"a": [1]}).to_json(orient="table").encode()
+    output = json.dumps({"data": pd.DataFrame({"a": [1]}).to_json(orient="table"), "floats": {}}).encode()
     calls = {}
     class InputSocket:
         def sendall(self, data): calls["input"] = data
@@ -188,6 +188,7 @@ def test_container_is_resource_limited_and_has_no_network_or_host_mounts(monkeyp
     payload = json.loads(calls["input"][8:])
     assert payload["code"] == "def transform(df):\n    return df\n"
     assert pd.read_json(io.StringIO(payload["data"]), orient="table").equals(pd.DataFrame({"a": [1]}))
+    assert payload["floats"] == {}  # integer column: no exact-float side channel needed
 
 
 def test_llm_can_invent_test_and_promote_a_method_through_registered_tools(tmp_path, monkeypatch):
@@ -258,3 +259,11 @@ def test_trial_ui_shows_generated_code_results_and_promotion_requirements(sessio
     assert any("Trials passed" in item.label for item in app.expander)
     assert any("full-data checks" in item.value for item in app.info)
     assert len(app.dataframe) >= 2
+
+
+def test_float_codec_restores_values_pandas_json_rounds():
+    frame = pd.DataFrame({"x": [0.1 + 0.2, 1 / 3, float("nan"), 123456.78901234567], "s": ["a", "b", "c", "d"]})
+    rounded = pd.read_json(io.StringIO(frame.to_json(orient="table")), orient="table")
+    assert not rounded["x"].iloc[[0, 1, 3]].equals(frame["x"].iloc[[0, 1, 3]])
+    restored = experiments.restore_floats(rounded, json.loads(json.dumps(experiments.exact_floats(frame))))
+    assert restored["x"].equals(frame["x"]) and restored["s"].equals(frame["s"])

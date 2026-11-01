@@ -106,3 +106,17 @@ def test_each_category_sees_and_accepts_only_its_operations(tmp_path, category, 
     result = builtin(executor, refused, ["x"])
     assert not result["success"]
     assert any(text in result.get("original_error", result["error"]) for text in ("not available", "only in"))
+
+
+def test_outlier_value_changes_wait_for_host_approval(tmp_path):
+    state, executor = executor_for(tmp_path, pd.DataFrame({"x": [10.0, 11.0, 12.0, 13.0, 1000.0]}))
+    state.focused_cleaning = True
+    state.cleaning_tasks = [{"id": "task-1", "category": "outliers", "columns": ["x"], "evidence": [], "status": "pending"}]
+    trial = builtin(executor, "handle_outliers", ["x"], {"action": "cap", "method": "iqr"})
+    applied = call(executor, "apply_candidate", candidate_id=trial["candidate_id"], assessment="Cap the extreme value")
+    assert trial["success"] and applied["approval_required"] and state.current_ref.version == "V1"
+    assert state.pending_approvals
+
+    state.approved_step_ids.add(applied["step_id"])
+    approved = call(executor, "apply_candidate", candidate_id=trial["candidate_id"], assessment="Approved by host")
+    assert approved["success"] and state.current_ref.version == "V2" and not state.pending_approvals

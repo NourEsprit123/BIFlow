@@ -272,12 +272,16 @@ class ToolExecutor:
         step_id = "step-" + digest(json.dumps({"op": name, "cols": sorted(columns),
             "args": {k: v for k, v in arguments.items() if k not in {"rationale", "evidence_ids", "step_id"}}},
             sort_keys=True, default=str).encode())[:12]
+        from .cleaning_tasks import active
+        task = active(self.state) if self.state.focused_cleaning else None
         step = TransformationStep(
             step_id=step_id,
             operation=name,
             columns=columns,
             parameters=arguments,
             rationale=str(arguments.get("rationale", "")),
+            # Capping or blanking unusual values changes business figures; a passing trial is not enough.
+            requires_approval=bool(task and task["category"] == "outliers"),
         )
         if requires_approval(step) and not (
             self.state.approve_all or step_id in self.state.approved_step_ids

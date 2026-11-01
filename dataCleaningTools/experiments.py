@@ -26,12 +26,31 @@ TRANSFORM_SIGNATURE_ERROR = "Define exactly one transform(df) function with one 
 EXECUTION_TIMEOUT = 60
 RUNTIME_VERSIONS = {}  # Actual versions reported by this process's sandbox executions, keyed by image ID.
 
+# pandas JSON rounds floats (at most 15 decimals), which made untouched columns look changed
+# and committed rounding noise. Float columns also travel as exact float.hex() strings.
+# One source, used by the host and inside the sandbox wrapper.
+FLOAT_CODEC = r'''
+def exact_floats(frame):
+    return {str(i): [None if pd.isna(v) else float(v).hex() for v in frame.iloc[:, i].tolist()]
+            for i in range(frame.shape[1]) if pd.api.types.is_float_dtype(frame.iloc[:, i])}
+def restore_floats(frame, floats):
+    for i, values in floats.items():
+        column = frame.columns[int(i)]
+        frame[column] = pd.Series([float('nan') if v is None else float.fromhex(v) for v in values],
+                                  index=frame.index, dtype='float64')
+    return frame
+'''
+_codec = {}
+exec(FLOAT_CODEC, {"pd": pd}, _codec)
+exact_floats, restore_floats = _codec["exact_floats"], _codec["restore_floats"]
+
 # This trusted wrapper runs inside Docker, not on the host. Each invocation
 # uses fresh globals and fixed random seeds, and must produce repeatable output.
 WRAPPER = r'''
 import contextlib, io, json, math, random, re, sys
 import numpy as np
 import pandas as pd
+''' + FLOAT_CODEC + r'''
 print('BIFLOW_RUNTIME=' + json.dumps({'python': sys.version.split()[0], 'pandas': pd.__version__, 'numpy': np.__version__}), file=sys.stderr)
 # Length framing avoids waiting for EOF on Docker's attached stdin socket.
 header = sys.stdin.buffer.read(8)
@@ -44,7 +63,7 @@ raw = sys.stdin.buffer.read(size)
 if len(raw) != size:
     raise ValueError('Incomplete sandbox input payload')
 payload = json.loads(raw)
-before = pd.read_json(io.StringIO(payload['data']), orient='table')
+before = restore_floats(pd.read_json(io.StringIO(payload['data']), orient='table'), payload['floats'])
 code = payload['code']
 def invoke():
     random.seed(0)
@@ -63,7 +82,8 @@ first = invoke()
 second = invoke()
 if not first.equals(second):
     raise ValueError('Candidate produced different outputs on repeated identical inputs')
-sys.stdout.buffer.write(first.to_json(orient='table', date_format='iso').encode())
+sys.stdout.buffer.write(json.dumps({'data': first.to_json(orient='table', date_format='iso'),
+                                    'floats': exact_floats(first)}).encode())
 sys.stdout.buffer.flush()
 '''
 
@@ -115,7 +135,8 @@ def run_isolated_transform(frame: pd.DataFrame, code: str, *, image_id: str | No
         client = docker.from_env(timeout=5)
         image = client.images.get(image_id or os.environ.get("BIFLOW_EXPERIMENT_IMAGE", IMAGE))
         pinned_image = image.id
-        payload = json.dumps({"data": frame.to_json(orient="table", date_format="iso"), "code": code}).encode()
+        payload = json.dumps({"data": frame.to_json(orient="table", date_format="iso"),
+                              "floats": exact_floats(frame), "code": code}).encode()
         if len(payload) > MAX_BYTES:
             raise ValueError("Experiment input exceeds the 64 MB limit")
         container = client.containers.create(
@@ -177,7 +198,8 @@ def run_isolated_transform(frame: pd.DataFrame, code: str, *, image_id: str | No
                     "error_kind": "sandbox_execution"}
         data = bytes(output)
         phase = "sandbox_output_transfer"
-        result = pd.read_json(io.StringIO(data.decode()), orient="table")
+        envelope = json.loads(data.decode())
+        result = restore_floats(pd.read_json(io.StringIO(envelope["data"]), orient="table"), envelope["floats"])
         return {"success": True, "df": result, "image_id": pinned_image,
                 "repeatable": True, "output_hash": digest(data), "log": logs}
     except Exception as exc:
