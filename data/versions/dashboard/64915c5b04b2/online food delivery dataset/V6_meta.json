@@ -1,0 +1,36 @@
+{
+  "dataset_id": "online food delivery dataset",
+  "version": "V6",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\64915c5b04b2\\online food delivery dataset\\V6_transform.csv",
+  "format": "csv",
+  "row_count": 388,
+  "column_count": 14,
+  "columns": [
+    "Age",
+    "Gender",
+    "Marital Status",
+    "Occupation",
+    "Monthly Income",
+    "Educational Qualifications",
+    "Family size",
+    "Customer Type",
+    "latitude",
+    "longitude",
+    "Pin code",
+    "Output",
+    "Feedback",
+    "Unnamed: 13"
+  ],
+  "created_at": "2026-11-02T21:30:11.932260Z",
+  "parent_version": "V5",
+  "status": "validated",
+  "metadata": {
+    "agent1_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\online food delivery dataset.csv",
+    "user_request": "Improve data quality for BI analysis while preserving the uploaded original. Prefer builtin operations; write generated code only when no builtin can express the justified rule.",
+    "source_signature": [
+      "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\online food delivery dataset.csv",
+      1793651959204522400,
+      38976
+    ]
+  }
+}

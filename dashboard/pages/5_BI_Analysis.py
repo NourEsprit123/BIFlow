@@ -25,12 +25,12 @@ from chat_widget import render_chat
 render_chat("BI Analysis")
 
 # ── Page setup ────────────────────────────────────────────────────────────────
-setup("BI Analysis", hub="Agent 2 · BI Analyst")
+setup("BI Analysis", hub="Agent 3 · BI Analyst")
 page_header(
     "Business Intelligence Analysis",
     "Turn your data into actionable insights with AI.",
-    badge("Agent 2", "blue"),
-    "Agent 2 · BI Analyst > <b>Analysis & Dashboards</b>",
+    badge("Agent 3", "blue"),
+    "Agent 3 · BI Analyst > <b>Analysis & Dashboards</b>",
 )
 
 # ── 1. Sidebar Dataset Selector (synchronisé avec Workflows et session globale) ──
@@ -49,19 +49,19 @@ for f in clean_csvs:
 file_names = list(dataset_map.keys())
 NONE_OPT   = "— Sélectionner —"
 
-default_idx = 0
 current_preset = st.session_state.get("current_dataset_path") or st.session_state.get("wf_file")
-if current_preset:
-    preset_name = Path(current_preset).name
-    for idx, name in enumerate([NONE_OPT] + file_names):
-        if preset_name in name:
-            default_idx = idx
-            break
+# A dataset chosen on another page (picker, Datasets, pipeline) is followed here, using its cleaned version
+# from the Data Cleaning agent (data/cleaned/<name>_cleaned.csv) when one exists. A choice made on this page stays.
+if current_preset and current_preset != st.session_state.get("_bi_seen_dataset"):
+    twin = clean_dir / f"{Path(current_preset).stem}_cleaned.csv"
+    target = Path(twin if twin.exists() else current_preset).resolve()
+    label = next((name for name, path in dataset_map.items() if Path(path).resolve() == target), None)
+    if label:
+        st.session_state["bi_dataset_select"] = label
 
 selected_name = st.sidebar.selectbox(
     "Dataset source",
     [NONE_OPT] + file_names,
-    index=default_idx,
     key="bi_dataset_select",
 )
 selected_path = dataset_map.get(selected_name) if selected_name != NONE_OPT else None
@@ -69,6 +69,7 @@ selected_path = dataset_map.get(selected_name) if selected_name != NONE_OPT else
 if selected_path:
     st.session_state["current_dataset_path"] = selected_path
     st.session_state["wf_file"] = selected_path
+st.session_state["_bi_seen_dataset"] = selected_path or current_preset
 
 df = None
 dataset_name = ""

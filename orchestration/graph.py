@@ -369,8 +369,10 @@ def node_data_engineer(state: GraphState) -> GraphState:
                 data_root=root / "data" / "versions" / "dashboard",
                 report_root=root / "data" / "reports" / "cleaningReports",
                 search_roots=[root / "data" / "raw", root / "data"],
+                publish_root=root / "data" / "cleaned",
             ).run(result["profiling_report"], user_request=BUILTIN_FIRST_OBJECTIVE)
-            cleaned_path = cleaning.final_dataset.path
+            # data/cleaned/<dataset>_cleaned.csv: the file the BI page lists for this dataset
+            cleaned_path = cleaning.metadata.get("published_path") or cleaning.final_dataset.path
             transformations = [{"operation": c.operation, "columns": c.columns, "version": c.result_version}
                                for c in cleaning.change_log.successful_ops()]
             cleaning_summary = {

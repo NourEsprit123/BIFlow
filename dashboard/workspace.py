@@ -18,6 +18,7 @@ from dataCleaningTools.agent1_adapter import parse_profiling_report
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DATA = ROOT / "data" / "raw"
+CLEANED_DATA = ROOT / "data" / "cleaned"  # latest cleaned version per dataset, read by the BI and XAI agents
 SUPPORTED_SUFFIXES = {".csv", ".xlsx", ".xls", ".parquet"}
 DATASET_STATE_KEY = "workspace_dataset_path"
 PROFILE_STATE_KEY = "workspace_profile_result"
@@ -259,6 +260,7 @@ def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = 
         max_seconds=settings.get("max_seconds"),
         data_root=ROOT / "data" / "versions" / "dashboard",
         report_root=ROOT / "data" / "reports" / "cleaningReports",
+        publish_root=CLEANED_DATA,
         search_roots=[RAW_DATA, ROOT / "data"],
         use_llm=None,
     )
@@ -289,6 +291,7 @@ def resolve_cleaning_approvals(path: Path, cleaning: Any, decisions: dict[str, s
         max_seconds=limits.get("max_seconds"),
         data_root=ROOT / "data" / "versions" / "dashboard",
         report_root=ROOT / "data" / "reports" / "cleaningReports",
+        publish_root=CLEANED_DATA,
         search_roots=[RAW_DATA, ROOT / "data"],
         use_llm=cleaning.metadata.get("mode") == "llm",
     )
@@ -308,6 +311,7 @@ def resolve_cleaning_decisions(path: Path, cleaning: Any, choices: dict[str, dic
         max_seconds=limits.get("max_seconds"),
         data_root=ROOT / "data" / "versions" / "dashboard",
         report_root=ROOT / "data" / "reports" / "cleaningReports",
+        publish_root=CLEANED_DATA,
         search_roots=[RAW_DATA, ROOT / "data"],
         use_llm=cleaning.metadata.get("mode") == "llm",
     )

@@ -32,12 +32,12 @@ from chat_widget import render_chat
 
 # ── Chat widget & page setup ──────────────────────────────────────────────────
 render_chat("Audit XAI")
-setup("Audit & XAI", hub="Agent 3 · XAI Auditor")
+setup("Audit & XAI", hub="Agent 4 · XAI Auditor")
 page_header(
     "🛡️ Cockpit de Gouvernance & Explicabilité XAI",
     "Conformité, traçabilité cryptographique et attribution causale des décisions IA.",
-    badge("Agent 3", "purple"),
-    "Agent 3 · XAI Auditor > <b>Governance & Audit</b>",
+    badge("Agent 4", "purple"),
+    "Agent 4 · XAI Auditor > <b>Governance & Audit</b>",
 )
 
 # ── Inline CSS — identité visuelle XAI ───────────────────────────────────────
@@ -130,7 +130,7 @@ st.markdown("""
 
 st.sidebar.markdown("### 🛡️ Gouvernance & Audit")
 st.sidebar.caption(
-    "L'**Agent 3 (XAI Auditor)** certifie automatiquement le pipeline complet "
+    "L'**Agent 4 (XAI Auditor)** certifie automatiquement le pipeline complet "
     "(A1 Profiling/Qualité ➔ A2 BI Insights ➔ A3 Audit)."
 )
 
@@ -165,12 +165,12 @@ if not audit_report:
       <div style="font-size:3.5rem; margin-bottom:1rem;">🛡️</div>
       <h2 style="color:#1e1b4b; font-weight:700; margin-bottom:0.75rem;">Aucun audit actif en mémoire</h2>
       <p style="color:#475569; font-size:1rem; line-height:1.7; margin-bottom:1.5rem;">
-        L'<b>Agent 3 (Audit & XAI)</b> est le certificateur final de la plateforme BIFlow.<br>
-        Il s'exécute automatiquement lors de l'exécution du pipeline complet (<b>Agent 1 ➔ Agent 2 ➔ Agent 3</b>) afin d'auditer la conformité, vérifier le nettoyage des données et expliquer les décisions via SHAP.
+        L'<b>Agent 4 (Audit & XAI)</b> est le certificateur final de la plateforme BIFlow.<br>
+        Il s'exécute automatiquement lors de l'exécution du pipeline complet (<b>Agents 1–2 ➔ Agent 3 ➔ Agent 4</b>) afin d'auditer la conformité, vérifier le nettoyage des données et expliquer les décisions via SHAP.
       </p>
       <div style="background:#f8fafc; border-left:4px solid #6366f1; border-radius:0 10px 10px 0; padding:0.9rem 1.2rem; text-align:left; margin-bottom:2rem; font-size:0.88rem; color:#334155; line-height:1.6;">
         ℹ️ <b>Règle de gouvernance BIFlow :</b><br>
-        Si vous avez sélectionné uniquement l'Agent 2 en mode direct (<code>direct_agent_2</code>), l'Agent 3 est intentionnellement ignoré car il ne dispose pas des métriques de qualité et de traçabilité de l'Agent 1.
+        Si vous avez sélectionné uniquement l'Agent 3 en mode direct (<code>direct_agent_2</code>), l'Agent 4 est intentionnellement ignoré car il ne dispose pas des métriques de qualité et de traçabilité des Agents 1–2.
       </div>
     </div>
     """, unsafe_allow_html=True)
@@ -230,7 +230,7 @@ if upstream_ctx.get("has_a1") or upstream_ctx.get("has_a2"):
             h_s = upstream_ctx.get("a1_health_score", "N/A")
             st.markdown(f"""
             <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:0.5rem 0.85rem;font-size:0.8rem;">
-              <b style="color:#166534;">⚙️ Agent 1 · Data Engineering</b><br>
+              <b style="color:#166534;">⚙️ Agents 1–2 · Profiling & Cleaning</b><br>
               <span style="color:#15803d;">✅ Qualité connectée</span> · Score : <b>{h_s}%</b>
             </div>
             """, unsafe_allow_html=True)
@@ -238,7 +238,7 @@ if upstream_ctx.get("has_a1") or upstream_ctx.get("has_a2"):
         if upstream_ctx.get("has_a2"):
             st.markdown("""
             <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:0.5rem 0.85rem;font-size:0.8rem;">
-              <b style="color:#166534;">📊 Agent 2 · BI Analyst</b><br>
+              <b style="color:#166534;">📊 Agent 3 · BI Analyst</b><br>
               <span style="color:#15803d;">✅ Insights BI connectés</span> · KPIs intégrés
             </div>
             """, unsafe_allow_html=True)
@@ -341,8 +341,8 @@ with tab_narrative:
 
     up_ctx = audit_report.get("upstream_context", {})
     if up_ctx.get("has_a1") or up_ctx.get("has_a2"):
-        a1_pill = f"<b>⚙️ Qualité (Agent 1)</b> : Score santé <b>{up_ctx.get('a1_health_score', 'N/A')}%</b>" if up_ctx.get("has_a1") else ""
-        a2_pill = "<b>📊 Insights (Agent 2)</b> : KPIs et tendances intégrés" if up_ctx.get("has_a2") else ""
+        a1_pill = f"<b>⚙️ Qualité (Agents 1–2)</b> : Score santé <b>{up_ctx.get('a1_health_score', 'N/A')}%</b>" if up_ctx.get("has_a1") else ""
+        a2_pill = "<b>📊 Insights (Agent 3)</b> : KPIs et tendances intégrés" if up_ctx.get("has_a2") else ""
         details = " &nbsp;·&nbsp; ".join([p for p in [a1_pill, a2_pill] if p])
         st.markdown(f"""
         <div style="background:#f0fdf4;border-left:4px solid #16a34a;border-radius:0 10px 10px 0;padding:0.75rem 1.1rem;margin-bottom:1rem;font-size:0.86rem;color:#166534;">

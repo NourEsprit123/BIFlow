@@ -178,6 +178,17 @@ BUILTIN_FIRST_OBJECTIVE = ("Improve data quality for BI analysis while preservin
                            "Prefer builtin operations; write generated code only when no builtin can express the justified rule.")
 
 
+def publish_cleaned(result: CleaningResult, folder: Union[str, Path]) -> Path:
+    """Copy the final version to <folder>/<dataset>_cleaned.csv, where the BI Analyst, the XAI Auditor and the
+    dataset pages look for cleaned data. The versioned run keeps the full history; this is only its latest state."""
+    target = Path(folder) / f"{result.final_dataset.dataset_id}_cleaned.csv"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = target.with_suffix(".csv.tmp")
+    temporary.write_bytes(Path(result.final_dataset.path).read_bytes())
+    temporary.replace(target)
+    return target
+
+
 class DataCleaningAgent:
     """LLM agent with tool access for data cleaning."""
 
@@ -192,10 +203,13 @@ class DataCleaningAgent:
         dry_run: bool = False,
         model: Optional[str] = None,
         report_root: Optional[Union[str, Path]] = None,
+        publish_root: Optional[Union[str, Path]] = None,
     ):
         self.data_root = Path(data_root)
         self.report_root = Path(report_root) if report_root is not None else self.data_root.parent / "reports" / "cleaningReports"
         self.manager = None  # Last-run manager, retained for CLI callers.
+        # Where the final version is copied as <dataset>_cleaned.csv for the downstream agents (data/cleaned).
+        self.publish_root = Path(publish_root) if publish_root is not None else None
         self.search_roots = search_roots or [
             Path("data/raw"),
             Path("data"),
@@ -582,6 +596,12 @@ class DataCleaningAgent:
         except (OSError, ValueError) as exc:
             logger.warning("Could not export cleaning report: %s", exc)
             result.metadata["report_export_error"] = str(exc)
+        if self.publish_root is not None:
+            try:
+                result.metadata["published_path"] = str(publish_cleaned(result, self.publish_root))
+            except OSError as exc:
+                logger.warning("Could not publish the cleaned dataset: %s", exc)
+                result.metadata["publish_error"] = str(exc)
         result_path.write_text(result.model_dump_json(indent=2), encoding="utf-8")
         state.persist_trace()
         return result

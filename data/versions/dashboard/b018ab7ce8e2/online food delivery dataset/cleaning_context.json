@@ -1,0 +1,1039 @@
+{
+  "profiling_report_copy": {
+    "schema_version": "2.1",
+    "dataset_ref": {
+      "file_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\online food delivery dataset.csv",
+      "file_name": "online food delivery dataset.csv",
+      "rows": 388,
+      "columns": 14,
+      "size_bytes": 38976
+    },
+    "health_scores": {
+      "overall": 88.7,
+      "completeness": 100.0,
+      "validity": 90.0,
+      "uniqueness": 73.5,
+      "consistency": 80.0
+    },
+    "column_profiles": {
+      "Age": {
+        "dtype": "int64",
+        "inferred_role": "continuous_numeric",
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "unique_count": 16,
+        "unique_pct": 4.12,
+        "sample_values": [
+          "20",
+          "24",
+          "22",
+          "22",
+          "22",
+          "27",
+          "22",
+          "24"
+        ],
+        "numeric_stats": {
+          "mean": 24.6289,
+          "median": 24.0,
+          "std": 2.9756,
+          "min": 18.0,
+          "max": 33.0,
+          "q1": 23.0,
+          "q3": 26.0,
+          "skewness": 0.8099,
+          "zeros_count": 0,
+          "negative_count": 0
+        },
+        "value_counts": {},
+        "is_constant": false,
+        "issues": [
+          {
+            "issue_id": "statistical_outliers",
+            "source": "python",
+            "severity": "MEDIUM",
+            "description": "26 statistical outliers (IQR)",
+            "evidence": {
+              "outlier_count": 26,
+              "outlier_pct": 6.7,
+              "bounds": {
+                "low": 18.5,
+                "high": 30.5
+              }
+            },
+            "llm_agreement": null
+          }
+        ],
+        "agent_reasoning": "Complete numeric data with standard distribution.",
+        "business_interpretation": "Column 'Age' (continuous_numeric)",
+        "severity": "NONE",
+        "uncertainty": "MEDIUM",
+        "python_agreement": "agree",
+        "drop_recommended": false,
+        "imputation_strategy": "median",
+        "etl_cast_to": "none",
+        "sandbox_triggered": false,
+        "sandbox_result": null,
+        "custom_check_code": null
+      },
+      "Gender": {
+        "dtype": "str",
+        "inferred_role": "categorical",
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "unique_count": 2,
+        "unique_pct": 0.52,
+        "sample_values": [
+          "Female",
+          "Female",
+          "Male",
+          "Female",
+          "Male",
+          "Female",
+          "Male",
+          "Female"
+        ],
+        "numeric_stats": {},
+        "value_counts": {},
+        "is_constant": false,
+        "issues": [],
+        "agent_reasoning": "Clean categorical column with 2 categories.",
+        "business_interpretation": "Column 'Gender' (categorical)",
+        "severity": "NONE",
+        "uncertainty": "MEDIUM",
+        "python_agreement": "agree",
+        "drop_recommended": false,
+        "imputation_strategy": "median",
+        "etl_cast_to": "none",
+        "sandbox_triggered": false,
+        "sandbox_result": null,
+        "custom_check_code": null
+      },
+      "Marital Status": {
+        "dtype": "str",
+        "inferred_role": "categorical",
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "unique_count": 3,
+        "unique_pct": 0.77,
+        "sample_values": [
+          "Single",
+          "Single",
+          "Single",
+          "Single",
+          "Single",
+          "Married",
+          "Single",
+          "Single"
+        ],
+        "numeric_stats": {},
+        "value_counts": {},
+        "is_constant": false,
+        "issues": [],
+        "agent_reasoning": "Clean categorical column with 3 categories.",
+        "business_interpretation": "Column 'Marital Status' (categorical)",
+        "severity": "NONE",
+        "uncertainty": "MEDIUM",
+        "python_agreement": "agree",
+        "drop_recommended": false,
+        "imputation_strategy": "median",
+        "etl_cast_to": "none",
+        "sandbox_triggered": false,
+        "sandbox_result": null,
+        "custom_check_code": null
+      },
+      "Occupation": {
+        "dtype": "str",
+        "inferred_role": "categorical",
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "unique_count": 4,
+        "unique_pct": 1.03,
+        "sample_values": [
+          "Student",
+          "Student",
+          "Student",
+          "Student",
+          "Student",
+          "Employee",
+          "Student",
+          "Student"
+        ],
+        "numeric_stats": {},
+        "value_counts": {},
+        "is_constant": false,
+        "issues": [],
+        "agent_reasoning": "Clean categorical column with 4 categories.",
+        "business_interpretation": "Column 'Occupation' (categorical)",
+        "severity": "NONE",
+        "uncertainty": "MEDIUM",
+        "python_agreement": "agree",
+        "drop_recommended": false,
+        "imputation_strategy": "median",
+        "etl_cast_to": "none",
+        "sandbox_triggered": false,
+        "sandbox_result": null,
+        "custom_check_code": null
+      },
+      "Monthly Income": {
+        "dtype": "str",
+        "inferred_role": "categorical",
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "unique_count": 5,
+        "unique_pct": 1.29,
+        "sample_values": [
+          "No Income",
+          "Below Rs.10000",
+          "Below Rs.10000",
+          "No Income",
+          "Below Rs.10000",
+          "More than 50000",
+          "No Income",
+          "No Income"
+        ],
+        "numeric_stats": {},
+        "value_counts": {},
+        "is_constant": false,
+        "issues": [],
+        "agent_reasoning": "Clean categorical column with 5 categories.",
+        "business_interpretation": "Column 'Monthly Income' (categorical)",
+        "severity": "NONE",
+        "uncertainty": "MEDIUM",
+        "python_agreement": "agree",
+        "drop_recommended": false,
+        "imputation_strategy": "median",
+        "etl_cast_to": "none",
+        "sandbox_triggered": false,
+        "sandbox_result": null,
+        "custom_check_code": null
+      },
+      "Educational Qualifications": {
+        "dtype": "str",
+        "inferred_role": "categorical",
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "unique_count": 5,
+        "unique_pct": 1.29,
+        "sample_values": [
+          "Post Graduate",
+          "Graduate",
+          "Post Graduate",
+          "Graduate",
+          "Post Graduate",
+          "Post Graduate",
+          "Graduate",
+          "Post Graduate"
+        ],
+        "numeric_stats": {},
+        "value_counts": {},
+        "is_constant": false,
+        "issues": [],
+        "agent_reasoning": "Clean categorical column with 5 categories.",
+        "business_interpretation": "Column 'Educational Qualifications' (categorical)",
+        "severity": "NONE",
+        "uncertainty": "MEDIUM",
+        "python_agreement": "agree",
+        "drop_recommended": false,
+        "imputation_strategy": "median",
+        "etl_cast_to": "none",
+        "sandbox_triggered": false,
+        "sandbox_result": null,
+        "custom_check_code": null
+      },
+      "Family size": {
+        "dtype": "int64",
+        "inferred_role": "categorical",
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "unique_count": 6,
+        "unique_pct": 1.55,
+        "sample_values": [
+          "4",
+          "3",
+          "3",
+          "6",
+          "4",
+          "2",
+          "3",
+          "3"
+        ],
+        "numeric_stats": {
+          "mean": 3.2809,
+          "median": 3.0,
+          "std": 1.351,
+          "min": 1.0,
+          "max": 6.0,
+          "q1": 2.0,
+          "q3": 4.0,
+          "skewness": 0.4014,
+          "zeros_count": 0,
+          "negative_count": 0
+        },
+        "value_counts": {},
+        "is_constant": false,
+        "issues": [],
+        "agent_reasoning": "Clean categorical column with 6 categories.",
+        "business_interpretation": "Column 'Family size' (categorical)",
+        "severity": "NONE",
+        "uncertainty": "MEDIUM",
+        "python_agreement": "agree",
+        "drop_recommended": false,
+        "imputation_strategy": "median",
+        "etl_cast_to": "none",
+        "sandbox_triggered": false,
+        "sandbox_result": null,
+        "custom_check_code": null
+      },
+      "Customer Type": {
+        "dtype": "str",
+        "inferred_role": "categorical",
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "unique_count": 3,
+        "unique_pct": 0.77,
+        "sample_values": [
+          "Frequent",
+          "Regular",
+          "Regular",
+          "Frequent",
+          "Frequent",
+          "Regular",
+          "Regular",
+          "Regular"
+        ],
+        "numeric_stats": {},
+        "value_counts": {},
+        "is_constant": false,
+        "issues": [],
+        "agent_reasoning": "Clean categorical column with 3 categories.",
+        "business_interpretation": "Column 'Customer Type' (categorical)",
+        "severity": "NONE",
+        "uncertainty": "MEDIUM",
+        "python_agreement": "agree",
+        "drop_recommended": false,
+        "imputation_strategy": "median",
+        "etl_cast_to": "none",
+        "sandbox_triggered": false,
+        "sandbox_result": null,
+        "custom_check_code": null
+      },
+      "latitude": {
+        "dtype": "float64",
+        "inferred_role": "continuous_numeric",
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "unique_count": 77,
+        "unique_pct": 19.85,
+        "sample_values": [
+          "12.9766",
+          "12.977",
+          "12.9551",
+          "12.9473",
+          "12.985",
+          "12.9299",
+          "12.977",
+          "12.9828"
+        ],
+        "numeric_stats": {
+          "mean": 12.9721,
+          "median": 12.977,
+          "std": 0.0445,
+          "min": 12.8652,
+          "max": 13.102,
+          "q1": 12.9369,
+          "q3": 12.997,
+          "skewness": 0.1603,
+          "zeros_count": 0,
+          "negative_count": 0
+        },
+        "value_counts": {},
+        "is_constant": false,
+        "issues": [
+          {
+            "issue_id": "statistical_outliers",
+            "source": "python",
+            "severity": "MEDIUM",
+            "description": "2 statistical outliers (IQR)",
+            "evidence": {
+              "outlier_count": 2,
+              "outlier_pct": 0.52,
+              "bounds": {
+                "low": 12.8467,
+                "high": 13.0872
+              }
+            },
+            "llm_agreement": null
+          }
+        ],
+        "agent_reasoning": "Complete numeric data with standard distribution.",
+        "business_interpretation": "Column 'latitude' (continuous_numeric)",
+        "severity": "NONE",
+        "uncertainty": "MEDIUM",
+        "python_agreement": "agree",
+        "drop_recommended": false,
+        "imputation_strategy": "median",
+        "etl_cast_to": "none",
+        "sandbox_triggered": false,
+        "sandbox_result": null,
+        "custom_check_code": null
+      },
+      "longitude": {
+        "dtype": "float64",
+        "inferred_role": "continuous_numeric",
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "unique_count": 76,
+        "unique_pct": 19.59,
+        "sample_values": [
+          "77.5993",
+          "77.5773",
+          "77.6593",
+          "77.5616",
+          "77.5533",
+          "77.6848",
+          "77.5773",
+          "77.6131"
+        ],
+        "numeric_stats": {
+          "mean": 77.6002,
+          "median": 77.5921,
+          "std": 0.0514,
+          "min": 77.4842,
+          "max": 77.7582,
+          "q1": 77.5653,
+          "q3": 77.6309,
+          "skewness": 0.802,
+          "zeros_count": 0,
+          "negative_count": 0
+        },
+        "value_counts": {},
+        "is_constant": false,
+        "issues": [
+          {
+            "issue_id": "statistical_outliers",
+            "source": "python",
+            "severity": "MEDIUM",
+            "description": "12 statistical outliers (IQR)",
+            "evidence": {
+              "outlier_count": 12,
+              "outlier_pct": 3.09,
+              "bounds": {
+                "low": 77.4668,
+                "high": 77.7293
+              }
+            },
+            "llm_agreement": null
+          }
+        ],
+        "agent_reasoning": "Complete numeric data with standard distribution.",
+        "business_interpretation": "Column 'longitude' (continuous_numeric)",
+        "severity": "NONE",
+        "uncertainty": "MEDIUM",
+        "python_agreement": "agree",
+        "drop_recommended": false,
+        "imputation_strategy": "median",
+        "etl_cast_to": "none",
+        "sandbox_triggered": false,
+        "sandbox_result": null,
+        "custom_check_code": null
+      },
+      "Pin code": {
+        "dtype": "int64",
+        "inferred_role": "continuous_numeric",
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "unique_count": 77,
+        "unique_pct": 19.85,
+        "sample_values": [
+          "560001",
+          "560009",
+          "560017",
+          "560019",
+          "560010",
+          "560103",
+          "560009",
+          "560042"
+        ],
+        "numeric_stats": {
+          "mean": 560040.1134,
+          "median": 560033.5,
+          "std": 31.3996,
+          "min": 560001.0,
+          "max": 560109.0,
+          "q1": 560010.75,
+          "q3": 560068.0,
+          "skewness": 0.5749,
+          "zeros_count": 0,
+          "negative_count": 0
+        },
+        "value_counts": {},
+        "is_constant": false,
+        "issues": [],
+        "agent_reasoning": "Complete numeric data with standard distribution.",
+        "business_interpretation": "Column 'Pin code' (continuous_numeric)",
+        "severity": "NONE",
+        "uncertainty": "MEDIUM",
+        "python_agreement": "agree",
+        "drop_recommended": false,
+        "imputation_strategy": "median",
+        "etl_cast_to": "none",
+        "sandbox_triggered": false,
+        "sandbox_result": null,
+        "custom_check_code": null
+      },
+      "Output": {
+        "dtype": "str",
+        "inferred_role": "boolean",
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "unique_count": 2,
+        "unique_pct": 0.52,
+        "sample_values": [
+          "Yes",
+          "Yes",
+          "Yes",
+          "Yes",
+          "Yes",
+          "Yes",
+          "Yes",
+          "Yes"
+        ],
+        "numeric_stats": {},
+        "value_counts": {},
+        "is_constant": false,
+        "issues": [
+          {
+            "issue_id": "type_mismatch",
+            "source": "python",
+            "severity": "MEDIUM",
+            "description": "Boolean flag stored as text (Yes/No or True/False as object)",
+            "evidence": {
+              "detected": "Unique values: ['no', 'yes']",
+              "recommendation": "Map to bool dtype: True/False (saves memory, enables logic ops)",
+              "valid_ratio": 100.0
+            },
+            "llm_agreement": "agree"
+          }
+        ],
+        "agent_reasoning": "Complete data with no missing values; Type issue: Boolean flag stored as text (Yes/No or True/False as object).",
+        "business_interpretation": "Column 'Output' (boolean)",
+        "severity": "MEDIUM",
+        "uncertainty": "MEDIUM",
+        "python_agreement": "agree",
+        "drop_recommended": false,
+        "imputation_strategy": "median",
+        "etl_cast_to": "none",
+        "sandbox_triggered": false,
+        "sandbox_result": null,
+        "custom_check_code": null
+      },
+      "Feedback": {
+        "dtype": "str",
+        "inferred_role": "categorical",
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "unique_count": 2,
+        "unique_pct": 0.52,
+        "sample_values": [
+          "Positive",
+          "Positive",
+          "Negative ",
+          "Positive",
+          "Positive",
+          "Positive",
+          "Positive",
+          "Positive"
+        ],
+        "numeric_stats": {},
+        "value_counts": {},
+        "is_constant": false,
+        "issues": [],
+        "agent_reasoning": "Clean categorical column with 2 categories.",
+        "business_interpretation": "Column 'Feedback' (categorical)",
+        "severity": "NONE",
+        "uncertainty": "MEDIUM",
+        "python_agreement": "agree",
+        "drop_recommended": false,
+        "imputation_strategy": "median",
+        "etl_cast_to": "none",
+        "sandbox_triggered": false,
+        "sandbox_result": null,
+        "custom_check_code": null
+      },
+      "Unnamed: 13": {
+        "dtype": "str",
+        "inferred_role": "boolean",
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "unique_count": 2,
+        "unique_pct": 0.52,
+        "sample_values": [
+          "Yes",
+          "Yes",
+          "Yes",
+          "Yes",
+          "Yes",
+          "Yes",
+          "Yes",
+          "Yes"
+        ],
+        "numeric_stats": {},
+        "value_counts": {},
+        "is_constant": false,
+        "issues": [
+          {
+            "issue_id": "type_mismatch",
+            "source": "python",
+            "severity": "MEDIUM",
+            "description": "Boolean flag stored as text (Yes/No or True/False as object)",
+            "evidence": {
+              "detected": "Unique values: ['no', 'yes']",
+              "recommendation": "Map to bool dtype: True/False (saves memory, enables logic ops)",
+              "valid_ratio": 100.0
+            },
+            "llm_agreement": "agree"
+          }
+        ],
+        "agent_reasoning": "Complete data with no missing values; Type issue: Boolean flag stored as text (Yes/No or True/False as object).",
+        "business_interpretation": "Column 'Unnamed: 13' (boolean)",
+        "severity": "MEDIUM",
+        "uncertainty": "MEDIUM",
+        "python_agreement": "agree",
+        "drop_recommended": false,
+        "imputation_strategy": "median",
+        "etl_cast_to": "none",
+        "sandbox_triggered": false,
+        "sandbox_result": null,
+        "custom_check_code": null
+      }
+    },
+    "cross_column_issues": [],
+    "llm_discovered_issues": [],
+    "uncertainty_flags": [],
+    "recommended_cleaning_order": [
+      "Output",
+      "Unnamed: 13",
+      "Age",
+      "latitude",
+      "longitude"
+    ],
+    "etl_hints": {
+      "type_casting_targets": {},
+      "join_key_candidates": [],
+      "drop_candidates": [],
+      "recommended_output_format": "parquet",
+      "synonym_mappings": {}
+    },
+    "imputation_plan": {},
+    "outlier_columns": [
+      "Age",
+      "latitude",
+      "longitude"
+    ],
+    "agent_summary": "Dataset has 88.7% health score. LLM reasoning was unavailable \u2014 results are rule-based only.",
+    "recommendation_summary": "Rule-based analysis found 2 type issues and 0 missing values.",
+    "metadata": {
+      "agent_version": "2.0.0",
+      "profiling_timestamp": "2026-11-02T22:43:56.073106+00:00",
+      "llm_provider": null,
+      "llm_model_used": null,
+      "llm_status": "fallback",
+      "sandbox_executions": 0,
+      "llm_driven": false
+    }
+  },
+  "progress": {
+    "version": "V6",
+    "columns": {
+      "Age": {
+        "current_dtype": "int64",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "20",
+          "24",
+          "22"
+        ]
+      },
+      "Gender": {
+        "current_dtype": "str",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "Female",
+          "Female",
+          "Male"
+        ]
+      },
+      "Marital Status": {
+        "current_dtype": "str",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "Single",
+          "Single",
+          "Single"
+        ]
+      },
+      "Occupation": {
+        "current_dtype": "str",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "Student",
+          "Student",
+          "Student"
+        ]
+      },
+      "Monthly Income": {
+        "current_dtype": "str",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "No Income",
+          "Below Rs.10000",
+          "Below Rs.10000"
+        ]
+      },
+      "Educational Qualifications": {
+        "current_dtype": "str",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "Post Graduate",
+          "Graduate",
+          "Post Graduate"
+        ]
+      },
+      "Family size": {
+        "current_dtype": "int64",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "4",
+          "3",
+          "3"
+        ]
+      },
+      "Customer Type": {
+        "current_dtype": "str",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "Frequent",
+          "Regular",
+          "Regular"
+        ]
+      },
+      "latitude": {
+        "current_dtype": "float64",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "12.9766",
+          "12.977",
+          "12.9551"
+        ]
+      },
+      "longitude": {
+        "current_dtype": "float64",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "77.5993",
+          "77.5773",
+          "77.6593"
+        ]
+      },
+      "Pin code": {
+        "current_dtype": "int64",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "560001",
+          "560009",
+          "560017"
+        ]
+      },
+      "Output": {
+        "current_dtype": "bool",
+        "missing_count": 0,
+        "steps": {
+          "type_conversion": {
+            "target": "boolean",
+            "status": "done",
+            "verified_version": "V6",
+            "completed_version": "V2"
+          }
+        },
+        "current_examples": [
+          "True",
+          "True",
+          "True"
+        ]
+      },
+      "Feedback": {
+        "current_dtype": "str",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "Positive",
+          "Positive",
+          "Negative "
+        ]
+      },
+      "Unnamed: 13": {
+        "current_dtype": "bool",
+        "missing_count": 0,
+        "steps": {
+          "type_conversion": {
+            "target": "boolean",
+            "status": "done",
+            "verified_version": "V6",
+            "completed_version": "V3"
+          }
+        },
+        "current_examples": [
+          "True",
+          "True",
+          "True"
+        ]
+      }
+    },
+    "completed_actions": [
+      {
+        "event_id": "event-2",
+        "version": "V2",
+        "operation": "convert_data_types",
+        "columns": [
+          "Output"
+        ],
+        "explanation": "Convert the 'Output' column from string to boolean dtype, mapping 'Yes' to True and 'No' to False. This preserves the original values while enabling logical operations."
+      },
+      {
+        "event_id": "event-5",
+        "version": "V3",
+        "operation": "convert_data_types",
+        "columns": [
+          "Unnamed: 13"
+        ],
+        "explanation": "Map 'Yes' to True and 'No' to False to convert the column to boolean dtype, preserving existing missing values."
+      },
+      {
+        "event_id": "event-18",
+        "version": "V4",
+        "operation": "handle_outliers",
+        "columns": [
+          "Age"
+        ],
+        "explanation": "Cap the 26 statistical outliers in the 'Age' column using IQR bounds (low: 18.5, high: 30.5). This will ensure that extreme values are adjusted to the nearest threshold, preserving data integrity while reducing the impact of outliers."
+      },
+      {
+        "event_id": "event-20",
+        "version": "V5",
+        "operation": "handle_outliers",
+        "columns": [
+          "latitude"
+        ],
+        "explanation": "Cap the 2 statistical outliers in the 'latitude' column using IQR bounds to ensure data quality without losing legitimate values."
+      },
+      {
+        "event_id": "event-22",
+        "version": "V6",
+        "operation": "handle_outliers",
+        "columns": [
+          "longitude"
+        ],
+        "explanation": "Cap the 12 statistical outliers in the 'longitude' column using IQR bounds to ensure data quality without losing legitimate values."
+      }
+    ],
+    "flagged": {}
+  },
+  "cleaning_tasks": [
+    {
+      "id": "task-4",
+      "category": "types",
+      "columns": [
+        "Output"
+      ],
+      "evidence": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Boolean flag stored as text (Yes/No or True/False as object)",
+          "evidence": {
+            "detected": "Unique values: ['no', 'yes']",
+            "recommendation": "Map to bool dtype: True/False (saves memory, enables logic ops)",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        }
+      ],
+      "measured": null,
+      "status": "reviewed",
+      "turns": 2,
+      "reason": "The 'Output' column has been successfully converted to boolean dtype with 'Yes' mapped to True and 'No' to False. The conversion preserves original values and enables logical operations.",
+      "assessed_version": "V2"
+    },
+    {
+      "id": "task-5",
+      "category": "types",
+      "columns": [
+        "Unnamed: 13"
+      ],
+      "evidence": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Boolean flag stored as text (Yes/No or True/False as object)",
+          "evidence": {
+            "detected": "Unique values: ['no', 'yes']",
+            "recommendation": "Map to bool dtype: True/False (saves memory, enables logic ops)",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        }
+      ],
+      "measured": null,
+      "status": "reviewed",
+      "turns": 2,
+      "reason": "The column 'Unnamed: 13' has been successfully converted to boolean dtype with 'True' and 'False' values, preserving existing missing values. The conversion was validated and applied without issues.",
+      "assessed_version": "V3"
+    },
+    {
+      "id": "task-6",
+      "category": "types",
+      "columns": [
+        "Output"
+      ],
+      "evidence": [
+        {
+          "target_type": "boolean"
+        }
+      ],
+      "measured": "type_conversion",
+      "status": "done",
+      "verified_version": "V6"
+    },
+    {
+      "id": "task-7",
+      "category": "types",
+      "columns": [
+        "Unnamed: 13"
+      ],
+      "evidence": [
+        {
+          "target_type": "boolean"
+        }
+      ],
+      "measured": "type_conversion",
+      "status": "done",
+      "verified_version": "V6"
+    },
+    {
+      "id": "task-1",
+      "category": "outliers",
+      "columns": [
+        "Age"
+      ],
+      "evidence": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "26 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 26,
+            "outlier_pct": 6.7,
+            "bounds": {
+              "low": 18.5,
+              "high": 30.5
+            }
+          },
+          "llm_agreement": null
+        },
+        {
+          "reported_outliers": true
+        }
+      ],
+      "measured": null,
+      "status": "reviewed",
+      "turns": 2,
+      "step_id": "step-fcf5a224b53c",
+      "reason": "Approved by host and applied as V4. Approval required: handle_outliers ['Age'] would change 26 of 388 rows (step_id=step-fcf5a224b53c)",
+      "assessed_version": "V4",
+      "applied_version": "V4"
+    },
+    {
+      "id": "task-2",
+      "category": "outliers",
+      "columns": [
+        "latitude"
+      ],
+      "evidence": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "2 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 2,
+            "outlier_pct": 0.52,
+            "bounds": {
+              "low": 12.8467,
+              "high": 13.0872
+            }
+          },
+          "llm_agreement": null
+        },
+        {
+          "reported_outliers": true
+        }
+      ],
+      "measured": null,
+      "status": "reviewed",
+      "turns": 2,
+      "step_id": "step-be21a6b28479",
+      "reason": "Approved by host and applied as V5. Approval required: handle_outliers ['latitude'] would change 2 of 388 rows (step_id=step-be21a6b28479)",
+      "assessed_version": "V5",
+      "applied_version": "V5"
+    },
+    {
+      "id": "task-3",
+      "category": "outliers",
+      "columns": [
+        "longitude"
+      ],
+      "evidence": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "12 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 12,
+            "outlier_pct": 3.09,
+            "bounds": {
+              "low": 77.4668,
+              "high": 77.7293
+            }
+          },
+          "llm_agreement": null
+        },
+        {
+          "reported_outliers": true
+        }
+      ],
+      "measured": null,
+      "status": "reviewed",
+      "turns": 2,
+      "step_id": "step-c46e45f68530",
+      "reason": "Approved by host and applied as V6. Approval required: handle_outliers ['longitude'] would change 12 of 388 rows (step_id=step-c46e45f68530)",
+      "assessed_version": "V6",
+      "applied_version": "V6"
+    }
+  ]
+}

@@ -13,7 +13,7 @@ from workspace import PROFILE_STATE_KEY, get_workspace_result, profile_dataset_f
 if "sidebar_mode" not in st.session_state or st.session_state.sidebar_mode == "nav":
     st.session_state.sidebar_mode = "agent1"
 
-setup("Quality Check", hub="Agent 1 · Data Engineering")
+setup("Quality Check", hub="Agent 1 · Data Profiling")
 
 page_header(
     "Quality Check",

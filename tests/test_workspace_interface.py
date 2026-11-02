@@ -85,3 +85,21 @@ def test_cleaning_run_reports_its_result_on_the_cleaning_page(app, monkeypatch):
     app.button(key="cleaner_run").click().run(timeout=30)
     assert not app.exception
     assert any("Cleaning finished in V3; 2 changes applied" in item.value for item in app.success)
+
+
+def test_bi_analyst_follows_the_active_dataset_to_its_cleaned_version(app):
+    twin = ROOT / "data" / "cleaned" / "dirty_sales_test_cleaned.csv"
+    created = not twin.exists()
+    if created:
+        twin.parent.mkdir(parents=True, exist_ok=True)
+        twin.write_bytes(Path(DIRTY_SALES).read_bytes())
+    try:
+        app.switch_page("pages/A1_Profiling.py").run(timeout=30)
+        app.selectbox(key="workspace_dataset_picker").select(DIRTY_SALES).run(timeout=30)
+        app.switch_page("pages/5_BI_Analysis.py").run(timeout=30)
+        assert not app.exception
+        assert app.selectbox(key="bi_dataset_select").value == "✨ [Nettoyé] dirty_sales_test_cleaned.csv"
+        assert app.session_state["current_dataset_path"].endswith("dirty_sales_test_cleaned.csv")
+    finally:
+        if created:
+            twin.unlink()

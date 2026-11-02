@@ -155,7 +155,7 @@ AGENTS = [
     (
         "⚙",
         "indigo",
-        "Data Engineering Agent",
+        "Profiling & Cleaning Agents",
         f"Nettoyage & profilage terminés ({active_ds})" if a1_done else "En attente de déclenchement pipeline",
         "done" if a1_done else "standby",
         "Récemment" if a1_done else "Prêt",
@@ -237,4 +237,4 @@ html(f'''<div class="bf-grid g21"><div>
   {card(insights, "✨ AI-generated insights", "Conclusions clés issues des analyses actives.", badge("Explainable XAI", "purple"))}
 </div><div>{card(agents, "AI activity", "Statut en temps réel des agents autonomes", badge("Live", "green" if done_count > 0 else "indigo"))}<br>{card(capacity)}</div></div>''')
 
-render_chat("Overview")
+render_chat("Overview")

@@ -122,3 +122,15 @@ def test_blanks_left_by_an_approved_change_become_a_decision_not_a_failure(tmp_p
     assert decision["key"] == "amount" and decision["missing"] == 1 and decision["can_fill"]
     accepted = agent.resolve_decisions(resolved, {"amount": {"action": "accept", "note": "Blank the extreme amount"}})
     assert accepted.validation.all_passed and not open_decisions(accepted)
+
+
+def test_the_final_version_is_published_for_the_bi_analyst_and_again_after_approval(tmp_path, monkeypatch):
+    agent, result = finished_run(tmp_path, monkeypatch)
+    agent.publish_root = tmp_path / "cleaned"
+    published = tmp_path / "cleaned" / "orders_cleaned.csv"
+    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", no_model)
+    [item] = approvals.pending(result)
+    resolved = agent.resolve_approvals(result, {item["step_id"]: "approve"})
+    assert resolved.metadata["published_path"] == str(published)
+    assert pd.read_csv(published).equals(pd.read_csv(resolved.final_dataset.path))
+    assert pd.read_csv(published)["amount"].max() < 1000  # the approved cap is in the published file

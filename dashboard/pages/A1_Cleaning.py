@@ -9,7 +9,8 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from dashboard.cleaning_review import render_cleaning_result, run_cleaning_with_progress, render_experiment_runtime, render_cleaning_limits
 from components import setup, page_header, badge, dataset_picker
-from workspace import CLEANING_STATE_KEY, get_workspace_result
+from agents.dataCleaning_agent import publish_cleaned
+from workspace import CLEANED_DATA, CLEANING_STATE_KEY, get_workspace_result
 
 setup("Data Cleaning", hub="Agent 2 · Data Cleaning")
 page_header(
@@ -60,6 +61,8 @@ if run_clicked:
         st.warning(summary + " Start Ollama to enable local tool-calling.")
 
 cleaning = get_workspace_result(CLEANING_STATE_KEY, path)
+if cleaning and not (CLEANED_DATA / f"{cleaning.final_dataset.dataset_id}_cleaned.csv").exists():
+    publish_cleaned(cleaning, CLEANED_DATA)  # a run from before results were published for the BI Analyst
 run_tab, settings_tab = st.tabs(["Cleaning run", "Run settings"])
 
 with settings_tab:

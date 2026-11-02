@@ -249,7 +249,7 @@ st.sidebar.markdown("### ⚙️ Paramètres du pipeline")
 mode_options = {
     "⚡ Auto (A1 → A2 → A3)":              "auto",
     # "🧑‍💼 Human-in-the-Loop (étape/étape)": "hitl",  # Masqué temporairement
-    "🎯 Exécution directe — Agent 2 (BI)": "direct_agent_2",
+    "🎯 Exécution directe — Agent 3 (BI)": "direct_agent_2",
 }
 selected_mode_label = st.sidebar.radio(
     "Mode d'exécution",
@@ -332,11 +332,11 @@ if chosen_resource in ("cloud", "auto"):
         st.sidebar.success("☁️ Mode Cloud API actif (Groq / Gemini)")
         with st.sidebar.expander("☁️ Modèles Cloud des 3 agents", expanded=True):
             st.markdown("""
-- **Agent 1 (Data Eng.)** :  
+- **Agents 1–2 (Profiling & Cleaning)** :  
   `Groq (Llama-3.3 70B / 8B Instant)`
-- **Agent 2 (BI Analyst)** :  
+- **Agent 3 (BI Analyst)** :  
   `Groq API` *(Llama-3.3 / GPT-OSS 120B)*
-- **Agent 3 (XAI Auditor)** :  
+- **Agent 4 (XAI Auditor)** :  
   `Groq API / Gemini Flash`
 """)
 
@@ -366,11 +366,11 @@ if chosen_resource in ("local", "auto"):
         if chosen_resource == "local":
             with st.sidebar.expander("⚙️ Modèles locaux des 3 agents", expanded=True):
                 st.markdown("""
-- **Agent 1 (Data Eng.)** :  
+- **Agents 1–2 (Profiling & Cleaning)** :  
   `qwen2.5:3b` *(Ollama local)*
-- **Agent 2 (BI Analyst)** :  
+- **Agent 3 (BI Analyst)** :  
   `Qwen 2.5 3B LoRA (4-bit)` *(100% VRAM GPU)*
-- **Agent 3 (XAI Auditor)** :  
+- **Agent 4 (XAI Auditor)** :  
   `qwen2.5:3b` *(Ollama non-finetuné)*
                 """)
                 _has_lora = (PROJECT_ROOT / "adapter" / "adapter_model.safetensors").exists()
@@ -439,7 +439,7 @@ selected_name = st.sidebar.selectbox(
 )
 selected_path = dataset_map.get(selected_name) if selected_name != NONE_OPT else None
 
-# Synchronisation immédiate avec la session globale pour toutes les pages (Agent 1, Agent 2, etc.)
+# Synchronisation immédiate avec la session globale pour toutes les pages (Agent 1, Agent 3, etc.)
 if selected_path:
     st.session_state["current_dataset_path"] = selected_path
     st.session_state["wf_file"] = selected_path
@@ -461,8 +461,8 @@ if wf_state == "idle":
     mode_desc = {
         "auto":           "Enchaînement automatique A1 → A2 → A3.",
         "hitl":           "Pause après chaque agent — vous validez avant de continuer.",
-        "direct_agent_2": "Lance directement l'Agent 2 (BI) sur le dataset sélectionné.",
-        "direct_agent_3": "Lance directement l'Agent 3 (XAI) sur le dataset sélectionné.",
+        "direct_agent_2": "Lance directement l'Agent 3 (BI) sur le dataset sélectionné.",
+        "direct_agent_3": "Lance directement l'Agent 4 (XAI) sur le dataset sélectionné.",
     }
     html(
         f'<div class="wf-mode-bar">'
@@ -498,7 +498,7 @@ if wf_state == "idle":
     can_launch = bool(selected_path)
     if chosen_mode == "direct_agent_2":
         launch_clicked = st.button(
-            "🚀 Lancer l'analyse BI (Agent 2)",
+            "🚀 Lancer l'analyse BI (Agent 3)",
             type="primary",
             width="stretch",
             disabled=not can_launch,
@@ -513,7 +513,7 @@ if wf_state == "idle":
                 "🧪 Données Mock",
                 width="stretch",
                 help=(
-                    "Lance directement l'Agent 2 ou 3 avec un dataset synthétique fictif — "
+                    "Lance directement l'Agent 3 ou 4 avec un dataset synthétique fictif — "
                     "aucun fichier réel requis, zéro clé API exposée."
                 ),
                 disabled=chosen_mode not in ("direct_agent_2", "direct_agent_3"),
@@ -556,7 +556,7 @@ if wf_state == "idle":
         st.session_state.wf_done_steps = []
 
         spinner_text = (
-            "📊 Analyse BI en cours par l'Agent 2..."
+            "📊 Analyse BI en cours par l'Agent 3..."
             if chosen_mode == "direct_agent_2"
             else "⚡ Exécution du pipeline multi-agents (A1 Profiling/ETL ➔ A2 BI Insights ➔ A3 Audit XAI)…"
         )
@@ -599,7 +599,7 @@ if wf_state == "idle":
                     st.session_state.wf_state = "done"
                     if chosen_mode == "direct_agent_2":
                         st.session_state.sidebar_mode = "agent2"
-                        # En mode direct Agent 2, Agent 3 ne s'exécute pas (pas de données Agent 1)
+                        # En mode direct Agent 3, Agent 4 ne s'exécute pas (pas de données Agent 1)
                         st.session_state.pop("xai_audit_report", None)
                         st.session_state.pop("xai_dataset_sig", None)
                         if "pipeline_results" in st.session_state:
@@ -809,9 +809,9 @@ if wf_state == "hitl_pause":
 
         # ── Livrable de l'agent terminé ──────────────────────────────────────
         agent_labels = {
-            "data_engineer": ("🛠️ Agent 1 — Data Engineer",  "a1"),
-            "bi_analyst":    ("📊 Agent 2 — BI Analyst",     "a2"),
-            "xai_auditor":   ("🛡️ Agent 3 — XAI Auditor",   "a3"),
+            "data_engineer": ("🛠️ Agents 1–2 — Profiling & Cleaning",  "a1"),
+            "bi_analyst":    ("📊 Agent 3 — BI Analyst",     "a2"),
+            "xai_auditor":   ("🛡️ Agent 4 — XAI Auditor",   "a3"),
         }
         label, card_cls = agent_labels.get(agent, (f"Agent : {agent}", ""))
 
@@ -1063,9 +1063,9 @@ if wf_state == "done":
         stat = step_info.get("status", "")
 
         icons = {"data_engineer": "🛠️", "bi_analyst": "📊", "xai_auditor": "🛡️"}
-        names = {"data_engineer": "Agent 1 — Data Engineer",
-                 "bi_analyst":    "Agent 2 — BI Analyst",
-                 "xai_auditor":   "Agent 3 — XAI Auditor"}
+        names = {"data_engineer": "Agents 1–2 — Profiling & Cleaning",
+                 "bi_analyst":    "Agent 3 — BI Analyst",
+                 "xai_auditor":   "Agent 4 — XAI Auditor"}
         cls_map = {"data_engineer": "a1", "bi_analyst": "a2", "xai_auditor": "a3"}
 
         card_cls = "done" if stat == "success" else "error"
@@ -1101,9 +1101,9 @@ if wf_state == "done":
     # ── Onglets interactifs des livrables par Agent ────────────────────────────
     st.markdown("### 📋 Livrables et Détails par Agent")
     tab_a1, tab_a2, tab_a3 = st.tabs([
-        "🛠️ Agent 1 — Data Quality & Nettoyage",
-        "📊 Agent 2 — Analyse BI & Dashboards",
-        "🛡️ Agent 3 — Audit XAI & Conformité",
+        "🛠️ Agents 1–2 — Profiling & Nettoyage",
+        "📊 Agent 3 — Analyse BI & Dashboards",
+        "🛡️ Agent 4 — Audit XAI & Conformité",
     ])
 
     # ── Onglet Agent 1 : Data Engineer ────────────────────────────────────────
@@ -1158,7 +1158,7 @@ if wf_state == "done":
                     st.markdown(f"**ETL hints :** {casts}")
 
             st.markdown("---")
-            st.markdown("**Inspecter les sous-pages de l'Agent 1 :**")
+            st.markdown("**Inspecter les sous-pages des Agents 1–2 :**")
             a1_btn_col1, a1_btn_col2, a1_btn_col3 = st.columns(3)
             with a1_btn_col1:
                 if st.button("📊 Voir Profiling complet", width="stretch", key="tab_btn_goto_prof"):
@@ -1175,7 +1175,7 @@ if wf_state == "done":
         else:
             st.info("Aucun rapport Data Engineer disponible.")
 
-    # ── Onglet Agent 2 : BI Analyst ───────────────────────────────────────────
+    # ── Onglet Agent 3 : BI Analyst ───────────────────────────────────────────
     with tab_a2:
         if "bi_analyst" in reports:
             a2   = reports["bi_analyst"]
@@ -1272,7 +1272,7 @@ if wf_state == "done":
         else:
             st.info("Aucun rapport BI Analyst disponible.")
 
-    # ── Onglet Agent 3 : XAI Auditor ──────────────────────────────────────────
+    # ── Onglet Agent 4 : XAI Auditor ──────────────────────────────────────────
     with tab_a3:
         if "xai_auditor" in reports:
             a3        = reports["xai_auditor"]
