@@ -14,8 +14,8 @@ def offline(monkeypatch):
     monkeypatch.setattr("agents.dataCleaning_agent.sandbox_status", lambda: {})
 
 
-def finished_run(tmp_path, monkeypatch):
-    """One outlier task whose IQR cap passes its trial and stops at approval."""
+def finished_run(tmp_path, monkeypatch, outlier_action="cap"):
+    """One outlier task whose IQR change passes its trial and stops at approval."""
     source = tmp_path / "orders.csv"
     pd.DataFrame({"amount": [10.0, 11.0, 12.0, 13.0, 1000.0]}).to_csv(source, index=False)
     report = {"dataset_ref": {"file_path": str(source), "file_name": source.name, "rows": 5, "columns": 1},
@@ -25,7 +25,7 @@ def finished_run(tmp_path, monkeypatch):
         if not task:
             return action("finish", summary="Outlier cap awaits approval")
         return action("test_builtin", hypothesis="Cap the extreme amount", columns=["amount"],
-                      operation="handle_outliers", parameters={"action": "cap", "method": "iqr"})
+                      operation="handle_outliers", parameters={"action": outlier_action, "method": "iqr"})
     monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
     agent = DataCleaningAgent(data_root=tmp_path / "versions", use_llm=True)
     return agent, agent.run(report)
@@ -108,3 +108,17 @@ def test_dashboard_panel_sends_the_chosen_decision(tmp_path, monkeypatch):
     app.radio(key=f"cleaning_review_approval_{item['step_id']}").set_value("Approve").run(timeout=15)
     app.button(key="cleaning_review_apply_approvals").click().run(timeout=15)
     assert json.loads(sent.read_text()) == {item["step_id"]: "approve"}
+
+
+def test_blanks_left_by_an_approved_change_become_a_decision_not_a_failure(tmp_path, monkeypatch):
+    from dataCleaningTools.decisions import open_decisions
+    agent, result = finished_run(tmp_path, monkeypatch, outlier_action="set_missing")
+    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", no_model)
+    [item] = approvals.pending(result)
+    resolved = agent.resolve_approvals(result, {item["step_id"]: "approve"})
+    # The blank opens missing-value work that no model will run after the run; the host settles it.
+    assert resolved.validation.status.value == "partial"
+    [decision] = open_decisions(resolved)
+    assert decision["key"] == "amount" and decision["missing"] == 1 and decision["can_fill"]
+    accepted = agent.resolve_decisions(resolved, {"amount": {"action": "accept", "note": "Blank the extreme amount"}})
+    assert accepted.validation.all_passed and not open_decisions(accepted)

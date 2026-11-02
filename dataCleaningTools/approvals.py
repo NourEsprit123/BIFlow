@@ -137,5 +137,20 @@ def apply_decisions(state, decisions):
     finally:
         state.focused_cleaning = focused
         state.validation = None
+    hand_over_new_work(state)
     state.host_decisions.extend(log)
     return log
+
+
+def hand_over_new_work(state):
+    """Work an approved change opened (blanks from set_missing become a missing-value task) has no model left
+    to run it. Flag its columns so it reaches the host's decisions, as a dropped task would, instead of failing."""
+    from .working_context import refresh
+    refresh(state)
+    opened = [t for t in state.cleaning_tasks if t["status"] == "pending"]
+    for task in opened:
+        state.flagged.update({c: "Opened after the run by an approved change; decide it here" for c in task["columns"]
+                              if c not in state.flagged})
+    if opened:
+        refresh(state)
+        state.validation = None
