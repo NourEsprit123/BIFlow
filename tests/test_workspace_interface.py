@@ -102,3 +102,21 @@ def test_future_agents_are_visible_but_bi_and_xai_routes_and_tasks_are_locked(ap
     assert not app.exception
     assert app.checkbox(key="workflow_task_3").disabled and not app.checkbox(key="workflow_task_3").value
     assert app.checkbox(key="workflow_task_4").disabled and not app.checkbox(key="workflow_task_4").value
+
+
+def test_toolbar_groups_actions_by_agent_and_keeps_slots_for_upcoming_agents(app):
+    assert [c.value for c in app.caption][:4] == ["Data Profiling", "Data Cleaning", "Semantic & KPI", "BI Analyst"]
+    locked = [b for b in app.button if b.key and b.key.startswith("locked_agent_")]
+    assert [b.key for b in locked] == ["locked_agent_semantic", "locked_agent_analyst"]
+    assert all(b.disabled for b in locked)
+
+
+def test_finished_cleaning_opens_the_cleaning_trace_page(app, monkeypatch):
+    from types import SimpleNamespace
+    finished = SimpleNamespace(validation=SimpleNamespace(all_passed=True))
+    for module in ("components", "dashboard.components"):
+        monkeypatch.setattr(f"{module}.run_cleaning_with_progress", lambda path: finished, raising=False)
+    app.button(key="cleaner_run").click().run(timeout=20)
+    assert not app.exception
+    assert any("Cleaning finished" in t.value for t in app.toast)
+    assert any(h.value == "Quality dimensions" for h in app.subheader)  # now on the Data Quality page

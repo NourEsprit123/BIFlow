@@ -38,9 +38,9 @@ metrics[3].metric("Data quality", f"{health['overall_health_score']}%")
 
 analysis_col, workflow_col = st.columns(2)
 with analysis_col:
-    st.button("BI Analysis · Coming soon", icon="🔒", disabled=True, use_container_width=True)
+    st.button("BI Analysis · Coming soon", icon="🔒", disabled=True, width="stretch")
 with workflow_col:
-    st.page_link("pages/3_Workflows.py", label="Build a workflow", icon="⛓", use_container_width=True)
+    st.page_link("pages/3_Workflows.py", label="Build a workflow", icon="⛓", width="stretch")
 
 st.subheader("Agent activity")
 agent_rows = [
@@ -73,7 +73,7 @@ agent_rows = [
         ),
     },
 ]
-st.dataframe(agent_rows, hide_index=True, use_container_width=True)
+st.dataframe(agent_rows, hide_index=True, width="stretch")
 
 st.subheader("Selected dataset preview")
-st.dataframe(frame.head(10), hide_index=True, use_container_width=True)
+st.dataframe(frame.head(10), hide_index=True, width="stretch")

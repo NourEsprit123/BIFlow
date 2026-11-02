@@ -28,10 +28,10 @@ with download_col:
         data=json.dumps(analysis, indent=2, default=str),
         file_name=f"{path.stem}_analysis.json",
         mime="application/json",
-        use_container_width=True,
+        width="stretch",
     )
 with workflow_col:
-    if st.button("Create workflow", type="primary", use_container_width=True):
+    if st.button("Create workflow", type="primary", width="stretch"):
         st.switch_page("pages/3_Workflows.py")
 
 metrics = st.columns(4)
@@ -56,7 +56,7 @@ else:
 numeric = frame.select_dtypes(include="number")
 if not numeric.empty:
     st.subheader("Numeric column summary")
-    st.dataframe(numeric.describe().T.round(3), use_container_width=True)
+    st.dataframe(numeric.describe().T.round(3), width="stretch")
 
 categorical = frame.select_dtypes(include=["object", "category", "bool"])
 if not categorical.empty:

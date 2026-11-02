@@ -172,3 +172,75 @@ def test_saved_run_recovers_after_session_loss_but_not_after_data_or_profile_cha
     workspace.st.session_state.clear()
     source.write_text("value\n100\n200\n", encoding="utf-8")
     assert workspace.get_workspace_result(workspace.CLEANING_STATE_KEY, source) is None
+
+
+def test_builtin_request_without_parameters_is_valid():
+    from dataCleaningTools.workflow import validate_request
+    assert validate_request('test_builtin',{'hypothesis':'Spaces around names','columns':['flag'],'operation':'trim_whitespace'}) is None
+
+
+def test_duplicate_removal_ignores_declared_column_checks(tmp_path,monkeypatch):
+    source=tmp_path/'input.csv'
+    pd.DataFrame({'id':['a','b','b','c'],'customer':['x','x','x','y']}).to_csv(source,index=False)
+    payload={'dataset_ref':{'file_path':str(source),'file_name':source.name,'rows':4,'columns':2},
+             'column_profiles':{'id':{'dtype':'str'},'customer':{'dtype':'str'}},
+             'cross_column_issues':[{'issue_id':'duplicate_rows','columns':[],'description':'1 exact duplicate row'}]}
+    calls=[]
+    def respond(messages,tools,**kwargs):
+        calls.append(1)
+        if len(calls)==1:
+            # Customers repeat legitimately; neither a wrong nor an invented check may fail the removal.
+            return action('test_builtin',hypothesis='Exact duplicate rows',columns=['id','customer'],operation='remove_duplicates',
+                          parameters={'keep':'first'},checks=[{'column':'customer','kind':'unique'},{'column':'id','kind':'non_unique'}])
+        return action('finish',summary='Duplicates removed')
+    monkeypatch.setattr('agents.dataCleaning_agent.chat_with_tools',respond)
+    result=DataCleaningAgent(data_root=tmp_path/'versions',use_llm=True).run(payload)
+    assert result.final_dataset.row_count==3 and not result.metadata['task_drops']
+    assert result.metadata['cleaning_tasks'][0]['status']=='done' and len(calls)==2
+
+
+def test_turn_limit_grows_with_the_task_queue_unless_given_exactly(tmp_path,monkeypatch):
+    monkeypatch.setenv('BIFLOW_CLEANING_MAX_TURNS','2')
+    monkeypatch.setenv('BIFLOW_CLEANING_TURNS_PER_TASK','5')
+    finish=lambda *a,**k:action('finish',summary='done')
+    assert run(tmp_path,monkeypatch,finish).metadata['limits']['max_turns']==5
+    assert run(tmp_path,monkeypatch,finish,max_turns=2).metadata['limits']['max_turns']==2
+
+
+def test_whitespace_finding_allows_only_space_changes(tmp_path,monkeypatch):
+    source=tmp_path/'input.csv'
+    pd.DataFrame({'region':['  North ','South','East  ']}).to_csv(source,index=False)
+    payload={'dataset_ref':{'file_path':str(source),'file_name':source.name,'rows':3,'columns':1},
+             'column_profiles':{'region':{'dtype':'str','issues':[{'issue_id':'whitespace','description':'Trailing spaces'}]}}}
+    calls=[]
+    def respond(messages,tools,**kwargs):
+        calls.append(1)
+        if len(calls)==1:
+            return action('test_builtin',hypothesis='Strip and lowercase',columns=['region'],operation='normalize_values',
+                          parameters={'case':'lower','strip_whitespace':True})
+        if len(calls)==2:
+            feedback=json.loads(next(m['content'] for m in reversed(messages) if m['role']=='tool'))
+            assert not feedback['success'] and 'spaces only' in json.dumps(feedback)
+            # normalize_values returns the string dtype; only the values matter to the guard.
+            return action('test_builtin',hypothesis='Strip spaces',columns=['region'],operation='normalize_values',
+                          parameters={'strip_whitespace':True})
+        return action('finish',summary='Spaces removed')
+    monkeypatch.setattr('agents.dataCleaning_agent.chat_with_tools',respond)
+    result=DataCleaningAgent(data_root=tmp_path/'versions',use_llm=True).run(payload)
+    assert pd.read_csv(result.final_dataset.path)['region'].tolist()==['North','South','East']
+
+
+def test_removing_duplicate_rows_does_not_reopen_a_review():
+    from types import SimpleNamespace
+    from dataCleaningTools.cleaning_tasks import _changed_since
+    state=SimpleNamespace(working_context={'completed_actions':[{'version':'V3','operation':'remove_duplicates','columns':['region','id']}]})
+    assert not _changed_since(state,['region'],'V2')
+    state.working_context['completed_actions'].append({'version':'V4','operation':'normalize_values','columns':['region']})
+    assert _changed_since(state,['region'],'V2')
+
+
+def test_trim_whitespace_ignores_redundant_strip_setting():
+    from dataCleaningTools.workflow import builtin_parameters
+    assert 'strip_whitespace' not in builtin_parameters('trim_whitespace',{'strip_whitespace':True},['region'])
+    with pytest.raises(ValueError,match='trim_whitespace accepts only'):
+        builtin_parameters('trim_whitespace',{'strip_whitespace':False},['region'])

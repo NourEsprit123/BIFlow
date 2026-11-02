@@ -205,7 +205,7 @@ def show_login_dialog():
         email = email or ""
         password = st.text_input("Password", placeholder="Enter your password", type="password")
         submitted = st.form_submit_button(
-            "Sign in to BIFlow", type="primary", use_container_width=True
+            "Sign in to BIFlow", type="primary", width="stretch"
         )
     if submitted:
         if not email.strip() or not password:
@@ -236,7 +236,7 @@ def show_login_dialog():
                 )
                 reset_email = reset_email or ""
                 reset_requested = st.form_submit_button(
-                    "Send reset code", use_container_width=True
+                    "Send reset code", width="stretch"
                 )
             if reset_requested:
                 try:
@@ -266,7 +266,7 @@ def show_login_dialog():
                     new_password = new_password or ""
                     confirm_new_password = confirm_new_password or ""
                     reset_submitted = st.form_submit_button(
-                        "Reset password", use_container_width=True
+                        "Reset password", width="stretch"
                     )
                 if reset_submitted:
                     if new_password != confirm_new_password:
@@ -311,7 +311,7 @@ def show_signup_dialog():
         confirm_password = st.text_input("Confirm password", placeholder="Enter your password again", type="password")
         accepted_terms = st.checkbox("I agree to the Terms of Service and Privacy Policy")
         submitted = st.form_submit_button(
-            "Create your account", type="primary", use_container_width=True
+            "Create your account", type="primary", width="stretch"
         )
     if submitted:
         if not name.strip() or not email.strip() or not password:
@@ -342,7 +342,7 @@ with st.sidebar:
     html("""<div class="bf2-sidebar-brand"><span class="bf2-logo">B</span>
 <span><b>BIFlow</b><small>YOUR DATA, IN FOCUS</small></span></div>""")
     st.caption("Sign in to open your BIFlow workspace.")
-    if st.button("Sign in", use_container_width=True, key="sidebar_sign_in"):
+    if st.button("Sign in", width="stretch", key="sidebar_sign_in"):
         show_login_dialog()
 
 
@@ -353,11 +353,11 @@ with brand:
 <span><b>BIFlow</b><small>INTELLIGENCE, IN FLOW</small></span></div>""")
 
 with login_column:
-    if st.button("Sign in", use_container_width=True):
+    if st.button("Sign in", width="stretch"):
         show_login_dialog()
 
 with signup_column:
-    if st.button("Sign up", type="primary", use_container_width=True):
+    if st.button("Sign up", type="primary", width="stretch"):
         show_signup_dialog()
 
 if st.session_state.pop("open_login_after_signup", False):
@@ -414,7 +414,7 @@ html("""<main>
 # Bouton d'appel à l'action (ouvre la fenêtre d'inscription)
 _, cta_column, _ = st.columns([4, 2, 4])
 with cta_column:
-    if st.button("Get started for free →", type="primary", use_container_width=True, key="cta_signup"):
+    if st.button("Get started for free →", type="primary", width="stretch", key="cta_signup"):
         show_signup_dialog()
 
 html("""<div class="bf2-foot"><span>⌁ Built for clearer decisions</span><span>BIFlow © 2026</span></div>""")

@@ -75,7 +75,7 @@ with run_col:
     run_clicked = st.button(
         "Run BIFlow Pipeline",
         type="primary",
-        use_container_width=True,
+        width="stretch",
         disabled=not any(selected.values()),
     )
 

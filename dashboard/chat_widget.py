@@ -287,7 +287,7 @@ def render_chat(page: str) -> None:
             with st.container(key="bf_chat_sugg"):
                 st.markdown('<div class="bfc-hint">TRY ASKING</div>', unsafe_allow_html=True)
                 for index, suggestion in enumerate(suggestions):
-                    if st.button(suggestion, key=f"bf_chat_sugg_{index}", use_container_width=True):
+                    if st.button(suggestion, key=f"bf_chat_sugg_{index}", width="stretch"):
                         pending = suggestion
 
         with st.container(key="bf_chat_form"):

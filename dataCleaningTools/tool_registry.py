@@ -67,6 +67,8 @@ class AgentSessionState:
     max_task_failures: int = 4
     task_drops: List[Dict[str, Any]] = field(default_factory=list)
     host_decisions: List[Dict[str, Any]] = field(default_factory=list)
+    waived: Dict[str, str] = field(default_factory=dict)  # column -> the host's reason for accepting it as is
+    chars_per_token: float = 4.0  # calibrated from measured prompt sizes during the run
 
     def stop(self, reason, error=None):
         """Set the terminal state; persistence is handled at the caller's boundary."""
@@ -81,7 +83,7 @@ class AgentSessionState:
             "events", "evidence", "experiments", "method_candidates", "decisions", "repair_history",
             "expert_generations", "flagged", "failures", "finish_attempts", "step_log", "provider_errors",
             "unresolved", "model_unresolved", "pending_approvals", "working_context", "cleaning_tasks", "inspection_progress",
-            "task_drops", "host_decisions", "required_targets", "required_missing", "expected_columns")}
+            "task_drops", "host_decisions", "waived", "required_targets", "required_missing", "expected_columns")}
 
     def persist_trace(self):
         """Save state without loading data or changing task completion."""
@@ -399,6 +401,10 @@ class ToolExecutor:
                 if (column in result.df and column not in self.state.required_missing
                         and (~present(result.df[column])).sum() > (~present(before[column])).sum()):
                     self.state.required_missing.append(column)
+            added = [c for c in result.df.columns if c not in before.columns]
+            if added and self.state.expected_columns is not None:
+                # Imputation markers become part of the dataset's expected schema.
+                self.state.expected_columns = list(self.state.expected_columns) + added
             if name == "drop_column" or (name == "handle_missing_values" and function_arguments.get("strategy") == "drop_columns"):
                 if self.state.expected_columns is not None:
                     self.state.expected_columns = list(result.df.columns)
@@ -446,11 +452,13 @@ class ToolExecutor:
         check("non_empty",not frame.empty,f"rows={len(frame)}")
         if self.state.expected_columns is not None:
             check("expected_columns",list(frame.columns)==self.state.expected_columns,"Required columns must be preserved unless removal was approved")
+        for c, note in self.state.waived.items():
+            check(f"accepted_by_host:{c}", True, f"{c} accepted as is by the host: {note}")
         for c,target in self.state.required_targets.items():
-            if c not in self.state.flagged:
+            if c not in self.state.flagged and c not in self.state.waived:
                 check(f"target_type:{c}",c in frame and target_matches(frame[c],target),f"{c} must match {target}")
         for c in self.state.required_missing:
-            if c not in self.state.flagged:
+            if c not in self.state.flagged and c not in self.state.waived:
                 check(f"missing_resolved:{c}",c in frame and present(frame[c]).all(),f"Reported missing values in {c} must be resolved")
         exceptions = list(dict.fromkeys([f"{c}: {reason}" for c,reason in self.state.flagged.items()]
             + self.state.unresolved + self.state.model_unresolved + self.state.pending_approvals))

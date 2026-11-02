@@ -26,7 +26,10 @@ def correct_request(name, arguments, result, *, executor, generate, max_retries=
         generated = name == "test_generated" or arguments.get("code") or (
             isinstance(nested, dict) and nested.get("code")) or (task and task.get("generated_required"))
         target = "test_generated" if generated else "test_builtin"
-        selected = next(t for t in workflow.SCHEMAS_LIST if t["function"]["name"] == target)
+        # The task's own tool list: other operations' parameters would only invite invalid additions.
+        offered = workflow.available_tools(state) if state.focused_cleaning else workflow.SCHEMAS_LIST
+        selected = next((t for t in offered if t["function"]["name"] == target),
+                        next(t for t in workflow.SCHEMAS_LIST if t["function"]["name"] == target))
         log = {"turn": state.current_turn, "source": "request_correction", "attempt": attempt, "target": target}
         try:
             from .value_interpretation import plans
@@ -63,12 +66,20 @@ def correct_request(name, arguments, result, *, executor, generate, max_retries=
             result["repaired_tool"] = name
         except Exception as exc:
             log["error"] = f"Request correction failed ({type(exc).__name__})"
-            executor.stop("request_correction_failed", log["error"])
+            if name != "test_builtin":
+                executor.stop("request_correction_failed", log["error"])
             break
         finally:
             log["result"] = {"success": result.get("success"), "error": result.get("error")}
             state.step_log.append(log)
             state.persist_trace()
     if not closed(state, task) and (result.get("recovery_prompt") or {}).get("case") == "arguments":
-        executor.stop("request_correction_failed", "Could not construct a valid cleaning request within the request-correction limit")
+        if name == "test_builtin":
+            # A builtin that could not be expressed is a failed attempt, not a dead end: the model's next
+            # turn can revise it or move to generated code (local correction, then Groq).
+            result = {**result, "request_correction_exhausted": True,
+                      "error": f"{result.get('error') or 'Invalid builtin request'}. This builtin request could not be "
+                               "corrected automatically. Revise its parameters, or write generated code with test_generated."}
+        else:
+            executor.stop("request_correction_failed", "Could not construct a valid cleaning request within the request-correction limit")
     return name, arguments, result

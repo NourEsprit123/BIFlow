@@ -59,14 +59,21 @@ def assess_candidate(before: pd.DataFrame, after: pd.DataFrame, operation: str,
     column_removal = operation == "drop_column" or (
         operation == "handle_missing_values" and strategy == "drop_columns")
     affected = columns or list(before.columns)
+    # A fill may add "<column>_imputed" markers for its own columns, appended after the existing ones.
+    markers = ([f"{c}_imputed" for c in affected]
+               if operation == "handle_missing_values" and strategy.startswith("fill_") else [])
+    added = [c for c in after if c not in before]
     check("non_empty", not after.empty, f"Candidate contains {len(after)} rows")
     check("row_count", len(after) <= len(before) if row_removal else len(after) == len(before),
           f"Rows: {len(before)} → {len(after)}")
     expected = [c for c in before if c not in affected] if operation == "drop_column" else list(before)
     if operation == "handle_missing_values" and strategy == "drop_columns":
         expected = [c for c in before if c not in affected or present(before[c]).all()]
-    check("columns", list(after) == expected if column_removal else list(after) == list(before),
-          "Only explicitly requested columns may be removed")
+    if column_removal:
+        columns_ok = list(after) == expected
+    else:
+        columns_ok = list(after)[:len(before.columns)] == list(before) and set(added) <= set(markers)
+    check("columns", columns_ok, "Only explicitly requested columns may be removed; only imputation markers may be added")
     changed_cells = None
     changed_examples = []
     lost_values = []
@@ -94,7 +101,7 @@ def assess_candidate(before: pd.DataFrame, after: pd.DataFrame, operation: str,
                 lost_values.append({"row_position": int(index), "row_index": str(before.index[index]),
                     "column": str(c), "before": str(old[index]),
                     "after": None if pd.isna(new[index]) else str(new[index])})
-            if c not in affected:
+            if c not in affected and c not in markers:
                 check(f"untouched:{c}", same.all(), "Unselected column values must stay unchanged")
     if operation in ("convert_data_types", "clean_numeric_string"):
         target = parameters.get("target_type", "numeric")

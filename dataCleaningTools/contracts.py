@@ -37,4 +37,9 @@ def model_arguments(tool_name, arguments):
                 parameters.pop("columns")
         arguments["parameters"] = parameters
 
+    # Row removal is verified by its own effect (duplicates gone, nothing else changed); per-column
+    # outcomes such as "customer is unique" do not describe it and only make a correct removal fail.
+    if tool_name == "test_builtin" and arguments.get("operation") == "remove_duplicates" and "checks" in arguments:
+        arguments = {k: v for k, v in arguments.items() if k != "checks"}
+
     return arguments

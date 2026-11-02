@@ -47,7 +47,7 @@ from dataCleaningTools.request_correction import correct_request
 from dataCleaningTools.reporting import write_cleaning_report
 from dataCleaningTools.working_context import initialize as initialize_working_context
 from dataCleaningTools.llm_client import chat_with_tools, default_model, llm_configured, positive_setting
-from dataCleaningTools import approvals, cleaning_tasks
+from dataCleaningTools import approvals, cleaning_tasks, decisions
 
 logger = logging.getLogger("biflow.agent2")
 
@@ -110,17 +110,30 @@ def _tool_generation_failed(error) -> bool:
     return isinstance(detail, dict) and detail.get("code") == "tool_use_failed"
 
 
-def _request_context(messages, *, tools=None, reserved_chars=0):
+# Serialized characters per prompt token before any measurement, and the safety factor applied to measurements.
+DEFAULT_CHARS_PER_TOKEN = 4.0
+CALIBRATION_MARGIN = 0.9
+
+
+def _calibrate(state, request, tools, response):
+    """Learn this model's characters per token from the prompt size Ollama reports for a request we sent."""
+    tokens = (response.get("usage") or {}).get("prompt_tokens")
+    if isinstance(tokens, int) and tokens > 500:
+        measured = (len(json.dumps(request)) + len(json.dumps(tools))) / tokens
+        state.chars_per_token = min(8.0, max(2.0, measured * CALIBRATION_MARGIN))
+
+
+def _request_context(messages, *, tools=None, reserved_chars=0, chars_per_token=DEFAULT_CHARS_PER_TOKEN):
     """Bound serialized prompt size while retaining complete recent exchanges.
 
-    Four serialized characters per input token is a sizing estimate, not a
-    model-token guarantee. Never cut code or
+    chars_per_token starts at four serialized characters per input token and is
+    then calibrated from Ollama's measured prompt sizes. Never cut code or
     current requirements. Oversized row failures can be grouped for inference;
     the original messages and full execution audit remain intact.
     """
     tools = workflow.SCHEMAS_LIST if tools is None else tools
     budget = (positive_setting("BIFLOW_OLLAMA_NUM_CTX",8192,integer=True)
-        - positive_setting("BIFLOW_OLLAMA_NUM_PREDICT",2048,integer=True))*4
+        - positive_setting("BIFLOW_OLLAMA_NUM_PREDICT",2048,integer=True))*chars_per_token
     budget -= len(json.dumps(tools)) + reserved_chars
     groups = []
     for message in messages[2:]:
@@ -185,6 +198,9 @@ class DataCleaningAgent:
             _ROOT / "data",
         ]
         self.max_turns = max_turns if max_turns is not None else positive_setting("BIFLOW_CLEANING_MAX_TURNS", 24, integer=True)
+        # A configured limit is a floor that grows with the task queue; an explicit max_turns is exact.
+        self.turns_per_task = 0 if max_turns is not None else positive_setting("BIFLOW_CLEANING_TURNS_PER_TASK", 3, integer=True)
+        self.turn_limit = self.max_turns
         self.max_seconds = max_seconds if max_seconds is not None else positive_setting("BIFLOW_CLEANING_MAX_SECONDS", 300)
         if (isinstance(self.max_turns, bool) or not isinstance(self.max_turns, int) or self.max_turns < 1
                 or isinstance(self.max_seconds, bool) or not isinstance(self.max_seconds, (int, float))
@@ -225,10 +241,11 @@ class DataCleaningAgent:
         working = manager.create_working_copy(v0)
 
         run_started = time.monotonic()
+        self.turn_limit = self.max_turns
         def emit(event):
             if on_event:
                 try:
-                    on_event({**event, "turn": state.current_turn, "max_turns": self.max_turns,
+                    on_event({**event, "turn": state.current_turn, "max_turns": self.turn_limit,
                               "elapsed_seconds": time.monotonic() - run_started, "max_seconds": self.max_seconds})
                 except Exception:
                     logger.warning("Progress callback failed", exc_info=True)
@@ -277,9 +294,19 @@ class DataCleaningAgent:
         state.finished = True
         return self._build_result(state, report, result.metadata.get("user_request", ""))
 
+    def resolve_decisions(self, result: CleaningResult, choices: Dict[str, Dict[str, Any]]) -> CleaningResult:
+        """Settle open items (dropped, blocked, needs review) per column, then revalidate and re-export."""
+        state, report = approvals.restore(result)
+        decisions.apply(state, choices)
+        state.finished = True
+        return self._build_result(state, report, result.metadata.get("user_request", ""))
+
     def _run_llm_loop(self, state, user_request):
         state.focused_cleaning = True
         cleaning_tasks.initialize(state)
+        # One or two hard tasks must not starve the rest of the queue; the time budget still bounds the run.
+        self.turn_limit = max(self.max_turns, self.turns_per_task * len(state.cleaning_tasks))
+        logger.info("Turn limit %d for %d task(s)", self.turn_limit, len(state.cleaning_tasks))
         state.persist_trace()
         request_guide = PROMPT_PATH.with_name("request_guide.md").read_text(encoding="utf-8")
         messages = [{"role":"system","content":_load_system_prompt()},
@@ -287,7 +314,7 @@ class DataCleaningAgent:
         executor = ToolExecutor(state)
         empty_responses = 0
         previous_task = None
-        for turn in range(1,self.max_turns+1):
+        for turn in range(1,self.turn_limit+1):
             if state.finished: break
             if time.monotonic() >= state.deadline:
                 state.stop("time_budget", f"reached the {self.max_seconds:.0f}s run budget")
@@ -301,7 +328,7 @@ class DataCleaningAgent:
                 if turn > 1 and task_id != previous_task:
                     messages = messages[:2]
                 previous_task = task_id
-                context = [{"role":"user","content":json.dumps({**focused,"turn":turn,"max_turns":self.max_turns,
+                context = [{"role":"user","content":json.dumps({**focused,"turn":turn,"max_turns":self.turn_limit,
                     "candidates":{key:{"tested":c["tested"],"base_version":c["base_version"],"columns":c["columns"]}
                                   for key,c in list(state.method_candidates.items())[-4:]
                                   if set(c["columns"]).issubset((focus["task"] or {}).get("columns", []))},
@@ -313,11 +340,16 @@ class DataCleaningAgent:
             if state.on_event:
                 state.on_event({"phase": "Ollama: choosing next action", "stage": "model"})
             response = None
+            def send(tools):
+                request = _request_context(messages, tools=tools, reserved_chars=len(json.dumps(context)),
+                                           chars_per_token=state.chars_per_token) + context
+                reply = chat_with_tools(request, tools, model=self.model, temperature=0.1,
+                                        on_provider_event=state.on_event, timeout=state.deadline-time.monotonic())
+                _calibrate(state, request, tools, reply)
+                return reply
             for attempt in range(2):
                 try:
-                    response = chat_with_tools(_request_context(messages,tools=tools,
-                        reserved_chars=len(json.dumps(context)))+context,tools,model=self.model,
-                        temperature=0.1,on_provider_event=state.on_event,timeout=state.deadline-time.monotonic())
+                    response = send(tools)
                     for error in state.provider_errors:
                         if error.get("retrying"): error.update(recovered=True,retrying=False)
                     break
@@ -326,11 +358,10 @@ class DataCleaningAgent:
                         if any(t["function"]["name"] == "test_builtin" for t in tools):
                             # Shed the builtin schema before stopping; generated code and review stay available.
                             tools = [t for t in tools if t["function"]["name"] != "test_builtin"]
-                            state.step_log.append({"turn": turn, "context_budget": "test_builtin omitted to fit the request"})
+                            state.step_log.append({"turn": turn, "context_budget": "test_builtin omitted to fit the request",
+                                                   "chars_per_token": state.chars_per_token})
                             try:
-                                response = chat_with_tools(_request_context(messages,tools=tools,
-                                    reserved_chars=len(json.dumps(context)))+context,tools,model=self.model,
-                                    temperature=0.1,on_provider_event=state.on_event,timeout=state.deadline-time.monotonic())
+                                response = send(tools)
                                 break
                             except Exception as retry_exc:
                                 exc = retry_exc
@@ -356,7 +387,8 @@ class DataCleaningAgent:
             state.llm_model = response.get("model",state.llm_model)
             state.step_log.append({"turn":turn,"provider":response.get("provider"),"model":response.get("model"),
                 "response_finish_reason":response.get("finish_reason"),"tool_call_source":response.get("tool_call_source"),
-                "usage":response.get("usage"),"timing":response.get("timing"),"options":response.get("options"),"response_issue":response.get("response_issue")})
+                "usage":response.get("usage"),"timing":response.get("timing"),"options":response.get("options"),"response_issue":response.get("response_issue"),
+                "chars_per_token":state.chars_per_token})
             content, calls = response.get("content") or "", response.get("tool_calls") or []
             if content: state.step_log.append({"turn":turn,"reasoning":content})
             assistant = {"role":"assistant","content":content or None}
@@ -408,7 +440,7 @@ class DataCleaningAgent:
                 state.stop("completed" if state.validation.all_passed else "completed_with_exceptions" if state.validation.status==ValidationStatus.PARTIAL else "incomplete")
                 break
         else:
-            state.stop("max_turns", f"reached max_turns={self.max_turns} before finish")
+            state.stop("max_turns", f"reached max_turns={self.turn_limit} before finish")
         state.finished=True
         state.persist_trace()
 
@@ -520,7 +552,8 @@ class DataCleaningAgent:
                 + validation.unresolved_issues + validation.exceptions)),
             metadata={
                 "mode": "llm" if self.use_llm else "deterministic",
-                "limits": {"max_turns": self.max_turns, "max_seconds": self.max_seconds},
+                "limits": {"max_turns": self.turn_limit, "max_seconds": self.max_seconds,
+                           "max_task_turns": state.max_task_turns, "max_task_failures": state.max_task_failures},
                 "elapsed_seconds": time.monotonic() - state.run_started,
                 "turns_used": state.current_turn,
                 "model": (state.llm_model or self.model or default_model()) if self.use_llm else None,

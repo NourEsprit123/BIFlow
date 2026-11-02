@@ -5,7 +5,7 @@ from pathlib import Path
 import streamlit as st
 from dashboard.cleaning_review import run_cleaning_with_progress
 from style import load_css
-from dashboard.pipeline import pipeline_html
+from dashboard.pipeline import AGENTS, pipeline_html
 from workspace import (
     CLEANING_STATE_KEY,
     DATASET_STATE_KEY,
@@ -93,14 +93,14 @@ def setup(title, hub="Enterprise Analytics Hub"):
         st.page_link("pages/A1_Quality.py", label="Quality findings", icon="✅")
         html('<div class="bf-nav-label">COMING FROM THE TEAM</div>')
         st.button("BI Analysis · Locked", key="locked_bi_analysis", icon="🔒", disabled=True,
-                  use_container_width=True, help="The BI Analyst is being developed by your teammates.")
+                  width="stretch", help="The BI Analyst is being developed by your teammates.")
         st.button("Explainability · Locked", key="locked_xai", icon="🔒", disabled=True,
-                  use_container_width=True, help="The Auditor / XAI agent is being developed by your teammates.")
+                  width="stretch", help="The Auditor / XAI agent is being developed by your teammates.")
         html('<div class="bf-team-note"><i></i><div><b>Academic workspace</b><small>2 agents cover Profiling, Cleaning & ETL · 5 stages pending</small></div></div>')
         full_name = escape(user["full_name"])
         initials = escape("".join(part[0] for part in user["full_name"].split()[:2]).upper())
         html(f'<div class="bf-user"><div class="av">{initials}</div><div><b>{full_name}</b><small>{escape(user["email"])}</small></div></div>')
-        if st.button("Sign out", key="workspace_sign_out", use_container_width=True):
+        if st.button("Sign out", key="workspace_sign_out", width="stretch"):
             st.session_state.pop("authenticated_user", None)
             st.switch_page("app.py")
 
@@ -120,7 +120,7 @@ def setup(title, hub="Enterprise Analytics Hub"):
             else:
                 st.info("Upload your first dataset to enable the agents.")
         with manage:
-            st.page_link("pages/2_Datasets.py", label="Datasets", icon="📁", use_container_width=True)
+            st.page_link("pages/2_Datasets.py", label="Datasets", icon="📁", width="stretch")
 
     _agent_controls(active)
 
@@ -134,15 +134,23 @@ def _agent_controls(active):
     cleaning = get_workspace_result(CLEANING_STATE_KEY, active) if active else None
     pipeline_slot = st.empty()
     pipeline_slot.markdown(pipeline_html(profile, cleaning), unsafe_allow_html=True)
-    actions = st.columns([1, 1, 1, 1])
-    with actions[0]:
-        profile_clicked = st.button("Run profiling", key="profiler_run", type="primary", use_container_width=True, disabled=active is None)
-    with actions[1]:
-        cleaning_clicked = st.button("Run cleaning", key="cleaner_run", use_container_width=True, disabled=active is None)
-    with actions[2]:
-        st.page_link("pages/A1_Profiling.py", label="Profiling report", icon="📄", use_container_width=True)
-    with actions[3]:
-        st.page_link("pages/4_Data_Quality.py", label="Cleaning trace", icon="🧪", use_container_width=True)
+    # One column per agent: its run action with its results beneath. Columns after the
+    # integrated agents are kept for the next agents in the pipeline.
+    agents = st.columns(4)
+    with agents[0]:
+        st.caption("Data Profiling")
+        profile_clicked = st.button("Run profiling", key="profiler_run", type="primary", width="stretch", disabled=active is None)
+        st.page_link("pages/A1_Profiling.py", label="Profiling report", icon="📄", width="stretch")
+    with agents[1]:
+        st.caption("Data Cleaning")
+        cleaning_clicked = st.button("Run cleaning", key="cleaner_run", width="stretch", disabled=active is None)
+        st.page_link("pages/4_Data_Quality.py", label="Cleaning trace", icon="🧪", width="stretch")
+    upcoming = [(key, label) for key, label, _, available in AGENTS if not available and key != "orchestrator"]
+    for slot, (key, label) in zip(agents[2:], upcoming):
+        with slot:
+            st.caption(label)
+            st.button(f"{label} · locked", key=f"locked_agent_{key}", icon="🔒", disabled=True, width="stretch",
+                      help="This agent is being developed by your teammates and is not integrated yet.")
     if profile_clicked:
         pipeline_slot.markdown(pipeline_html(profile, cleaning, running="profiler"), unsafe_allow_html=True)
         try:
@@ -160,13 +168,19 @@ def _agent_controls(active):
             st.error(f"Profiling could not complete: {exc}")
     if cleaning_clicked:
         pipeline_slot.markdown(pipeline_html(profile, cleaning, running="cleaner"), unsafe_allow_html=True)
+        finished = False
         try:
             result = run_cleaning_with_progress(active)
             profile = get_workspace_result(PROFILE_STATE_KEY, active)
             pipeline_slot.markdown(pipeline_html(profile, result), unsafe_allow_html=True)
+            finished = True
         except Exception as exc:
             pipeline_slot.markdown(pipeline_html(profile, cleaning), unsafe_allow_html=True)
             st.error(f"Cleaning could not complete: {exc}")
+        if finished:
+            # Open the full run view; a failure stays here with its error.
+            st.session_state["cleaning_just_finished"] = True
+            st.switch_page("pages/4_Data_Quality.py")
 
 
 def page_header(title, subtitle="", actions="", crumbs=""):

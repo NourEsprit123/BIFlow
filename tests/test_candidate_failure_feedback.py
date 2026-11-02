@@ -13,7 +13,8 @@ from dataCleaningTools import workflow
 
 @pytest.fixture
 def dirty(tmp_path):
-    invalid = ['one thousand', 'banana', 'ERROR_404', 'five hundred', 'quarter million',
+    # Genuinely unparseable tokens; number phrases such as 'one thousand' are now parsed by the builtin.
+    invalid = ['see notes', 'banana', 'ERROR_404', 'TBD', 'about a lot',
                'unparsed-a', 'unparsed-b', 'unparsed-b', 'x' * 250]
     source = tmp_path / 'sales.csv'
     pd.DataFrame({'Revenue': ['$10', '20', '1.5k', '$30', '40', '2k', *invalid, None],
@@ -122,15 +123,15 @@ def test_application_rejection_also_reports_all_loss_evidence(dirty, monkeypatch
     assert state.current_ref.version == 'V1'
 
 
-def test_dirty_sales_case_exposes_all_five_unparsed_values(tmp_path):
+def test_dirty_sales_case_loses_only_the_truly_unparseable_values(tmp_path):
     source = Path('data/raw/dirty_sales_test.csv').resolve()
     manager = DatasetVersionManager(tmp_path / 'versions')
     original = manager.register_original(source, dataset_id='sales')
     state = AgentSessionState(manager=manager, dataset_id='sales', source_ref=original,
         current_ref=manager.create_working_copy(original))
     failed = revenue_trial(ToolExecutor(state))
-    assert [v['before'] for v in failed['failure_summary']['lost_values']] == [
-        'one thousand', 'banana', 'ERROR_404', 'five hundred', 'quarter million']
+    # 'one thousand', 'five hundred' and 'quarter million' are now parsed to their numeric values.
+    assert [v['before'] for v in failed['failure_summary']['lost_values']] == ['banana', 'ERROR_404']
 
 
 def test_model_receives_full_loss_summary_and_specific_next_decision(tmp_path, monkeypatch, dirty):

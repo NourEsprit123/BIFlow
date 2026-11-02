@@ -18,6 +18,7 @@ from typing import Any, Dict, Literal, Optional, Sequence
 import pandas as pd
 
 from .effects import present
+from .numeric_expectations import expected_number
 
 ErrorMode = Literal["coerce", "raise", "ignore"]
 DuplicateKeep = Literal["first", "last", False]
@@ -65,9 +66,14 @@ def handle_missing_values(
     columns: Optional[Sequence[str]] = None,
     strategy: str = "drop_rows",
     fill_value: Any = None,
+    mark_imputed: bool = True,
 ) -> CleaningResult:
     """
     Handle missing values.
+
+    Fills keep whole-number columns whole (the fill value is rounded) and, with
+    mark_imputed, record filled cells in a boolean "<column>_imputed" column so
+    downstream analysis can tell estimated values from observed ones.
 
     Strategies:
       - drop_rows      : drop any row that has NaN in the selected columns
@@ -91,6 +97,11 @@ def handle_missing_values(
         return CleaningResult(True, df=df.copy(), affected_rows=0, message="No missing values")
 
     affected = 0
+    filled = {c: work[c].isna() for c in cols}
+    whole = {c: _whole_numbers(work[c]) for c in cols}
+
+    def fill_number(c, value):
+        return round(value) if whole[c] and pd.notna(value) else value
 
     try:
         if strategy == "drop_rows":
@@ -108,13 +119,13 @@ def handle_missing_values(
             for c in cols:
                 if pd.api.types.is_numeric_dtype(work[c]):
                     n = int(work[c].isna().sum())
-                    work[c] = work[c].fillna(work[c].mean())
+                    work[c] = work[c].fillna(fill_number(c, work[c].mean()))
                     affected += n
         elif strategy == "fill_median":
             for c in cols:
                 if pd.api.types.is_numeric_dtype(work[c]):
                     n = int(work[c].isna().sum())
-                    work[c] = work[c].fillna(work[c].median())
+                    work[c] = work[c].fillna(fill_number(c, work[c].median()))
                     affected += n
         elif strategy == "fill_mode":
             for c in cols:
@@ -125,6 +136,15 @@ def handle_missing_values(
                     affected += n
         else:
             return CleaningResult(False, error=f"Unknown strategy: {strategy}")
+        if strategy.startswith("fill_"):
+            for c in cols:
+                if whole[c] and _whole_numbers(work[c]):
+                    work[c] = work[c].round().astype("Int64")
+                newly = filled[c] & work[c].notna()
+                if mark_imputed and newly.any():
+                    marker = imputed_column(c)
+                    previous = work[marker].fillna(False).astype(bool) if marker in work else False
+                    work[marker] = previous | newly
     except Exception as e:
         return CleaningResult(False, error=str(e))
 
@@ -133,8 +153,21 @@ def handle_missing_values(
         df=work,
         affected_rows=affected,
         message=f"Applied '{strategy}' on {cols}",
-        details={"strategy": strategy, "columns": cols, "nulls_before": before_nulls},
+        details={"strategy": strategy, "columns": cols, "nulls_before": before_nulls,
+                 "imputed_columns": [imputed_column(c) for c in cols if imputed_column(c) in work]},
     )
+
+
+def imputed_column(column: str) -> str:
+    return f"{column}_imputed"
+
+
+def _whole_numbers(series: pd.Series) -> bool:
+    """Numeric (not boolean) values that are all whole numbers, such as counts stored as floats after a CSV round trip."""
+    if not pd.api.types.is_numeric_dtype(series) or pd.api.types.is_bool_dtype(series):
+        return False
+    values = series.dropna()
+    return not values.empty and bool((values % 1 == 0).all())
 
 
 def normalize_values(
@@ -393,11 +426,11 @@ def clean_numeric_string(
       parentheses for negatives: (500) → -500
       plain numbers and already-numeric values
 
-    Unparseable tokens (e.g. "banana", "one thousand") become NaN when
-    errors='coerce'. Spelled-out numbers are NOT converted — that would
-    require an explicit dictionary and is intentionally left to a higher
-    risk / approval path. With errors='raise', parsing fails; with
-    errors='ignore', the original column is returned unchanged.
+    Everything the independent numeric check recognizes is parsed the same
+    way (including common English number phrases such as "one thousand"),
+    so a trusted builtin can satisfy that check. Unparseable tokens
+    (e.g. "banana") become NaN when errors='coerce'. With errors='raise',
+    parsing fails; with errors='ignore', the original column is returned unchanged.
     """
     if column not in df.columns:
         return CleaningResult(False, error=f"Column '{column}' not found")
@@ -412,6 +445,9 @@ def clean_numeric_string(
             return pd.NA
         if isinstance(val, (int, float)) and not isinstance(val, bool):
             return float(val)
+        expected = expected_number(val)
+        if expected is not None:
+            return expected
 
         s = str(val).strip()
         if s == "" or s.lower() in {"nan", "none", "null", "n/a", "na", "-"}:
@@ -480,16 +516,16 @@ def clean_numeric_string(
 def parse_datetime(
     df: pd.DataFrame,
     column: str,
-    formats: Optional[Sequence[str]] = None,
+    date_formats: Optional[Sequence[str]] = None,
     dayfirst: bool = False,
 ) -> CleaningResult:
     """
     Parse date/time strings into datetimes.
 
-    - formats: explicit strftime formats tried in order (e.g. ["%Y-%m-%d", "%d/%m/%Y"]).
+    - date_formats: explicit strftime formats tried in order (e.g. ["%Y-%m-%d", "%d/%m/%Y"]).
       A value matching two formats with different dates is ambiguous and fails
       the operation instead of silently choosing one reading.
-    - without formats, pandas infers each value; dayfirst resolves 03/04 style dates.
+    - without date_formats, pandas infers each value; dayfirst resolves 03/04 style dates.
     Existing missing markers stay missing; unparseable values become NaT.
     """
     if column not in df.columns:
@@ -502,8 +538,8 @@ def parse_datetime(
     text = original.astype("string").str.strip().where(present(original))
 
     try:
-        if formats:
-            readings = [pd.to_datetime(text, format=f, errors="coerce") for f in formats]
+        if date_formats:
+            readings = [pd.to_datetime(text, format=f, errors="coerce") for f in date_formats]
             conflict = pd.Series(False, index=text.index)
             for i, first in enumerate(readings):
                 for second in readings[i + 1:]:
@@ -533,7 +569,7 @@ def parse_datetime(
         df=work,
         affected_rows=int(present(original).sum()),
         message=f"Parsed '{column}' as datetime",
-        details={"formats": list(formats or []), "dayfirst": dayfirst, "became_null": became_null},
+        details={"date_formats": list(date_formats or []), "dayfirst": dayfirst, "became_null": became_null},
     )
 
 

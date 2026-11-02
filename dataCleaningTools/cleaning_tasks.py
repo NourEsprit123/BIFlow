@@ -65,8 +65,16 @@ def _requirements(state):
 
 
 def _changed_since(state, columns, version):
+    # Removing exact duplicate rows changes no remaining value, so it does not reopen a review.
     return any(int(a["version"][1:]) > int(version[1:]) and set(a["columns"]) & set(columns)
+               and a.get("operation") != "remove_duplicates"
                for a in state.working_context.get("completed_actions", []))
+
+
+def _removal(state, task):
+    """The applied duplicate removal that settles this task: any for a dataset-level finding, else the same key."""
+    return next((a for a in state.working_context.get("completed_actions", []) if a.get("operation") == "remove_duplicates"
+                 and (not task["columns"] or set(a["columns"]) == set(task["columns"]))), None)
 
 
 def initialize(state):
@@ -112,6 +120,8 @@ def refresh(state):
     for task in state.cleaning_tasks:
         if task["status"] in CLOSED:
             continue
+        if task["columns"] and all(c in state.waived for c in task["columns"]):
+            continue  # the host accepted these columns as they are
         previous_status = task["status"]
         measured = task.get("measured")
         if measured:
@@ -121,6 +131,9 @@ def refresh(state):
             task.pop("reason", None)
             if step.get("reason"):
                 task["reason"] = step["reason"]
+        elif task["category"] == "duplicates" and task["status"] == "pending" and _removal(state, task):
+            # The removal's own check verified no duplicates remain; waiting for complete_task only wasted turns.
+            task.update(status="done", reason=f"Duplicate rows removed in {_removal(state, task)['version']}")
         elif task["columns"] and any(c in state.flagged for c in task["columns"]):
             task.update(status="needs_review", reason="; ".join(state.flagged[c] for c in task["columns"] if c in state.flagged))
         elif task["status"] == "reviewed" and _changed_since(state, task["columns"], task.get("assessed_version", "V0")):
@@ -303,9 +316,14 @@ def check_scope(state, name, arguments):
             raise ValueError("No pending cleaning task; finish with independent validation")
         return
     columns = arguments.get("columns", [])
-    if name == "apply_candidate":
-        columns = state.method_candidates.get(arguments.get("candidate_id"), {}).get("columns", [])
     op = arguments.get("operation") if name == "test_builtin" else None
+    if name == "apply_candidate":
+        candidate = state.method_candidates.get(arguments.get("candidate_id"), {})
+        columns = candidate.get("columns", [])
+        # Applying a tested dataset-level duplicate removal is in scope just as its trial was.
+        dataset_level = candidate.get("operation") == "remove_duplicates" and not task["columns"]
+        if columns and dataset_level:
+            return
     if name in {"test_builtin", "test_generated", "apply_candidate", "flag_for_review"}:
         # A dataset-level duplicates finding may name no columns; its key is the model's choice.
         dataset_level = op == "remove_duplicates" and not task["columns"]
@@ -319,8 +337,8 @@ def check_scope(state, name, arguments):
         raise ValueError("Remove duplicates only in a duplicates task")
     if op == "handle_outliers" and task["category"] not in {"outliers", "domain"}:
         raise ValueError("Handle outliers only in an outliers task, after inspecting the distribution")
-    from .workflow import CATEGORY_OPERATIONS
-    allowed = CATEGORY_OPERATIONS.get(task["category"])
+    from .workflow import task_operations
+    allowed = task_operations(state, task)
     if op and allowed and op not in allowed:
         raise ValueError(f"{op} is not available for this {task['category']} task; choose one of {list(allowed)}")
     if name == "inspect_data" and task["columns"]:

@@ -117,3 +117,25 @@ def test_groq_generated_code_is_auto_applied_only_after_checks(tmp_path, monkeyp
     assert len(calls) == 4 and len(providers) == 1  # main, two unchanged local corrections, finish
     assert any(e["origin"] == "groq_generation" for e in result.metadata["events"])
     assert result.metadata["expert_generations"]
+
+
+def test_uncorrectable_builtin_request_falls_back_to_generated_code(tmp_path, monkeypatch):
+    monkeypatch.setattr(experiments, "run_isolated_transform", sandbox)
+    turns, corrections = [], []
+    def respond(messages, tools, **kwargs):
+        if kwargs.get("structured"):
+            corrections.append(1)
+            return {"tool_calls": []}  # request correction cannot repair it
+        turns.append([t["function"]["name"] for t in tools])
+        if len(turns) == 1:
+            return action("test_builtin", columns=["flag"], hypothesis="Yes/No flags", operation="convert_data_types",
+                          parameters={"target_type": "boolean", "method": "iqr"})
+        if len(turns) == 2:
+            feedback = json.loads(next(m["content"] for m in reversed(messages) if m["role"] == "tool"))
+            assert "test_generated" in feedback["error"]
+            return action("test_generated", **request())
+        return action("finish", summary="Generated method applied after the builtin request failed")
+    result = run(tmp_path, monkeypatch, respond)
+    assert not result.metadata["task_drops"] and len(corrections) == 2
+    assert "test_generated" in turns[1]
+    assert result.validation.all_passed and result.final_dataset.version == "V2"

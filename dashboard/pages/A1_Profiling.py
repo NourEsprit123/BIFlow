@@ -27,7 +27,7 @@ if path is None or frame is None:
 st.caption(f"Dataset: {path.name} · {len(frame):,} rows × {len(frame.columns)} columns")
 force_refresh = st.checkbox("Regenerate profiling report", value=False,
     help="Ignore the saved report and call the profiling model again.")
-if st.button("Run Data Profiling Agent", type="primary", use_container_width=True):
+if st.button("Run Data Profiling Agent", type="primary", width="stretch"):
     profile_dataset_for_workspace(path, refresh=force_refresh)
     st.rerun()
 
@@ -64,7 +64,7 @@ if profiles:
         for name, details in profiles.items()
     ]
     st.subheader("Column profiles")
-    st.dataframe(pd.DataFrame(column_rows), hide_index=True, use_container_width=True)
+    st.dataframe(pd.DataFrame(column_rows), hide_index=True, width="stretch")
 
 with st.expander("Profiling report and sandbox evidence"):
     st.json(report)

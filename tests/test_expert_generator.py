@@ -247,3 +247,10 @@ def test_truncated_then_repeated_corrections_escalate_after_two(session, monkeyp
     _, result = execute_and_fix_loop(args, failure, executor=executor, generate=generate)
     assert result["success"] and len(attempts) == 2 and len(calls) == 1
     assert [g["trigger"] for g in state.expert_generations.values()] == ["unproductive_local_corrections"]
+
+
+def test_provider_error_message_is_recorded_without_credentials():
+    from dataCleaningTools.expert_generator import provider_message
+    reply = SimpleNamespace(json=lambda: {"error": {"message": "Request too large for model on tokens per minute (TPM): Limit 8000, Requested 9561"}})
+    assert provider_message(reply).endswith("Limit 8000, Requested 9561")
+    assert provider_message(SimpleNamespace(json=lambda: (_ for _ in ()).throw(ValueError("not json")))) == "check account access and quota"

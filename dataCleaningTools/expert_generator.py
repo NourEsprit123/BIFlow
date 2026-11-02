@@ -11,7 +11,7 @@ from .effects import present
 from .experiments import validate_code
 from .inspection import value_inventory
 from .llm_client import positive_setting, _post_with_progress
-from .expert_context import fit_request, MAX_REQUEST_BYTES
+from .expert_context import MAX_REQUEST_BYTES, completion_tokens, fit_request, prompt_chars, request_budget
 
 ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
 PROMPT = Path(__file__).with_name("prompts") / "expert_generation.md"
@@ -72,6 +72,15 @@ def generation_context(executor, arguments, result, attempts, runtime=None):
                 "tests": "Disjoint sample/holdout, deterministic repeatability, then exact-code full-data checks"}}
 
 
+def provider_message(response):
+    """The provider's own error text (e.g. which token limit was exceeded); it never contains our credentials."""
+    try:
+        message = (response.json().get("error") or {}).get("message")
+    except Exception:
+        message = None
+    return str(message)[:300] if message else "check account access and quota"
+
+
 def trigger(attempts):
     return "four_failed_local_corrections" if len(attempts) == 4 else "unproductive_local_corrections"
 
@@ -108,20 +117,23 @@ def generate_candidate(executor, arguments, result, *, attempts):
             raise ValueError("Run time budget expired before Groq code generation")
         payload = {"model": record["model"], "messages": [
             {"role": "system", "content": PROMPT.read_text(encoding="utf-8")}, {"role": "user", "content": encoded}],
-            "max_completion_tokens": 4096,
+            "max_completion_tokens": completion_tokens(),
             "response_format": {"type": "json_schema", "json_schema": {"name": "cleaning_method", "strict": True, "schema": SCHEMA}}}
         if record["model"].startswith("openai/gpt-oss-"):
             payload["reasoning_effort"] = "low"
         record["audit_context"] = context
-        sent_context, request_size = fit_request(context, payload)
-        record.update(context=sent_context, request_bytes=request_size, request_limit_bytes=MAX_REQUEST_BYTES)
+        limit = request_budget()
+        sent_context, request_size = fit_request(context, payload, limit)
+        record.update(context=sent_context, request_bytes=request_size, request_limit_bytes=MAX_REQUEST_BYTES,
+                      prompt_chars=prompt_chars(payload), prompt_char_limit=limit,
+                      max_completion_tokens=payload["max_completion_tokens"])
         if state.on_event:
             state.on_event({"phase": "Groq · generating a replacement method after four failed corrections", "stage": "model"})
         record.update(request_sent=True)
         response = _post_with_progress(ENDPOINT, payload, timeout, state.on_event,
             headers={"Authorization": f"Bearer {token}"}, label="Groq code generator")
         if response.status_code >= 400:
-            raise ValueError(f"Groq generation returned HTTP {response.status_code}; check account access and quota")
+            raise ValueError(f"Groq generation returned HTTP {response.status_code}: {provider_message(response)}")
         body = response.json()
         choice = body["choices"][0]
         record["usage"] = body.get("usage", {})

@@ -29,13 +29,13 @@ has_current_report = profile_result is not None
 
 run_col, verify_col, export_col = st.columns(3)
 with run_col:
-    if st.button("Generate audit", type="primary", use_container_width=True):
+    if st.button("Generate audit", type="primary", width="stretch"):
         profile_dataset_for_workspace(path, refresh=True)
         st.rerun()
 with verify_col:
     verify_clicked = st.button(
         "Verify current report",
-        use_container_width=True,
+        width="stretch",
         disabled=not has_current_report,
     )
 with export_col:
@@ -46,7 +46,7 @@ with export_col:
             data=report_bytes,
             file_name=f"{path.stem}_audit.json",
             mime="application/json",
-            use_container_width=True,
+            width="stretch",
         )
 
 if verify_clicked and profile_result:

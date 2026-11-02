@@ -295,7 +295,7 @@ def test_review_ui_shows_rejection_evidence_and_final_failed_checks(tmp_path, li
         )
     app = AppTest.from_string(script + "render_cleaning_result(result)\n").run(timeout=15)
     assert not app.exception
-    assert any("Final validation: failed" in w.value for w in app.warning)
+    assert any("Final validation: failed" in e.value for e in app.error)  # failed runs show a red banner
     assert any("Candidate rejected" in w.value for w in app.warning)
     assert any("Rejected" in exp.label for exp in app.expander)
     assert any("Supporting evidence" in item.value for item in app.markdown)

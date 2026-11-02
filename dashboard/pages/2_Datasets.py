@@ -41,8 +41,8 @@ for path in matching:
                 st.error(f"This file could not be read: {exc}")
                 continue
         with action:
-            if st.button("Selected" if path == active else "Use dataset", key=f"select_{path.name}", disabled=path == active, use_container_width=True):
+            if st.button("Selected" if path == active else "Use dataset", key=f"select_{path.name}", disabled=path == active, width="stretch"):
                 st.session_state["workspace_new_dataset_path"] = str(path)
                 st.rerun()
         with st.expander(f"Preview {path.name}"):
-            st.dataframe(frame.head(10), hide_index=True, use_container_width=True)
+            st.dataframe(frame.head(10), hide_index=True, width="stretch")

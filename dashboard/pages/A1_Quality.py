@@ -23,7 +23,7 @@ if path is None or frame is None:
     st.stop()
 
 st.caption(f"Dataset: {path.name} · {len(frame):,} rows × {len(frame.columns)} columns")
-if st.button("Run Agent 1 quality check", type="primary", use_container_width=True):
+if st.button("Run Agent 1 quality check", type="primary", width="stretch"):
     profile_dataset_for_workspace(path)
     st.rerun()
 
@@ -86,6 +86,6 @@ for issue in result["profiling_report"]["cross_column_issues"]:
 
 st.subheader("Quality findings")
 if findings:
-    st.dataframe(pd.DataFrame(findings), hide_index=True, use_container_width=True)
+    st.dataframe(pd.DataFrame(findings), hide_index=True, width="stretch")
 else:
     st.success("No missing-value, type, or supported cross-column issues detected.")

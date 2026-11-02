@@ -10,6 +10,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import time
 import threading
 from pathlib import Path
@@ -243,6 +244,11 @@ def run_isolated_transform(frame: pd.DataFrame, code: str, *, image_id: str | No
             client.close()
 
 
+def squashed(series):
+    """Text with surrounding and repeated spaces removed; missing and blank compare equal."""
+    return series.map(lambda v: "" if not isinstance(v, str) and pd.isna(v) else re.sub(r"\s+", " ", str(v)).strip())
+
+
 def assess_method(before, after, columns, checks, *, verify_numeric_values=True):
     effect = assess_candidate(before, after, "apply_experimental_method", columns, {})
     rules = effect["rules"]
@@ -258,6 +264,9 @@ def assess_method(before, after, columns, checks, *, verify_numeric_values=True)
             elif kind == "preserve_missing":
                 passed = (column in before and before.index.equals(after.index)
                           and bool((present(before[column]) | ~present(series)).all()))
+            elif kind == "whitespace_only":
+                passed = (column in before and before.index.equals(after.index)
+                          and squashed(before[column]).tolist() == squashed(series).tolist())  # values only; dtype may change
             elif kind == "unique":
                 passed = bool(series.is_unique)
             elif kind == "non_negative":
@@ -266,7 +275,9 @@ def assess_method(before, after, columns, checks, *, verify_numeric_values=True)
             else:
                 passed = target_matches(series, kind)
         rules.append({"rule_name": f"expected:{kind}:{column}", "passed": passed,
-                      "message": f"Declared outcome: {column} must satisfy {kind}"})
+                      "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, "
+                                 f"not case or content, in {column}" if kind == "whitespace_only"
+                                 else f"Declared outcome: {column} must satisfy {kind}"})
     if verify_numeric_values:
         from .numeric_expectations import numeric_rules
         from .value_interpretation import boolean_rules
@@ -306,7 +317,7 @@ def experiment(state, arguments) -> dict:
     if before.empty:
         raise ValueError("Cannot experiment on an empty dataset")
     checks = arguments["checks"]
-    valid_checks = {"no_missing", "unique", "non_negative", "numeric", "integer", "boolean", "datetime", "string", "preserve_missing"}
+    valid_checks = {"whitespace_only", "no_missing", "unique", "non_negative", "numeric", "integer", "boolean", "datetime", "string", "preserve_missing"}
     if not checks or any(c.get("column") not in columns or c.get("kind") not in valid_checks for c in checks):
         raise ValueError("Declare at least one supported outcome check on an affected column")
     evidence_ids = arguments.get("evidence_ids", [])

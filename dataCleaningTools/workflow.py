@@ -41,12 +41,12 @@ METHOD_FIELDS = {
 OPERATION_HELP = {
     "trim_whitespace": "trim_whitespace: {}",
     "normalize_values": "normalize_values: mapping/case/strip_whitespace",
-    "convert_data_types": "convert_data_types: target_type, optional errors/date_format",
-    "clean_numeric_string": "clean_numeric_string: optional errors",
-    "handle_missing_values": "handle_missing_values: strategy fill_median/fill_mean/fill_mode/fill_constant, fill_value for constant",
-    "parse_datetime": "parse_datetime: formats (strftime list) or dayfirst",
+    "convert_data_types": "convert_data_types: casts already-clean values to target_type; strips no symbols",
+    "clean_numeric_string": "clean_numeric_string: parses numbers from text ($, commas, k/m/b, number words, (500))",
+    "handle_missing_values": "handle_missing_values: strategy fill_median/fill_mean/fill_mode/fill_constant (+fill_value); marks <column>_imputed",
+    "parse_datetime": "parse_datetime: date_formats (strftime codes like %Y-%m-%d) or dayfirst",
     "standardize_missing": "standardize_missing: extra markers to null",
-    "remove_duplicates": "remove_duplicates: columns=key, all columns=exact rows; optional keep",
+    "remove_duplicates": "remove_duplicates: columns=key, all columns=exact rows; optional keep; no checks needed (removal is verified)",
     "handle_outliers": "handle_outliers: action cap/set_missing, method iqr (k) or bounds (lower/upper)",
 }
 FORMATTING = ("trim_whitespace", "normalize_values", "standardize_missing")
@@ -60,6 +60,25 @@ CATEGORY_OPERATIONS = {
 }
 
 
+def task_operations(state, task):
+    """Builtins the active task may use; type tasks only see parsers for their target type."""
+    allowed = CATEGORY_OPERATIONS.get(task["category"]) if task else None
+    if not allowed or task["category"] != "types":
+        return allowed
+    targets = {canonical_type(state.required_targets[c]) for c in task["columns"] if c in state.required_targets}
+    if not targets:
+        return allowed
+    numeric = targets <= {"numeric", "float", "integer"}
+    dates = targets <= {"datetime"}
+    return tuple(op for op in allowed if (op != "clean_numeric_string" or numeric) and (op != "parse_datetime" or dates))
+
+
+def whitespace_only(task):
+    """A finding about spaces alone permits nothing else to change; a run once lowercased every region to fix spaces."""
+    return bool(task and task["category"] == "formatting" and task["evidence"]
+                and all("whitespace" in str(e.get("issue_id", "")).lower() for e in task["evidence"]))
+
+
 def builtin_tool(operations=CATALOG):
     parameters = {"type": "object", "additionalProperties": False,
         "properties": {k: v for operation in operations for k, v in METHOD_SCHEMAS[operation]["properties"].items()
@@ -68,7 +87,7 @@ def builtin_tool(operations=CATALOG):
          + "; ".join(OPERATION_HELP[operation] for operation in operations) + ". "
          "Passing trials are applied automatically. If one fails, change parameters or operation, or use test_generated.",
          {**METHOD_FIELDS, "operation": {"type": "string", "enum": list(operations)}, "parameters": parameters},
-         ["hypothesis", "columns", "operation", "parameters"])
+         ["hypothesis", "columns", "operation"])  # parameters default to {}; trim_whitespace takes none
 
 
 SCHEMAS_LIST = [
@@ -114,7 +133,7 @@ def available_tools(state):
             if task.get("generated_required"):
                 continue
             if task["category"] in CATEGORY_OPERATIONS:
-                t = builtin_tool(CATEGORY_OPERATIONS[task["category"]])
+                t = builtin_tool(task_operations(state, task))
         tools.append(t)
     return tools
 
@@ -204,6 +223,12 @@ def builtin_parameters(operation, parameters, columns):
 
     if "target_type" in parameters:
         parameters["target_type"] = canonical_type(parameters["target_type"])
+    if operation == "clean_numeric_string" and parameters.get("target_type") in {"float", "numeric"}:
+        # It always produces numbers; models naturally state the target, which is redundant, not wrong.
+        parameters.pop("target_type")
+    if operation == "trim_whitespace" and parameters.get("strip_whitespace") is True:
+        # Stripping is all it does; normalize_values' option shares the tool schema, and correction repeated it.
+        parameters.pop("strip_whitespace")
     if operation == "handle_missing_values" and parameters.get("strategy") in {"drop_rows", "drop_columns"}:
         raise ValueError("Structural changes require host approval; flag_for_review instead")
     declared = parameters.get("columns") or ([parameters["column"]] if "column" in parameters else columns)
@@ -220,7 +245,9 @@ def builtin_parameters(operation, parameters, columns):
         parameters.setdefault("columns", columns)
     errors = list(Draft202012Validator(schema).iter_errors(parameters))
     if errors:
-        raise ValueError("Invalid builtin parameters: " + "; ".join(e.message for e in errors))
+        allowed = [k for k in METHOD_SCHEMAS[operation]["properties"] if k not in {"column", "columns", "subset"}]
+        raise ValueError("Invalid builtin parameters: " + "; ".join(e.message for e in errors)
+                         + f". {operation} accepts only: {', '.join(allowed) or 'no parameters ({})'}")
     if operation == "handle_missing_values" and parameters.get("strategy") == "fill_constant" and parameters.get("fill_value") is None:
         raise ValueError("fill_constant requires an explicit non-null fill_value")
     if operation == "handle_outliers" and parameters["method"] == "bounds" and "lower" not in parameters and "upper" not in parameters:
@@ -266,6 +293,8 @@ def test_candidate(executor, arguments):
         generated or arguments.get("operation") in {"convert_data_types", "clean_numeric_string", "handle_missing_values"})
     if task and task["category"] != "missing" and not removes_rows:
         checks += [{"column": c, "kind": "preserve_missing"} for c in columns]
+    if whitespace_only(task):
+        checks += [{"column": c, "kind": "whitespace_only"} for c in columns]
     if generated or task:
         checks += [{"column": c, "kind": CHECK_KIND.get(canonical_type(state.required_targets[c]), canonical_type(state.required_targets[c]))}
                    for c in columns if c in state.required_targets and (not task or task["category"] in {"types", "missing"})]

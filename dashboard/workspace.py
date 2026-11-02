@@ -250,7 +250,7 @@ def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = 
     result = get_workspace_result(PROFILE_STATE_KEY, path)
     if result is None:
         if on_event:
-            on_event({"phase": "profiling report missing Â· running profiling first", "stage": "profiling"})
+            on_event({"phase": "profiling report missing · running profiling first", "stage": "profiling"})
         result = profile_dataset_for_workspace(path)
 
     settings = st.session_state.get("cleaning_run_settings", {})
@@ -298,6 +298,22 @@ def resolve_cleaning_approvals(path: Path, cleaning: Any, decisions: dict[str, s
         "signature": dataset_signature(path),
         "result": resolved,
     }
+    return resolved
+
+
+def resolve_cleaning_decisions(path: Path, cleaning: Any, choices: dict[str, dict]) -> Any:
+    """Settle open items (accept as is, or fill with a chosen value) on the saved run; no model call."""
+    limits = cleaning.metadata.get("limits", {})
+    agent = DataCleaningAgent(
+        max_turns=limits.get("max_turns"),
+        max_seconds=limits.get("max_seconds"),
+        data_root=ROOT / "data" / "versions" / "dashboard",
+        report_root=ROOT / "data" / "reports" / "cleaningReports",
+        search_roots=[RAW_DATA, ROOT / "data"],
+        use_llm=cleaning.metadata.get("mode") == "llm",
+    )
+    resolved = agent.resolve_decisions(cleaning, choices)
+    st.session_state[CLEANING_STATE_KEY] = {"signature": dataset_signature(path), "result": resolved}
     return resolved
 
 
