@@ -1,0 +1,23 @@
+{
+  "dataset_id": "diagnostic",
+  "version": "V1",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261026T213602Z_1d93c60a\\versions\\diagnostic\\V1_working.csv",
+  "format": "csv",
+  "row_count": 30,
+  "column_count": 9,
+  "columns": [
+    "OrderID",
+    "CustomerName",
+    "Revenue",
+    "MonthlyCost",
+    "Quantity",
+    "Region",
+    "SignupDate",
+    "IsActive",
+    "Segment"
+  ],
+  "created_at": "2026-10-26T21:36:02.274990Z",
+  "parent_version": "V0",
+  "status": "working",
+  "metadata": {}
+}

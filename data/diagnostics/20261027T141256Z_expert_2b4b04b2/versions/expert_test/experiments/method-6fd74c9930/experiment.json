@@ -1,0 +1,150 @@
+{
+  "candidate_id": "method-6fd74c9930",
+  "code_hash": "885764efc9cb791f92a667c0acdcde1171c8453347b18007556147cae5e9bc6b",
+  "base_version": "V1",
+  "dataset_hash": "e3b5b5339529fef28f0a6908064b01fa3799660e5b90a391174bba82f1ed384b",
+  "columns": [
+    "amount"
+  ],
+  "checks": [
+    {
+      "column": "amount",
+      "kind": "numeric"
+    }
+  ],
+  "rationale": "Parse amount representations without information loss",
+  "expected_effect": "Declared checks and selected-column obligations must pass",
+  "evidence_ids": [],
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261027T141256Z_expert_2b4b04b2\\versions\\expert_test\\experiments\\method-6fd74c9930\\method.py",
+  "trials": [
+    {
+      "partition": "sample",
+      "rows": 3,
+      "row_positions": [
+        5,
+        1,
+        6
+      ],
+      "success": true,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "repeatable": true,
+      "output_hash": "e7bd5cfa8fc28f6b3c99d819aa905135a36342088ce541a671bad1c963f2c934",
+      "log": "",
+      "effect": {
+        "accepted": true,
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "Candidate contains 3 rows"
+          },
+          {
+            "rule_name": "row_count",
+            "passed": true,
+            "message": "Rows: 3 \u2192 3"
+          },
+          {
+            "rule_name": "columns",
+            "passed": true,
+            "message": "Only explicitly requested columns may be removed"
+          },
+          {
+            "rule_name": "no_new_missing:amount",
+            "passed": true,
+            "message": "Previously populated values must not become missing"
+          },
+          {
+            "rule_name": "row_identity",
+            "passed": true,
+            "message": "Generated methods must preserve row index and order"
+          },
+          {
+            "rule_name": "expected:numeric:amount",
+            "passed": true,
+            "message": "Declared outcome: amount must satisfy numeric"
+          }
+        ],
+        "before": {
+          "rows": 3,
+          "columns": 1,
+          "missing": {
+            "amount": 1
+          },
+          "dtypes": {
+            "amount": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "after": {
+          "rows": 3,
+          "columns": 1,
+          "missing": {
+            "amount": 1
+          },
+          "dtypes": {
+            "amount": "float64"
+          },
+          "duplicate_rows": 0
+        },
+        "changed_cells": 2,
+        "rows_removed": 0,
+        "changed_examples": [
+          {
+            "row_position": 0,
+            "column": "amount",
+            "before": "$1,200.50",
+            "after": "1200.5"
+          },
+          {
+            "row_position": 1,
+            "column": "amount",
+            "before": "2k",
+            "after": "2000.0"
+          }
+        ],
+        "lost_values": [],
+        "lost_value_count": 0,
+        "columns_removed": [],
+        "column_metrics": {
+          "amount": {
+            "before": {
+              "unique": 2,
+              "missing": 1,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "after": {
+              "unique": 2,
+              "missing": 1,
+              "numeric_count": 2,
+              "mean": 1600.25,
+              "median": 1600.25,
+              "min": 1200.5,
+              "max": 2000.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "partition": "holdout",
+      "rows": 4,
+      "row_positions": [
+        2,
+        0,
+        4,
+        3
+      ],
+      "success": false,
+      "error": "Traceback (most recent call last):\n  File \"pandas/_libs/lib.pyx\", line 2766, in pandas._libs.lib.maybe_convert_numeric\nValueError: Unable to parse string 'five hundred'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 4, in transform\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/tools/numeric.py\", line 259, in to_numeric\n    values, new_mask = lib.maybe_convert_numeric(  # type: ignore[call-overload]\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"pandas/_libs/lib.pyx\", line 2816, in pandas._libs.lib.maybe_convert_numeric\nValueError: Unable to parse string 'five hundred' at position 0\n",
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "error_kind": "sandbox_execution"
+    }
+  ],
+  "tested": false,
+  "holdout_available": true,
+  "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a"
+}

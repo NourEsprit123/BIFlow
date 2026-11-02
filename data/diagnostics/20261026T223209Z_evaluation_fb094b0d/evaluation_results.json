@@ -1,0 +1,239 @@
+{
+  "model": "qwen2.5:7b",
+  "results": [
+    {
+      "condition": "production",
+      "case": "syntax_repair",
+      "repeat": 1,
+      "model": "qwen2.5:7b",
+      "response_issue": null,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 741,
+        "completion_tokens": 100
+      },
+      "format_valid": true,
+      "code": "def transform(df):\\n    df['value'] = df['value'].str.strip()\\n    return df",
+      "passed": false,
+      "error": "ValueError: Invalid candidate Python at line 1: unexpected character after line continuation character",
+      "seconds": 5.281
+    },
+    {
+      "condition": "production",
+      "case": "syntax_repair",
+      "repeat": 2,
+      "model": "qwen2.5:7b",
+      "response_issue": null,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 741,
+        "completion_tokens": 100
+      },
+      "format_valid": true,
+      "code": "def transform(df):\\n    df['value'] = df['value'].str.strip()\\n    return df",
+      "passed": false,
+      "error": "ValueError: Invalid candidate Python at line 1: unexpected character after line continuation character",
+      "seconds": 4.922
+    },
+    {
+      "condition": "production",
+      "case": "numeric_repair",
+      "repeat": 1,
+      "model": "qwen2.5:7b",
+      "response_issue": null,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 805,
+        "completion_tokens": 207
+      },
+      "format_valid": true,
+      "code": "def transform(df):\n    df['value'] = df['value'].apply(lambda x: float(x.replace('$', '').replace(',', '')) if isinstance(x, str) and 'k' not in x and ',' not in x and '$' not in x else x)\n    df['value'] = df['value'].apply(lambda x: float(x.replace('k', '000')) if isinstance(x, str) and 'k' in x else x)\n    df['value'] = df['value'].apply(lambda x: float(x.replace(' ', '')) if isinstance(x, str) and ' ' in x else x)\n    return df",
+      "executable": false,
+      "error": "Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/series.py\", line 5575, in apply\n    ).apply()\n      ^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/apply.py\", line 1749, in apply\n    return self.apply_standard()\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/apply.py\", line 1807, in apply_standard\n    mapped = obj._map_values(mapper=curried)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/base.py\", line 1076, in _map_values\n    return arr.map(mapper, na_action=na_action)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/arrays/base.py\", line 3006, in map\n    result = map_array(self, mapper, na_action=na_action)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/algorithms.py\", line 2007, in map_array\n    return lib.map_infer(values, mapper)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"pandas/_libs/lib.pyx\", line 3390, in pandas._libs.lib.map_infer\n  File \"<cleaning-candidate>\", line 2, in <lambda>\nValueError: could not convert string to float: 'five hundred'\n",
+      "passed": false,
+      "seconds": 12.25,
+      "infrastructure_retry": true
+    },
+    {
+      "condition": "production",
+      "case": "numeric_repair",
+      "repeat": 2,
+      "model": "qwen2.5:7b",
+      "response_issue": null,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 805,
+        "completion_tokens": 205
+      },
+      "format_valid": true,
+      "code": "def transform(df):\n    df['value'] = df['value'].apply(lambda x: float(x.replace('$', '').replace(',', '')) if isinstance(x, str) and 'k' not in x and ',' not in x and '$' not in x else x)\n    df['value'] = df['value'].apply(lambda x: float(x.replace('k', '000')) if isinstance(x, str) and 'k' in x else x)\n    df['value'] = df['value'].apply(lambda x: float(x.replace(' ', '')) if isinstance(x, str) and ' ' in x else x)\n    return df",
+      "executable": false,
+      "error": "Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/series.py\", line 5575, in apply\n    ).apply()\n      ^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/apply.py\", line 1749, in apply\n    return self.apply_standard()\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/apply.py\", line 1807, in apply_standard\n    mapped = obj._map_values(mapper=curried)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/base.py\", line 1076, in _map_values\n    return arr.map(mapper, na_action=na_action)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/arrays/base.py\", line 3006, in map\n    result = map_array(self, mapper, na_action=na_action)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/algorithms.py\", line 2007, in map_array\n    return lib.map_infer(values, mapper)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"pandas/_libs/lib.pyx\", line 3390, in pandas._libs.lib.map_infer\n  File \"<cleaning-candidate>\", line 2, in <lambda>\nValueError: could not convert string to float: 'five hundred'\n",
+      "passed": false,
+      "seconds": 8.954
+    },
+    {
+      "condition": "production",
+      "case": "ambiguity_decision",
+      "repeat": 1,
+      "model": "qwen2.5:7b",
+      "response_issue": null,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 4369,
+        "completion_tokens": 61
+      },
+      "format_valid": true,
+      "action": "inspect_data",
+      "reason": "inspect the full range of values to identify any unseen formats that may change the repair decision.",
+      "passed": false,
+      "seconds": 6.546
+    },
+    {
+      "condition": "production",
+      "case": "ambiguity_decision",
+      "repeat": 2,
+      "model": "qwen2.5:7b",
+      "response_issue": null,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 4369,
+        "completion_tokens": 61
+      },
+      "format_valid": true,
+      "action": "inspect_data",
+      "reason": "inspect the full range of values to identify any unseen formats that may change the repair decision.",
+      "passed": false,
+      "seconds": 4.125
+    },
+    {
+      "condition": "focused",
+      "case": "syntax_repair",
+      "repeat": 1,
+      "model": "qwen2.5:7b",
+      "response_issue": null,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 274,
+        "completion_tokens": 58
+      },
+      "format_valid": true,
+      "code": "def transform(df):\\ndf['value'] = df['value'].str.strip()\\nreturn df",
+      "passed": false,
+      "error": "ValueError: Invalid candidate Python at line 1: unexpected character after line continuation character",
+      "seconds": 4.203
+    },
+    {
+      "condition": "focused",
+      "case": "syntax_repair",
+      "repeat": 2,
+      "model": "qwen2.5:7b",
+      "response_issue": null,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 274,
+        "completion_tokens": 58
+      },
+      "format_valid": true,
+      "code": "def transform(df):\\ndf['value'] = df['value'].str.strip()\\nreturn df",
+      "passed": false,
+      "error": "ValueError: Invalid candidate Python at line 1: unexpected character after line continuation character",
+      "seconds": 3.937
+    },
+    {
+      "condition": "focused",
+      "case": "numeric_repair",
+      "repeat": 1,
+      "model": "qwen2.5:7b",
+      "response_issue": null,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 338,
+        "completion_tokens": 138
+      },
+      "format_valid": true,
+      "code": "def transform(df):\n    df['value'] = df['value'].replace(to_replace='k', value='000', regex=False, inplace=False)\n    df['value'] = pd.to_numeric(df['value'].str.replace('$', '', regex=False).str.replace(',', '', regex=False), errors='coerce')\n    df['value'] = df['value'].fillna(df['value']) # Preserve genuine missing values\n    return df",
+      "executable": true,
+      "error": null,
+      "passed": false,
+      "measured_output": [
+        NaN,
+        NaN,
+        NaN,
+        NaN,
+        850.0,
+        1200.5,
+        NaN
+      ],
+      "preservation_passed": false,
+      "holdout_passed": false,
+      "seconds": 7.938
+    },
+    {
+      "condition": "focused",
+      "case": "numeric_repair",
+      "repeat": 2,
+      "model": "qwen2.5:7b",
+      "response_issue": null,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 338,
+        "completion_tokens": 120
+      },
+      "format_valid": true,
+      "code": "def transform(df):\n    df['value'] = df['value'].replace({None: np.nan})\n    df['value'] = df['value'].str.replace('$', '', regex=False).str.replace(',', '', regex=False).str.replace('k', '000', regex=False)\n    df['value'] = pd.to_numeric(df['value'], errors='coerce')\n    return df",
+      "executable": true,
+      "error": null,
+      "passed": false,
+      "measured_output": [
+        1.5,
+        2000.0,
+        NaN,
+        NaN,
+        850.0,
+        1200.5,
+        NaN
+      ],
+      "preservation_passed": false,
+      "holdout_passed": false,
+      "seconds": 7.063
+    },
+    {
+      "condition": "focused",
+      "case": "ambiguity_decision",
+      "repeat": 1,
+      "model": "qwen2.5:7b",
+      "response_issue": null,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 1127,
+        "completion_tokens": 58
+      },
+      "format_valid": true,
+      "action": "inspect_data",
+      "reason": "to understand the distribution and nature of the values in the 'value' column.",
+      "passed": false,
+      "seconds": 4.5
+    },
+    {
+      "condition": "focused",
+      "case": "ambiguity_decision",
+      "repeat": 2,
+      "model": "qwen2.5:7b",
+      "response_issue": null,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 1127,
+        "completion_tokens": 56
+      },
+      "format_valid": true,
+      "action": "inspect_data",
+      "reason": "to understand the nature of the values in the 'value' column.",
+      "passed": false,
+      "seconds": 3.906
+    }
+  ],
+  "watchdog_fired": [],
+  "applied": false,
+  "alternative_model": "No alternative installed; no models downloaded."
+}

@@ -1,0 +1,31 @@
+OrderID,CustomerName,Revenue,MonthlyCost,Quantity,Region,SignupDate,IsActive,Segment
+ORD-001,Alice Martin,"$1,200.50","$450.00",3,North,2023-01-15,Yes,Premium
+ORD-002,Bob Smith,850.00,"$320.75",1,South,2023-02-20,No,Standard
+ORD-003,Carol White,"1.5k","$210.00",5,East,2023-03-10,Yes,Premium
+ORD-004,David Lee,"one thousand","$180.50",2,West,2023-04-05,No,Basic
+ORD-005,Eva Brown,"$2,300.00","$890.25",7,North,2023-05-18,Yes,Premium
+ORD-006,Frank Green,banana,"$150.00",1,South,2023-06-22,No,Basic
+ORD-007,Grace Kim,"$3,750.50","half a million",4,East,2023-07-30,Yes,Standard
+ORD-008,Henry Davis,"2.1k","$430.00",6,West,2023-08-14,No,Premium
+ORD-009,Isla Wilson,"$980.00","$375.50",2,North,2023-09-09,Yes,Basic
+ORD-010,Jack Moore,ERROR_404,"$290.00",3,South,2023-10-01,No,Standard
+ORD-011,Karen Taylor,"$1,850.00","$670.00",5,East,2023-11-11,Yes,Premium
+ORD-012,Leo Anderson,"five hundred","$120.00",1,West,2023-12-25,No,Basic
+ORD-013,Mia Thomas,"$4,200.75","$1,100.00",8,North,,Yes,Premium
+ORD-014,Noah Jackson,750.00,"$280.00",,South,2024-01-08,No,Standard
+ORD-015,Olivia Harris,"$1,100.00","$415.00",3,East,2024-02-14,Yes,Basic
+ORD-016,Peter Clark,"3k","$560.00",6,West,2024-03-20,No,Premium
+ORD-017,Quinn Lewis,"$620.00","$230.75",2,North,2024-04-05,Yes,Standard
+ORD-018,Rachel Walker,N/A,"$345.00",4,South,2024-05-12,No,Basic
+ORD-019,Sam Hall,"$2,900.00","$780.00",7,East,2024-06-18,Yes,Premium
+ORD-020,Tina Allen,"$1,450.50","$510.25",3,West,2024-07-22,No,Standard
+ORD-021,Uma Young,"$800.00","$300.00",2,North,2024-08-30,Yes,Basic
+ORD-022,Victor Hernandez,"quarter million","$920.00",9,South,2024-09-15,No,Premium
+ORD-023,Wendy King,"$1,750.00",,5,East,2024-10-01,Yes,Standard
+ORD-024,Xander Wright,"$550.00","$200.00",,West,,No,Basic
+ORD-025,Yara Lopez,"$3,100.00","$840.00",6,North,2024-12-01,Yes,Premium
+ORD-026,Aaron Scott,"$920.00","$340.00",4,South,2024-12-05,Yes,Standard
+ORD-027,Bella Adams,"$1,300.00","$490.00",3,East,2024-12-08,No,Basic
+ORD-028,Carlos Baker,"$2,100.00","$720.00",5,West,2024-12-10,Yes,Premium
+ORD-029,Diana Carter,"$670.00","$250.00",2,North,2024-12-12,No,Standard
+ORD-030,Ethan Davis,"$4,500.00","$1,200.00",10,South,2024-12-15,Yes,Premium

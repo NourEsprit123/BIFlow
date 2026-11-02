@@ -1,0 +1,15 @@
+{
+  "dataset_id": "valid_parse_with_invalid_nan",
+  "version": "V1",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261027T151509Z_semantics_59bfd1b9\\versions\\valid_parse_with_invalid_nan\\V1_working.csv",
+  "format": "csv",
+  "row_count": 5,
+  "column_count": 1,
+  "columns": [
+    "amount"
+  ],
+  "created_at": "2026-10-27T15:15:17.759699Z",
+  "parent_version": "V0",
+  "status": "working",
+  "metadata": {}
+}

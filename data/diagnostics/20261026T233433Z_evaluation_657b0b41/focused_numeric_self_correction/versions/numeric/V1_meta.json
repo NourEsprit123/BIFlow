@@ -1,0 +1,16 @@
+{
+  "dataset_id": "numeric",
+  "version": "V1",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261026T233433Z_evaluation_657b0b41\\focused_numeric_self_correction\\versions\\numeric\\V1_working.csv",
+  "format": "csv",
+  "row_count": 7,
+  "column_count": 2,
+  "columns": [
+    "value",
+    "untouched"
+  ],
+  "created_at": "2026-10-26T23:40:16.461280Z",
+  "parent_version": "V0",
+  "status": "working",
+  "metadata": {}
+}

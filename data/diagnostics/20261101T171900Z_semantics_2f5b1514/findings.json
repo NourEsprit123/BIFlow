@@ -1,0 +1,138 @@
+[
+  {
+    "case": "wrong_multiplier",
+    "accepted": false,
+    "expected_acceptance": false,
+    "failed_checks": [
+      {
+        "rule_name": "expected:numeric_values:amount",
+        "passed": false,
+        "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+        "checked_values": 2,
+        "mismatches": [
+          {
+            "row_position": 0,
+            "row_index": "1",
+            "column": "amount",
+            "before": "2.1k",
+            "expected": 2100.0,
+            "actual": "2.1"
+          },
+          {
+            "row_position": 1,
+            "row_index": "0",
+            "column": "amount",
+            "before": "1.5k",
+            "expected": 1500.0,
+            "actual": "1.5"
+          }
+        ],
+        "partition": "holdout"
+      },
+      {
+        "rule_name": "expected:numeric_values:amount",
+        "passed": false,
+        "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+        "checked_values": 2,
+        "mismatches": [
+          {
+            "row_position": 0,
+            "row_index": "1",
+            "column": "amount",
+            "before": "2.1k",
+            "expected": 2100.0,
+            "actual": "2.1"
+          },
+          {
+            "row_position": 1,
+            "row_index": "0",
+            "column": "amount",
+            "before": "1.5k",
+            "expected": 1500.0,
+            "actual": "1.5"
+          }
+        ]
+      }
+    ],
+    "sandbox_logs_forwarded": false,
+    "runtime_guidance": null,
+    "version": "V1",
+    "passed": true
+  },
+  {
+    "case": "currency_erased",
+    "accepted": false,
+    "expected_acceptance": false,
+    "failed_checks": [
+      {
+        "rule_name": "expected:numeric_values:amount",
+        "passed": false,
+        "message": "Preserve the numeric meaning of 1 recognized source values; 1 mismatches",
+        "checked_values": 1,
+        "mismatches": [
+          {
+            "row_position": 0,
+            "row_index": "2",
+            "column": "amount",
+            "before": "half a million",
+            "expected": 500000.0,
+            "actual": null
+          }
+        ],
+        "partition": "sample"
+      },
+      {
+        "rule_name": "expected:numeric_values:amount",
+        "passed": false,
+        "message": "Preserve the numeric meaning of 1 recognized source values; 1 mismatches",
+        "checked_values": 1,
+        "mismatches": [
+          {
+            "row_position": 0,
+            "row_index": "2",
+            "column": "amount",
+            "before": "half a million",
+            "expected": 500000.0,
+            "actual": null
+          }
+        ]
+      }
+    ],
+    "sandbox_logs_forwarded": false,
+    "runtime_guidance": null,
+    "version": "V1",
+    "passed": true
+  },
+  {
+    "case": "chained_inplace",
+    "accepted": false,
+    "expected_acceptance": false,
+    "failed_checks": [
+      {
+        "rule_name": "expected:no_missing:amount",
+        "passed": false,
+        "message": "Declared outcome: amount must satisfy no_missing",
+        "partition": "holdout"
+      },
+      {
+        "rule_name": "expected:no_missing:amount",
+        "passed": false,
+        "message": "Declared outcome: amount must satisfy no_missing"
+      }
+    ],
+    "sandbox_logs_forwarded": true,
+    "runtime_guidance": "The sandbox reported ChainedAssignmentError: a chained inplace call does not update the DataFrame. Assign the result back, e.g. df[column] = df[column].fillna(value), then rerun the missing-value check.",
+    "version": "V1",
+    "passed": true
+  },
+  {
+    "case": "valid_parse_with_invalid_nan",
+    "accepted": true,
+    "expected_acceptance": true,
+    "failed_checks": [],
+    "sandbox_logs_forwarded": false,
+    "runtime_guidance": null,
+    "version": "V1",
+    "passed": true
+  }
+]

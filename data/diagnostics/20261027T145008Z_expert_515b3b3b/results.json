@@ -1,0 +1,463 @@
+{
+  "expert_generations": [
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "version": "V1",
+      "trigger": "four_failed_local_corrections",
+      "decision": "generated",
+      "request_sent": true,
+      "context": {
+        "trigger": "four_failed_local_corrections",
+        "dataset": {
+          "rows": 9,
+          "version": "V1",
+          "schema": {
+            "amount": "str"
+          }
+        },
+        "user_objective": "",
+        "cleaning_focus": null,
+        "required_outcomes": {
+          "version": "V1",
+          "pending_types": {
+            "amount": "float"
+          },
+          "pending_missing": {},
+          "flagged": {}
+        },
+        "method": {
+          "code": "def transform(df):\n    raise ValueError('injected local failure 4')",
+          "hypothesis": "Deliberate diagnostic failure; not an actual local model result",
+          "columns": [
+            "amount"
+          ],
+          "checks": [
+            {
+              "column": "amount",
+              "kind": "numeric"
+            }
+          ],
+          "value_assessment": null
+        },
+        "observations": {
+          "amount": {
+            "dtype": "str",
+            "inventory": {
+              "scanned_rows": 9,
+              "null_count": 1,
+              "non_null_rows": 8,
+              "distinct_values": 8,
+              "offset": 0,
+              "limit": 100,
+              "values": [
+                {
+                  "value": "$1,200.50",
+                  "type": "str",
+                  "count": 1
+                },
+                {
+                  "value": "1.5k",
+                  "type": "str",
+                  "count": 1
+                },
+                {
+                  "value": "2k",
+                  "type": "str",
+                  "count": 1
+                },
+                {
+                  "value": "850",
+                  "type": "str",
+                  "count": 1
+                },
+                {
+                  "value": "ERROR_404",
+                  "type": "str",
+                  "count": 1
+                },
+                {
+                  "value": "banana",
+                  "type": "str",
+                  "count": 1
+                },
+                {
+                  "value": "five hundred",
+                  "type": "str",
+                  "count": 1
+                },
+                {
+                  "value": "one thousand",
+                  "type": "str",
+                  "count": 1
+                }
+              ],
+              "displayed_value_rows": 8,
+              "displayed_non_null_coverage_pct": 100.0,
+              "all_distinct_values_displayed": true,
+              "next_offset": null,
+              "format_group_count": 7,
+              "format_groups": [
+                {
+                  "type": "str",
+                  "signature": "<letters> <letters>",
+                  "row_count": 2,
+                  "distinct_count": 2,
+                  "examples": [
+                    {
+                      "value": "five hundred",
+                      "count": 1
+                    },
+                    {
+                      "value": "one thousand",
+                      "count": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "str",
+                  "signature": "$<digits>,<digits>.<digits>",
+                  "row_count": 1,
+                  "distinct_count": 1,
+                  "examples": [
+                    {
+                      "value": "$1,200.50",
+                      "count": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "str",
+                  "signature": "<digits>",
+                  "row_count": 1,
+                  "distinct_count": 1,
+                  "examples": [
+                    {
+                      "value": "850",
+                      "count": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "str",
+                  "signature": "<digits>.<digits><letters>",
+                  "row_count": 1,
+                  "distinct_count": 1,
+                  "examples": [
+                    {
+                      "value": "1.5k",
+                      "count": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "str",
+                  "signature": "<digits><letters>",
+                  "row_count": 1,
+                  "distinct_count": 1,
+                  "examples": [
+                    {
+                      "value": "2k",
+                      "count": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "str",
+                  "signature": "<letters>",
+                  "row_count": 1,
+                  "distinct_count": 1,
+                  "examples": [
+                    {
+                      "value": "banana",
+                      "count": 1
+                    }
+                  ]
+                },
+                {
+                  "type": "str",
+                  "signature": "<letters>_<digits>",
+                  "row_count": 1,
+                  "distinct_count": 1,
+                  "examples": [
+                    {
+                      "value": "ERROR_404",
+                      "count": 1
+                    }
+                  ]
+                }
+              ],
+              "displayed_format_rows": 8,
+              "note": "Counts scan every row. Displayed values may be partial; format signatures are observations, not parsing rules or proof of meaning.",
+              "missing_including_blank_strings": 1
+            },
+            "profiling": {}
+          }
+        },
+        "related_row_examples": [
+          {
+            "amount": "1.5k"
+          },
+          {
+            "amount": "2k"
+          },
+          {
+            "amount": "five hundred"
+          },
+          {
+            "amount": "one thousand"
+          },
+          {
+            "amount": "850"
+          },
+          {
+            "amount": "$1,200.50"
+          },
+          {
+            "amount": null
+          },
+          {
+            "amount": "banana"
+          },
+          {
+            "amount": "ERROR_404"
+          }
+        ],
+        "failure": {
+          "error": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 4\n",
+          "diagnostic": {
+            "stage": "sandbox_execution",
+            "problem": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 4\n\nTraceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 4\n",
+            "location": {
+              "line": 2,
+              "function": "transform",
+              "source": "    raise ValueError('injected local failure 4')"
+            },
+            "evidence": {
+              "failed_checks": [],
+              "failed_trials": [
+                {
+                  "partition": "sample",
+                  "error": "Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 4\n",
+                  "failed_checks": []
+                }
+              ]
+            },
+            "correction": "Read the reported exception and candidate location, correct the responsible implementation, return a DataFrame, and resubmit the complete method with checks. Do not guess a business interpretation from an execution error.",
+            "retry": "Submit a corrected request and evaluate its new result before claiming success."
+          },
+          "failure_summary": {
+            "reason": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 4\n",
+            "failed_checks": [],
+            "lost_value_count": 0,
+            "lost_values": [],
+            "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+          },
+          "repair_error": null
+        },
+        "local_corrections": [
+          {
+            "attempt": 1,
+            "code": "def transform(df):\n    raise ValueError('injected local failure 1')",
+            "hypothesis": "Deliberate diagnostic failure; not an actual local model result",
+            "error": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 1\n",
+            "diagnostic": {
+              "stage": "sandbox_execution",
+              "problem": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 1\n\nTraceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 1\n",
+              "location": {
+                "line": 2,
+                "function": "transform",
+                "source": "    raise ValueError('injected local failure 1')"
+              },
+              "evidence": {
+                "failed_checks": [],
+                "failed_trials": [
+                  {
+                    "partition": "sample",
+                    "error": "Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 1\n",
+                    "failed_checks": []
+                  }
+                ]
+              },
+              "correction": "Read the reported exception and candidate location, correct the responsible implementation, return a DataFrame, and resubmit the complete method with checks. Do not guess a business interpretation from an execution error.",
+              "retry": "Submit a corrected request and evaluate its new result before claiming success."
+            },
+            "failure_summary": {
+              "reason": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 1\n",
+              "failed_checks": [],
+              "lost_value_count": 0,
+              "lost_values": [],
+              "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+            },
+            "success": false
+          },
+          {
+            "attempt": 2,
+            "code": "def transform(df):\n    raise ValueError('injected local failure 2')",
+            "hypothesis": "Deliberate diagnostic failure; not an actual local model result",
+            "error": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 2\n",
+            "diagnostic": {
+              "stage": "sandbox_execution",
+              "problem": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 2\n\nTraceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 2\n",
+              "location": {
+                "line": 2,
+                "function": "transform",
+                "source": "    raise ValueError('injected local failure 2')"
+              },
+              "evidence": {
+                "failed_checks": [],
+                "failed_trials": [
+                  {
+                    "partition": "sample",
+                    "error": "Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 2\n",
+                    "failed_checks": []
+                  }
+                ]
+              },
+              "correction": "Read the reported exception and candidate location, correct the responsible implementation, return a DataFrame, and resubmit the complete method with checks. Do not guess a business interpretation from an execution error.",
+              "retry": "Submit a corrected request and evaluate its new result before claiming success."
+            },
+            "failure_summary": {
+              "reason": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 2\n",
+              "failed_checks": [],
+              "lost_value_count": 0,
+              "lost_values": [],
+              "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+            },
+            "success": false
+          },
+          {
+            "attempt": 3,
+            "code": "def transform(df):\n    raise ValueError('injected local failure 3')",
+            "hypothesis": "Deliberate diagnostic failure; not an actual local model result",
+            "error": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 3\n",
+            "diagnostic": {
+              "stage": "sandbox_execution",
+              "problem": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 3\n\nTraceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 3\n",
+              "location": {
+                "line": 2,
+                "function": "transform",
+                "source": "    raise ValueError('injected local failure 3')"
+              },
+              "evidence": {
+                "failed_checks": [],
+                "failed_trials": [
+                  {
+                    "partition": "sample",
+                    "error": "Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 3\n",
+                    "failed_checks": []
+                  }
+                ]
+              },
+              "correction": "Read the reported exception and candidate location, correct the responsible implementation, return a DataFrame, and resubmit the complete method with checks. Do not guess a business interpretation from an execution error.",
+              "retry": "Submit a corrected request and evaluate its new result before claiming success."
+            },
+            "failure_summary": {
+              "reason": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 3\n",
+              "failed_checks": [],
+              "lost_value_count": 0,
+              "lost_values": [],
+              "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+            },
+            "success": false
+          },
+          {
+            "attempt": 4,
+            "code": "def transform(df):\n    raise ValueError('injected local failure 4')",
+            "hypothesis": "Deliberate diagnostic failure; not an actual local model result",
+            "error": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 4\n",
+            "diagnostic": {
+              "stage": "sandbox_execution",
+              "problem": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 4\n\nTraceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 4\n",
+              "location": {
+                "line": 2,
+                "function": "transform",
+                "source": "    raise ValueError('injected local failure 4')"
+              },
+              "evidence": {
+                "failed_checks": [],
+                "failed_trials": [
+                  {
+                    "partition": "sample",
+                    "error": "Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 4\n",
+                    "failed_checks": []
+                  }
+                ]
+              },
+              "correction": "Read the reported exception and candidate location, correct the responsible implementation, return a DataFrame, and resubmit the complete method with checks. Do not guess a business interpretation from an execution error.",
+              "retry": "Submit a corrected request and evaluate its new result before claiming success."
+            },
+            "failure_summary": {
+              "reason": "sample: Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 4\n",
+              "failed_checks": [],
+              "lost_value_count": 0,
+              "lost_values": [],
+              "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+            },
+            "success": false
+          }
+        ],
+        "execution_contract": {
+          "signature": "def transform(df): ...; return df",
+          "available": [
+            "pd",
+            "np",
+            "re",
+            "math"
+          ],
+          "libraries": "pandas and numpy in Python 3.12",
+          "network": false,
+          "package_installation": false,
+          "row_removal": false,
+          "preserve": "row order/index, unrelated columns and valid values",
+          "existing_missing": "Preserve unless the active task is missing-value handling",
+          "invalid_values": "User permits nonsensical/unparseable entries to become NaN; log them and parse recognizable formats correctly",
+          "tests": "Disjoint sample/holdout, deterministic repeatability, then exact-code full-data checks"
+        }
+      },
+      "usage": {
+        "queue_time": 0.343083486,
+        "prompt_tokens": 4682,
+        "prompt_time": 0.387646538,
+        "completion_tokens": 1315,
+        "completion_time": 2.767457862,
+        "total_tokens": 5997,
+        "total_time": 3.1551044,
+        "completion_tokens_details": {
+          "reasoning_tokens": 23
+        }
+      },
+      "code": "def transform(df):\n    import pandas as pd, numpy as np, re, math\n    # Helper to parse numeric words (e.g., \"five hundred\", \"one thousand\")\n    _WORD_NUMBERS = {\n        \"zero\": 0, \"one\": 1, \"two\": 2, \"three\": 3, \"four\": 4, \"five\": 5,\n        \"six\": 6, \"seven\": 7, \"eight\": 8, \"nine\": 9, \"ten\": 10,\n        \"eleven\": 11, \"twelve\": 12, \"thirteen\": 13, \"fourteen\": 14,\n        \"fifteen\": 15, \"sixteen\": 16, \"seventeen\": 17, \"eighteen\": 18,\n        \"nineteen\": 19, \"twenty\": 20, \"thirty\": 30, \"forty\": 40,\n        \"fifty\": 50, \"sixty\": 60, \"seventy\": 70, \"eighty\": 80, \"ninety\": 90\n    }\n    _SCALE_WORDS = {\n        \"hundred\": 1e2,\n        \"thousand\": 1e3,\n        \"million\": 1e6,\n        \"billion\": 1e9,\n        \"trillion\": 1e12\n    }\n\n    def parse_word_number(text):\n        # normalize\n        tokens = text.lower().replace('-', ' ').split()\n        total = 0\n        current = 0\n        for token in tokens:\n            if token in _WORD_NUMBERS:\n                current += _WORD_NUMBERS[token]\n            elif token in _SCALE_WORDS:\n                # if scale word appears after a number, multiply that number\n                if current == 0:\n                    current = 1\n                current *= _SCALE_WORDS[token]\n                total += current\n                current = 0\n            else:\n                return None\n        return total + current if (total + current) != 0 else None\n\n    # Helper to parse suffix forms like 1.5k, 2k\n    _SUFFIX_MULT = {\n        'k': 1e3,\n        'm': 1e6,\n        'b': 1e9,\n        't': 1e12\n    }\n\n    def parse_suffix(val):\n        m = re.fullmatch(r\"(?P<num>[-+]?[0-9]*\\.?[0-9]+)(?P<suf>[kmbt])\", val, re.IGNORECASE)\n        if m:\n            num = float(m.group('num'))\n            mul = _SUFFIX_MULT[m.group('suf').lower()]\n            return num * mul\n        return None\n\n    # Helper to parse currency strings like $1,200.50\n    def parse_currency(val):\n        # remove leading currency symbols and commas\n        cleaned = re.sub(r\"[\\$,\u20ac\u00a3]\", \"\", val)\n        cleaned = cleaned.replace(\",\", \"\")\n        try:\n            return float(cleaned)\n        except ValueError:\n            return None\n\n    def parse_generic(val):\n        # plain numeric string possibly with commas\n        cleaned = val.replace(\",\", \"\")\n        try:\n            return float(cleaned)\n        except ValueError:\n            return None\n\n    def parse_value(v):\n        if pd.isna(v):\n            return np.nan\n        if isinstance(v, (int, float, np.number)):\n            return float(v)\n        if not isinstance(v, str):\n            return np.nan\n        s = v.strip()\n        # Try known patterns in order of specificity\n        # 1. Currency\n        cur = parse_currency(s)\n        if cur is not None:\n            return cur\n        # 2. Suffix forms (e.g., 1.5k)\n        suf = parse_suffix(s)\n        if suf is not None:\n            return suf\n        # 3. Plain numeric\n        gen = parse_generic(s)\n        if gen is not None:\n            return gen\n        # 4. Word numbers\n        wnum = parse_word_number(s)\n        if wnum is not None:\n            return wnum\n        # If none matched, return NaN (invalid/unrecognizable)\n        return np.nan\n\n    # Apply parsing to the target column preserving index and other columns\n    df = df.copy()\n    df['amount'] = df['amount'].apply(parse_value)\n    return df",
+      "hypothesis": "All observed string formats (currency with commas, plain digits, decimal with k/m/b/t suffix, and English word numbers) can be parsed deterministically; any other strings are treated as invalid and coerced to NaN, satisfying the pending type float requirement.",
+      "assumptions": [
+        "The column to clean is named exactly 'amount'.",
+        "Supported suffixes are k, m, b, t (case\u2011insensitive) and represent thousand, million, billion, trillion respectively.",
+        "English word numbers use only the listed basic units (zero\u2011ninety) and scale words (hundred, thousand, million, billion, trillion).",
+        "Currency symbols may appear as $, \u20ac, or \u00a3 and commas are thousands separators.",
+        "No other locale\u2011specific formats (e.g., parentheses for negatives) appear in the data.",
+        "Existing nulls (NaN, None, or empty strings) are preserved as NaN.",
+        "Invalid entries like \"banana\" or \"ERROR_404\" are deliberately converted to NaN per the user\u2011permitted policy."
+      ]
+    }
+  ],
+  "applied": false,
+  "local_attempts": 4,
+  "local_failures_injected": true,
+  "corrected_trial_passed": true,
+  "repair_error": null,
+  "full_data_checks_passed": true,
+  "output": [
+    1500.0,
+    2000.0,
+    500.0,
+    1000.0,
+    850.0,
+    1200.5,
+    NaN,
+    NaN,
+    NaN
+  ],
+  "expected_values_passed": true,
+  "holdout_passed": true,
+  "working_version": "V1"
+}

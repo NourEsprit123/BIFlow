@@ -1,0 +1,36 @@
+{
+  "candidate_id": "method-8ffa6accee",
+  "code_hash": "a86d955bb571cfdb53b9207a2bbf110c0805190d234c584ce0c3cca8727f4de1",
+  "base_version": "V1",
+  "dataset_hash": "e3b5b5339529fef28f0a6908064b01fa3799660e5b90a391174bba82f1ed384b",
+  "columns": [
+    "amount"
+  ],
+  "checks": [
+    {
+      "column": "amount",
+      "kind": "numeric"
+    }
+  ],
+  "rationale": "Deliberate diagnostic failure; not an actual local model result",
+  "expected_effect": "Declared checks and selected-column obligations must pass",
+  "evidence_ids": [],
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261027T141057Z_expert_51070a13\\versions\\expert_test\\experiments\\method-8ffa6accee\\method.py",
+  "trials": [
+    {
+      "partition": "sample",
+      "rows": 3,
+      "row_positions": [
+        5,
+        1,
+        6
+      ],
+      "success": false,
+      "error": "Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\nValueError: injected local failure 1\n",
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "error_kind": "sandbox_execution"
+    }
+  ],
+  "tested": false,
+  "holdout_available": true
+}

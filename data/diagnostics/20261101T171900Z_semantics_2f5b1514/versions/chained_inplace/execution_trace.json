@@ -1,0 +1,884 @@
+{
+  "current_dataset": {
+    "dataset_id": "chained_inplace",
+    "version": "V1",
+    "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261101T171900Z_semantics_2f5b1514\\versions\\chained_inplace\\V1_working.csv",
+    "format": "csv",
+    "row_count": 3,
+    "column_count": 1,
+    "columns": [
+      "amount"
+    ],
+    "created_at": "2026-11-01T17:19:03.858950Z",
+    "parent_version": "V0",
+    "status": "working",
+    "metadata": {}
+  },
+  "stop_reason": "running",
+  "finish_summary": "",
+  "elapsed_seconds": 1.375,
+  "current_turn": 0,
+  "llm_provider": null,
+  "llm_model": null,
+  "events": [
+    {
+      "duration_seconds": 1.3599999999860302,
+      "event_id": "event-1",
+      "task_id": null,
+      "tool": "test_generated",
+      "arguments": {
+        "hypothesis": "Live regression: chained_inplace",
+        "columns": [
+          "amount"
+        ],
+        "code": "def transform(df):\n    df['amount'].fillna(df['amount'].median(), inplace=True)\n    return df",
+        "checks": [
+          {
+            "column": "amount",
+            "kind": "numeric"
+          },
+          {
+            "column": "amount",
+            "kind": "no_missing"
+          }
+        ]
+      },
+      "source_version": "V1",
+      "origin": "model",
+      "version": "V1",
+      "result": {
+        "success": false,
+        "candidate_id": "c1",
+        "code_hash": "83ec4bf8ddb36469c6d18ad77ff1fa94c3f0384d96c3ecc2636f4dd68dbbffd1",
+        "rationale": "Live regression: chained_inplace",
+        "expected_effect": "Declared checks and selected-column obligations must pass",
+        "evidence_ids": [],
+        "tested": false,
+        "trials": [
+          {
+            "partition": "sample",
+            "rows": 1,
+            "row_positions": [
+              2
+            ],
+            "success": true,
+            "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+            "repeatable": true,
+            "output_hash": "4b054a907ce356361185b46120422ed794423871ab8c20a6d48bbb763f9dcfbe",
+            "log": "<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow\n<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow",
+            "effect": {
+              "accepted": true,
+              "rules": [
+                {
+                  "rule_name": "non_empty",
+                  "passed": true,
+                  "message": "Candidate contains 1 rows"
+                },
+                {
+                  "rule_name": "row_count",
+                  "passed": true,
+                  "message": "Rows: 1 \u2192 1"
+                },
+                {
+                  "rule_name": "columns",
+                  "passed": true,
+                  "message": "Only explicitly requested columns may be removed"
+                },
+                {
+                  "rule_name": "row_identity",
+                  "passed": true,
+                  "message": "Generated methods must preserve row index and order"
+                },
+                {
+                  "rule_name": "expected:numeric:amount",
+                  "passed": true,
+                  "message": "Declared outcome: amount must satisfy numeric"
+                },
+                {
+                  "rule_name": "expected:no_missing:amount",
+                  "passed": true,
+                  "message": "Declared outcome: amount must satisfy no_missing"
+                },
+                {
+                  "rule_name": "expected:numeric_values:amount",
+                  "passed": true,
+                  "message": "Preserve the numeric meaning of 1 recognized source values; 0 mismatches",
+                  "checked_values": 1,
+                  "mismatches": []
+                }
+              ],
+              "before": {
+                "rows": 1,
+                "columns": 1,
+                "missing": {
+                  "amount": 0
+                },
+                "dtypes": {
+                  "amount": "float64"
+                },
+                "duplicate_rows": 0
+              },
+              "after": {
+                "rows": 1,
+                "columns": 1,
+                "missing": {
+                  "amount": 0
+                },
+                "dtypes": {
+                  "amount": "float64"
+                },
+                "duplicate_rows": 0
+              },
+              "changed_cells": 0,
+              "rows_removed": 0,
+              "changed_examples": [],
+              "lost_values": [],
+              "lost_value_count": 0,
+              "columns_removed": [],
+              "column_metrics": {
+                "amount": {
+                  "before": {
+                    "unique": 1,
+                    "missing": 0,
+                    "numeric_count": 1,
+                    "mean": 30.0,
+                    "median": 30.0,
+                    "min": 30.0,
+                    "max": 30.0
+                  },
+                  "after": {
+                    "unique": 1,
+                    "missing": 0,
+                    "numeric_count": 1,
+                    "mean": 30.0,
+                    "median": 30.0,
+                    "min": 30.0,
+                    "max": 30.0
+                  }
+                }
+              }
+            }
+          },
+          {
+            "partition": "holdout",
+            "rows": 2,
+            "row_positions": [
+              1,
+              0
+            ],
+            "success": false,
+            "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+            "repeatable": true,
+            "output_hash": "62c1e1d0220864ceb244e8755a40ac053d7dd1d06c0aa7644e2620765faa8969",
+            "log": "<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow\n<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow",
+            "effect": {
+              "accepted": false,
+              "rules": [
+                {
+                  "rule_name": "non_empty",
+                  "passed": true,
+                  "message": "Candidate contains 2 rows"
+                },
+                {
+                  "rule_name": "row_count",
+                  "passed": true,
+                  "message": "Rows: 2 \u2192 2"
+                },
+                {
+                  "rule_name": "columns",
+                  "passed": true,
+                  "message": "Only explicitly requested columns may be removed"
+                },
+                {
+                  "rule_name": "row_identity",
+                  "passed": true,
+                  "message": "Generated methods must preserve row index and order"
+                },
+                {
+                  "rule_name": "expected:numeric:amount",
+                  "passed": true,
+                  "message": "Declared outcome: amount must satisfy numeric"
+                },
+                {
+                  "rule_name": "expected:no_missing:amount",
+                  "passed": false,
+                  "message": "Declared outcome: amount must satisfy no_missing"
+                },
+                {
+                  "rule_name": "expected:numeric_values:amount",
+                  "passed": true,
+                  "message": "Preserve the numeric meaning of 1 recognized source values; 0 mismatches",
+                  "checked_values": 1,
+                  "mismatches": []
+                }
+              ],
+              "before": {
+                "rows": 2,
+                "columns": 1,
+                "missing": {
+                  "amount": 1
+                },
+                "dtypes": {
+                  "amount": "float64"
+                },
+                "duplicate_rows": 0
+              },
+              "after": {
+                "rows": 2,
+                "columns": 1,
+                "missing": {
+                  "amount": 1
+                },
+                "dtypes": {
+                  "amount": "float64"
+                },
+                "duplicate_rows": 0
+              },
+              "changed_cells": 0,
+              "rows_removed": 0,
+              "changed_examples": [],
+              "lost_values": [],
+              "lost_value_count": 0,
+              "columns_removed": [],
+              "column_metrics": {
+                "amount": {
+                  "before": {
+                    "unique": 1,
+                    "missing": 1,
+                    "numeric_count": 1,
+                    "mean": 10.0,
+                    "median": 10.0,
+                    "min": 10.0,
+                    "max": 10.0
+                  },
+                  "after": {
+                    "unique": 1,
+                    "missing": 1,
+                    "numeric_count": 1,
+                    "mean": 10.0,
+                    "median": 10.0,
+                    "min": 10.0,
+                    "max": 10.0
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "holdout_available": true,
+        "message": "Candidate rejected; working data unchanged. This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review.",
+        "failure_summary": {
+          "reason": "expected:no_missing:amount: Declared outcome: amount must satisfy no_missing",
+          "failed_checks": [
+            {
+              "rule_name": "expected:no_missing:amount",
+              "passed": false,
+              "message": "Declared outcome: amount must satisfy no_missing",
+              "partition": "holdout"
+            },
+            {
+              "rule_name": "expected:no_missing:amount",
+              "passed": false,
+              "message": "Declared outcome: amount must satisfy no_missing"
+            }
+          ],
+          "lost_value_count": 0,
+          "lost_values": [],
+          "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+        },
+        "error": "expected:no_missing:amount: Declared outcome: amount must satisfy no_missing",
+        "hypothesis": "Live regression: chained_inplace",
+        "recovery_prompt": {
+          "case": "validation",
+          "instruction": "The candidate ran but failed independent outcome checks. Compare the expected effect with the exact failed rules and changed examples. Identify a concrete revision while preserving rows, selected scope, unrelated data and valid values. Nonsensical invalid entries may become NaN; new NaNs alone do not reject the candidate. Explicit required outcomes such as no_missing still apply when requested. Test the revision before applying it. Sample success does not override full-data rejection. Do not weaken the remaining mandatory checks.",
+          "context": {
+            "tool": "test_generated",
+            "operation": null,
+            "columns": [
+              "amount"
+            ],
+            "parameters": {},
+            "error": "expected:no_missing:amount: Declared outcome: amount must satisfy no_missing",
+            "failed_checks": [
+              {
+                "rule_name": "expected:no_missing:amount",
+                "passed": false,
+                "message": "Declared outcome: amount must satisfy no_missing",
+                "partition": "holdout"
+              },
+              {
+                "rule_name": "expected:no_missing:amount",
+                "passed": false,
+                "message": "Declared outcome: amount must satisfy no_missing"
+              }
+            ],
+            "failed_trials": [
+              {
+                "partition": "holdout",
+                "error": null,
+                "sandbox_log": "<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow\n<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow",
+                "failed_checks": [
+                  {
+                    "rule_name": "expected:no_missing:amount",
+                    "passed": false,
+                    "message": "Declared outcome: amount must satisfy no_missing"
+                  }
+                ]
+              }
+            ],
+            "sandbox_logs": [
+              "<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow\n<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow"
+            ],
+            "working_version": "V1",
+            "candidate_version": "V1",
+            "outstanding": {
+              "version": "V1",
+              "pending_types": {},
+              "pending_missing": {},
+              "flagged": {}
+            },
+            "changed_examples": [],
+            "candidate_id": "c1",
+            "candidate_status": null,
+            "failure_summary": {
+              "reason": "expected:no_missing:amount: Declared outcome: amount must satisfy no_missing",
+              "failed_checks": [
+                {
+                  "rule_name": "expected:no_missing:amount",
+                  "passed": false,
+                  "message": "Declared outcome: amount must satisfy no_missing",
+                  "partition": "holdout"
+                },
+                {
+                  "rule_name": "expected:no_missing:amount",
+                  "passed": false,
+                  "message": "Declared outcome: amount must satisfy no_missing"
+                }
+              ],
+              "lost_value_count": 0,
+              "lost_values": [],
+              "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+            },
+            "lost_values": [],
+            "lost_value_count": 0,
+            "diagnostic": {
+              "stage": "validation",
+              "problem": "expected:no_missing:amount: Declared outcome: amount must satisfy no_missing",
+              "location": null,
+              "evidence": {
+                "failed_checks": [
+                  {
+                    "rule_name": "expected:no_missing:amount",
+                    "passed": false,
+                    "message": "Declared outcome: amount must satisfy no_missing",
+                    "partition": "holdout"
+                  },
+                  {
+                    "rule_name": "expected:no_missing:amount",
+                    "passed": false,
+                    "message": "Declared outcome: amount must satisfy no_missing"
+                  }
+                ],
+                "failed_trials": [
+                  {
+                    "partition": "holdout",
+                    "error": null,
+                    "sandbox_log": "<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow\n<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow",
+                    "failed_checks": [
+                      {
+                        "rule_name": "expected:no_missing:amount",
+                        "passed": false,
+                        "message": "Declared outcome: amount must satisfy no_missing"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "correction": "Revise the transformation to satisfy the named failed checks while preserving populated information; inspect unsupported values or explain genuine ambiguity. Do not weaken the checks.",
+              "retry": "Submit a corrected request and evaluate its new result before claiming success.",
+              "sandbox_logs": [
+                "<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow\n<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow"
+              ],
+              "runtime_guidance": "The sandbox reported ChainedAssignmentError: a chained inplace call does not update the DataFrame. Assign the result back, e.g. df[column] = df[column].fillna(value), then rerun the missing-value check."
+            },
+            "working_columns": {
+              "amount": {
+                "dtype": "float64",
+                "missing": 1,
+                "examples": [
+                  "10.0",
+                  "30.0"
+                ]
+              }
+            }
+          }
+        },
+        "diagnostic": {
+          "stage": "validation",
+          "problem": "expected:no_missing:amount: Declared outcome: amount must satisfy no_missing",
+          "location": null,
+          "evidence": {
+            "failed_checks": [
+              {
+                "rule_name": "expected:no_missing:amount",
+                "passed": false,
+                "message": "Declared outcome: amount must satisfy no_missing",
+                "partition": "holdout"
+              },
+              {
+                "rule_name": "expected:no_missing:amount",
+                "passed": false,
+                "message": "Declared outcome: amount must satisfy no_missing"
+              }
+            ],
+            "failed_trials": [
+              {
+                "partition": "holdout",
+                "error": null,
+                "sandbox_log": "<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow\n<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow",
+                "failed_checks": [
+                  {
+                    "rule_name": "expected:no_missing:amount",
+                    "passed": false,
+                    "message": "Declared outcome: amount must satisfy no_missing"
+                  }
+                ]
+              }
+            ]
+          },
+          "correction": "Revise the transformation to satisfy the named failed checks while preserving populated information; inspect unsupported values or explain genuine ambiguity. Do not weaken the checks.",
+          "retry": "Submit a corrected request and evaluate its new result before claiming success.",
+          "sandbox_logs": [
+            "<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow\n<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow"
+          ],
+          "runtime_guidance": "The sandbox reported ChainedAssignmentError: a chained inplace call does not update the DataFrame. Assign the result back, e.g. df[column] = df[column].fillna(value), then rerun the missing-value check."
+        }
+      },
+      "evidence": {},
+      "explanation": "Live regression: chained_inplace"
+    }
+  ],
+  "evidence": {
+    "method-06824a766d": {
+      "source": "sandbox experiment",
+      "columns": [
+        "amount"
+      ],
+      "version": "V1",
+      "code_hash": "83ec4bf8ddb36469c6d18ad77ff1fa94c3f0384d96c3ecc2636f4dd68dbbffd1",
+      "tested": false,
+      "expected_effect": "Declared checks and selected-column obligations must pass"
+    }
+  },
+  "experiments": {
+    "method-06824a766d": {
+      "candidate_id": "method-06824a766d",
+      "code_hash": "83ec4bf8ddb36469c6d18ad77ff1fa94c3f0384d96c3ecc2636f4dd68dbbffd1",
+      "base_version": "V1",
+      "dataset_hash": "a3eb39f4954b75af20b2559740aa2d4ad1e09665781344ad3b561d711166d830",
+      "columns": [
+        "amount"
+      ],
+      "checks": [
+        {
+          "column": "amount",
+          "kind": "numeric"
+        },
+        {
+          "column": "amount",
+          "kind": "no_missing"
+        }
+      ],
+      "rationale": "Live regression: chained_inplace",
+      "verify_numeric_values": true,
+      "expected_effect": "Declared checks and selected-column obligations must pass",
+      "evidence_ids": [],
+      "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261101T171900Z_semantics_2f5b1514\\versions\\chained_inplace\\experiments\\method-06824a766d\\method.py",
+      "trials": [
+        {
+          "partition": "sample",
+          "rows": 1,
+          "row_positions": [
+            2
+          ],
+          "success": true,
+          "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+          "repeatable": true,
+          "output_hash": "4b054a907ce356361185b46120422ed794423871ab8c20a6d48bbb763f9dcfbe",
+          "log": "<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow\n<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow",
+          "effect": {
+            "accepted": true,
+            "rules": [
+              {
+                "rule_name": "non_empty",
+                "passed": true,
+                "message": "Candidate contains 1 rows"
+              },
+              {
+                "rule_name": "row_count",
+                "passed": true,
+                "message": "Rows: 1 \u2192 1"
+              },
+              {
+                "rule_name": "columns",
+                "passed": true,
+                "message": "Only explicitly requested columns may be removed"
+              },
+              {
+                "rule_name": "row_identity",
+                "passed": true,
+                "message": "Generated methods must preserve row index and order"
+              },
+              {
+                "rule_name": "expected:numeric:amount",
+                "passed": true,
+                "message": "Declared outcome: amount must satisfy numeric"
+              },
+              {
+                "rule_name": "expected:no_missing:amount",
+                "passed": true,
+                "message": "Declared outcome: amount must satisfy no_missing"
+              },
+              {
+                "rule_name": "expected:numeric_values:amount",
+                "passed": true,
+                "message": "Preserve the numeric meaning of 1 recognized source values; 0 mismatches",
+                "checked_values": 1,
+                "mismatches": []
+              }
+            ],
+            "before": {
+              "rows": 1,
+              "columns": 1,
+              "missing": {
+                "amount": 0
+              },
+              "dtypes": {
+                "amount": "float64"
+              },
+              "duplicate_rows": 0
+            },
+            "after": {
+              "rows": 1,
+              "columns": 1,
+              "missing": {
+                "amount": 0
+              },
+              "dtypes": {
+                "amount": "float64"
+              },
+              "duplicate_rows": 0
+            },
+            "changed_cells": 0,
+            "rows_removed": 0,
+            "changed_examples": [],
+            "lost_values": [],
+            "lost_value_count": 0,
+            "columns_removed": [],
+            "column_metrics": {
+              "amount": {
+                "before": {
+                  "unique": 1,
+                  "missing": 0,
+                  "numeric_count": 1,
+                  "mean": 30.0,
+                  "median": 30.0,
+                  "min": 30.0,
+                  "max": 30.0
+                },
+                "after": {
+                  "unique": 1,
+                  "missing": 0,
+                  "numeric_count": 1,
+                  "mean": 30.0,
+                  "median": 30.0,
+                  "min": 30.0,
+                  "max": 30.0
+                }
+              }
+            }
+          }
+        },
+        {
+          "partition": "holdout",
+          "rows": 2,
+          "row_positions": [
+            1,
+            0
+          ],
+          "success": false,
+          "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+          "repeatable": true,
+          "output_hash": "62c1e1d0220864ceb244e8755a40ac053d7dd1d06c0aa7644e2620765faa8969",
+          "log": "<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow\n<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow",
+          "effect": {
+            "accepted": false,
+            "rules": [
+              {
+                "rule_name": "non_empty",
+                "passed": true,
+                "message": "Candidate contains 2 rows"
+              },
+              {
+                "rule_name": "row_count",
+                "passed": true,
+                "message": "Rows: 2 \u2192 2"
+              },
+              {
+                "rule_name": "columns",
+                "passed": true,
+                "message": "Only explicitly requested columns may be removed"
+              },
+              {
+                "rule_name": "row_identity",
+                "passed": true,
+                "message": "Generated methods must preserve row index and order"
+              },
+              {
+                "rule_name": "expected:numeric:amount",
+                "passed": true,
+                "message": "Declared outcome: amount must satisfy numeric"
+              },
+              {
+                "rule_name": "expected:no_missing:amount",
+                "passed": false,
+                "message": "Declared outcome: amount must satisfy no_missing"
+              },
+              {
+                "rule_name": "expected:numeric_values:amount",
+                "passed": true,
+                "message": "Preserve the numeric meaning of 1 recognized source values; 0 mismatches",
+                "checked_values": 1,
+                "mismatches": []
+              }
+            ],
+            "before": {
+              "rows": 2,
+              "columns": 1,
+              "missing": {
+                "amount": 1
+              },
+              "dtypes": {
+                "amount": "float64"
+              },
+              "duplicate_rows": 0
+            },
+            "after": {
+              "rows": 2,
+              "columns": 1,
+              "missing": {
+                "amount": 1
+              },
+              "dtypes": {
+                "amount": "float64"
+              },
+              "duplicate_rows": 0
+            },
+            "changed_cells": 0,
+            "rows_removed": 0,
+            "changed_examples": [],
+            "lost_values": [],
+            "lost_value_count": 0,
+            "columns_removed": [],
+            "column_metrics": {
+              "amount": {
+                "before": {
+                  "unique": 1,
+                  "missing": 1,
+                  "numeric_count": 1,
+                  "mean": 10.0,
+                  "median": 10.0,
+                  "min": 10.0,
+                  "max": 10.0
+                },
+                "after": {
+                  "unique": 1,
+                  "missing": 1,
+                  "numeric_count": 1,
+                  "mean": 10.0,
+                  "median": 10.0,
+                  "min": 10.0,
+                  "max": 10.0
+                }
+              }
+            }
+          }
+        }
+      ],
+      "tested": false,
+      "holdout_available": true,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a"
+    }
+  },
+  "method_candidates": {
+    "c1": {
+      "hypothesis": "Live regression: chained_inplace",
+      "columns": [
+        "amount"
+      ],
+      "code": "def transform(df):\n    df['amount'].fillna(df['amount'].median(), inplace=True)\n    return df",
+      "checks": [
+        {
+          "column": "amount",
+          "kind": "numeric"
+        },
+        {
+          "column": "amount",
+          "kind": "no_missing"
+        }
+      ],
+      "verify_numeric_values": true,
+      "key": "0afa095784b8e71ddf3544659084044c6de7320e6a70c0d4f38c3333173c630f",
+      "tested": false,
+      "base_version": "V1",
+      "kind": "generated",
+      "experiment_id": "method-06824a766d",
+      "dataset_hash": "a3eb39f4954b75af20b2559740aa2d4ad1e09665781344ad3b561d711166d830",
+      "failure_summary": {
+        "reason": "expected:no_missing:amount: Declared outcome: amount must satisfy no_missing",
+        "failed_checks": [
+          {
+            "rule_name": "expected:no_missing:amount",
+            "passed": false,
+            "message": "Declared outcome: amount must satisfy no_missing",
+            "partition": "holdout"
+          },
+          {
+            "rule_name": "expected:no_missing:amount",
+            "passed": false,
+            "message": "Declared outcome: amount must satisfy no_missing"
+          }
+        ],
+        "lost_value_count": 0,
+        "lost_values": [],
+        "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+      }
+    }
+  },
+  "decisions": [],
+  "repair_history": [
+    {
+      "attempt_id": "repair-1",
+      "version": "V1",
+      "key": "9cb5ccf895b654d5c3f4bb746ec19306382d4888996c8f0424c8dff4dfb9389e",
+      "arguments": {
+        "hypothesis": "Live regression: chained_inplace",
+        "columns": [
+          "amount"
+        ],
+        "code": "def transform(df):\n    df['amount'].fillna(df['amount'].median(), inplace=True)\n    return df",
+        "checks": [
+          {
+            "column": "amount",
+            "kind": "numeric"
+          },
+          {
+            "column": "amount",
+            "kind": "no_missing"
+          }
+        ]
+      },
+      "success": false,
+      "route": "validation",
+      "error": "expected:no_missing:amount: Declared outcome: amount must satisfy no_missing",
+      "candidate_id": "c1",
+      "failure_summary": {
+        "reason": "expected:no_missing:amount: Declared outcome: amount must satisfy no_missing",
+        "failed_checks": [
+          {
+            "rule_name": "expected:no_missing:amount",
+            "passed": false,
+            "message": "Declared outcome: amount must satisfy no_missing",
+            "partition": "holdout"
+          },
+          {
+            "rule_name": "expected:no_missing:amount",
+            "passed": false,
+            "message": "Declared outcome: amount must satisfy no_missing"
+          }
+        ],
+        "lost_value_count": 0,
+        "lost_values": [],
+        "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+      },
+      "diagnostic": {
+        "stage": "validation",
+        "problem": "expected:no_missing:amount: Declared outcome: amount must satisfy no_missing",
+        "location": null,
+        "evidence": {
+          "failed_checks": [
+            {
+              "rule_name": "expected:no_missing:amount",
+              "passed": false,
+              "message": "Declared outcome: amount must satisfy no_missing",
+              "partition": "holdout"
+            },
+            {
+              "rule_name": "expected:no_missing:amount",
+              "passed": false,
+              "message": "Declared outcome: amount must satisfy no_missing"
+            }
+          ],
+          "failed_trials": [
+            {
+              "partition": "holdout",
+              "error": null,
+              "sandbox_log": "<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow\n<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow",
+              "failed_checks": [
+                {
+                  "rule_name": "expected:no_missing:amount",
+                  "passed": false,
+                  "message": "Declared outcome: amount must satisfy no_missing"
+                }
+              ]
+            }
+          ]
+        },
+        "correction": "Revise the transformation to satisfy the named failed checks while preserving populated information; inspect unsupported values or explain genuine ambiguity. Do not weaken the checks.",
+        "retry": "Submit a corrected request and evaluate its new result before claiming success.",
+        "sandbox_logs": [
+          "<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow\n<cleaning-candidate>:2: ChainedAssignmentError: A value is being set on a copy of a DataFrame or Series through chained assignment using an inplace method.\nSuch inplace method never works to update the original DataFrame or Series, because the intermediate object on which we are setting values always behaves as a copy (due to Copy-on-Write).\n\nFor example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' instead, to perform the operation inplace on the original object, or try to avoid an inplace operation using 'df[col] = df[col].method(value)'.\n\nSee the documentation for a more detailed explanation: https://pandas.pydata.org/docs/dev/user_guide/migration.html#copy-on-write-cow"
+        ],
+        "runtime_guidance": "The sandbox reported ChainedAssignmentError: a chained inplace call does not update the DataFrame. Assign the result back, e.g. df[column] = df[column].fillna(value), then rerun the missing-value check."
+      },
+      "expert_feedback": null
+    }
+  ],
+  "expert_generations": {},
+  "flagged": {},
+  "failures": {
+    "0afa095784b8e71ddf3544659084044c6de7320e6a70c0d4f38c3333173c630f": 1
+  },
+  "finish_attempts": 0,
+  "step_log": [],
+  "provider_errors": [],
+  "unresolved": [],
+  "model_unresolved": [],
+  "pending_approvals": [],
+  "working_context": {
+    "version": "V1",
+    "columns": {
+      "amount": {
+        "current_dtype": "float64",
+        "missing_count": 1,
+        "steps": {
+          "type_conversion": {
+            "target": "float",
+            "status": "done",
+            "verified_version": "V1",
+            "completed_version": "V1"
+          }
+        },
+        "current_examples": [
+          "10.0",
+          "30.0"
+        ]
+      }
+    },
+    "completed_actions": [],
+    "flagged": {}
+  },
+  "cleaning_tasks": [],
+  "inspection_progress": {},
+  "task_drops": []
+}

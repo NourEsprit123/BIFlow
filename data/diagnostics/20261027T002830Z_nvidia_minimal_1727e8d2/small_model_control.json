@@ -1,0 +1,19 @@
+{
+  "test": "small_model_control",
+  "request": {
+    "model": "google/gemma-3-4b-it",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly OK."
+      }
+    ],
+    "max_tokens": 16,
+    "stream": true
+  },
+  "events": [
+    "{\"status\":404,\"title\":\"Not Found\",\"detail\":\"Function 'c322f327-55a3-4af3-a91f-c757e2b8b135': Not found for account '[REDACTED]'\"}"
+  ],
+  "http_status": 404,
+  "elapsed_seconds": 0.656
+}

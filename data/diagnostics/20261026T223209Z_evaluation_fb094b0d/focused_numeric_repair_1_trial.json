@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+  "repeatable": true,
+  "output_hash": "fe396f6ec54302c2503969f13090ad3dae59a752607e7a2039345f7d14c374af",
+  "log": "",
+  "output": {
+    "value": [
+      NaN,
+      NaN,
+      NaN,
+      NaN,
+      850.0,
+      1200.5,
+      NaN
+    ],
+    "untouched": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  }
+}

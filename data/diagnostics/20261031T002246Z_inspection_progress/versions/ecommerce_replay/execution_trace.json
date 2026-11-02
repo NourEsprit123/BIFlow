@@ -1,0 +1,4820 @@
+{
+  "current_dataset": {
+    "dataset_id": "ecommerce_replay",
+    "version": "V1",
+    "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261031T002246Z_inspection_progress\\versions\\ecommerce_replay\\V1_working.csv",
+    "format": "csv",
+    "row_count": 17049,
+    "column_count": 18,
+    "columns": [
+      "Order_ID",
+      "Customer_ID",
+      "Date",
+      "Age",
+      "Gender",
+      "City",
+      "Product_Category",
+      "Unit_Price",
+      "Quantity",
+      "Discount_Amount",
+      "Total_Amount",
+      "Payment_Method",
+      "Device_Type",
+      "Session_Duration_Minutes",
+      "Pages_Viewed",
+      "Is_Returning_Customer",
+      "Delivery_Time_Days",
+      "Customer_Rating"
+    ],
+    "created_at": "2026-10-31T00:22:46.737062Z",
+    "parent_version": "V0",
+    "status": "working",
+    "metadata": {}
+  },
+  "stop_reason": "running",
+  "finish_summary": "",
+  "elapsed_seconds": 0.14100000000325963,
+  "current_turn": 0,
+  "llm_provider": null,
+  "llm_model": null,
+  "events": [
+    {
+      "duration_seconds": 0.07899999999790452,
+      "event_id": "event-1",
+      "task_id": "price",
+      "tool": "inspect_data",
+      "arguments": {
+        "view": "values",
+        "column": "Unit_Price",
+        "limit": 100,
+        "reason": "Investigate unusual prices"
+      },
+      "source_version": "V1",
+      "origin": "model",
+      "version": "V1",
+      "result": {
+        "column": "Unit_Price",
+        "version": "V1",
+        "value_overview": {
+          "scanned_rows": 17049,
+          "null_count": 0,
+          "non_null_rows": 17049,
+          "distinct_values": 14711,
+          "offset": 0,
+          "limit": 100,
+          "values": [
+            {
+              "value": "56.63",
+              "type": "float",
+              "count": 8
+            },
+            {
+              "value": "41.3",
+              "type": "float",
+              "count": 5
+            },
+            {
+              "value": "46.78",
+              "type": "float",
+              "count": 5
+            },
+            {
+              "value": "52.33",
+              "type": "float",
+              "count": 5
+            },
+            {
+              "value": "60.18",
+              "type": "float",
+              "count": 5
+            },
+            {
+              "value": "83.78",
+              "type": "float",
+              "count": 5
+            },
+            {
+              "value": "166.12",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "196.83",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "21.06",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "21.91",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "23.73",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "27.68",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "28.45",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "28.62",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "28.89",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "32.25",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "34.71",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "35.36",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "38.57",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "39.42",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "39.91",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "40.06",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "45.37",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "45.91",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "47.82",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "51.46",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "54.02",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "56.71",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "58.13",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "58.65",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "59.12",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "59.72",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "61.83",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "69.28",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "73.43",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "75.95",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "88.77",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "90.54",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "94.75",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "103.23",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "104.96",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "105.65",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "105.81",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "109.53",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "109.58",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "110.98",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "111.24",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "111.97",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "113.48",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "114.59",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "115.11",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "116.44",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "116.66",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "120.14",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "121.87",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "123.56",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "123.61",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "123.89",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "129.82",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "130.48",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "130.56",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "135.2",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "135.89",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "137.42",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "141.8",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "144.63",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "146.83",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "147.51",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "151.95",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "152.2",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "152.67",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "152.7",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "157.84",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "16.37",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "16.98",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "162.74",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "170.73",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "174.62",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "18.57",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "18.91",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "183.06",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "186.29",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "187.7",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "19.17",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "19.18",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "19.47",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "192.08",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "20.66",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "200.94",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "21.26",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "21.37",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "21.4",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "21.7",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "213.12",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "218.19",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "22.2",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "22.23",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "22.59",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "23.32",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "23.33",
+              "type": "float",
+              "count": 3
+            }
+          ],
+          "displayed_value_rows": 348,
+          "displayed_non_null_coverage_pct": 2.04,
+          "all_distinct_values_displayed": false,
+          "next_offset": 100,
+          "format_group_count": 1,
+          "format_groups": [
+            {
+              "type": "float",
+              "signature": "<digits>.<digits>",
+              "row_count": 17049,
+              "distinct_count": 14711,
+              "examples": [
+                {
+                  "value": "56.63",
+                  "count": 8
+                },
+                {
+                  "value": "41.3",
+                  "count": 5
+                },
+                {
+                  "value": "999.81",
+                  "count": 1
+                },
+                {
+                  "value": "999.87",
+                  "count": 1
+                }
+              ]
+            }
+          ],
+          "displayed_format_rows": 17049,
+          "note": "Counts scan every row. Displayed values may be partial; format signatures are observations, not parsing rules or proof of meaning."
+        },
+        "investigation": {
+          "new_evidence": true,
+          "question": "Investigate unusual prices",
+          "next_action": "Decide from this evidence, or state a different remaining question and expected_evidence before another inspection."
+        }
+      },
+      "evidence": {},
+      "explanation": "Investigate unusual prices"
+    },
+    {
+      "duration_seconds": 0.031000000002677552,
+      "event_id": "event-2",
+      "task_id": "price",
+      "tool": "inspect_data",
+      "arguments": {
+        "view": "distribution",
+        "column": "Unit_Price",
+        "reason": "Measure actual prices",
+        "question": "Do any negative prices exist and what are the extremes?",
+        "expected_evidence": "Full-column min/max, signs and IQR counts"
+      },
+      "source_version": "V1",
+      "origin": "model",
+      "version": "V1",
+      "result": {
+        "column": "Unit_Price",
+        "version": "V1",
+        "scanned_rows": 17049,
+        "numeric_count": 17049,
+        "missing_count": 0,
+        "non_numeric_count": 0,
+        "non_finite_count": 0,
+        "note": "Numeric measurements use pd.to_numeric on every row. IQR bounds are statistical thresholds, not observed values or proof of errors; business validity requires context.",
+        "min": 5.05,
+        "max": 7900.01,
+        "median": 174.68,
+        "mean": 447.9016886620916,
+        "negative_count": 0,
+        "zero_count": 0,
+        "positive_count": 17049,
+        "q1": 73.26,
+        "q3": 494.57,
+        "iqr_lower_bound": -558.705,
+        "iqr_upper_bound": 1126.535,
+        "iqr_outlier_count": 1757,
+        "investigation": {
+          "new_evidence": true,
+          "question": "Do any negative prices exist and what are the extremes?",
+          "next_action": "Decide from this evidence, or state a different remaining question and expected_evidence before another inspection."
+        }
+      },
+      "evidence": {},
+      "explanation": "Measure actual prices"
+    },
+    {
+      "duration_seconds": 0.0,
+      "event_id": "event-3",
+      "task_id": "price",
+      "tool": "inspect_data",
+      "arguments": {
+        "view": "values",
+        "column": "Unit_Price",
+        "limit": 100,
+        "reason": "Changed explanation 0"
+      },
+      "source_version": "V1",
+      "origin": "model",
+      "version": "V1",
+      "result": {
+        "success": false,
+        "error_kind": "inspection_no_progress",
+        "error": "This exact inspection already ran on this dataset version; changing its reason does not provide new evidence.",
+        "next_action": "Choose a different inspection that answers a remaining question: distribution gives actual min/max, signs and IQR counts; extremes gives smallest/largest observations; filtered gives missing, non_numeric, negative or IQR-outlier examples; relationships compares two columns. Supply question and expected_evidence for further inspection. Alternatively complete an advisory task as reviewed with evidence for retaining the data, test a justified repair, or flag a specific unresolved business decision. A statistical threshold is not an observed value.",
+        "consecutive_stalls": 1,
+        "remaining_attempts": 2,
+        "cached": true,
+        "previous_event": "event-1",
+        "cached_result": {
+          "column": "Unit_Price",
+          "version": "V1",
+          "value_overview": {
+            "scanned_rows": 17049,
+            "null_count": 0,
+            "non_null_rows": 17049,
+            "distinct_values": 14711,
+            "offset": 0,
+            "limit": 100,
+            "values": [
+              {
+                "value": "56.63",
+                "type": "float",
+                "count": 8
+              },
+              {
+                "value": "41.3",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "46.78",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "52.33",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "60.18",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "83.78",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "166.12",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "196.83",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "21.06",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "21.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "23.73",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "27.68",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.45",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.62",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.89",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "32.25",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "34.71",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "35.36",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "38.57",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "39.42",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "39.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "40.06",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "45.37",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "45.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "47.82",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "51.46",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "54.02",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "56.71",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "58.13",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "58.65",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "59.12",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "59.72",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "61.83",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "69.28",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "73.43",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "75.95",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "88.77",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "90.54",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "94.75",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "103.23",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "104.96",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "105.65",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "105.81",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "109.53",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "109.58",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "110.98",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "111.24",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "111.97",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "113.48",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "114.59",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "115.11",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "116.44",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "116.66",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "120.14",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "121.87",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.56",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.61",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.89",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "129.82",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "130.48",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "130.56",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "135.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "135.89",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "137.42",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "141.8",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "144.63",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "146.83",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "147.51",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "151.95",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.67",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "157.84",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "16.37",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "16.98",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "162.74",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "170.73",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "174.62",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "18.57",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "18.91",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "183.06",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "186.29",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "187.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.17",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.18",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.47",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "192.08",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "20.66",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "200.94",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.26",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.37",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.4",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "213.12",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "218.19",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.23",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.59",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "23.32",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "23.33",
+                "type": "float",
+                "count": 3
+              }
+            ],
+            "displayed_value_rows": 348,
+            "displayed_non_null_coverage_pct": 2.04,
+            "all_distinct_values_displayed": false,
+            "next_offset": 100,
+            "format_group_count": 1,
+            "format_groups": [
+              {
+                "type": "float",
+                "signature": "<digits>.<digits>",
+                "row_count": 17049,
+                "distinct_count": 14711,
+                "examples": [
+                  {
+                    "value": "56.63",
+                    "count": 8
+                  },
+                  {
+                    "value": "41.3",
+                    "count": 5
+                  },
+                  {
+                    "value": "999.81",
+                    "count": 1
+                  },
+                  {
+                    "value": "999.87",
+                    "count": 1
+                  }
+                ]
+              }
+            ],
+            "displayed_format_rows": 17049,
+            "note": "Counts scan every row. Displayed values may be partial; format signatures are observations, not parsing rules or proof of meaning."
+          },
+          "investigation": {
+            "new_evidence": true,
+            "question": "Investigate unusual prices",
+            "next_action": "Decide from this evidence, or state a different remaining question and expected_evidence before another inspection."
+          }
+        },
+        "recovery_prompt": {
+          "case": "inspection_progress",
+          "instruction": "Choose a different inspection that answers a remaining question: distribution gives actual min/max, signs and IQR counts; extremes gives smallest/largest observations; filtered gives missing, non_numeric, negative or IQR-outlier examples; relationships compares two columns. Supply question and expected_evidence for further inspection. Alternatively complete an advisory task as reviewed with evidence for retaining the data, test a justified repair, or flag a specific unresolved business decision. A statistical threshold is not an observed value.",
+          "context": {
+            "error": "This exact inspection already ran on this dataset version; changing its reason does not provide new evidence.",
+            "previous_event": "event-1",
+            "consecutive_stalls": 1
+          }
+        }
+      },
+      "evidence": {},
+      "explanation": "Changed explanation 0"
+    },
+    {
+      "duration_seconds": 0.0,
+      "event_id": "event-4",
+      "task_id": "price",
+      "tool": "inspect_data",
+      "arguments": {
+        "view": "values",
+        "column": "Unit_Price",
+        "limit": 100,
+        "reason": "Changed explanation 1"
+      },
+      "source_version": "V1",
+      "origin": "model",
+      "version": "V1",
+      "result": {
+        "success": false,
+        "error_kind": "inspection_no_progress",
+        "error": "This exact inspection already ran on this dataset version; changing its reason does not provide new evidence.",
+        "next_action": "Choose a different inspection that answers a remaining question: distribution gives actual min/max, signs and IQR counts; extremes gives smallest/largest observations; filtered gives missing, non_numeric, negative or IQR-outlier examples; relationships compares two columns. Supply question and expected_evidence for further inspection. Alternatively complete an advisory task as reviewed with evidence for retaining the data, test a justified repair, or flag a specific unresolved business decision. A statistical threshold is not an observed value.",
+        "consecutive_stalls": 2,
+        "remaining_attempts": 1,
+        "cached": true,
+        "previous_event": "event-1",
+        "cached_result": {
+          "column": "Unit_Price",
+          "version": "V1",
+          "value_overview": {
+            "scanned_rows": 17049,
+            "null_count": 0,
+            "non_null_rows": 17049,
+            "distinct_values": 14711,
+            "offset": 0,
+            "limit": 100,
+            "values": [
+              {
+                "value": "56.63",
+                "type": "float",
+                "count": 8
+              },
+              {
+                "value": "41.3",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "46.78",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "52.33",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "60.18",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "83.78",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "166.12",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "196.83",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "21.06",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "21.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "23.73",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "27.68",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.45",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.62",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.89",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "32.25",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "34.71",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "35.36",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "38.57",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "39.42",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "39.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "40.06",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "45.37",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "45.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "47.82",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "51.46",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "54.02",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "56.71",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "58.13",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "58.65",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "59.12",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "59.72",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "61.83",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "69.28",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "73.43",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "75.95",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "88.77",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "90.54",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "94.75",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "103.23",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "104.96",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "105.65",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "105.81",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "109.53",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "109.58",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "110.98",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "111.24",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "111.97",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "113.48",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "114.59",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "115.11",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "116.44",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "116.66",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "120.14",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "121.87",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.56",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.61",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.89",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "129.82",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "130.48",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "130.56",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "135.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "135.89",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "137.42",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "141.8",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "144.63",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "146.83",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "147.51",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "151.95",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.67",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "157.84",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "16.37",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "16.98",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "162.74",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "170.73",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "174.62",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "18.57",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "18.91",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "183.06",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "186.29",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "187.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.17",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.18",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.47",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "192.08",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "20.66",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "200.94",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.26",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.37",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.4",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "213.12",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "218.19",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.23",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.59",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "23.32",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "23.33",
+                "type": "float",
+                "count": 3
+              }
+            ],
+            "displayed_value_rows": 348,
+            "displayed_non_null_coverage_pct": 2.04,
+            "all_distinct_values_displayed": false,
+            "next_offset": 100,
+            "format_group_count": 1,
+            "format_groups": [
+              {
+                "type": "float",
+                "signature": "<digits>.<digits>",
+                "row_count": 17049,
+                "distinct_count": 14711,
+                "examples": [
+                  {
+                    "value": "56.63",
+                    "count": 8
+                  },
+                  {
+                    "value": "41.3",
+                    "count": 5
+                  },
+                  {
+                    "value": "999.81",
+                    "count": 1
+                  },
+                  {
+                    "value": "999.87",
+                    "count": 1
+                  }
+                ]
+              }
+            ],
+            "displayed_format_rows": 17049,
+            "note": "Counts scan every row. Displayed values may be partial; format signatures are observations, not parsing rules or proof of meaning."
+          },
+          "investigation": {
+            "new_evidence": true,
+            "question": "Investigate unusual prices",
+            "next_action": "Decide from this evidence, or state a different remaining question and expected_evidence before another inspection."
+          }
+        },
+        "recovery_prompt": {
+          "case": "inspection_progress",
+          "instruction": "Choose a different inspection that answers a remaining question: distribution gives actual min/max, signs and IQR counts; extremes gives smallest/largest observations; filtered gives missing, non_numeric, negative or IQR-outlier examples; relationships compares two columns. Supply question and expected_evidence for further inspection. Alternatively complete an advisory task as reviewed with evidence for retaining the data, test a justified repair, or flag a specific unresolved business decision. A statistical threshold is not an observed value.",
+          "context": {
+            "error": "This exact inspection already ran on this dataset version; changing its reason does not provide new evidence.",
+            "previous_event": "event-1",
+            "consecutive_stalls": 2
+          }
+        }
+      },
+      "evidence": {},
+      "explanation": "Changed explanation 1"
+    },
+    {
+      "duration_seconds": 0.0,
+      "event_id": "event-5",
+      "task_id": "price",
+      "tool": "inspect_data",
+      "arguments": {
+        "view": "values",
+        "column": "Unit_Price",
+        "limit": 100,
+        "reason": "Changed explanation 2"
+      },
+      "source_version": "V1",
+      "origin": "model",
+      "version": "V1",
+      "result": {
+        "success": false,
+        "error_kind": "inspection_no_progress",
+        "error": "This exact inspection already ran on this dataset version; changing its reason does not provide new evidence.",
+        "next_action": "This task remains unresolved and was deferred for review. Continue the next independent task; do not claim it was cleaned.",
+        "consecutive_stalls": 3,
+        "remaining_attempts": 0,
+        "cached": true,
+        "previous_event": "event-1",
+        "cached_result": {
+          "column": "Unit_Price",
+          "version": "V1",
+          "value_overview": {
+            "scanned_rows": 17049,
+            "null_count": 0,
+            "non_null_rows": 17049,
+            "distinct_values": 14711,
+            "offset": 0,
+            "limit": 100,
+            "values": [
+              {
+                "value": "56.63",
+                "type": "float",
+                "count": 8
+              },
+              {
+                "value": "41.3",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "46.78",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "52.33",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "60.18",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "83.78",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "166.12",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "196.83",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "21.06",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "21.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "23.73",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "27.68",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.45",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.62",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.89",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "32.25",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "34.71",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "35.36",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "38.57",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "39.42",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "39.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "40.06",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "45.37",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "45.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "47.82",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "51.46",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "54.02",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "56.71",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "58.13",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "58.65",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "59.12",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "59.72",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "61.83",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "69.28",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "73.43",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "75.95",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "88.77",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "90.54",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "94.75",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "103.23",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "104.96",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "105.65",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "105.81",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "109.53",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "109.58",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "110.98",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "111.24",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "111.97",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "113.48",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "114.59",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "115.11",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "116.44",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "116.66",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "120.14",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "121.87",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.56",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.61",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.89",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "129.82",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "130.48",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "130.56",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "135.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "135.89",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "137.42",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "141.8",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "144.63",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "146.83",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "147.51",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "151.95",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.67",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "157.84",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "16.37",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "16.98",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "162.74",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "170.73",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "174.62",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "18.57",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "18.91",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "183.06",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "186.29",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "187.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.17",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.18",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.47",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "192.08",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "20.66",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "200.94",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.26",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.37",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.4",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "213.12",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "218.19",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.23",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.59",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "23.32",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "23.33",
+                "type": "float",
+                "count": 3
+              }
+            ],
+            "displayed_value_rows": 348,
+            "displayed_non_null_coverage_pct": 2.04,
+            "all_distinct_values_displayed": false,
+            "next_offset": 100,
+            "format_group_count": 1,
+            "format_groups": [
+              {
+                "type": "float",
+                "signature": "<digits>.<digits>",
+                "row_count": 17049,
+                "distinct_count": 14711,
+                "examples": [
+                  {
+                    "value": "56.63",
+                    "count": 8
+                  },
+                  {
+                    "value": "41.3",
+                    "count": 5
+                  },
+                  {
+                    "value": "999.81",
+                    "count": 1
+                  },
+                  {
+                    "value": "999.87",
+                    "count": 1
+                  }
+                ]
+              }
+            ],
+            "displayed_format_rows": 17049,
+            "note": "Counts scan every row. Displayed values may be partial; format signatures are observations, not parsing rules or proof of meaning."
+          },
+          "investigation": {
+            "new_evidence": true,
+            "question": "Investigate unusual prices",
+            "next_action": "Decide from this evidence, or state a different remaining question and expected_evidence before another inspection."
+          }
+        },
+        "task_deferred": "price",
+        "recovery_prompt": {
+          "case": "inspection_progress",
+          "instruction": "This task remains unresolved and was deferred for review. Continue the next independent task; do not claim it was cleaned.",
+          "context": {
+            "error": "This exact inspection already ran on this dataset version; changing its reason does not provide new evidence.",
+            "previous_event": "event-1",
+            "consecutive_stalls": 3,
+            "task_deferred": "price"
+          }
+        }
+      },
+      "evidence": {},
+      "explanation": "Changed explanation 2"
+    }
+  ],
+  "evidence": {
+    "event-1": {
+      "source": "inspection",
+      "tool": "inspect_data",
+      "arguments": {
+        "view": "values",
+        "column": "Unit_Price",
+        "limit": 100,
+        "reason": "Investigate unusual prices"
+      },
+      "version": "V1",
+      "result": {
+        "column": "Unit_Price",
+        "version": "V1",
+        "value_overview": {
+          "scanned_rows": 17049,
+          "null_count": 0,
+          "non_null_rows": 17049,
+          "distinct_values": 14711,
+          "offset": 0,
+          "limit": 100,
+          "values": [
+            {
+              "value": "56.63",
+              "type": "float",
+              "count": 8
+            },
+            {
+              "value": "41.3",
+              "type": "float",
+              "count": 5
+            },
+            {
+              "value": "46.78",
+              "type": "float",
+              "count": 5
+            },
+            {
+              "value": "52.33",
+              "type": "float",
+              "count": 5
+            },
+            {
+              "value": "60.18",
+              "type": "float",
+              "count": 5
+            },
+            {
+              "value": "83.78",
+              "type": "float",
+              "count": 5
+            },
+            {
+              "value": "166.12",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "196.83",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "21.06",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "21.91",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "23.73",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "27.68",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "28.45",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "28.62",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "28.89",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "32.25",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "34.71",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "35.36",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "38.57",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "39.42",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "39.91",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "40.06",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "45.37",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "45.91",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "47.82",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "51.46",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "54.02",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "56.71",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "58.13",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "58.65",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "59.12",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "59.72",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "61.83",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "69.28",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "73.43",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "75.95",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "88.77",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "90.54",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "94.75",
+              "type": "float",
+              "count": 4
+            },
+            {
+              "value": "103.23",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "104.96",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "105.65",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "105.81",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "109.53",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "109.58",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "110.98",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "111.24",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "111.97",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "113.48",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "114.59",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "115.11",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "116.44",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "116.66",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "120.14",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "121.87",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "123.56",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "123.61",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "123.89",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "129.82",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "130.48",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "130.56",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "135.2",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "135.89",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "137.42",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "141.8",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "144.63",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "146.83",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "147.51",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "151.95",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "152.2",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "152.67",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "152.7",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "157.84",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "16.37",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "16.98",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "162.74",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "170.73",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "174.62",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "18.57",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "18.91",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "183.06",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "186.29",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "187.7",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "19.17",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "19.18",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "19.47",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "192.08",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "20.66",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "200.94",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "21.26",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "21.37",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "21.4",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "21.7",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "213.12",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "218.19",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "22.2",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "22.23",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "22.59",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "23.32",
+              "type": "float",
+              "count": 3
+            },
+            {
+              "value": "23.33",
+              "type": "float",
+              "count": 3
+            }
+          ],
+          "displayed_value_rows": 348,
+          "displayed_non_null_coverage_pct": 2.04,
+          "all_distinct_values_displayed": false,
+          "next_offset": 100,
+          "format_group_count": 1,
+          "format_groups": [
+            {
+              "type": "float",
+              "signature": "<digits>.<digits>",
+              "row_count": 17049,
+              "distinct_count": 14711,
+              "examples": [
+                {
+                  "value": "56.63",
+                  "count": 8
+                },
+                {
+                  "value": "41.3",
+                  "count": 5
+                },
+                {
+                  "value": "999.81",
+                  "count": 1
+                },
+                {
+                  "value": "999.87",
+                  "count": 1
+                }
+              ]
+            }
+          ],
+          "displayed_format_rows": 17049,
+          "note": "Counts scan every row. Displayed values may be partial; format signatures are observations, not parsing rules or proof of meaning."
+        },
+        "investigation": {
+          "new_evidence": true,
+          "question": "Investigate unusual prices",
+          "next_action": "Decide from this evidence, or state a different remaining question and expected_evidence before another inspection."
+        }
+      }
+    },
+    "event-2": {
+      "source": "inspection",
+      "tool": "inspect_data",
+      "arguments": {
+        "view": "distribution",
+        "column": "Unit_Price",
+        "reason": "Measure actual prices",
+        "question": "Do any negative prices exist and what are the extremes?",
+        "expected_evidence": "Full-column min/max, signs and IQR counts"
+      },
+      "version": "V1",
+      "result": {
+        "column": "Unit_Price",
+        "version": "V1",
+        "scanned_rows": 17049,
+        "numeric_count": 17049,
+        "missing_count": 0,
+        "non_numeric_count": 0,
+        "non_finite_count": 0,
+        "note": "Numeric measurements use pd.to_numeric on every row. IQR bounds are statistical thresholds, not observed values or proof of errors; business validity requires context.",
+        "min": 5.05,
+        "max": 7900.01,
+        "median": 174.68,
+        "mean": 447.9016886620916,
+        "negative_count": 0,
+        "zero_count": 0,
+        "positive_count": 17049,
+        "q1": 73.26,
+        "q3": 494.57,
+        "iqr_lower_bound": -558.705,
+        "iqr_upper_bound": 1126.535,
+        "iqr_outlier_count": 1757,
+        "investigation": {
+          "new_evidence": true,
+          "question": "Do any negative prices exist and what are the extremes?",
+          "next_action": "Decide from this evidence, or state a different remaining question and expected_evidence before another inspection."
+        }
+      }
+    },
+    "event-3": {
+      "source": "inspection",
+      "tool": "inspect_data",
+      "arguments": {
+        "view": "values",
+        "column": "Unit_Price",
+        "limit": 100,
+        "reason": "Changed explanation 0"
+      },
+      "version": "V1",
+      "result": {
+        "success": false,
+        "error_kind": "inspection_no_progress",
+        "error": "This exact inspection already ran on this dataset version; changing its reason does not provide new evidence.",
+        "next_action": "Choose a different inspection that answers a remaining question: distribution gives actual min/max, signs and IQR counts; extremes gives smallest/largest observations; filtered gives missing, non_numeric, negative or IQR-outlier examples; relationships compares two columns. Supply question and expected_evidence for further inspection. Alternatively complete an advisory task as reviewed with evidence for retaining the data, test a justified repair, or flag a specific unresolved business decision. A statistical threshold is not an observed value.",
+        "consecutive_stalls": 1,
+        "remaining_attempts": 2,
+        "cached": true,
+        "previous_event": "event-1",
+        "cached_result": {
+          "column": "Unit_Price",
+          "version": "V1",
+          "value_overview": {
+            "scanned_rows": 17049,
+            "null_count": 0,
+            "non_null_rows": 17049,
+            "distinct_values": 14711,
+            "offset": 0,
+            "limit": 100,
+            "values": [
+              {
+                "value": "56.63",
+                "type": "float",
+                "count": 8
+              },
+              {
+                "value": "41.3",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "46.78",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "52.33",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "60.18",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "83.78",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "166.12",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "196.83",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "21.06",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "21.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "23.73",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "27.68",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.45",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.62",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.89",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "32.25",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "34.71",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "35.36",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "38.57",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "39.42",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "39.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "40.06",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "45.37",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "45.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "47.82",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "51.46",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "54.02",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "56.71",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "58.13",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "58.65",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "59.12",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "59.72",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "61.83",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "69.28",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "73.43",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "75.95",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "88.77",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "90.54",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "94.75",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "103.23",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "104.96",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "105.65",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "105.81",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "109.53",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "109.58",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "110.98",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "111.24",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "111.97",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "113.48",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "114.59",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "115.11",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "116.44",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "116.66",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "120.14",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "121.87",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.56",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.61",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.89",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "129.82",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "130.48",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "130.56",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "135.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "135.89",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "137.42",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "141.8",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "144.63",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "146.83",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "147.51",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "151.95",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.67",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "157.84",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "16.37",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "16.98",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "162.74",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "170.73",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "174.62",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "18.57",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "18.91",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "183.06",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "186.29",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "187.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.17",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.18",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.47",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "192.08",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "20.66",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "200.94",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.26",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.37",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.4",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "213.12",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "218.19",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.23",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.59",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "23.32",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "23.33",
+                "type": "float",
+                "count": 3
+              }
+            ],
+            "displayed_value_rows": 348,
+            "displayed_non_null_coverage_pct": 2.04,
+            "all_distinct_values_displayed": false,
+            "next_offset": 100,
+            "format_group_count": 1,
+            "format_groups": [
+              {
+                "type": "float",
+                "signature": "<digits>.<digits>",
+                "row_count": 17049,
+                "distinct_count": 14711,
+                "examples": [
+                  {
+                    "value": "56.63",
+                    "count": 8
+                  },
+                  {
+                    "value": "41.3",
+                    "count": 5
+                  },
+                  {
+                    "value": "999.81",
+                    "count": 1
+                  },
+                  {
+                    "value": "999.87",
+                    "count": 1
+                  }
+                ]
+              }
+            ],
+            "displayed_format_rows": 17049,
+            "note": "Counts scan every row. Displayed values may be partial; format signatures are observations, not parsing rules or proof of meaning."
+          },
+          "investigation": {
+            "new_evidence": true,
+            "question": "Investigate unusual prices",
+            "next_action": "Decide from this evidence, or state a different remaining question and expected_evidence before another inspection."
+          }
+        },
+        "recovery_prompt": {
+          "case": "inspection_progress",
+          "instruction": "Choose a different inspection that answers a remaining question: distribution gives actual min/max, signs and IQR counts; extremes gives smallest/largest observations; filtered gives missing, non_numeric, negative or IQR-outlier examples; relationships compares two columns. Supply question and expected_evidence for further inspection. Alternatively complete an advisory task as reviewed with evidence for retaining the data, test a justified repair, or flag a specific unresolved business decision. A statistical threshold is not an observed value.",
+          "context": {
+            "error": "This exact inspection already ran on this dataset version; changing its reason does not provide new evidence.",
+            "previous_event": "event-1",
+            "consecutive_stalls": 1
+          }
+        }
+      }
+    },
+    "event-4": {
+      "source": "inspection",
+      "tool": "inspect_data",
+      "arguments": {
+        "view": "values",
+        "column": "Unit_Price",
+        "limit": 100,
+        "reason": "Changed explanation 1"
+      },
+      "version": "V1",
+      "result": {
+        "success": false,
+        "error_kind": "inspection_no_progress",
+        "error": "This exact inspection already ran on this dataset version; changing its reason does not provide new evidence.",
+        "next_action": "Choose a different inspection that answers a remaining question: distribution gives actual min/max, signs and IQR counts; extremes gives smallest/largest observations; filtered gives missing, non_numeric, negative or IQR-outlier examples; relationships compares two columns. Supply question and expected_evidence for further inspection. Alternatively complete an advisory task as reviewed with evidence for retaining the data, test a justified repair, or flag a specific unresolved business decision. A statistical threshold is not an observed value.",
+        "consecutive_stalls": 2,
+        "remaining_attempts": 1,
+        "cached": true,
+        "previous_event": "event-1",
+        "cached_result": {
+          "column": "Unit_Price",
+          "version": "V1",
+          "value_overview": {
+            "scanned_rows": 17049,
+            "null_count": 0,
+            "non_null_rows": 17049,
+            "distinct_values": 14711,
+            "offset": 0,
+            "limit": 100,
+            "values": [
+              {
+                "value": "56.63",
+                "type": "float",
+                "count": 8
+              },
+              {
+                "value": "41.3",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "46.78",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "52.33",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "60.18",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "83.78",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "166.12",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "196.83",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "21.06",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "21.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "23.73",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "27.68",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.45",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.62",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.89",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "32.25",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "34.71",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "35.36",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "38.57",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "39.42",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "39.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "40.06",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "45.37",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "45.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "47.82",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "51.46",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "54.02",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "56.71",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "58.13",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "58.65",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "59.12",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "59.72",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "61.83",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "69.28",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "73.43",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "75.95",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "88.77",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "90.54",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "94.75",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "103.23",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "104.96",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "105.65",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "105.81",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "109.53",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "109.58",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "110.98",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "111.24",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "111.97",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "113.48",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "114.59",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "115.11",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "116.44",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "116.66",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "120.14",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "121.87",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.56",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.61",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.89",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "129.82",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "130.48",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "130.56",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "135.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "135.89",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "137.42",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "141.8",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "144.63",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "146.83",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "147.51",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "151.95",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.67",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "157.84",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "16.37",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "16.98",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "162.74",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "170.73",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "174.62",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "18.57",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "18.91",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "183.06",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "186.29",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "187.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.17",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.18",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.47",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "192.08",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "20.66",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "200.94",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.26",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.37",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.4",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "213.12",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "218.19",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.23",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.59",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "23.32",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "23.33",
+                "type": "float",
+                "count": 3
+              }
+            ],
+            "displayed_value_rows": 348,
+            "displayed_non_null_coverage_pct": 2.04,
+            "all_distinct_values_displayed": false,
+            "next_offset": 100,
+            "format_group_count": 1,
+            "format_groups": [
+              {
+                "type": "float",
+                "signature": "<digits>.<digits>",
+                "row_count": 17049,
+                "distinct_count": 14711,
+                "examples": [
+                  {
+                    "value": "56.63",
+                    "count": 8
+                  },
+                  {
+                    "value": "41.3",
+                    "count": 5
+                  },
+                  {
+                    "value": "999.81",
+                    "count": 1
+                  },
+                  {
+                    "value": "999.87",
+                    "count": 1
+                  }
+                ]
+              }
+            ],
+            "displayed_format_rows": 17049,
+            "note": "Counts scan every row. Displayed values may be partial; format signatures are observations, not parsing rules or proof of meaning."
+          },
+          "investigation": {
+            "new_evidence": true,
+            "question": "Investigate unusual prices",
+            "next_action": "Decide from this evidence, or state a different remaining question and expected_evidence before another inspection."
+          }
+        },
+        "recovery_prompt": {
+          "case": "inspection_progress",
+          "instruction": "Choose a different inspection that answers a remaining question: distribution gives actual min/max, signs and IQR counts; extremes gives smallest/largest observations; filtered gives missing, non_numeric, negative or IQR-outlier examples; relationships compares two columns. Supply question and expected_evidence for further inspection. Alternatively complete an advisory task as reviewed with evidence for retaining the data, test a justified repair, or flag a specific unresolved business decision. A statistical threshold is not an observed value.",
+          "context": {
+            "error": "This exact inspection already ran on this dataset version; changing its reason does not provide new evidence.",
+            "previous_event": "event-1",
+            "consecutive_stalls": 2
+          }
+        }
+      }
+    },
+    "event-5": {
+      "source": "inspection",
+      "tool": "inspect_data",
+      "arguments": {
+        "view": "values",
+        "column": "Unit_Price",
+        "limit": 100,
+        "reason": "Changed explanation 2"
+      },
+      "version": "V1",
+      "result": {
+        "success": false,
+        "error_kind": "inspection_no_progress",
+        "error": "This exact inspection already ran on this dataset version; changing its reason does not provide new evidence.",
+        "next_action": "This task remains unresolved and was deferred for review. Continue the next independent task; do not claim it was cleaned.",
+        "consecutive_stalls": 3,
+        "remaining_attempts": 0,
+        "cached": true,
+        "previous_event": "event-1",
+        "cached_result": {
+          "column": "Unit_Price",
+          "version": "V1",
+          "value_overview": {
+            "scanned_rows": 17049,
+            "null_count": 0,
+            "non_null_rows": 17049,
+            "distinct_values": 14711,
+            "offset": 0,
+            "limit": 100,
+            "values": [
+              {
+                "value": "56.63",
+                "type": "float",
+                "count": 8
+              },
+              {
+                "value": "41.3",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "46.78",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "52.33",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "60.18",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "83.78",
+                "type": "float",
+                "count": 5
+              },
+              {
+                "value": "166.12",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "196.83",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "21.06",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "21.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "23.73",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "27.68",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.45",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.62",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "28.89",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "32.25",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "34.71",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "35.36",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "38.57",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "39.42",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "39.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "40.06",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "45.37",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "45.91",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "47.82",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "51.46",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "54.02",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "56.71",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "58.13",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "58.65",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "59.12",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "59.72",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "61.83",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "69.28",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "73.43",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "75.95",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "88.77",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "90.54",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "94.75",
+                "type": "float",
+                "count": 4
+              },
+              {
+                "value": "103.23",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "104.96",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "105.65",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "105.81",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "109.53",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "109.58",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "110.98",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "111.24",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "111.97",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "113.48",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "114.59",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "115.11",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "116.44",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "116.66",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "120.14",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "121.87",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.56",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.61",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "123.89",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "129.82",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "130.48",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "130.56",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "135.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "135.89",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "137.42",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "141.8",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "144.63",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "146.83",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "147.51",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "151.95",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.67",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "152.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "157.84",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "16.37",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "16.98",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "162.74",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "170.73",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "174.62",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "18.57",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "18.91",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "183.06",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "186.29",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "187.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.17",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.18",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "19.47",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "192.08",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "20.66",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "200.94",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.26",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.37",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.4",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "21.7",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "213.12",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "218.19",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.2",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.23",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "22.59",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "23.32",
+                "type": "float",
+                "count": 3
+              },
+              {
+                "value": "23.33",
+                "type": "float",
+                "count": 3
+              }
+            ],
+            "displayed_value_rows": 348,
+            "displayed_non_null_coverage_pct": 2.04,
+            "all_distinct_values_displayed": false,
+            "next_offset": 100,
+            "format_group_count": 1,
+            "format_groups": [
+              {
+                "type": "float",
+                "signature": "<digits>.<digits>",
+                "row_count": 17049,
+                "distinct_count": 14711,
+                "examples": [
+                  {
+                    "value": "56.63",
+                    "count": 8
+                  },
+                  {
+                    "value": "41.3",
+                    "count": 5
+                  },
+                  {
+                    "value": "999.81",
+                    "count": 1
+                  },
+                  {
+                    "value": "999.87",
+                    "count": 1
+                  }
+                ]
+              }
+            ],
+            "displayed_format_rows": 17049,
+            "note": "Counts scan every row. Displayed values may be partial; format signatures are observations, not parsing rules or proof of meaning."
+          },
+          "investigation": {
+            "new_evidence": true,
+            "question": "Investigate unusual prices",
+            "next_action": "Decide from this evidence, or state a different remaining question and expected_evidence before another inspection."
+          }
+        },
+        "task_deferred": "price",
+        "recovery_prompt": {
+          "case": "inspection_progress",
+          "instruction": "This task remains unresolved and was deferred for review. Continue the next independent task; do not claim it was cleaned.",
+          "context": {
+            "error": "This exact inspection already ran on this dataset version; changing its reason does not provide new evidence.",
+            "previous_event": "event-1",
+            "consecutive_stalls": 3,
+            "task_deferred": "price"
+          }
+        }
+      }
+    }
+  },
+  "experiments": {},
+  "method_candidates": {},
+  "decisions": [],
+  "repair_history": [],
+  "expert_generations": {},
+  "flagged": {},
+  "failures": {},
+  "finish_attempts": 0,
+  "step_log": [],
+  "provider_errors": [],
+  "unresolved": [],
+  "model_unresolved": [],
+  "pending_approvals": [],
+  "working_context": {},
+  "cleaning_tasks": [
+    {
+      "id": "price",
+      "category": "outliers",
+      "columns": [
+        "Unit_Price"
+      ],
+      "status": "needs_review",
+      "evidence": [],
+      "reason": "Investigation unresolved: three consecutive inspection requests supplied no new evidence or investigation question. This exact inspection already ran on this dataset version; changing its reason does not provide new evidence.",
+      "assessed_version": "V1"
+    },
+    {
+      "id": "next",
+      "category": "outliers",
+      "columns": [
+        "Discount_Amount"
+      ],
+      "status": "pending",
+      "evidence": []
+    }
+  ],
+  "inspection_progress": {
+    "V1:price": {
+      "inspections": 2,
+      "consecutive_stalls": 3,
+      "questions": [
+        "Investigate unusual prices",
+        "Do any negative prices exist and what are the extremes?"
+      ]
+    }
+  }
+}

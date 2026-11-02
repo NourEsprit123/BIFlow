@@ -1,0 +1,1686 @@
+{
+  "current_dataset": {
+    "dataset_id": "sales_small",
+    "version": "V1",
+    "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\evaluation\\20261102T140101Z\\sales_small_run1\\versions\\4f91d1727ccd\\sales_small\\V1_working.csv",
+    "format": "csv",
+    "row_count": 42,
+    "column_count": 7,
+    "columns": [
+      "order_id",
+      "customer",
+      "region",
+      "revenue",
+      "quantity",
+      "is_active",
+      "signup_date"
+    ],
+    "created_at": "2026-11-02T14:01:07.564996Z",
+    "parent_version": "V0",
+    "status": "failed",
+    "metadata": {
+      "agent1_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\evaluation\\20261102T140101Z\\sales_small_run1\\sales_small.csv",
+      "user_request": "Improve data quality for BI analysis while preserving the uploaded original. Prefer builtin operations; write generated code only when no builtin can express the justified rule.",
+      "source_signature": [
+        "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\evaluation\\20261102T140101Z\\sales_small_run1\\sales_small.csv",
+        1793628062324937100,
+        2332
+      ]
+    }
+  },
+  "stop_reason": "request_timeout",
+  "finish_summary": "Stopped: Ollama error: Ollama exceeded the 90s request limit; no further actions will be applied from this request",
+  "elapsed_seconds": 132.17199999996228,
+  "current_turn": 4,
+  "llm_provider": "ollama",
+  "llm_model": "qwen3:8b",
+  "events": [
+    {
+      "duration_seconds": 0.25,
+      "event_id": "event-1",
+      "task_id": "task-8",
+      "tool": "inspect_data",
+      "arguments": {
+        "reason": "Measure evidence for this finding",
+        "view": "column",
+        "column": "region"
+      },
+      "source_version": "V1",
+      "origin": "model",
+      "version": "V1",
+      "result": {
+        "column": "region",
+        "version": "V1",
+        "dtype": "str",
+        "null_count": 0,
+        "null_pct": 0.0,
+        "distinct_count": 8,
+        "sample_values": [
+          "North",
+          "West",
+          "North",
+          "North",
+          "North",
+          "South",
+          "  South ",
+          "North",
+          "West",
+          "  West ",
+          "South",
+          "  North ",
+          "North",
+          "  West ",
+          "South",
+          "West",
+          "South",
+          "East",
+          "East",
+          "East"
+        ],
+        "min": null,
+        "max": null,
+        "mean": null,
+        "value_overview": {
+          "scanned_rows": 42,
+          "null_count": 0,
+          "effective_missing_count": 0,
+          "non_null_rows": 42,
+          "distinct_values": 8,
+          "offset": 0,
+          "limit": 50,
+          "values": [
+            {
+              "value": "East",
+              "type": "str",
+              "count": 9
+            },
+            {
+              "value": "North",
+              "type": "str",
+              "count": 9
+            },
+            {
+              "value": "South",
+              "type": "str",
+              "count": 8
+            },
+            {
+              "value": "West",
+              "type": "str",
+              "count": 7
+            },
+            {
+              "value": "  South ",
+              "type": "str",
+              "count": 3
+            },
+            {
+              "value": "  West ",
+              "type": "str",
+              "count": 3
+            },
+            {
+              "value": "  North ",
+              "type": "str",
+              "count": 2
+            },
+            {
+              "value": "  East ",
+              "type": "str",
+              "count": 1
+            }
+          ],
+          "displayed_value_rows": 42,
+          "displayed_non_null_coverage_pct": 100.0,
+          "all_distinct_values_displayed": true,
+          "next_offset": null,
+          "format_group_count": 2,
+          "format_groups": [
+            {
+              "type": "str",
+              "signature": "<letters>",
+              "row_count": 33,
+              "distinct_count": 4,
+              "examples": [
+                {
+                  "value": "East",
+                  "count": 9
+                },
+                {
+                  "value": "North",
+                  "count": 9
+                },
+                {
+                  "value": "South",
+                  "count": 8
+                },
+                {
+                  "value": "West",
+                  "count": 7
+                }
+              ]
+            },
+            {
+              "type": "str",
+              "signature": "  <letters> ",
+              "row_count": 9,
+              "distinct_count": 4,
+              "examples": [
+                {
+                  "value": "  South ",
+                  "count": 3
+                },
+                {
+                  "value": "  West ",
+                  "count": 3
+                },
+                {
+                  "value": "  North ",
+                  "count": 2
+                },
+                {
+                  "value": "  East ",
+                  "count": 1
+                }
+              ]
+            }
+          ],
+          "displayed_format_rows": 42,
+          "missing_pct": 0.0,
+          "coverage_meaning": "displayed_non_null_coverage_pct is the percentage of populated rows represented by displayed examples. It is NOT the percentage of non-missing data. Use null_count/missing_pct for physical nulls and effective_missing_count for cleaning missing markers.",
+          "note": "Counts scan every row. Displayed values may be partial; low example coverage does not imply missing or invalid data. Format signatures are observations, not parsing rules or proof of meaning."
+        },
+        "investigation": {
+          "new_evidence": true,
+          "question": "Measure evidence for this finding",
+          "next_action": "Decide from this evidence, or explain the remaining question and useful next view in reason."
+        }
+      },
+      "evidence": {},
+      "explanation": "Measure evidence for this finding"
+    },
+    {
+      "duration_seconds": 0.75,
+      "event_id": "event-2",
+      "task_id": "task-8",
+      "tool": "test_builtin",
+      "arguments": {
+        "columns": [
+          "region"
+        ],
+        "operation": "normalize_values",
+        "parameters": {
+          "case": "lower",
+          "strip_whitespace": true
+        },
+        "hypothesis": "Normalize region values by removing leading/trailing spaces and converting to lowercase to standardize formatting."
+      },
+      "source_version": "V1",
+      "origin": "model",
+      "version": "V1",
+      "result": {
+        "success": false,
+        "tested": false,
+        "effect": {
+          "accepted": false,
+          "rules": [
+            {
+              "rule_name": "non_empty",
+              "passed": true,
+              "message": "Candidate contains 42 rows"
+            },
+            {
+              "rule_name": "row_count",
+              "passed": true,
+              "message": "Rows: 42 \u2192 42"
+            },
+            {
+              "rule_name": "columns",
+              "passed": true,
+              "message": "Only explicitly requested columns may be removed; only imputation markers may be added"
+            },
+            {
+              "rule_name": "untouched:order_id",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:customer",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:revenue",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:quantity",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:is_active",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:signup_date",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "expected:preserve_missing:region",
+              "passed": true,
+              "message": "Declared outcome: region must satisfy preserve_missing"
+            },
+            {
+              "rule_name": "expected:whitespace_only:region",
+              "passed": false,
+              "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+            }
+          ],
+          "before": {
+            "rows": 42,
+            "columns": 7,
+            "missing": {
+              "order_id": 0,
+              "customer": 0,
+              "region": 0,
+              "revenue": 5,
+              "quantity": 2,
+              "is_active": 0,
+              "signup_date": 1
+            },
+            "dtypes": {
+              "order_id": "str",
+              "customer": "str",
+              "region": "str",
+              "revenue": "str",
+              "quantity": "str",
+              "is_active": "str",
+              "signup_date": "str"
+            },
+            "duplicate_rows": 2
+          },
+          "after": {
+            "rows": 42,
+            "columns": 7,
+            "missing": {
+              "order_id": 0,
+              "customer": 0,
+              "region": 0,
+              "revenue": 5,
+              "quantity": 2,
+              "is_active": 0,
+              "signup_date": 1
+            },
+            "dtypes": {
+              "order_id": "str",
+              "customer": "str",
+              "region": "string",
+              "revenue": "str",
+              "quantity": "str",
+              "is_active": "str",
+              "signup_date": "str"
+            },
+            "duplicate_rows": 2
+          },
+          "changed_cells": 42,
+          "rows_removed": 0,
+          "changed_examples": [
+            {
+              "row_position": 0,
+              "column": "region",
+              "before": "North",
+              "after": "north"
+            },
+            {
+              "row_position": 1,
+              "column": "region",
+              "before": "West",
+              "after": "west"
+            },
+            {
+              "row_position": 2,
+              "column": "region",
+              "before": "North",
+              "after": "north"
+            },
+            {
+              "row_position": 3,
+              "column": "region",
+              "before": "North",
+              "after": "north"
+            },
+            {
+              "row_position": 4,
+              "column": "region",
+              "before": "North",
+              "after": "north"
+            }
+          ],
+          "lost_values": [],
+          "lost_value_count": 0,
+          "columns_removed": []
+        },
+        "error": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+        "message": "Candidate rejected; working data unchanged. This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review.",
+        "failure_summary": {
+          "reason": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+          "failed_checks": [
+            {
+              "rule_name": "expected:whitespace_only:region",
+              "passed": false,
+              "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+            }
+          ],
+          "lost_value_count": 0,
+          "lost_values": [],
+          "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+        },
+        "candidate_id": "c1",
+        "hypothesis": "Normalize region values by removing leading/trailing spaces and converting to lowercase to standardize formatting.",
+        "recovery_prompt": {
+          "case": "validation",
+          "instruction": "The candidate ran but failed independent outcome checks. Compare the expected effect with the exact failed rules and changed examples. Identify a concrete revision while preserving rows, selected scope, unrelated data and valid values. Nonsensical invalid entries may become NaN; new NaNs alone do not reject the candidate. Explicit required outcomes such as no_missing still apply when requested. Test the revision before applying it. Sample success does not override full-data rejection. Do not weaken the remaining mandatory checks.",
+          "context": {
+            "tool": "test_builtin",
+            "operation": "normalize_values",
+            "columns": [
+              "region"
+            ],
+            "parameters": {
+              "case": "lower",
+              "strip_whitespace": true
+            },
+            "error": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+            "failed_checks": [
+              {
+                "rule_name": "expected:whitespace_only:region",
+                "passed": false,
+                "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+              }
+            ],
+            "failed_trials": [],
+            "sandbox_logs": [],
+            "working_version": "V1",
+            "candidate_version": "V1",
+            "outstanding": {
+              "version": "V1",
+              "pending_types": {
+                "revenue": "float",
+                "quantity": "integer",
+                "is_active": "boolean",
+                "signup_date": "datetime"
+              },
+              "pending_missing": {
+                "revenue": 5,
+                "quantity": 2,
+                "signup_date": 1
+              },
+              "flagged": {}
+            },
+            "changed_examples": [
+              {
+                "row_position": 0,
+                "column": "region",
+                "before": "North",
+                "after": "north"
+              },
+              {
+                "row_position": 1,
+                "column": "region",
+                "before": "West",
+                "after": "west"
+              },
+              {
+                "row_position": 2,
+                "column": "region",
+                "before": "North",
+                "after": "north"
+              },
+              {
+                "row_position": 3,
+                "column": "region",
+                "before": "North",
+                "after": "north"
+              },
+              {
+                "row_position": 4,
+                "column": "region",
+                "before": "North",
+                "after": "north"
+              }
+            ],
+            "candidate_id": "c1",
+            "candidate_status": null,
+            "failure_summary": {
+              "reason": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+              "failed_checks": [
+                {
+                  "rule_name": "expected:whitespace_only:region",
+                  "passed": false,
+                  "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+                }
+              ],
+              "lost_value_count": 0,
+              "lost_values": [],
+              "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+            },
+            "lost_values": [],
+            "lost_value_count": 0,
+            "diagnostic": {
+              "stage": "validation",
+              "problem": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+              "location": null,
+              "evidence": {
+                "failed_checks": [
+                  {
+                    "rule_name": "expected:whitespace_only:region",
+                    "passed": false,
+                    "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+                  }
+                ],
+                "failed_trials": []
+              },
+              "correction": "Revise the transformation to satisfy the named failed checks while preserving populated information; inspect unsupported values or explain genuine ambiguity. Do not weaken the checks.",
+              "retry": "Submit a corrected request and evaluate its new result before claiming success.",
+              "sandbox_logs": []
+            },
+            "working_columns": {
+              "region": {
+                "dtype": "str",
+                "missing": 0,
+                "examples": [
+                  "North",
+                  "West",
+                  "North",
+                  "North",
+                  "North"
+                ]
+              }
+            }
+          }
+        },
+        "diagnostic": {
+          "stage": "validation",
+          "problem": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+          "location": null,
+          "evidence": {
+            "failed_checks": [
+              {
+                "rule_name": "expected:whitespace_only:region",
+                "passed": false,
+                "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+              }
+            ],
+            "failed_trials": []
+          },
+          "correction": "Revise the transformation to satisfy the named failed checks while preserving populated information; inspect unsupported values or explain genuine ambiguity. Do not weaken the checks.",
+          "retry": "Submit a corrected request and evaluate its new result before claiming success.",
+          "sandbox_logs": []
+        }
+      },
+      "evidence": {},
+      "explanation": "Normalize region values by removing leading/trailing spaces and converting to lowercase to standardize formatting."
+    },
+    {
+      "duration_seconds": 0.6410000000032596,
+      "event_id": "event-3",
+      "task_id": "task-8",
+      "tool": "test_builtin",
+      "arguments": {
+        "columns": [
+          "region"
+        ],
+        "hypothesis": "Standardize region values by removing leading/trailing spaces while preserving case and content to address whitespace inconsistency.",
+        "operation": "normalize_values",
+        "parameters": {
+          "strip_whitespace": true
+        }
+      },
+      "source_version": "V1",
+      "origin": "model",
+      "version": "V1",
+      "result": {
+        "success": false,
+        "tested": false,
+        "effect": {
+          "accepted": false,
+          "rules": [
+            {
+              "rule_name": "non_empty",
+              "passed": true,
+              "message": "Candidate contains 42 rows"
+            },
+            {
+              "rule_name": "row_count",
+              "passed": true,
+              "message": "Rows: 42 \u2192 42"
+            },
+            {
+              "rule_name": "columns",
+              "passed": true,
+              "message": "Only explicitly requested columns may be removed; only imputation markers may be added"
+            },
+            {
+              "rule_name": "untouched:order_id",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:customer",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:revenue",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:quantity",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:is_active",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:signup_date",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "expected:preserve_missing:region",
+              "passed": true,
+              "message": "Declared outcome: region must satisfy preserve_missing"
+            },
+            {
+              "rule_name": "expected:whitespace_only:region",
+              "passed": false,
+              "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+            }
+          ],
+          "before": {
+            "rows": 42,
+            "columns": 7,
+            "missing": {
+              "order_id": 0,
+              "customer": 0,
+              "region": 0,
+              "revenue": 5,
+              "quantity": 2,
+              "is_active": 0,
+              "signup_date": 1
+            },
+            "dtypes": {
+              "order_id": "str",
+              "customer": "str",
+              "region": "str",
+              "revenue": "str",
+              "quantity": "str",
+              "is_active": "str",
+              "signup_date": "str"
+            },
+            "duplicate_rows": 2
+          },
+          "after": {
+            "rows": 42,
+            "columns": 7,
+            "missing": {
+              "order_id": 0,
+              "customer": 0,
+              "region": 0,
+              "revenue": 5,
+              "quantity": 2,
+              "is_active": 0,
+              "signup_date": 1
+            },
+            "dtypes": {
+              "order_id": "str",
+              "customer": "str",
+              "region": "string",
+              "revenue": "str",
+              "quantity": "str",
+              "is_active": "str",
+              "signup_date": "str"
+            },
+            "duplicate_rows": 2
+          },
+          "changed_cells": 9,
+          "rows_removed": 0,
+          "changed_examples": [
+            {
+              "row_position": 6,
+              "column": "region",
+              "before": "  South ",
+              "after": "South"
+            },
+            {
+              "row_position": 9,
+              "column": "region",
+              "before": "  West ",
+              "after": "West"
+            },
+            {
+              "row_position": 11,
+              "column": "region",
+              "before": "  North ",
+              "after": "North"
+            },
+            {
+              "row_position": 13,
+              "column": "region",
+              "before": "  West ",
+              "after": "West"
+            },
+            {
+              "row_position": 21,
+              "column": "region",
+              "before": "  North ",
+              "after": "North"
+            }
+          ],
+          "lost_values": [],
+          "lost_value_count": 0,
+          "columns_removed": []
+        },
+        "error": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+        "message": "Candidate rejected; working data unchanged. This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review.",
+        "failure_summary": {
+          "reason": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+          "failed_checks": [
+            {
+              "rule_name": "expected:whitespace_only:region",
+              "passed": false,
+              "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+            }
+          ],
+          "lost_value_count": 0,
+          "lost_values": [],
+          "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+        },
+        "candidate_id": "c2",
+        "hypothesis": "Standardize region values by removing leading/trailing spaces while preserving case and content to address whitespace inconsistency.",
+        "recovery_prompt": {
+          "case": "validation",
+          "instruction": "The candidate ran but failed independent outcome checks. Compare the expected effect with the exact failed rules and changed examples. Identify a concrete revision while preserving rows, selected scope, unrelated data and valid values. Nonsensical invalid entries may become NaN; new NaNs alone do not reject the candidate. Explicit required outcomes such as no_missing still apply when requested. Test the revision before applying it. Sample success does not override full-data rejection. Do not weaken the remaining mandatory checks.",
+          "context": {
+            "tool": "test_builtin",
+            "operation": "normalize_values",
+            "columns": [
+              "region"
+            ],
+            "parameters": {
+              "strip_whitespace": true
+            },
+            "error": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+            "failed_checks": [
+              {
+                "rule_name": "expected:whitespace_only:region",
+                "passed": false,
+                "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+              }
+            ],
+            "failed_trials": [],
+            "sandbox_logs": [],
+            "working_version": "V1",
+            "candidate_version": "V1",
+            "outstanding": {
+              "version": "V1",
+              "pending_types": {
+                "revenue": "float",
+                "quantity": "integer",
+                "is_active": "boolean",
+                "signup_date": "datetime"
+              },
+              "pending_missing": {
+                "revenue": 5,
+                "quantity": 2,
+                "signup_date": 1
+              },
+              "flagged": {}
+            },
+            "changed_examples": [
+              {
+                "row_position": 6,
+                "column": "region",
+                "before": "  South ",
+                "after": "South"
+              },
+              {
+                "row_position": 9,
+                "column": "region",
+                "before": "  West ",
+                "after": "West"
+              },
+              {
+                "row_position": 11,
+                "column": "region",
+                "before": "  North ",
+                "after": "North"
+              },
+              {
+                "row_position": 13,
+                "column": "region",
+                "before": "  West ",
+                "after": "West"
+              },
+              {
+                "row_position": 21,
+                "column": "region",
+                "before": "  North ",
+                "after": "North"
+              }
+            ],
+            "candidate_id": "c2",
+            "candidate_status": null,
+            "failure_summary": {
+              "reason": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+              "failed_checks": [
+                {
+                  "rule_name": "expected:whitespace_only:region",
+                  "passed": false,
+                  "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+                }
+              ],
+              "lost_value_count": 0,
+              "lost_values": [],
+              "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+            },
+            "lost_values": [],
+            "lost_value_count": 0,
+            "diagnostic": {
+              "stage": "validation",
+              "problem": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+              "location": null,
+              "evidence": {
+                "failed_checks": [
+                  {
+                    "rule_name": "expected:whitespace_only:region",
+                    "passed": false,
+                    "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+                  }
+                ],
+                "failed_trials": []
+              },
+              "correction": "Revise the transformation to satisfy the named failed checks while preserving populated information; inspect unsupported values or explain genuine ambiguity. Do not weaken the checks.",
+              "retry": "Submit a corrected request and evaluate its new result before claiming success.",
+              "sandbox_logs": []
+            },
+            "working_columns": {
+              "region": {
+                "dtype": "str",
+                "missing": 0,
+                "examples": [
+                  "North",
+                  "West",
+                  "North",
+                  "North",
+                  "North"
+                ]
+              }
+            }
+          }
+        },
+        "diagnostic": {
+          "stage": "validation",
+          "problem": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+          "location": null,
+          "evidence": {
+            "failed_checks": [
+              {
+                "rule_name": "expected:whitespace_only:region",
+                "passed": false,
+                "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+              }
+            ],
+            "failed_trials": []
+          },
+          "correction": "Revise the transformation to satisfy the named failed checks while preserving populated information; inspect unsupported values or explain genuine ambiguity. Do not weaken the checks.",
+          "retry": "Submit a corrected request and evaluate its new result before claiming success.",
+          "sandbox_logs": []
+        }
+      },
+      "evidence": {},
+      "explanation": "Standardize region values by removing leading/trailing spaces while preserving case and content to address whitespace inconsistency."
+    }
+  ],
+  "evidence": {
+    "event-1": {
+      "source": "inspection",
+      "tool": "inspect_data",
+      "arguments": {
+        "reason": "Measure evidence for this finding",
+        "view": "column",
+        "column": "region"
+      },
+      "version": "V1",
+      "result": {
+        "column": "region",
+        "version": "V1",
+        "dtype": "str",
+        "null_count": 0,
+        "null_pct": 0.0,
+        "distinct_count": 8,
+        "sample_values": [
+          "North",
+          "West",
+          "North",
+          "North",
+          "North",
+          "South",
+          "  South ",
+          "North",
+          "West",
+          "  West ",
+          "South",
+          "  North ",
+          "North",
+          "  West ",
+          "South",
+          "West",
+          "South",
+          "East",
+          "East",
+          "East"
+        ],
+        "min": null,
+        "max": null,
+        "mean": null,
+        "value_overview": {
+          "scanned_rows": 42,
+          "null_count": 0,
+          "effective_missing_count": 0,
+          "non_null_rows": 42,
+          "distinct_values": 8,
+          "offset": 0,
+          "limit": 50,
+          "values": [
+            {
+              "value": "East",
+              "type": "str",
+              "count": 9
+            },
+            {
+              "value": "North",
+              "type": "str",
+              "count": 9
+            },
+            {
+              "value": "South",
+              "type": "str",
+              "count": 8
+            },
+            {
+              "value": "West",
+              "type": "str",
+              "count": 7
+            },
+            {
+              "value": "  South ",
+              "type": "str",
+              "count": 3
+            },
+            {
+              "value": "  West ",
+              "type": "str",
+              "count": 3
+            },
+            {
+              "value": "  North ",
+              "type": "str",
+              "count": 2
+            },
+            {
+              "value": "  East ",
+              "type": "str",
+              "count": 1
+            }
+          ],
+          "displayed_value_rows": 42,
+          "displayed_non_null_coverage_pct": 100.0,
+          "all_distinct_values_displayed": true,
+          "next_offset": null,
+          "format_group_count": 2,
+          "format_groups": [
+            {
+              "type": "str",
+              "signature": "<letters>",
+              "row_count": 33,
+              "distinct_count": 4,
+              "examples": [
+                {
+                  "value": "East",
+                  "count": 9
+                },
+                {
+                  "value": "North",
+                  "count": 9
+                },
+                {
+                  "value": "South",
+                  "count": 8
+                },
+                {
+                  "value": "West",
+                  "count": 7
+                }
+              ]
+            },
+            {
+              "type": "str",
+              "signature": "  <letters> ",
+              "row_count": 9,
+              "distinct_count": 4,
+              "examples": [
+                {
+                  "value": "  South ",
+                  "count": 3
+                },
+                {
+                  "value": "  West ",
+                  "count": 3
+                },
+                {
+                  "value": "  North ",
+                  "count": 2
+                },
+                {
+                  "value": "  East ",
+                  "count": 1
+                }
+              ]
+            }
+          ],
+          "displayed_format_rows": 42,
+          "missing_pct": 0.0,
+          "coverage_meaning": "displayed_non_null_coverage_pct is the percentage of populated rows represented by displayed examples. It is NOT the percentage of non-missing data. Use null_count/missing_pct for physical nulls and effective_missing_count for cleaning missing markers.",
+          "note": "Counts scan every row. Displayed values may be partial; low example coverage does not imply missing or invalid data. Format signatures are observations, not parsing rules or proof of meaning."
+        },
+        "investigation": {
+          "new_evidence": true,
+          "question": "Measure evidence for this finding",
+          "next_action": "Decide from this evidence, or explain the remaining question and useful next view in reason."
+        }
+      }
+    }
+  },
+  "experiments": {},
+  "method_candidates": {
+    "c1": {
+      "columns": [
+        "region"
+      ],
+      "operation": "normalize_values",
+      "parameters": {
+        "case": "lower",
+        "strip_whitespace": true,
+        "columns": [
+          "region"
+        ]
+      },
+      "hypothesis": "Normalize region values by removing leading/trailing spaces and converting to lowercase to standardize formatting.",
+      "verify_numeric_values": false,
+      "checks": [
+        {
+          "column": "region",
+          "kind": "preserve_missing"
+        },
+        {
+          "column": "region",
+          "kind": "whitespace_only"
+        }
+      ],
+      "key": "3d9ea424661444eb2b44c0b3d24bf05689d3ca88342d6d590ba9118161df2d50",
+      "tested": false,
+      "base_version": "V1",
+      "kind": "builtin",
+      "experiment_id": null,
+      "dataset_hash": "922e05ccb64e4113202056ddb4acf6cbcaf5190b38b1d5ea77ea9cf744e915db",
+      "failure_summary": {
+        "reason": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+        "failed_checks": [
+          {
+            "rule_name": "expected:whitespace_only:region",
+            "passed": false,
+            "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+          }
+        ],
+        "lost_value_count": 0,
+        "lost_values": [],
+        "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+      }
+    },
+    "c2": {
+      "columns": [
+        "region"
+      ],
+      "hypothesis": "Standardize region values by removing leading/trailing spaces while preserving case and content to address whitespace inconsistency.",
+      "operation": "normalize_values",
+      "parameters": {
+        "strip_whitespace": true,
+        "columns": [
+          "region"
+        ]
+      },
+      "verify_numeric_values": false,
+      "checks": [
+        {
+          "column": "region",
+          "kind": "preserve_missing"
+        },
+        {
+          "column": "region",
+          "kind": "whitespace_only"
+        }
+      ],
+      "key": "d699572f87a8dda13ff7efc0f48203e758111331c696b148aadae84ebba3c24e",
+      "tested": false,
+      "base_version": "V1",
+      "kind": "builtin",
+      "experiment_id": null,
+      "dataset_hash": "922e05ccb64e4113202056ddb4acf6cbcaf5190b38b1d5ea77ea9cf744e915db",
+      "failure_summary": {
+        "reason": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+        "failed_checks": [
+          {
+            "rule_name": "expected:whitespace_only:region",
+            "passed": false,
+            "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+          }
+        ],
+        "lost_value_count": 0,
+        "lost_values": [],
+        "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+      }
+    }
+  },
+  "decisions": [],
+  "repair_history": [
+    {
+      "attempt_id": "repair-1",
+      "version": "V1",
+      "key": "42efe2b810cedab3ac8b7834dc90e6a5030cc0a75443f6233d0c52a3a0abb804",
+      "arguments": {
+        "columns": [
+          "region"
+        ],
+        "operation": "normalize_values",
+        "parameters": {
+          "case": "lower",
+          "strip_whitespace": true
+        },
+        "hypothesis": "Normalize region values by removing leading/trailing spaces and converting to lowercase to standardize formatting."
+      },
+      "success": false,
+      "route": "validation",
+      "error": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+      "candidate_id": "c1",
+      "failure_summary": {
+        "reason": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+        "failed_checks": [
+          {
+            "rule_name": "expected:whitespace_only:region",
+            "passed": false,
+            "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+          }
+        ],
+        "lost_value_count": 0,
+        "lost_values": [],
+        "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+      },
+      "diagnostic": {
+        "stage": "validation",
+        "problem": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+        "location": null,
+        "evidence": {
+          "failed_checks": [
+            {
+              "rule_name": "expected:whitespace_only:region",
+              "passed": false,
+              "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+            }
+          ],
+          "failed_trials": []
+        },
+        "correction": "Revise the transformation to satisfy the named failed checks while preserving populated information; inspect unsupported values or explain genuine ambiguity. Do not weaken the checks.",
+        "retry": "Submit a corrected request and evaluate its new result before claiming success.",
+        "sandbox_logs": []
+      },
+      "expert_feedback": null
+    },
+    {
+      "attempt_id": "repair-2",
+      "version": "V1",
+      "key": "a5af00f5a4ae8990802f5ce56b75882ef26fabe46d5a06d27fe4a5f99d3adbb7",
+      "arguments": {
+        "columns": [
+          "region"
+        ],
+        "hypothesis": "Standardize region values by removing leading/trailing spaces while preserving case and content to address whitespace inconsistency.",
+        "operation": "normalize_values",
+        "parameters": {
+          "strip_whitespace": true
+        }
+      },
+      "success": false,
+      "route": "validation",
+      "error": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+      "candidate_id": "c2",
+      "failure_summary": {
+        "reason": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+        "failed_checks": [
+          {
+            "rule_name": "expected:whitespace_only:region",
+            "passed": false,
+            "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+          }
+        ],
+        "lost_value_count": 0,
+        "lost_values": [],
+        "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+      },
+      "diagnostic": {
+        "stage": "validation",
+        "problem": "expected:whitespace_only:region: The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region",
+        "location": null,
+        "evidence": {
+          "failed_checks": [
+            {
+              "rule_name": "expected:whitespace_only:region",
+              "passed": false,
+              "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+            }
+          ],
+          "failed_trials": []
+        },
+        "correction": "Revise the transformation to satisfy the named failed checks while preserving populated information; inspect unsupported values or explain genuine ambiguity. Do not weaken the checks.",
+        "retry": "Submit a corrected request and evaluate its new result before claiming success.",
+        "sandbox_logs": []
+      },
+      "expert_feedback": null
+    }
+  ],
+  "expert_generations": {},
+  "flagged": {},
+  "failures": {
+    "3d9ea424661444eb2b44c0b3d24bf05689d3ca88342d6d590ba9118161df2d50": 1,
+    "d699572f87a8dda13ff7efc0f48203e758111331c696b148aadae84ebba3c24e": 1
+  },
+  "finish_attempts": 0,
+  "step_log": [
+    {
+      "turn": 1,
+      "provider": "ollama",
+      "model": "qwen3:8b",
+      "response_finish_reason": "stop",
+      "tool_call_source": "native",
+      "usage": {
+        "prompt_tokens": 2526,
+        "completion_tokens": 36
+      },
+      "timing": {
+        "request_seconds": 11.061999999976251,
+        "load_seconds": 0.1896606,
+        "prompt_seconds": 0.596536,
+        "generation_seconds": 0.891738,
+        "tokens_per_second": 40.37060212753073
+      },
+      "options": {
+        "temperature": 0.1,
+        "num_ctx": 8192,
+        "num_predict": 2048,
+        "think": false
+      },
+      "response_issue": null,
+      "chars_per_token": 5.147387173396675
+    },
+    {
+      "turn": 1,
+      "tool": "inspect_data",
+      "args": {
+        "reason": "Measure evidence for this finding",
+        "view": "column",
+        "column": "region"
+      },
+      "result_preview": "{\"column\": \"region\", \"version\": \"V1\", \"dtype\": \"str\", \"null_count\": 0, \"null_pct\": 0.0, \"distinct_count\": 8, \"sample_values\": [\"North\", \"West\", \"North\", \"North\", \"North\", \"South\", \"  South \", \"North\", \"West\", \"  West \", \"South\", \"  North \", \"North\", \"  West \", \"South\", \"West\", \"South\", \"East\", \"East"
+    },
+    {
+      "turn": 2,
+      "provider": "ollama",
+      "model": "qwen3:8b",
+      "response_finish_reason": "stop",
+      "tool_call_source": "native",
+      "usage": {
+        "prompt_tokens": 3146,
+        "completion_tokens": 67
+      },
+      "timing": {
+        "request_seconds": 6.063000000023749,
+        "load_seconds": 0.0857748,
+        "prompt_seconds": 0.881961,
+        "generation_seconds": 1.684408,
+        "tokens_per_second": 39.77658619526861
+      },
+      "options": {
+        "temperature": 0.1,
+        "num_ctx": 8192,
+        "num_predict": 2048,
+        "think": false
+      },
+      "response_issue": null,
+      "chars_per_token": 4.940845518118246
+    },
+    {
+      "turn": 2,
+      "tool": "test_builtin",
+      "args": {
+        "columns": [
+          "region"
+        ],
+        "operation": "normalize_values",
+        "parameters": {
+          "case": "lower",
+          "strip_whitespace": true
+        },
+        "hypothesis": "Normalize region values by removing leading/trailing spaces and converting to lowercase to standardize formatting."
+      },
+      "result_preview": "{\"success\": false, \"tested\": false, \"effect\": {\"accepted\": false, \"rules\": [{\"rule_name\": \"non_empty\", \"passed\": true, \"message\": \"Candidate contains 42 rows\"}, {\"rule_name\": \"row_count\", \"passed\": true, \"message\": \"Rows: 42 \\u2192 42\"}, {\"rule_name\": \"columns\", \"passed\": true, \"message\": \"Only expl"
+    },
+    {
+      "turn": 3,
+      "provider": "ollama",
+      "model": "qwen3:8b",
+      "response_finish_reason": "stop",
+      "tool_call_source": "native",
+      "usage": {
+        "prompt_tokens": 4054,
+        "completion_tokens": 56
+      },
+      "timing": {
+        "request_seconds": 7.561999999976251,
+        "load_seconds": 0.036822,
+        "prompt_seconds": 1.145437,
+        "generation_seconds": 1.404752,
+        "tokens_per_second": 39.86468785949406
+      },
+      "options": {
+        "temperature": 0.1,
+        "num_ctx": 8192,
+        "num_predict": 2048,
+        "think": false
+      },
+      "response_issue": null,
+      "chars_per_token": 4.8285643808584116
+    },
+    {
+      "turn": 3,
+      "tool": "test_builtin",
+      "args": {
+        "columns": [
+          "region"
+        ],
+        "hypothesis": "Standardize region values by removing leading/trailing spaces while preserving case and content to address whitespace inconsistency.",
+        "operation": "normalize_values",
+        "parameters": {
+          "strip_whitespace": true
+        }
+      },
+      "result_preview": "{\"success\": false, \"tested\": false, \"effect\": {\"accepted\": false, \"rules\": [{\"rule_name\": \"non_empty\", \"passed\": true, \"message\": \"Candidate contains 42 rows\"}, {\"rule_name\": \"row_count\", \"passed\": true, \"message\": \"Rows: 42 \\u2192 42\"}, {\"rule_name\": \"columns\", \"passed\": true, \"message\": \"Only expl"
+    }
+  ],
+  "provider_errors": [
+    {
+      "turn": 4,
+      "type": "TimeoutError",
+      "status_code": null,
+      "message": "Ollama exceeded the 90s request limit; no further actions will be applied from this request",
+      "retrying": false
+    }
+  ],
+  "unresolved": [
+    "Ollama error: Ollama exceeded the 90s request limit; no further actions will be applied from this request"
+  ],
+  "model_unresolved": [],
+  "pending_approvals": [],
+  "working_context": {
+    "version": "V1",
+    "columns": {
+      "order_id": {
+        "current_dtype": "str",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "ORD-0001",
+          "ORD-0002",
+          "ORD-0003"
+        ]
+      },
+      "customer": {
+        "current_dtype": "str",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "Customer 005",
+          "Customer 021",
+          "Customer 014"
+        ]
+      },
+      "region": {
+        "current_dtype": "str",
+        "missing_count": 0,
+        "steps": {},
+        "current_examples": [
+          "North",
+          "West",
+          "North"
+        ]
+      },
+      "revenue": {
+        "current_dtype": "str",
+        "missing_count": 5,
+        "steps": {
+          "type_conversion": {
+            "target": "float",
+            "status": "pending",
+            "verified_version": "V1"
+          },
+          "missing_values": {
+            "remaining": 5,
+            "status": "pending",
+            "verified_version": "V1"
+          }
+        },
+        "current_examples": [
+          "1312.59",
+          "three hundred",
+          "3494.37"
+        ]
+      },
+      "quantity": {
+        "current_dtype": "str",
+        "missing_count": 2,
+        "steps": {
+          "type_conversion": {
+            "target": "integer",
+            "status": "pending",
+            "verified_version": "V1"
+          },
+          "missing_values": {
+            "remaining": 2,
+            "status": "pending",
+            "verified_version": "V1"
+          }
+        },
+        "current_examples": [
+          "16",
+          "4",
+          "9"
+        ]
+      },
+      "is_active": {
+        "current_dtype": "str",
+        "missing_count": 0,
+        "steps": {
+          "type_conversion": {
+            "target": "boolean",
+            "status": "pending",
+            "verified_version": "V1"
+          }
+        },
+        "current_examples": [
+          "No",
+          "Yes",
+          "No"
+        ]
+      },
+      "signup_date": {
+        "current_dtype": "str",
+        "missing_count": 1,
+        "steps": {
+          "type_conversion": {
+            "target": "datetime",
+            "status": "pending",
+            "verified_version": "V1"
+          },
+          "missing_values": {
+            "remaining": 1,
+            "status": "pending",
+            "verified_version": "V1"
+          }
+        },
+        "current_examples": [
+          "2024-04-28",
+          "2024-02-04",
+          "2023-08-23"
+        ]
+      }
+    },
+    "completed_actions": [],
+    "flagged": {}
+  },
+  "cleaning_tasks": [
+    {
+      "id": "task-8",
+      "category": "formatting",
+      "columns": [
+        "region"
+      ],
+      "evidence": [
+        {
+          "issue_id": "whitespace",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Leading or trailing spaces",
+          "evidence": {},
+          "llm_agreement": null
+        }
+      ],
+      "measured": null,
+      "status": "pending",
+      "turns": 3
+    },
+    {
+      "id": "task-1",
+      "category": "types",
+      "columns": [
+        "revenue"
+      ],
+      "evidence": [
+        {
+          "target_type": "float"
+        },
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Values must be converted to float",
+          "evidence": {},
+          "llm_agreement": null
+        }
+      ],
+      "measured": "type_conversion",
+      "status": "pending",
+      "verified_version": "V1"
+    },
+    {
+      "id": "task-2",
+      "category": "types",
+      "columns": [
+        "quantity"
+      ],
+      "evidence": [
+        {
+          "target_type": "integer"
+        },
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Values must be converted to integer",
+          "evidence": {},
+          "llm_agreement": null
+        }
+      ],
+      "measured": "type_conversion",
+      "status": "pending",
+      "verified_version": "V1"
+    },
+    {
+      "id": "task-3",
+      "category": "types",
+      "columns": [
+        "is_active"
+      ],
+      "evidence": [
+        {
+          "target_type": "boolean"
+        },
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Values must be converted to boolean",
+          "evidence": {},
+          "llm_agreement": null
+        }
+      ],
+      "measured": "type_conversion",
+      "status": "pending",
+      "verified_version": "V1"
+    },
+    {
+      "id": "task-4",
+      "category": "types",
+      "columns": [
+        "signup_date"
+      ],
+      "evidence": [
+        {
+          "target_type": "datetime"
+        },
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Values must be converted to datetime",
+          "evidence": {},
+          "llm_agreement": null
+        }
+      ],
+      "measured": "type_conversion",
+      "status": "pending",
+      "verified_version": "V1"
+    },
+    {
+      "id": "task-10",
+      "category": "duplicates",
+      "columns": [],
+      "evidence": [
+        {
+          "issue_id": "duplicate_rows",
+          "columns": [],
+          "description": "2 exact duplicate rows"
+        }
+      ],
+      "measured": null,
+      "status": "pending"
+    },
+    {
+      "id": "task-5",
+      "category": "missing",
+      "columns": [
+        "revenue"
+      ],
+      "evidence": [
+        {
+          "reported_missing_values": true
+        }
+      ],
+      "measured": "missing_values",
+      "status": "pending",
+      "verified_version": "V1"
+    },
+    {
+      "id": "task-6",
+      "category": "missing",
+      "columns": [
+        "quantity"
+      ],
+      "evidence": [
+        {
+          "reported_missing_values": true
+        }
+      ],
+      "measured": "missing_values",
+      "status": "pending",
+      "verified_version": "V1"
+    },
+    {
+      "id": "task-7",
+      "category": "missing",
+      "columns": [
+        "signup_date"
+      ],
+      "evidence": [
+        {
+          "reported_missing_values": true
+        }
+      ],
+      "measured": "missing_values",
+      "status": "pending",
+      "verified_version": "V1"
+    },
+    {
+      "id": "task-9",
+      "category": "outliers",
+      "columns": [
+        "quantity"
+      ],
+      "evidence": [
+        {
+          "reported_outliers": true
+        }
+      ],
+      "measured": null,
+      "status": "pending"
+    }
+  ],
+  "inspection_progress": {
+    "V1:task-8": {
+      "inspections": 1,
+      "consecutive_stalls": 0,
+      "questions": [
+        "Measure evidence for this finding"
+      ]
+    }
+  },
+  "task_drops": [],
+  "host_decisions": [],
+  "waived": {},
+  "required_targets": {
+    "revenue": "float",
+    "quantity": "integer",
+    "is_active": "boolean",
+    "signup_date": "datetime"
+  },
+  "required_missing": [
+    "revenue",
+    "quantity",
+    "signup_date"
+  ],
+  "expected_columns": [
+    "order_id",
+    "customer",
+    "region",
+    "revenue",
+    "quantity",
+    "is_active",
+    "signup_date"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "dataset_id": "telco_churn",
+  "version": "V5",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\cab860c94b7b\\telco_churn\\V5_transform.csv",
+  "format": "csv",
+  "row_count": 7043,
+  "column_count": 21,
+  "columns": [
+    "customerID",
+    "gender",
+    "SeniorCitizen",
+    "Partner",
+    "Dependents",
+    "tenure",
+    "PhoneService",
+    "MultipleLines",
+    "InternetService",
+    "OnlineSecurity",
+    "OnlineBackup",
+    "DeviceProtection",
+    "TechSupport",
+    "StreamingTV",
+    "StreamingMovies",
+    "Contract",
+    "PaperlessBilling",
+    "PaymentMethod",
+    "MonthlyCharges",
+    "TotalCharges",
+    "Churn"
+  ],
+  "created_at": "2026-10-30T13:58:18.573887Z",
+  "parent_version": "V4",
+  "status": "working",
+  "metadata": {
+    "agent1_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\telco_churn.csv",
+    "user_request": "Improve data quality for BI analysis while preserving the uploaded original. This is an academic experimentation run: propose and test a generated cleaning method with test_generated using complete transform(df) code when it adds value, then apply a passing candidate with apply_candidate with an assessment. If Docker is unavailable, stop with a clear error. For a failed generated method, use the bounded correction pipeline; do not fall back to builtin methods.",
+    "source_signature": [
+      "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\telco_churn.csv",
+      1792601804891764000,
+      977501
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "content": "",
+  "tool_calls": [
+    {
+      "id": "ollama-2e1463c6634b",
+      "name": "flag_for_review",
+      "arguments": {
+        "columns": [
+          "value"
+        ],
+        "reason": "Non-numeric entries like 'banana' and 'ERROR_404' may represent errors or invalid data; human validation is required to confirm their intended meaning and handling"
+      }
+    }
+  ],
+  "raw_role": "assistant",
+  "provider": "ollama",
+  "model": "qwen3:8b",
+  "finish_reason": "stop",
+  "tool_call_source": "native",
+  "response_issue": null,
+  "usage": {
+    "prompt_tokens": 4895,
+    "completion_tokens": 630
+  },
+  "timing": {
+    "request_seconds": 16.59299999999348,
+    "load_seconds": 0.0239073,
+    "prompt_seconds": 0.368555,
+    "generation_seconds": 13.674747,
+    "tokens_per_second": 46.07032217853829
+  },
+  "options": {
+    "temperature": 0.6,
+    "num_ctx": 8192,
+    "num_predict": 4096
+  }
+}

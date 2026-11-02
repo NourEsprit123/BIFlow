@@ -1,0 +1,38 @@
+{
+  "content": "",
+  "tool_calls": [
+    {
+      "id": "ollama-5e53c7593162",
+      "name": "inspect_data",
+      "arguments": {
+        "column": "value",
+        "limit": 5,
+        "offset": 0,
+        "reason": "To understand the nature of the values in the 'value' column.",
+        "view": "values"
+      }
+    }
+  ],
+  "raw_role": "assistant",
+  "provider": "ollama",
+  "model": "qwen2.5:7b",
+  "finish_reason": "stop",
+  "tool_call_source": "native",
+  "response_issue": null,
+  "usage": {
+    "prompt_tokens": 1127,
+    "completion_tokens": 56
+  },
+  "timing": {
+    "request_seconds": 3.89000000001397,
+    "load_seconds": 0.0427843,
+    "prompt_seconds": 0.023502,
+    "generation_seconds": 1.176489,
+    "tokens_per_second": 47.599255071658135
+  },
+  "options": {
+    "temperature": 0.1,
+    "num_ctx": 8192,
+    "num_predict": 1024
+  }
+}

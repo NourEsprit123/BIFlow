@@ -1,0 +1,7 @@
+{
+  "success": false,
+  "error": "NpipeHTTPConnectionPool(host='localhost', port=None): Read timed out. (read timeout=5)",
+  "error_kind": "sandbox_unavailable",
+  "failure_stage": "sandbox_setup",
+  "setup": "Use an isolated Docker runtime. docker build -t biflow-cleaning-sandbox:latest -f sandbox/Dockerfile sandbox"
+}

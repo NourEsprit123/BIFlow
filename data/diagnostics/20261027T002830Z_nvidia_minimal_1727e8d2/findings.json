@@ -1,0 +1,34 @@
+{
+  "deepseek_minimal": {
+    "max_output_tokens": 32,
+    "streaming": true,
+    "reviewer_prompt": false,
+    "json_format_constraint": false,
+    "result": "ReadTimeout before response headers",
+    "timeout_seconds": 30
+  },
+  "unauthenticated_control": {
+    "http_status": 401,
+    "elapsed_seconds": 0.406
+  },
+  "model_list": {
+    "http_status": 200,
+    "requested_deepseek_model_listed": true
+  },
+  "other_model_controls": [
+    {
+      "model": "google/gemma-3-4b-it",
+      "http_status": 404,
+      "provider_message": "Function not found for account"
+    },
+    {
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "http_status": 404,
+      "provider_message": "Function not found for account"
+    }
+  ],
+  "conclusion": "The minimal inference path is failing independently of BIFlow prompts and JSON settings. Account-specific model availability/serving remains unresolved; exact NVIDIA-side cause is not established.",
+  "production_changes": false,
+  "dataset_changes": false,
+  "next_check": "Try the same reply-OK request in NVIDIA model playground under the account; inspect model access/availability notices before any further pipeline changes."
+}

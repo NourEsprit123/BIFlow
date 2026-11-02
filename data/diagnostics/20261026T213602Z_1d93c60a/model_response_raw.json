@@ -1,0 +1,20 @@
+{
+  "http_status": 200,
+  "body": {
+    "model": "qwen2.5:7b",
+    "created_at": "2026-10-26T21:36:08.5470958Z",
+    "message": {
+      "role": "assistant",
+      "content": "{\n  \"code\": \"def transform(df):\\n    import re\\n    df['Revenue'] = df['Revenue'].str.replace(r'[$,]', '', regex=True)\\n    df['Revenue'] = df['Revenue'].str.replace(r'k', '000', regex=False)\\n    df['Revenue'] = df['Revenue'].str.replace(r'[a-zA-Z]', '', regex=True)\\n    df['Revenue'] = df['Revenue'].astype(float)\\n    return df\",\n  \"hypothesis\": \"The 'Revenue' column contains mixed numeric strings with currency symbols, thousand multipliers, and non-numeric characters. The revised method cleans these values while preserving valid entries.\"\n}"
+    },
+    "done": true,
+    "done_reason": "stop",
+    "total_duration": 3900144300,
+    "load_duration": 32840000,
+    "prompt_eval_count": 1278,
+    "prompt_eval_cached_count": 4,
+    "prompt_eval_duration": 761681000,
+    "eval_count": 146,
+    "eval_duration": 2816707000
+  }
+}

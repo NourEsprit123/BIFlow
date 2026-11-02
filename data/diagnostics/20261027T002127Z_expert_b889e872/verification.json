@@ -1,0 +1,22 @@
+{
+  "status": "review_not_verified_provider_timeouts",
+  "model_list_http_status": 200,
+  "requested_model_listed": true,
+  "inference_attempts": [
+    {
+      "timeout_seconds": 60,
+      "result": "ReadTimeout",
+      "diagnostic": "20261027T001944Z_expert_ca86db4c"
+    },
+    {
+      "timeout_seconds": 180,
+      "result": "ReadTimeout",
+      "diagnostic": "20261027T002127Z_expert_b889e872"
+    }
+  ],
+  "review_received": false,
+  "local_revision_called": false,
+  "dataset_applied": false,
+  "production_review_enabled": false,
+  "hard_wall_clock_guard_added": true
+}

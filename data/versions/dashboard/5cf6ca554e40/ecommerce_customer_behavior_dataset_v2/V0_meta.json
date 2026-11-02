@@ -1,0 +1,40 @@
+{
+  "dataset_id": "ecommerce_customer_behavior_dataset_v2",
+  "version": "V0",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\5cf6ca554e40\\ecommerce_customer_behavior_dataset_v2\\V0_original.csv",
+  "format": "csv",
+  "row_count": 17049,
+  "column_count": 18,
+  "columns": [
+    "Order_ID",
+    "Customer_ID",
+    "Date",
+    "Age",
+    "Gender",
+    "City",
+    "Product_Category",
+    "Unit_Price",
+    "Quantity",
+    "Discount_Amount",
+    "Total_Amount",
+    "Payment_Method",
+    "Device_Type",
+    "Session_Duration_Minutes",
+    "Pages_Viewed",
+    "Is_Returning_Customer",
+    "Delivery_Time_Days",
+    "Customer_Rating"
+  ],
+  "created_at": "2026-10-25T22:45:24.430523Z",
+  "parent_version": null,
+  "status": "original",
+  "metadata": {
+    "agent1_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\ecommerce_customer_behavior_dataset_v2.csv",
+    "user_request": "Improve data quality for BI analysis while preserving the uploaded original. This is an academic experimentation run: propose and test a generated cleaning method with test_method using generated code when it adds value, then apply a passing candidate with apply_candidate with an assessment. If the isolated runtime is unavailable or the method fails, explain that result and test builtin catalog methods where appropriate.",
+    "source_signature": [
+      "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\ecommerce_customer_behavior_dataset_v2.csv",
+      1792708924558899900,
+      1959560
+    ]
+  }
+}

@@ -1,0 +1,2408 @@
+{
+  "log_id": "43afe4f6-2ce4-4aee-b61d-a5aed9d29bd2",
+  "dataset_id": "telco_churn",
+  "entries": [
+    {
+      "change_id": "3a5a2f6d",
+      "step_id": "step-d49e6bc0413e",
+      "operation": "convert_data_types",
+      "columns": [
+        "SeniorCitizen"
+      ],
+      "source_version": "V1",
+      "result_version": "V2",
+      "parameters": {
+        "target_type": "boolean",
+        "columns": [
+          "SeniorCitizen"
+        ]
+      },
+      "rationale": "Convert the 'SeniorCitizen' column from integer to boolean, where 0 represents false and 1 represents true. This aligns with the business interpretation of indicating if a customer is 65 years or older.",
+      "affected_rows": 0,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-11-01T21:09:06.591687Z",
+      "approval_obtained": false,
+      "metadata": {
+        "evidence_ids": [
+          "before-step-d49e6bc0413e"
+        ],
+        "effect": {
+          "accepted": true,
+          "rules": [
+            {
+              "rule_name": "non_empty",
+              "passed": true,
+              "message": "Candidate contains 7043 rows"
+            },
+            {
+              "rule_name": "row_count",
+              "passed": true,
+              "message": "Rows: 7043 → 7043"
+            },
+            {
+              "rule_name": "columns",
+              "passed": true,
+              "message": "Only explicitly requested columns may be removed"
+            },
+            {
+              "rule_name": "untouched:customerID",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:gender",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Partner",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Dependents",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:tenure",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PhoneService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MultipleLines",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:InternetService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineSecurity",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineBackup",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:DeviceProtection",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:TechSupport",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingTV",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingMovies",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Contract",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaperlessBilling",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaymentMethod",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MonthlyCharges",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:TotalCharges",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Churn",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "target_type:SeniorCitizen",
+              "passed": true,
+              "message": "Values must match boolean"
+            },
+            {
+              "rule_name": "expected:boolean_values:SeniorCitizen",
+              "passed": true,
+              "message": "Preserve the boolean meaning of 7043 recognized source values; 0 mismatches",
+              "checked_values": 7043,
+              "mismatches": []
+            }
+          ],
+          "before": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "int64",
+              "Partner": "str",
+              "Dependents": "str",
+              "tenure": "int64",
+              "PhoneService": "str",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "str",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "str",
+              "Churn": "str"
+            },
+            "duplicate_rows": 0
+          },
+          "after": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "boolean",
+              "Partner": "str",
+              "Dependents": "str",
+              "tenure": "int64",
+              "PhoneService": "str",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "str",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "str",
+              "Churn": "str"
+            },
+            "duplicate_rows": 0
+          },
+          "changed_cells": 7043,
+          "rows_removed": 0,
+          "changed_examples": [
+            {
+              "row_position": 0,
+              "column": "SeniorCitizen",
+              "before": "0",
+              "after": "False"
+            },
+            {
+              "row_position": 1,
+              "column": "SeniorCitizen",
+              "before": "0",
+              "after": "False"
+            },
+            {
+              "row_position": 2,
+              "column": "SeniorCitizen",
+              "before": "0",
+              "after": "False"
+            },
+            {
+              "row_position": 3,
+              "column": "SeniorCitizen",
+              "before": "0",
+              "after": "False"
+            },
+            {
+              "row_position": 4,
+              "column": "SeniorCitizen",
+              "before": "0",
+              "after": "False"
+            }
+          ],
+          "lost_values": [],
+          "lost_value_count": 0,
+          "columns_removed": []
+        },
+        "accepted": true,
+        "rationale_origin": "agent"
+      }
+    },
+    {
+      "change_id": "82e3d015",
+      "step_id": "step-4474cfe631db",
+      "operation": "convert_data_types",
+      "columns": [
+        "Partner"
+      ],
+      "source_version": "V2",
+      "result_version": "V3",
+      "parameters": {
+        "errors": "coerce",
+        "target_type": "boolean",
+        "columns": [
+          "Partner"
+        ]
+      },
+      "rationale": "Convert the 'Partner' column to boolean dtype by mapping 'Yes' to True and 'No' to False, preserving existing missing values.",
+      "affected_rows": 0,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-11-01T21:09:15.835402Z",
+      "approval_obtained": false,
+      "metadata": {
+        "evidence_ids": [
+          "before-step-4474cfe631db"
+        ],
+        "effect": {
+          "accepted": true,
+          "rules": [
+            {
+              "rule_name": "non_empty",
+              "passed": true,
+              "message": "Candidate contains 7043 rows"
+            },
+            {
+              "rule_name": "row_count",
+              "passed": true,
+              "message": "Rows: 7043 → 7043"
+            },
+            {
+              "rule_name": "columns",
+              "passed": true,
+              "message": "Only explicitly requested columns may be removed"
+            },
+            {
+              "rule_name": "untouched:customerID",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:gender",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:SeniorCitizen",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Dependents",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:tenure",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PhoneService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MultipleLines",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:InternetService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineSecurity",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineBackup",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:DeviceProtection",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:TechSupport",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingTV",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingMovies",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Contract",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaperlessBilling",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaymentMethod",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MonthlyCharges",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:TotalCharges",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Churn",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "target_type:Partner",
+              "passed": true,
+              "message": "Values must match boolean"
+            },
+            {
+              "rule_name": "expected:boolean_values:Partner",
+              "passed": true,
+              "message": "Preserve the boolean meaning of 7043 recognized source values; 0 mismatches",
+              "checked_values": 7043,
+              "mismatches": []
+            }
+          ],
+          "before": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "bool",
+              "Partner": "str",
+              "Dependents": "str",
+              "tenure": "int64",
+              "PhoneService": "str",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "str",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "str",
+              "Churn": "str"
+            },
+            "duplicate_rows": 0
+          },
+          "after": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "bool",
+              "Partner": "boolean",
+              "Dependents": "str",
+              "tenure": "int64",
+              "PhoneService": "str",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "str",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "str",
+              "Churn": "str"
+            },
+            "duplicate_rows": 0
+          },
+          "changed_cells": 7043,
+          "rows_removed": 0,
+          "changed_examples": [
+            {
+              "row_position": 0,
+              "column": "Partner",
+              "before": "Yes",
+              "after": "True"
+            },
+            {
+              "row_position": 1,
+              "column": "Partner",
+              "before": "No",
+              "after": "False"
+            },
+            {
+              "row_position": 2,
+              "column": "Partner",
+              "before": "No",
+              "after": "False"
+            },
+            {
+              "row_position": 3,
+              "column": "Partner",
+              "before": "No",
+              "after": "False"
+            },
+            {
+              "row_position": 4,
+              "column": "Partner",
+              "before": "No",
+              "after": "False"
+            }
+          ],
+          "lost_values": [],
+          "lost_value_count": 0,
+          "columns_removed": []
+        },
+        "accepted": true,
+        "rationale_origin": "agent"
+      }
+    },
+    {
+      "change_id": "1aa0056e",
+      "step_id": "step-ac435ae35797",
+      "operation": "convert_data_types",
+      "columns": [
+        "Dependents"
+      ],
+      "source_version": "V3",
+      "result_version": "V4",
+      "parameters": {
+        "target_type": "boolean",
+        "columns": [
+          "Dependents"
+        ]
+      },
+      "rationale": "Convert the 'Dependents' column to boolean dtype by mapping 'Yes' to True and 'No' to False, preserving existing missing values.",
+      "affected_rows": 0,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-11-01T21:09:24.555705Z",
+      "approval_obtained": false,
+      "metadata": {
+        "evidence_ids": [
+          "before-step-ac435ae35797"
+        ],
+        "effect": {
+          "accepted": true,
+          "rules": [
+            {
+              "rule_name": "non_empty",
+              "passed": true,
+              "message": "Candidate contains 7043 rows"
+            },
+            {
+              "rule_name": "row_count",
+              "passed": true,
+              "message": "Rows: 7043 → 7043"
+            },
+            {
+              "rule_name": "columns",
+              "passed": true,
+              "message": "Only explicitly requested columns may be removed"
+            },
+            {
+              "rule_name": "untouched:customerID",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:gender",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:SeniorCitizen",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Partner",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:tenure",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PhoneService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MultipleLines",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:InternetService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineSecurity",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineBackup",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:DeviceProtection",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:TechSupport",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingTV",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingMovies",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Contract",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaperlessBilling",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaymentMethod",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MonthlyCharges",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:TotalCharges",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Churn",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "target_type:Dependents",
+              "passed": true,
+              "message": "Values must match boolean"
+            },
+            {
+              "rule_name": "expected:boolean_values:Dependents",
+              "passed": true,
+              "message": "Preserve the boolean meaning of 7043 recognized source values; 0 mismatches",
+              "checked_values": 7043,
+              "mismatches": []
+            }
+          ],
+          "before": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "bool",
+              "Partner": "bool",
+              "Dependents": "str",
+              "tenure": "int64",
+              "PhoneService": "str",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "str",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "str",
+              "Churn": "str"
+            },
+            "duplicate_rows": 0
+          },
+          "after": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "bool",
+              "Partner": "bool",
+              "Dependents": "boolean",
+              "tenure": "int64",
+              "PhoneService": "str",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "str",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "str",
+              "Churn": "str"
+            },
+            "duplicate_rows": 0
+          },
+          "changed_cells": 7043,
+          "rows_removed": 0,
+          "changed_examples": [
+            {
+              "row_position": 0,
+              "column": "Dependents",
+              "before": "No",
+              "after": "False"
+            },
+            {
+              "row_position": 1,
+              "column": "Dependents",
+              "before": "No",
+              "after": "False"
+            },
+            {
+              "row_position": 2,
+              "column": "Dependents",
+              "before": "No",
+              "after": "False"
+            },
+            {
+              "row_position": 3,
+              "column": "Dependents",
+              "before": "No",
+              "after": "False"
+            },
+            {
+              "row_position": 4,
+              "column": "Dependents",
+              "before": "No",
+              "after": "False"
+            }
+          ],
+          "lost_values": [],
+          "lost_value_count": 0,
+          "columns_removed": []
+        },
+        "accepted": true,
+        "rationale_origin": "agent"
+      }
+    },
+    {
+      "change_id": "8e39e47c",
+      "step_id": "step-8804a7798092",
+      "operation": "convert_data_types",
+      "columns": [
+        "PhoneService"
+      ],
+      "source_version": "V4",
+      "result_version": "V5",
+      "parameters": {
+        "target_type": "boolean",
+        "columns": [
+          "PhoneService"
+        ]
+      },
+      "rationale": "Convert the 'PhoneService' column to boolean dtype by mapping 'Yes' to True and 'No' to False, preserving existing missing values.",
+      "affected_rows": 0,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-11-01T21:09:32.335388Z",
+      "approval_obtained": false,
+      "metadata": {
+        "evidence_ids": [
+          "before-step-8804a7798092"
+        ],
+        "effect": {
+          "accepted": true,
+          "rules": [
+            {
+              "rule_name": "non_empty",
+              "passed": true,
+              "message": "Candidate contains 7043 rows"
+            },
+            {
+              "rule_name": "row_count",
+              "passed": true,
+              "message": "Rows: 7043 → 7043"
+            },
+            {
+              "rule_name": "columns",
+              "passed": true,
+              "message": "Only explicitly requested columns may be removed"
+            },
+            {
+              "rule_name": "untouched:customerID",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:gender",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:SeniorCitizen",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Partner",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Dependents",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:tenure",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MultipleLines",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:InternetService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineSecurity",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineBackup",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:DeviceProtection",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:TechSupport",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingTV",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingMovies",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Contract",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaperlessBilling",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaymentMethod",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MonthlyCharges",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:TotalCharges",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Churn",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "target_type:PhoneService",
+              "passed": true,
+              "message": "Values must match boolean"
+            },
+            {
+              "rule_name": "expected:boolean_values:PhoneService",
+              "passed": true,
+              "message": "Preserve the boolean meaning of 7043 recognized source values; 0 mismatches",
+              "checked_values": 7043,
+              "mismatches": []
+            }
+          ],
+          "before": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "bool",
+              "Partner": "bool",
+              "Dependents": "bool",
+              "tenure": "int64",
+              "PhoneService": "str",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "str",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "str",
+              "Churn": "str"
+            },
+            "duplicate_rows": 0
+          },
+          "after": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "bool",
+              "Partner": "bool",
+              "Dependents": "bool",
+              "tenure": "int64",
+              "PhoneService": "boolean",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "str",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "str",
+              "Churn": "str"
+            },
+            "duplicate_rows": 0
+          },
+          "changed_cells": 7043,
+          "rows_removed": 0,
+          "changed_examples": [
+            {
+              "row_position": 0,
+              "column": "PhoneService",
+              "before": "No",
+              "after": "False"
+            },
+            {
+              "row_position": 1,
+              "column": "PhoneService",
+              "before": "Yes",
+              "after": "True"
+            },
+            {
+              "row_position": 2,
+              "column": "PhoneService",
+              "before": "Yes",
+              "after": "True"
+            },
+            {
+              "row_position": 3,
+              "column": "PhoneService",
+              "before": "No",
+              "after": "False"
+            },
+            {
+              "row_position": 4,
+              "column": "PhoneService",
+              "before": "Yes",
+              "after": "True"
+            }
+          ],
+          "lost_values": [],
+          "lost_value_count": 0,
+          "columns_removed": []
+        },
+        "accepted": true,
+        "rationale_origin": "agent"
+      }
+    },
+    {
+      "change_id": "3a2cb879",
+      "step_id": "step-d059915e06b7",
+      "operation": "convert_data_types",
+      "columns": [
+        "PaperlessBilling"
+      ],
+      "source_version": "V5",
+      "result_version": "V6",
+      "parameters": {
+        "target_type": "boolean",
+        "columns": [
+          "PaperlessBilling"
+        ]
+      },
+      "rationale": "Convert the 'PaperlessBilling' column to boolean dtype by mapping 'Yes' to True and 'No' to False, preserving existing missing values.",
+      "affected_rows": 0,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-11-01T21:09:40.633226Z",
+      "approval_obtained": false,
+      "metadata": {
+        "evidence_ids": [
+          "before-step-d059915e06b7"
+        ],
+        "effect": {
+          "accepted": true,
+          "rules": [
+            {
+              "rule_name": "non_empty",
+              "passed": true,
+              "message": "Candidate contains 7043 rows"
+            },
+            {
+              "rule_name": "row_count",
+              "passed": true,
+              "message": "Rows: 7043 → 7043"
+            },
+            {
+              "rule_name": "columns",
+              "passed": true,
+              "message": "Only explicitly requested columns may be removed"
+            },
+            {
+              "rule_name": "untouched:customerID",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:gender",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:SeniorCitizen",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Partner",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Dependents",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:tenure",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PhoneService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MultipleLines",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:InternetService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineSecurity",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineBackup",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:DeviceProtection",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:TechSupport",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingTV",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingMovies",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Contract",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaymentMethod",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MonthlyCharges",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:TotalCharges",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Churn",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "target_type:PaperlessBilling",
+              "passed": true,
+              "message": "Values must match boolean"
+            },
+            {
+              "rule_name": "expected:boolean_values:PaperlessBilling",
+              "passed": true,
+              "message": "Preserve the boolean meaning of 7043 recognized source values; 0 mismatches",
+              "checked_values": 7043,
+              "mismatches": []
+            }
+          ],
+          "before": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "bool",
+              "Partner": "bool",
+              "Dependents": "bool",
+              "tenure": "int64",
+              "PhoneService": "bool",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "str",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "str",
+              "Churn": "str"
+            },
+            "duplicate_rows": 0
+          },
+          "after": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "bool",
+              "Partner": "bool",
+              "Dependents": "bool",
+              "tenure": "int64",
+              "PhoneService": "bool",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "boolean",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "str",
+              "Churn": "str"
+            },
+            "duplicate_rows": 0
+          },
+          "changed_cells": 7043,
+          "rows_removed": 0,
+          "changed_examples": [
+            {
+              "row_position": 0,
+              "column": "PaperlessBilling",
+              "before": "Yes",
+              "after": "True"
+            },
+            {
+              "row_position": 1,
+              "column": "PaperlessBilling",
+              "before": "No",
+              "after": "False"
+            },
+            {
+              "row_position": 2,
+              "column": "PaperlessBilling",
+              "before": "Yes",
+              "after": "True"
+            },
+            {
+              "row_position": 3,
+              "column": "PaperlessBilling",
+              "before": "No",
+              "after": "False"
+            },
+            {
+              "row_position": 4,
+              "column": "PaperlessBilling",
+              "before": "Yes",
+              "after": "True"
+            }
+          ],
+          "lost_values": [],
+          "lost_value_count": 0,
+          "columns_removed": []
+        },
+        "accepted": true,
+        "rationale_origin": "agent"
+      }
+    },
+    {
+      "change_id": "ef8f7a21",
+      "step_id": "step-dec96d476f0d",
+      "operation": "convert_data_types",
+      "columns": [
+        "TotalCharges"
+      ],
+      "source_version": "V6",
+      "result_version": "V7",
+      "parameters": {
+        "target_type": "float",
+        "columns": [
+          "TotalCharges"
+        ]
+      },
+      "rationale": "Convert 'TotalCharges' to float by parsing numeric strings, preserving existing missing values, and handling unparseable entries as NaN with an explanation.",
+      "affected_rows": 11,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-11-01T21:09:52.819500Z",
+      "approval_obtained": false,
+      "metadata": {
+        "evidence_ids": [
+          "before-step-dec96d476f0d"
+        ],
+        "effect": {
+          "accepted": true,
+          "rules": [
+            {
+              "rule_name": "non_empty",
+              "passed": true,
+              "message": "Candidate contains 7043 rows"
+            },
+            {
+              "rule_name": "row_count",
+              "passed": true,
+              "message": "Rows: 7043 → 7043"
+            },
+            {
+              "rule_name": "columns",
+              "passed": true,
+              "message": "Only explicitly requested columns may be removed"
+            },
+            {
+              "rule_name": "untouched:customerID",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:gender",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:SeniorCitizen",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Partner",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Dependents",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:tenure",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PhoneService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MultipleLines",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:InternetService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineSecurity",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineBackup",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:DeviceProtection",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:TechSupport",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingTV",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingMovies",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Contract",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaperlessBilling",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaymentMethod",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MonthlyCharges",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Churn",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "target_type:TotalCharges",
+              "passed": true,
+              "message": "Values must match float"
+            },
+            {
+              "rule_name": "expected:numeric_values:TotalCharges",
+              "passed": true,
+              "message": "Preserve the numeric meaning of 7032 recognized source values; 0 mismatches",
+              "checked_values": 7032,
+              "mismatches": []
+            }
+          ],
+          "before": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "bool",
+              "Partner": "bool",
+              "Dependents": "bool",
+              "tenure": "int64",
+              "PhoneService": "bool",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "bool",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "str",
+              "Churn": "str"
+            },
+            "duplicate_rows": 0
+          },
+          "after": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "bool",
+              "Partner": "bool",
+              "Dependents": "bool",
+              "tenure": "int64",
+              "PhoneService": "bool",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "bool",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "float64",
+              "Churn": "str"
+            },
+            "duplicate_rows": 0
+          },
+          "changed_cells": 335,
+          "rows_removed": 0,
+          "changed_examples": [
+            {
+              "row_position": 46,
+              "column": "TotalCharges",
+              "before": "97",
+              "after": "97.0"
+            },
+            {
+              "row_position": 62,
+              "column": "TotalCharges",
+              "before": "2962",
+              "after": "2962.0"
+            },
+            {
+              "row_position": 72,
+              "column": "TotalCharges",
+              "before": "7099",
+              "after": "7099.0"
+            },
+            {
+              "row_position": 87,
+              "column": "TotalCharges",
+              "before": "1057",
+              "after": "1057.0"
+            },
+            {
+              "row_position": 93,
+              "column": "TotalCharges",
+              "before": "7107",
+              "after": "7107.0"
+            }
+          ],
+          "lost_values": [],
+          "lost_value_count": 0,
+          "columns_removed": []
+        },
+        "accepted": true,
+        "rationale_origin": "agent"
+      }
+    },
+    {
+      "change_id": "b2c80eb0",
+      "step_id": "step-45c7cd6e157b",
+      "operation": "convert_data_types",
+      "columns": [
+        "Churn"
+      ],
+      "source_version": "V7",
+      "result_version": "V8",
+      "parameters": {
+        "target_type": "boolean",
+        "columns": [
+          "Churn"
+        ]
+      },
+      "rationale": "Convert the 'Churn' column to boolean dtype by mapping 'Yes' to True and 'No' to False, preserving existing missing values.",
+      "affected_rows": 0,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-11-01T21:10:00.706594Z",
+      "approval_obtained": false,
+      "metadata": {
+        "evidence_ids": [
+          "before-step-45c7cd6e157b"
+        ],
+        "effect": {
+          "accepted": true,
+          "rules": [
+            {
+              "rule_name": "non_empty",
+              "passed": true,
+              "message": "Candidate contains 7043 rows"
+            },
+            {
+              "rule_name": "row_count",
+              "passed": true,
+              "message": "Rows: 7043 → 7043"
+            },
+            {
+              "rule_name": "columns",
+              "passed": true,
+              "message": "Only explicitly requested columns may be removed"
+            },
+            {
+              "rule_name": "untouched:customerID",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:gender",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:SeniorCitizen",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Partner",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Dependents",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:tenure",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PhoneService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MultipleLines",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:InternetService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineSecurity",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineBackup",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:DeviceProtection",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:TechSupport",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingTV",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingMovies",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Contract",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaperlessBilling",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaymentMethod",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MonthlyCharges",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:TotalCharges",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "target_type:Churn",
+              "passed": true,
+              "message": "Values must match boolean"
+            },
+            {
+              "rule_name": "expected:boolean_values:Churn",
+              "passed": true,
+              "message": "Preserve the boolean meaning of 7043 recognized source values; 0 mismatches",
+              "checked_values": 7043,
+              "mismatches": []
+            }
+          ],
+          "before": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "bool",
+              "Partner": "bool",
+              "Dependents": "bool",
+              "tenure": "int64",
+              "PhoneService": "bool",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "bool",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "float64",
+              "Churn": "str"
+            },
+            "duplicate_rows": 0
+          },
+          "after": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "bool",
+              "Partner": "bool",
+              "Dependents": "bool",
+              "tenure": "int64",
+              "PhoneService": "bool",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "bool",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "float64",
+              "Churn": "boolean"
+            },
+            "duplicate_rows": 0
+          },
+          "changed_cells": 7043,
+          "rows_removed": 0,
+          "changed_examples": [
+            {
+              "row_position": 0,
+              "column": "Churn",
+              "before": "No",
+              "after": "False"
+            },
+            {
+              "row_position": 1,
+              "column": "Churn",
+              "before": "No",
+              "after": "False"
+            },
+            {
+              "row_position": 2,
+              "column": "Churn",
+              "before": "Yes",
+              "after": "True"
+            },
+            {
+              "row_position": 3,
+              "column": "Churn",
+              "before": "No",
+              "after": "False"
+            },
+            {
+              "row_position": 4,
+              "column": "Churn",
+              "before": "Yes",
+              "after": "True"
+            }
+          ],
+          "lost_values": [],
+          "lost_value_count": 0,
+          "columns_removed": []
+        },
+        "accepted": true,
+        "rationale_origin": "agent"
+      }
+    },
+    {
+      "change_id": "4285345c",
+      "step_id": "step-d68ab81bd770",
+      "operation": "handle_missing_values",
+      "columns": [
+        "TotalCharges"
+      ],
+      "source_version": "V8",
+      "result_version": "V9",
+      "parameters": {
+        "strategy": "fill_median",
+        "columns": [
+          "TotalCharges"
+        ]
+      },
+      "rationale": "The missing values in TotalCharges can be handled by filling them with the median value, which is 1397.475, to maintain the central tendency of the data.",
+      "affected_rows": 11,
+      "success": true,
+      "error_message": null,
+      "timestamp": "2026-11-01T21:10:19.226080Z",
+      "approval_obtained": false,
+      "metadata": {
+        "evidence_ids": [
+          "event-15"
+        ],
+        "effect": {
+          "accepted": true,
+          "rules": [
+            {
+              "rule_name": "non_empty",
+              "passed": true,
+              "message": "Candidate contains 7043 rows"
+            },
+            {
+              "rule_name": "row_count",
+              "passed": true,
+              "message": "Rows: 7043 → 7043"
+            },
+            {
+              "rule_name": "columns",
+              "passed": true,
+              "message": "Only explicitly requested columns may be removed"
+            },
+            {
+              "rule_name": "untouched:customerID",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:gender",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:SeniorCitizen",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Partner",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Dependents",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:tenure",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PhoneService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MultipleLines",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:InternetService",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineSecurity",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:OnlineBackup",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:DeviceProtection",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:TechSupport",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingTV",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:StreamingMovies",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Contract",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaperlessBilling",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:PaymentMethod",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:MonthlyCharges",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "untouched:Churn",
+              "passed": true,
+              "message": "Unselected column values must stay unchanged"
+            },
+            {
+              "rule_name": "missing_resolved:TotalCharges",
+              "passed": true,
+              "message": "Requested imputation must resolve missing values"
+            },
+            {
+              "rule_name": "expected:numeric_values:TotalCharges",
+              "passed": true,
+              "message": "Preserve the numeric meaning of 7032 recognized source values; 0 mismatches",
+              "checked_values": 7032,
+              "mismatches": []
+            }
+          ],
+          "before": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 11,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "bool",
+              "Partner": "bool",
+              "Dependents": "bool",
+              "tenure": "int64",
+              "PhoneService": "bool",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "bool",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "float64",
+              "Churn": "bool"
+            },
+            "duplicate_rows": 0
+          },
+          "after": {
+            "rows": 7043,
+            "columns": 21,
+            "missing": {
+              "customerID": 0,
+              "gender": 0,
+              "SeniorCitizen": 0,
+              "Partner": 0,
+              "Dependents": 0,
+              "tenure": 0,
+              "PhoneService": 0,
+              "MultipleLines": 0,
+              "InternetService": 0,
+              "OnlineSecurity": 0,
+              "OnlineBackup": 0,
+              "DeviceProtection": 0,
+              "TechSupport": 0,
+              "StreamingTV": 0,
+              "StreamingMovies": 0,
+              "Contract": 0,
+              "PaperlessBilling": 0,
+              "PaymentMethod": 0,
+              "MonthlyCharges": 0,
+              "TotalCharges": 0,
+              "Churn": 0
+            },
+            "dtypes": {
+              "customerID": "str",
+              "gender": "str",
+              "SeniorCitizen": "bool",
+              "Partner": "bool",
+              "Dependents": "bool",
+              "tenure": "int64",
+              "PhoneService": "bool",
+              "MultipleLines": "str",
+              "InternetService": "str",
+              "OnlineSecurity": "str",
+              "OnlineBackup": "str",
+              "DeviceProtection": "str",
+              "TechSupport": "str",
+              "StreamingTV": "str",
+              "StreamingMovies": "str",
+              "Contract": "str",
+              "PaperlessBilling": "bool",
+              "PaymentMethod": "str",
+              "MonthlyCharges": "float64",
+              "TotalCharges": "float64",
+              "Churn": "bool"
+            },
+            "duplicate_rows": 0
+          },
+          "changed_cells": 11,
+          "rows_removed": 0,
+          "changed_examples": [
+            {
+              "row_position": 488,
+              "column": "TotalCharges",
+              "before": null,
+              "after": "1397.475"
+            },
+            {
+              "row_position": 753,
+              "column": "TotalCharges",
+              "before": null,
+              "after": "1397.475"
+            },
+            {
+              "row_position": 936,
+              "column": "TotalCharges",
+              "before": null,
+              "after": "1397.475"
+            },
+            {
+              "row_position": 1082,
+              "column": "TotalCharges",
+              "before": null,
+              "after": "1397.475"
+            },
+            {
+              "row_position": 1340,
+              "column": "TotalCharges",
+              "before": null,
+              "after": "1397.475"
+            }
+          ],
+          "lost_values": [],
+          "lost_value_count": 0,
+          "columns_removed": []
+        },
+        "accepted": true,
+        "rationale_origin": "agent"
+      }
+    }
+  ],
+  "created_at": "2026-11-01T21:08:55.857834Z"
+}

@@ -1,0 +1,43 @@
+{
+  "dataset_id": "telco_churn",
+  "version": "V0",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\0d1bfe0efacb\\telco_churn\\V0_original.csv",
+  "format": "csv",
+  "row_count": 7043,
+  "column_count": 21,
+  "columns": [
+    "customerID",
+    "gender",
+    "SeniorCitizen",
+    "Partner",
+    "Dependents",
+    "tenure",
+    "PhoneService",
+    "MultipleLines",
+    "InternetService",
+    "OnlineSecurity",
+    "OnlineBackup",
+    "DeviceProtection",
+    "TechSupport",
+    "StreamingTV",
+    "StreamingMovies",
+    "Contract",
+    "PaperlessBilling",
+    "PaymentMethod",
+    "MonthlyCharges",
+    "TotalCharges",
+    "Churn"
+  ],
+  "created_at": "2026-10-26T14:27:06.006089Z",
+  "parent_version": null,
+  "status": "original",
+  "metadata": {
+    "agent1_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\telco_churn.csv",
+    "user_request": "Improve data quality for BI analysis while preserving the uploaded original. This is an academic experimentation run: propose and test a generated cleaning method with test_method using generated code when it adds value, then apply a passing candidate with apply_candidate with an assessment. If the isolated runtime is unavailable or the method fails, explain that result and test builtin catalog methods where appropriate.",
+    "source_signature": [
+      "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\telco_churn.csv",
+      1792601804891764000,
+      977501
+    ]
+  }
+}

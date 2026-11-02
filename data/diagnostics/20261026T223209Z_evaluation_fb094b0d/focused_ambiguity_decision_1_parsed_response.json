@@ -1,0 +1,38 @@
+{
+  "content": "",
+  "tool_calls": [
+    {
+      "id": "ollama-3a07290d5763",
+      "name": "inspect_data",
+      "arguments": {
+        "column": "value",
+        "limit": 5,
+        "offset": 0,
+        "reason": "To understand the distribution and nature of the values in the 'value' column.",
+        "view": "values"
+      }
+    }
+  ],
+  "raw_role": "assistant",
+  "provider": "ollama",
+  "model": "qwen2.5:7b",
+  "finish_reason": "stop",
+  "tool_call_source": "native",
+  "response_issue": null,
+  "usage": {
+    "prompt_tokens": 1127,
+    "completion_tokens": 58
+  },
+  "timing": {
+    "request_seconds": 4.5,
+    "load_seconds": 0.0299638,
+    "prompt_seconds": 0.605116,
+    "generation_seconds": 1.21527,
+    "tokens_per_second": 47.726019732240566
+  },
+  "options": {
+    "temperature": 0.1,
+    "num_ctx": 8192,
+    "num_predict": 1024
+  }
+}

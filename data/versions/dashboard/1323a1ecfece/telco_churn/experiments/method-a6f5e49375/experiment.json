@@ -1,0 +1,3845 @@
+{
+  "candidate_id": "method-a6f5e49375",
+  "code_hash": "6174707d52875c65dce9db42a4392e5615d863e70f552d85db2ef8c2752ec631",
+  "base_version": "V4",
+  "dataset_hash": "526e7381645927f6c313ac9498b89be0ad7946a0321b40d0f312319af976fcca",
+  "columns": [
+    "PhoneService"
+  ],
+  "checks": [
+    {
+      "column": "PhoneService",
+      "kind": "boolean"
+    },
+    {
+      "column": "PhoneService",
+      "kind": "preserve_missing"
+    }
+  ],
+  "rationale": "PhoneService values 'yes'/'no' map directly to boolean True/False with no ambiguity",
+  "verify_numeric_values": true,
+  "expected_effect": "Declared checks and selected-column obligations must pass",
+  "evidence_ids": [],
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\1323a1ecfece\\telco_churn\\experiments\\method-a6f5e49375\\method.py",
+  "trials": [
+    {
+      "partition": "sample",
+      "rows": 200,
+      "row_positions": [
+        2928,
+        6289,
+        1644,
+        3518,
+        6524,
+        363,
+        3580,
+        1084,
+        2690,
+        2213,
+        5327,
+        15,
+        6594,
+        1852,
+        1188,
+        6534,
+        404,
+        261,
+        4390,
+        2828,
+        6407,
+        6160,
+        3751,
+        3617,
+        4494,
+        6655,
+        3317,
+        5233,
+        2084,
+        351,
+        3297,
+        6465,
+        210,
+        6745,
+        4187,
+        6006,
+        3733,
+        3027,
+        5489,
+        2514,
+        4697,
+        1977,
+        369,
+        600,
+        6011,
+        6210,
+        5217,
+        3791,
+        1679,
+        4743,
+        116,
+        2573,
+        345,
+        3666,
+        5029,
+        6070,
+        4646,
+        4977,
+        906,
+        580,
+        4201,
+        58,
+        250,
+        6463,
+        6685,
+        753,
+        4654,
+        5726,
+        6659,
+        3055,
+        2328,
+        5116,
+        3198,
+        1183,
+        1485,
+        2285,
+        2018,
+        898,
+        3155,
+        4813,
+        6148,
+        318,
+        3923,
+        6498,
+        4528,
+        2035,
+        3717,
+        4142,
+        5827,
+        6654,
+        2725,
+        2809,
+        612,
+        3008,
+        3921,
+        6022,
+        5380,
+        2876,
+        4947,
+        1235,
+        5986,
+        4747,
+        3486,
+        5589,
+        4082,
+        91,
+        3282,
+        6857,
+        361,
+        2982,
+        1367,
+        56,
+        5080,
+        3899,
+        3950,
+        5258,
+        6074,
+        573,
+        970,
+        1141,
+        1631,
+        2006,
+        941,
+        5748,
+        2331,
+        314,
+        5073,
+        2121,
+        2474,
+        6773,
+        1375,
+        2917,
+        2005,
+        3954,
+        4185,
+        6226,
+        3822,
+        3870,
+        1203,
+        6490,
+        4637,
+        1215,
+        3063,
+        3840,
+        2249,
+        1363,
+        3350,
+        6026,
+        4499,
+        6772,
+        783,
+        1307,
+        878,
+        6812,
+        3302,
+        6188,
+        1163,
+        1987,
+        6181,
+        5524,
+        3240,
+        5441,
+        4604,
+        6586,
+        283,
+        3434,
+        5782,
+        2353,
+        5367,
+        5590,
+        4077,
+        3244,
+        5111,
+        340,
+        5805,
+        5406,
+        6972,
+        5314,
+        3070,
+        3963,
+        3739,
+        6652,
+        3801,
+        1197,
+        6991,
+        2932,
+        1116,
+        3708,
+        1426,
+        1178,
+        1655,
+        4117,
+        5106,
+        6243,
+        2628,
+        474,
+        4468,
+        1920,
+        1391,
+        3495
+      ],
+      "success": true,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "repeatable": true,
+      "output_hash": "51d78dc61e93645af807d0e0e197d007305afbf3c9764dd378c07d2011331852",
+      "log": "",
+      "effect": {
+        "accepted": true,
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "Candidate contains 200 rows"
+          },
+          {
+            "rule_name": "row_count",
+            "passed": true,
+            "message": "Rows: 200 \u2192 200"
+          },
+          {
+            "rule_name": "columns",
+            "passed": true,
+            "message": "Only explicitly requested columns may be removed"
+          },
+          {
+            "rule_name": "untouched:customerID",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:gender",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:SeniorCitizen",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Partner",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Dependents",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:tenure",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:MultipleLines",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:InternetService",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:OnlineSecurity",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:OnlineBackup",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:DeviceProtection",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:TechSupport",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:StreamingTV",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:StreamingMovies",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Contract",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:PaperlessBilling",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:PaymentMethod",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:MonthlyCharges",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:TotalCharges",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Churn",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "row_identity",
+            "passed": true,
+            "message": "Generated methods must preserve row index and order"
+          },
+          {
+            "rule_name": "expected:boolean:PhoneService",
+            "passed": true,
+            "message": "Declared outcome: PhoneService must satisfy boolean"
+          },
+          {
+            "rule_name": "expected:preserve_missing:PhoneService",
+            "passed": true,
+            "message": "Declared outcome: PhoneService must satisfy preserve_missing"
+          }
+        ],
+        "before": {
+          "rows": 200,
+          "columns": 21,
+          "missing": {
+            "customerID": 0,
+            "gender": 0,
+            "SeniorCitizen": 0,
+            "Partner": 0,
+            "Dependents": 0,
+            "tenure": 0,
+            "PhoneService": 0,
+            "MultipleLines": 0,
+            "InternetService": 0,
+            "OnlineSecurity": 0,
+            "OnlineBackup": 0,
+            "DeviceProtection": 0,
+            "TechSupport": 0,
+            "StreamingTV": 0,
+            "StreamingMovies": 0,
+            "Contract": 0,
+            "PaperlessBilling": 0,
+            "PaymentMethod": 0,
+            "MonthlyCharges": 0,
+            "TotalCharges": 1,
+            "Churn": 0
+          },
+          "dtypes": {
+            "customerID": "str",
+            "gender": "str",
+            "SeniorCitizen": "bool",
+            "Partner": "bool",
+            "Dependents": "bool",
+            "tenure": "int64",
+            "PhoneService": "str",
+            "MultipleLines": "str",
+            "InternetService": "str",
+            "OnlineSecurity": "str",
+            "OnlineBackup": "str",
+            "DeviceProtection": "str",
+            "TechSupport": "str",
+            "StreamingTV": "str",
+            "StreamingMovies": "str",
+            "Contract": "str",
+            "PaperlessBilling": "str",
+            "PaymentMethod": "str",
+            "MonthlyCharges": "float64",
+            "TotalCharges": "str",
+            "Churn": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "after": {
+          "rows": 200,
+          "columns": 21,
+          "missing": {
+            "customerID": 0,
+            "gender": 0,
+            "SeniorCitizen": 0,
+            "Partner": 0,
+            "Dependents": 0,
+            "tenure": 0,
+            "PhoneService": 200,
+            "MultipleLines": 0,
+            "InternetService": 0,
+            "OnlineSecurity": 0,
+            "OnlineBackup": 0,
+            "DeviceProtection": 0,
+            "TechSupport": 0,
+            "StreamingTV": 0,
+            "StreamingMovies": 0,
+            "Contract": 0,
+            "PaperlessBilling": 0,
+            "PaymentMethod": 0,
+            "MonthlyCharges": 0,
+            "TotalCharges": 1,
+            "Churn": 0
+          },
+          "dtypes": {
+            "customerID": "str",
+            "gender": "str",
+            "SeniorCitizen": "bool",
+            "Partner": "bool",
+            "Dependents": "bool",
+            "tenure": "int64",
+            "PhoneService": "boolean",
+            "MultipleLines": "str",
+            "InternetService": "str",
+            "OnlineSecurity": "str",
+            "OnlineBackup": "str",
+            "DeviceProtection": "str",
+            "TechSupport": "str",
+            "StreamingTV": "str",
+            "StreamingMovies": "str",
+            "Contract": "str",
+            "PaperlessBilling": "str",
+            "PaymentMethod": "str",
+            "MonthlyCharges": "float64",
+            "TotalCharges": "str",
+            "Churn": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "changed_cells": 200,
+        "rows_removed": 0,
+        "changed_examples": [
+          {
+            "row_position": 0,
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 1,
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 2,
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 3,
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 4,
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          }
+        ],
+        "lost_values": [
+          {
+            "row_position": 0,
+            "row_index": "2928",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 1,
+            "row_index": "6289",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 2,
+            "row_index": "1644",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 3,
+            "row_index": "3518",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 4,
+            "row_index": "6524",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 5,
+            "row_index": "363",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 6,
+            "row_index": "3580",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 7,
+            "row_index": "1084",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 8,
+            "row_index": "2690",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 9,
+            "row_index": "2213",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 10,
+            "row_index": "5327",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 11,
+            "row_index": "15",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 12,
+            "row_index": "6594",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 13,
+            "row_index": "1852",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 14,
+            "row_index": "1188",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 15,
+            "row_index": "6534",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 16,
+            "row_index": "404",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 17,
+            "row_index": "261",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 18,
+            "row_index": "4390",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 19,
+            "row_index": "2828",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 20,
+            "row_index": "6407",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 21,
+            "row_index": "6160",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 22,
+            "row_index": "3751",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 23,
+            "row_index": "3617",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 24,
+            "row_index": "4494",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 25,
+            "row_index": "6655",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 26,
+            "row_index": "3317",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 27,
+            "row_index": "5233",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 28,
+            "row_index": "2084",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 29,
+            "row_index": "351",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 30,
+            "row_index": "3297",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 31,
+            "row_index": "6465",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 32,
+            "row_index": "210",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 33,
+            "row_index": "6745",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 34,
+            "row_index": "4187",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 35,
+            "row_index": "6006",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 36,
+            "row_index": "3733",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 37,
+            "row_index": "3027",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 38,
+            "row_index": "5489",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 39,
+            "row_index": "2514",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 40,
+            "row_index": "4697",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 41,
+            "row_index": "1977",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 42,
+            "row_index": "369",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 43,
+            "row_index": "600",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 44,
+            "row_index": "6011",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 45,
+            "row_index": "6210",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 46,
+            "row_index": "5217",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 47,
+            "row_index": "3791",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 48,
+            "row_index": "1679",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 49,
+            "row_index": "4743",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 50,
+            "row_index": "116",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 51,
+            "row_index": "2573",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 52,
+            "row_index": "345",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 53,
+            "row_index": "3666",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 54,
+            "row_index": "5029",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 55,
+            "row_index": "6070",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 56,
+            "row_index": "4646",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 57,
+            "row_index": "4977",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 58,
+            "row_index": "906",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 59,
+            "row_index": "580",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 60,
+            "row_index": "4201",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 61,
+            "row_index": "58",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 62,
+            "row_index": "250",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 63,
+            "row_index": "6463",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 64,
+            "row_index": "6685",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 65,
+            "row_index": "753",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 66,
+            "row_index": "4654",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 67,
+            "row_index": "5726",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 68,
+            "row_index": "6659",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 69,
+            "row_index": "3055",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 70,
+            "row_index": "2328",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 71,
+            "row_index": "5116",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 72,
+            "row_index": "3198",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 73,
+            "row_index": "1183",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 74,
+            "row_index": "1485",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 75,
+            "row_index": "2285",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 76,
+            "row_index": "2018",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 77,
+            "row_index": "898",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 78,
+            "row_index": "3155",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 79,
+            "row_index": "4813",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 80,
+            "row_index": "6148",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 81,
+            "row_index": "318",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 82,
+            "row_index": "3923",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 83,
+            "row_index": "6498",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 84,
+            "row_index": "4528",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 85,
+            "row_index": "2035",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 86,
+            "row_index": "3717",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 87,
+            "row_index": "4142",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 88,
+            "row_index": "5827",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 89,
+            "row_index": "6654",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 90,
+            "row_index": "2725",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 91,
+            "row_index": "2809",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 92,
+            "row_index": "612",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 93,
+            "row_index": "3008",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 94,
+            "row_index": "3921",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 95,
+            "row_index": "6022",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 96,
+            "row_index": "5380",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 97,
+            "row_index": "2876",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 98,
+            "row_index": "4947",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 99,
+            "row_index": "1235",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 100,
+            "row_index": "5986",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 101,
+            "row_index": "4747",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 102,
+            "row_index": "3486",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 103,
+            "row_index": "5589",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 104,
+            "row_index": "4082",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 105,
+            "row_index": "91",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 106,
+            "row_index": "3282",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 107,
+            "row_index": "6857",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 108,
+            "row_index": "361",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 109,
+            "row_index": "2982",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 110,
+            "row_index": "1367",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 111,
+            "row_index": "56",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 112,
+            "row_index": "5080",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 113,
+            "row_index": "3899",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 114,
+            "row_index": "3950",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 115,
+            "row_index": "5258",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 116,
+            "row_index": "6074",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 117,
+            "row_index": "573",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 118,
+            "row_index": "970",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 119,
+            "row_index": "1141",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 120,
+            "row_index": "1631",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 121,
+            "row_index": "2006",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 122,
+            "row_index": "941",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 123,
+            "row_index": "5748",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 124,
+            "row_index": "2331",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 125,
+            "row_index": "314",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 126,
+            "row_index": "5073",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 127,
+            "row_index": "2121",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 128,
+            "row_index": "2474",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 129,
+            "row_index": "6773",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 130,
+            "row_index": "1375",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 131,
+            "row_index": "2917",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 132,
+            "row_index": "2005",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 133,
+            "row_index": "3954",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 134,
+            "row_index": "4185",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 135,
+            "row_index": "6226",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 136,
+            "row_index": "3822",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 137,
+            "row_index": "3870",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 138,
+            "row_index": "1203",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 139,
+            "row_index": "6490",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 140,
+            "row_index": "4637",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 141,
+            "row_index": "1215",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 142,
+            "row_index": "3063",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 143,
+            "row_index": "3840",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 144,
+            "row_index": "2249",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 145,
+            "row_index": "1363",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 146,
+            "row_index": "3350",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 147,
+            "row_index": "6026",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 148,
+            "row_index": "4499",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 149,
+            "row_index": "6772",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 150,
+            "row_index": "783",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 151,
+            "row_index": "1307",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 152,
+            "row_index": "878",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 153,
+            "row_index": "6812",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 154,
+            "row_index": "3302",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 155,
+            "row_index": "6188",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 156,
+            "row_index": "1163",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 157,
+            "row_index": "1987",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 158,
+            "row_index": "6181",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 159,
+            "row_index": "5524",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 160,
+            "row_index": "3240",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 161,
+            "row_index": "5441",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 162,
+            "row_index": "4604",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 163,
+            "row_index": "6586",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 164,
+            "row_index": "283",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 165,
+            "row_index": "3434",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 166,
+            "row_index": "5782",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 167,
+            "row_index": "2353",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 168,
+            "row_index": "5367",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 169,
+            "row_index": "5590",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 170,
+            "row_index": "4077",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 171,
+            "row_index": "3244",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 172,
+            "row_index": "5111",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 173,
+            "row_index": "340",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 174,
+            "row_index": "5805",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 175,
+            "row_index": "5406",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 176,
+            "row_index": "6972",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 177,
+            "row_index": "5314",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 178,
+            "row_index": "3070",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 179,
+            "row_index": "3963",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 180,
+            "row_index": "3739",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 181,
+            "row_index": "6652",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 182,
+            "row_index": "3801",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 183,
+            "row_index": "1197",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 184,
+            "row_index": "6991",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 185,
+            "row_index": "2932",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 186,
+            "row_index": "1116",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 187,
+            "row_index": "3708",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 188,
+            "row_index": "1426",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 189,
+            "row_index": "1178",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 190,
+            "row_index": "1655",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 191,
+            "row_index": "4117",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 192,
+            "row_index": "5106",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 193,
+            "row_index": "6243",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 194,
+            "row_index": "2628",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 195,
+            "row_index": "474",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 196,
+            "row_index": "4468",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 197,
+            "row_index": "1920",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 198,
+            "row_index": "1391",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 199,
+            "row_index": "3495",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          }
+        ],
+        "lost_value_count": 200,
+        "columns_removed": [],
+        "column_metrics": {
+          "PhoneService": {
+            "before": {
+              "unique": 2,
+              "missing": 0,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "after": {
+              "unique": 0,
+              "missing": 200,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "partition": "holdout",
+      "rows": 200,
+      "row_positions": [
+        4895,
+        3222,
+        2045,
+        2983,
+        3503,
+        1073,
+        5967,
+        5745,
+        2172,
+        246,
+        129,
+        6219,
+        433,
+        5018,
+        2391,
+        4678,
+        284,
+        652,
+        5637,
+        364,
+        1652,
+        6732,
+        2883,
+        3768,
+        2830,
+        4177,
+        6871,
+        3425,
+        1714,
+        5337,
+        4766,
+        6211,
+        1308,
+        5915,
+        2918,
+        3940,
+        1961,
+        255,
+        2444,
+        1475,
+        3089,
+        99,
+        5686,
+        785,
+        2670,
+        4748,
+        770,
+        5417,
+        4717,
+        6703,
+        6010,
+        3958,
+        1719,
+        4368,
+        2675,
+        1169,
+        5711,
+        6697,
+        654,
+        6082,
+        4880,
+        4897,
+        4754,
+        5130,
+        2381,
+        4103,
+        1339,
+        3916,
+        2667,
+        6347,
+        2395,
+        6500,
+        5681,
+        4209,
+        1074,
+        1780,
+        5846,
+        4361,
+        5317,
+        1543,
+        5828,
+        2691,
+        1364,
+        2162,
+        1422,
+        6457,
+        6494,
+        2049,
+        2041,
+        1575,
+        5581,
+        3763,
+        4946,
+        1903,
+        1524,
+        1320,
+        143,
+        6843,
+        6087,
+        3835,
+        2229,
+        1217,
+        2325,
+        4141,
+        1237,
+        6897,
+        1334,
+        315,
+        4073,
+        1767,
+        880,
+        138,
+        2449,
+        3427,
+        2473,
+        1457,
+        3109,
+        2990,
+        90,
+        188,
+        17,
+        4704,
+        3523,
+        6886,
+        3937,
+        1260,
+        2914,
+        3116,
+        5887,
+        3441,
+        2052,
+        3276,
+        2158,
+        5043,
+        2832,
+        2511,
+        243,
+        4316,
+        3122,
+        3163,
+        399,
+        2363,
+        4111,
+        1699,
+        4424,
+        2193,
+        3800,
+        4457,
+        3166,
+        748,
+        2443,
+        3849,
+        3732,
+        6575,
+        3938,
+        4391,
+        1446,
+        4592,
+        1764,
+        942,
+        458,
+        4797,
+        4782,
+        5993,
+        4324,
+        2784,
+        829,
+        1535,
+        2841,
+        2588,
+        4203,
+        2484,
+        1620,
+        4564,
+        3213,
+        588,
+        772,
+        4896,
+        1761,
+        3797,
+        4288,
+        2286,
+        3636,
+        2481,
+        1342,
+        2704,
+        5518,
+        3652,
+        4273,
+        4839,
+        5382,
+        4128,
+        5103,
+        1694,
+        4825,
+        3742,
+        5396,
+        358,
+        4429,
+        43
+      ],
+      "success": true,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "repeatable": true,
+      "output_hash": "b3ad42819aa92d152466514873992585e38fdef7dab653585b98c8b9d2e4017b",
+      "log": "",
+      "effect": {
+        "accepted": true,
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "Candidate contains 200 rows"
+          },
+          {
+            "rule_name": "row_count",
+            "passed": true,
+            "message": "Rows: 200 \u2192 200"
+          },
+          {
+            "rule_name": "columns",
+            "passed": true,
+            "message": "Only explicitly requested columns may be removed"
+          },
+          {
+            "rule_name": "untouched:customerID",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:gender",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:SeniorCitizen",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Partner",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Dependents",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:tenure",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:MultipleLines",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:InternetService",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:OnlineSecurity",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:OnlineBackup",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:DeviceProtection",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:TechSupport",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:StreamingTV",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:StreamingMovies",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Contract",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:PaperlessBilling",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:PaymentMethod",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:MonthlyCharges",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:TotalCharges",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Churn",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "row_identity",
+            "passed": true,
+            "message": "Generated methods must preserve row index and order"
+          },
+          {
+            "rule_name": "expected:boolean:PhoneService",
+            "passed": true,
+            "message": "Declared outcome: PhoneService must satisfy boolean"
+          },
+          {
+            "rule_name": "expected:preserve_missing:PhoneService",
+            "passed": true,
+            "message": "Declared outcome: PhoneService must satisfy preserve_missing"
+          }
+        ],
+        "before": {
+          "rows": 200,
+          "columns": 21,
+          "missing": {
+            "customerID": 0,
+            "gender": 0,
+            "SeniorCitizen": 0,
+            "Partner": 0,
+            "Dependents": 0,
+            "tenure": 0,
+            "PhoneService": 0,
+            "MultipleLines": 0,
+            "InternetService": 0,
+            "OnlineSecurity": 0,
+            "OnlineBackup": 0,
+            "DeviceProtection": 0,
+            "TechSupport": 0,
+            "StreamingTV": 0,
+            "StreamingMovies": 0,
+            "Contract": 0,
+            "PaperlessBilling": 0,
+            "PaymentMethod": 0,
+            "MonthlyCharges": 0,
+            "TotalCharges": 0,
+            "Churn": 0
+          },
+          "dtypes": {
+            "customerID": "str",
+            "gender": "str",
+            "SeniorCitizen": "bool",
+            "Partner": "bool",
+            "Dependents": "bool",
+            "tenure": "int64",
+            "PhoneService": "str",
+            "MultipleLines": "str",
+            "InternetService": "str",
+            "OnlineSecurity": "str",
+            "OnlineBackup": "str",
+            "DeviceProtection": "str",
+            "TechSupport": "str",
+            "StreamingTV": "str",
+            "StreamingMovies": "str",
+            "Contract": "str",
+            "PaperlessBilling": "str",
+            "PaymentMethod": "str",
+            "MonthlyCharges": "float64",
+            "TotalCharges": "str",
+            "Churn": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "after": {
+          "rows": 200,
+          "columns": 21,
+          "missing": {
+            "customerID": 0,
+            "gender": 0,
+            "SeniorCitizen": 0,
+            "Partner": 0,
+            "Dependents": 0,
+            "tenure": 0,
+            "PhoneService": 200,
+            "MultipleLines": 0,
+            "InternetService": 0,
+            "OnlineSecurity": 0,
+            "OnlineBackup": 0,
+            "DeviceProtection": 0,
+            "TechSupport": 0,
+            "StreamingTV": 0,
+            "StreamingMovies": 0,
+            "Contract": 0,
+            "PaperlessBilling": 0,
+            "PaymentMethod": 0,
+            "MonthlyCharges": 0,
+            "TotalCharges": 0,
+            "Churn": 0
+          },
+          "dtypes": {
+            "customerID": "str",
+            "gender": "str",
+            "SeniorCitizen": "bool",
+            "Partner": "bool",
+            "Dependents": "bool",
+            "tenure": "int64",
+            "PhoneService": "boolean",
+            "MultipleLines": "str",
+            "InternetService": "str",
+            "OnlineSecurity": "str",
+            "OnlineBackup": "str",
+            "DeviceProtection": "str",
+            "TechSupport": "str",
+            "StreamingTV": "str",
+            "StreamingMovies": "str",
+            "Contract": "str",
+            "PaperlessBilling": "str",
+            "PaymentMethod": "str",
+            "MonthlyCharges": "float64",
+            "TotalCharges": "str",
+            "Churn": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "changed_cells": 200,
+        "rows_removed": 0,
+        "changed_examples": [
+          {
+            "row_position": 0,
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 1,
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 2,
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 3,
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 4,
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          }
+        ],
+        "lost_values": [
+          {
+            "row_position": 0,
+            "row_index": "4895",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 1,
+            "row_index": "3222",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 2,
+            "row_index": "2045",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 3,
+            "row_index": "2983",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 4,
+            "row_index": "3503",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 5,
+            "row_index": "1073",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 6,
+            "row_index": "5967",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 7,
+            "row_index": "5745",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 8,
+            "row_index": "2172",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 9,
+            "row_index": "246",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 10,
+            "row_index": "129",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 11,
+            "row_index": "6219",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 12,
+            "row_index": "433",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 13,
+            "row_index": "5018",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 14,
+            "row_index": "2391",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 15,
+            "row_index": "4678",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 16,
+            "row_index": "284",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 17,
+            "row_index": "652",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 18,
+            "row_index": "5637",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 19,
+            "row_index": "364",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 20,
+            "row_index": "1652",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 21,
+            "row_index": "6732",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 22,
+            "row_index": "2883",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 23,
+            "row_index": "3768",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 24,
+            "row_index": "2830",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 25,
+            "row_index": "4177",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 26,
+            "row_index": "6871",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 27,
+            "row_index": "3425",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 28,
+            "row_index": "1714",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 29,
+            "row_index": "5337",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 30,
+            "row_index": "4766",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 31,
+            "row_index": "6211",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 32,
+            "row_index": "1308",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 33,
+            "row_index": "5915",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 34,
+            "row_index": "2918",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 35,
+            "row_index": "3940",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 36,
+            "row_index": "1961",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 37,
+            "row_index": "255",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 38,
+            "row_index": "2444",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 39,
+            "row_index": "1475",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 40,
+            "row_index": "3089",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 41,
+            "row_index": "99",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 42,
+            "row_index": "5686",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 43,
+            "row_index": "785",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 44,
+            "row_index": "2670",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 45,
+            "row_index": "4748",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 46,
+            "row_index": "770",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 47,
+            "row_index": "5417",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 48,
+            "row_index": "4717",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 49,
+            "row_index": "6703",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 50,
+            "row_index": "6010",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 51,
+            "row_index": "3958",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 52,
+            "row_index": "1719",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 53,
+            "row_index": "4368",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 54,
+            "row_index": "2675",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 55,
+            "row_index": "1169",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 56,
+            "row_index": "5711",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 57,
+            "row_index": "6697",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 58,
+            "row_index": "654",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 59,
+            "row_index": "6082",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 60,
+            "row_index": "4880",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 61,
+            "row_index": "4897",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 62,
+            "row_index": "4754",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 63,
+            "row_index": "5130",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 64,
+            "row_index": "2381",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 65,
+            "row_index": "4103",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 66,
+            "row_index": "1339",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 67,
+            "row_index": "3916",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 68,
+            "row_index": "2667",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 69,
+            "row_index": "6347",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 70,
+            "row_index": "2395",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 71,
+            "row_index": "6500",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 72,
+            "row_index": "5681",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 73,
+            "row_index": "4209",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 74,
+            "row_index": "1074",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 75,
+            "row_index": "1780",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 76,
+            "row_index": "5846",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 77,
+            "row_index": "4361",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 78,
+            "row_index": "5317",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 79,
+            "row_index": "1543",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 80,
+            "row_index": "5828",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 81,
+            "row_index": "2691",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 82,
+            "row_index": "1364",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 83,
+            "row_index": "2162",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 84,
+            "row_index": "1422",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 85,
+            "row_index": "6457",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 86,
+            "row_index": "6494",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 87,
+            "row_index": "2049",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 88,
+            "row_index": "2041",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 89,
+            "row_index": "1575",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 90,
+            "row_index": "5581",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 91,
+            "row_index": "3763",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 92,
+            "row_index": "4946",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 93,
+            "row_index": "1903",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 94,
+            "row_index": "1524",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 95,
+            "row_index": "1320",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 96,
+            "row_index": "143",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 97,
+            "row_index": "6843",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 98,
+            "row_index": "6087",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 99,
+            "row_index": "3835",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 100,
+            "row_index": "2229",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 101,
+            "row_index": "1217",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 102,
+            "row_index": "2325",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 103,
+            "row_index": "4141",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 104,
+            "row_index": "1237",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 105,
+            "row_index": "6897",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 106,
+            "row_index": "1334",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 107,
+            "row_index": "315",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 108,
+            "row_index": "4073",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 109,
+            "row_index": "1767",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 110,
+            "row_index": "880",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 111,
+            "row_index": "138",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 112,
+            "row_index": "2449",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 113,
+            "row_index": "3427",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 114,
+            "row_index": "2473",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 115,
+            "row_index": "1457",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 116,
+            "row_index": "3109",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 117,
+            "row_index": "2990",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 118,
+            "row_index": "90",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 119,
+            "row_index": "188",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 120,
+            "row_index": "17",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 121,
+            "row_index": "4704",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 122,
+            "row_index": "3523",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 123,
+            "row_index": "6886",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 124,
+            "row_index": "3937",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 125,
+            "row_index": "1260",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 126,
+            "row_index": "2914",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 127,
+            "row_index": "3116",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 128,
+            "row_index": "5887",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 129,
+            "row_index": "3441",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 130,
+            "row_index": "2052",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 131,
+            "row_index": "3276",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 132,
+            "row_index": "2158",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 133,
+            "row_index": "5043",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 134,
+            "row_index": "2832",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 135,
+            "row_index": "2511",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 136,
+            "row_index": "243",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 137,
+            "row_index": "4316",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 138,
+            "row_index": "3122",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 139,
+            "row_index": "3163",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 140,
+            "row_index": "399",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 141,
+            "row_index": "2363",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 142,
+            "row_index": "4111",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 143,
+            "row_index": "1699",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 144,
+            "row_index": "4424",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 145,
+            "row_index": "2193",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 146,
+            "row_index": "3800",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 147,
+            "row_index": "4457",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 148,
+            "row_index": "3166",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 149,
+            "row_index": "748",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 150,
+            "row_index": "2443",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 151,
+            "row_index": "3849",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 152,
+            "row_index": "3732",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 153,
+            "row_index": "6575",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 154,
+            "row_index": "3938",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 155,
+            "row_index": "4391",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 156,
+            "row_index": "1446",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 157,
+            "row_index": "4592",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 158,
+            "row_index": "1764",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 159,
+            "row_index": "942",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 160,
+            "row_index": "458",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 161,
+            "row_index": "4797",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 162,
+            "row_index": "4782",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 163,
+            "row_index": "5993",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 164,
+            "row_index": "4324",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 165,
+            "row_index": "2784",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 166,
+            "row_index": "829",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 167,
+            "row_index": "1535",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 168,
+            "row_index": "2841",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 169,
+            "row_index": "2588",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 170,
+            "row_index": "4203",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 171,
+            "row_index": "2484",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 172,
+            "row_index": "1620",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 173,
+            "row_index": "4564",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 174,
+            "row_index": "3213",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 175,
+            "row_index": "588",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 176,
+            "row_index": "772",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 177,
+            "row_index": "4896",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 178,
+            "row_index": "1761",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 179,
+            "row_index": "3797",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 180,
+            "row_index": "4288",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 181,
+            "row_index": "2286",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 182,
+            "row_index": "3636",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 183,
+            "row_index": "2481",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 184,
+            "row_index": "1342",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 185,
+            "row_index": "2704",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 186,
+            "row_index": "5518",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 187,
+            "row_index": "3652",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 188,
+            "row_index": "4273",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 189,
+            "row_index": "4839",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 190,
+            "row_index": "5382",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 191,
+            "row_index": "4128",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 192,
+            "row_index": "5103",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 193,
+            "row_index": "1694",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 194,
+            "row_index": "4825",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 195,
+            "row_index": "3742",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 196,
+            "row_index": "5396",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 197,
+            "row_index": "358",
+            "column": "PhoneService",
+            "before": "No",
+            "after": null
+          },
+          {
+            "row_position": 198,
+            "row_index": "4429",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          },
+          {
+            "row_position": 199,
+            "row_index": "43",
+            "column": "PhoneService",
+            "before": "Yes",
+            "after": null
+          }
+        ],
+        "lost_value_count": 200,
+        "columns_removed": [],
+        "column_metrics": {
+          "PhoneService": {
+            "before": {
+              "unique": 2,
+              "missing": 0,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "after": {
+              "unique": 0,
+              "missing": 200,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            }
+          }
+        }
+      }
+    }
+  ],
+  "tested": true,
+  "holdout_available": true,
+  "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a"
+}

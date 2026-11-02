@@ -1,0 +1,281 @@
+{
+  "candidate_id": "method-94baf43e2a",
+  "code_hash": "9dddfb6c2661b044212e7aacbf455165aadef9a38cc0a67e2e4eb15156461eb2",
+  "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+  "full_data_effect": {
+    "accepted": true,
+    "rules": [
+      {
+        "rule_name": "non_empty",
+        "passed": true,
+        "message": "Candidate contains 17049 rows"
+      },
+      {
+        "rule_name": "row_count",
+        "passed": true,
+        "message": "Rows: 17049 \u2192 17049"
+      },
+      {
+        "rule_name": "columns",
+        "passed": true,
+        "message": "Only explicitly requested columns may be removed"
+      },
+      {
+        "rule_name": "untouched:Order_ID",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Customer_ID",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Date",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Age",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Gender",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:City",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Product_Category",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Unit_Price",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Quantity",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Discount_Amount",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Payment_Method",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Device_Type",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Session_Duration_Minutes",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Pages_Viewed",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Is_Returning_Customer",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Delivery_Time_Days",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Customer_Rating",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "row_identity",
+        "passed": true,
+        "message": "Generated methods must preserve row index and order"
+      },
+      {
+        "rule_name": "expected:numeric:Total_Amount",
+        "passed": true,
+        "message": "Declared outcome: Total_Amount must satisfy numeric"
+      },
+      {
+        "rule_name": "expected:non_negative:Total_Amount",
+        "passed": true,
+        "message": "Declared outcome: Total_Amount must satisfy non_negative"
+      },
+      {
+        "rule_name": "expected:preserve_missing:Total_Amount",
+        "passed": true,
+        "message": "Declared outcome: Total_Amount must satisfy preserve_missing"
+      }
+    ],
+    "before": {
+      "rows": 17049,
+      "columns": 18,
+      "missing": {
+        "Order_ID": 0,
+        "Customer_ID": 0,
+        "Date": 0,
+        "Age": 0,
+        "Gender": 0,
+        "City": 0,
+        "Product_Category": 0,
+        "Unit_Price": 0,
+        "Quantity": 0,
+        "Discount_Amount": 0,
+        "Total_Amount": 0,
+        "Payment_Method": 0,
+        "Device_Type": 0,
+        "Session_Duration_Minutes": 0,
+        "Pages_Viewed": 0,
+        "Is_Returning_Customer": 0,
+        "Delivery_Time_Days": 0,
+        "Customer_Rating": 0
+      },
+      "dtypes": {
+        "Order_ID": "str",
+        "Customer_ID": "str",
+        "Date": "str",
+        "Age": "int64",
+        "Gender": "str",
+        "City": "str",
+        "Product_Category": "str",
+        "Unit_Price": "float64",
+        "Quantity": "int64",
+        "Discount_Amount": "float64",
+        "Total_Amount": "float64",
+        "Payment_Method": "str",
+        "Device_Type": "str",
+        "Session_Duration_Minutes": "int64",
+        "Pages_Viewed": "int64",
+        "Is_Returning_Customer": "bool",
+        "Delivery_Time_Days": "int64",
+        "Customer_Rating": "int64"
+      },
+      "duplicate_rows": 0
+    },
+    "after": {
+      "rows": 17049,
+      "columns": 18,
+      "missing": {
+        "Order_ID": 0,
+        "Customer_ID": 0,
+        "Date": 0,
+        "Age": 0,
+        "Gender": 0,
+        "City": 0,
+        "Product_Category": 0,
+        "Unit_Price": 0,
+        "Quantity": 0,
+        "Discount_Amount": 0,
+        "Total_Amount": 0,
+        "Payment_Method": 0,
+        "Device_Type": 0,
+        "Session_Duration_Minutes": 0,
+        "Pages_Viewed": 0,
+        "Is_Returning_Customer": 0,
+        "Delivery_Time_Days": 0,
+        "Customer_Rating": 0
+      },
+      "dtypes": {
+        "Order_ID": "str",
+        "Customer_ID": "str",
+        "Date": "str",
+        "Age": "int64",
+        "Gender": "str",
+        "City": "str",
+        "Product_Category": "str",
+        "Unit_Price": "float64",
+        "Quantity": "int64",
+        "Discount_Amount": "float64",
+        "Total_Amount": "float64",
+        "Payment_Method": "str",
+        "Device_Type": "str",
+        "Session_Duration_Minutes": "int64",
+        "Pages_Viewed": "int64",
+        "Is_Returning_Customer": "bool",
+        "Delivery_Time_Days": "int64",
+        "Customer_Rating": "int64"
+      },
+      "duplicate_rows": 0
+    },
+    "changed_cells": 1943,
+    "rows_removed": 0,
+    "changed_examples": [
+      {
+        "row_position": 16,
+        "column": "Total_Amount",
+        "before": "4791.44",
+        "after": "2909.92"
+      },
+      {
+        "row_position": 35,
+        "column": "Total_Amount",
+        "before": "5642.07",
+        "after": "2909.92"
+      },
+      {
+        "row_position": 37,
+        "column": "Total_Amount",
+        "before": "10861.25",
+        "after": "2909.92"
+      },
+      {
+        "row_position": 40,
+        "column": "Total_Amount",
+        "before": "4553.15",
+        "after": "2909.92"
+      },
+      {
+        "row_position": 58,
+        "column": "Total_Amount",
+        "before": "4250.96",
+        "after": "2909.92"
+      }
+    ],
+    "lost_values": [],
+    "lost_value_count": 0,
+    "columns_removed": [],
+    "column_metrics": {
+      "Total_Amount": {
+        "before": {
+          "unique": 15929,
+          "missing": 0,
+          "numeric_count": 17049,
+          "mean": 1277.4387113613702,
+          "median": 455.85,
+          "min": 6.21,
+          "max": 37852.05
+        },
+        "after": {
+          "unique": 13991,
+          "missing": 0,
+          "numeric_count": 17049,
+          "mean": 883.5693131561968,
+          "median": 455.85,
+          "min": 6.21,
+          "max": 2909.92
+        }
+      }
+    }
+  },
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\237275aba45e\\ecommerce_customer_behavior_dataset_v2\\experiments\\method-94baf43e2a\\method.py",
+  "sandbox_log": ""
+}

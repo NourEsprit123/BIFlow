@@ -1,0 +1,52 @@
+{
+  "candidate_id": "method-6a7b99b3a1",
+  "code_hash": "84fc4dc21055364f26cf968509e004aa1e26538cff0e6b38bd5edbf918f8caf2",
+  "base_version": "V1",
+  "dataset_hash": "02d79692411f9aae3888401c0f7ee6ff791da067247632c94dd9d24d8af7bfd3",
+  "columns": [
+    "Revenue"
+  ],
+  "checks": [
+    {
+      "column": "Revenue",
+      "kind": "numeric"
+    },
+    {
+      "column": "Revenue",
+      "kind": "preserve_missing"
+    }
+  ],
+  "rationale": "The Revenue column contains mixed numeric formats (e.g., \"$1,200.50\", \"1.5k\") requiring custom parsing to float. Missing values should remain as NaN.",
+  "expected_effect": "Declared checks and selected-column obligations must pass",
+  "evidence_ids": [],
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\138193a485e6\\dirty_sales_test\\experiments\\method-6a7b99b3a1\\method.py",
+  "trials": [
+    {
+      "partition": "sample",
+      "rows": 15,
+      "row_positions": [
+        11,
+        29,
+        10,
+        20,
+        26,
+        5,
+        24,
+        14,
+        7,
+        15,
+        8,
+        18,
+        9,
+        22,
+        17
+      ],
+      "success": false,
+      "error": "Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 9, in transform\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/series.py\", line 5575, in apply\n    ).apply()\n      ^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/apply.py\", line 1749, in apply\n    return self.apply_standard()\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/apply.py\", line 1807, in apply_standard\n    mapped = obj._map_values(mapper=curried)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/base.py\", line 1076, in _map_values\n    return arr.map(mapper, na_action=na_action)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/arrays/base.py\", line 3006, in map\n    result = map_array(self, mapper, na_action=na_action)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/algorithms.py\", line 2007, in map_array\n    return lib.map_infer(values, mapper)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"pandas/_libs/lib.pyx\", line 3390, in pandas._libs.lib.map_infer\n  File \"<cleaning-candidate>\", line 8, in parse_revenue\nValueError: could not convert string to float: 'five hundred'\n",
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "error_kind": "sandbox_execution"
+    }
+  ],
+  "tested": false,
+  "holdout_available": true
+}

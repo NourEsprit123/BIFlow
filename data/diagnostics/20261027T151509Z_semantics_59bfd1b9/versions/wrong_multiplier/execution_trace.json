@@ -1,0 +1,1293 @@
+{
+  "current_dataset": {
+    "dataset_id": "wrong_multiplier",
+    "version": "V1",
+    "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261027T151509Z_semantics_59bfd1b9\\versions\\wrong_multiplier\\V1_working.csv",
+    "format": "csv",
+    "row_count": 3,
+    "column_count": 1,
+    "columns": [
+      "amount"
+    ],
+    "created_at": "2026-10-27T15:15:09.854902Z",
+    "parent_version": "V0",
+    "status": "working",
+    "metadata": {}
+  },
+  "stop_reason": "running",
+  "finish_summary": "",
+  "elapsed_seconds": 6.39000000001397,
+  "current_turn": 0,
+  "llm_provider": null,
+  "llm_model": null,
+  "events": [
+    {
+      "duration_seconds": 6.39000000001397,
+      "event_id": "event-1",
+      "task_id": null,
+      "tool": "test_generated",
+      "arguments": {
+        "hypothesis": "Live regression: wrong_multiplier",
+        "columns": [
+          "amount"
+        ],
+        "code": "def transform(df):\n    df['amount'] = pd.to_numeric(df['amount'].str.replace('k', '000'), errors='coerce')\n    return df",
+        "checks": [
+          {
+            "column": "amount",
+            "kind": "numeric"
+          }
+        ]
+      },
+      "source_version": "V1",
+      "origin": "model",
+      "version": "V1",
+      "result": {
+        "success": false,
+        "candidate_id": "c1",
+        "code_hash": "aab45808e14b2dd378a4a531f912941f79d6ddfae21089598bdaaa47590e4f62",
+        "rationale": "Live regression: wrong_multiplier",
+        "expected_effect": "Declared checks and selected-column obligations must pass",
+        "evidence_ids": [],
+        "tested": false,
+        "trials": [
+          {
+            "partition": "sample",
+            "rows": 1,
+            "row_positions": [
+              2
+            ],
+            "success": true,
+            "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+            "repeatable": true,
+            "output_hash": "176f3cd387b2c8d8d8a90907f3057e21a4169e6e736ad4312b8ae4f8ad4b8d3b",
+            "log": "",
+            "effect": {
+              "accepted": true,
+              "rules": [
+                {
+                  "rule_name": "non_empty",
+                  "passed": true,
+                  "message": "Candidate contains 1 rows"
+                },
+                {
+                  "rule_name": "row_count",
+                  "passed": true,
+                  "message": "Rows: 1 \u2192 1"
+                },
+                {
+                  "rule_name": "columns",
+                  "passed": true,
+                  "message": "Only explicitly requested columns may be removed"
+                },
+                {
+                  "rule_name": "row_identity",
+                  "passed": true,
+                  "message": "Generated methods must preserve row index and order"
+                },
+                {
+                  "rule_name": "expected:numeric:amount",
+                  "passed": true,
+                  "message": "Declared outcome: amount must satisfy numeric"
+                }
+              ],
+              "before": {
+                "rows": 1,
+                "columns": 1,
+                "missing": {
+                  "amount": 0
+                },
+                "dtypes": {
+                  "amount": "str"
+                },
+                "duplicate_rows": 0
+              },
+              "after": {
+                "rows": 1,
+                "columns": 1,
+                "missing": {
+                  "amount": 1
+                },
+                "dtypes": {
+                  "amount": "float64"
+                },
+                "duplicate_rows": 0
+              },
+              "changed_cells": 1,
+              "rows_removed": 0,
+              "changed_examples": [
+                {
+                  "row_position": 0,
+                  "column": "amount",
+                  "before": "banana",
+                  "after": null
+                }
+              ],
+              "lost_values": [
+                {
+                  "row_position": 0,
+                  "row_index": "2",
+                  "column": "amount",
+                  "before": "banana",
+                  "after": null
+                }
+              ],
+              "lost_value_count": 1,
+              "columns_removed": [],
+              "column_metrics": {
+                "amount": {
+                  "before": {
+                    "unique": 1,
+                    "missing": 0,
+                    "numeric_count": 0,
+                    "mean": null,
+                    "median": null,
+                    "min": null,
+                    "max": null
+                  },
+                  "after": {
+                    "unique": 0,
+                    "missing": 1,
+                    "numeric_count": 0,
+                    "mean": null,
+                    "median": null,
+                    "min": null,
+                    "max": null
+                  }
+                }
+              }
+            }
+          },
+          {
+            "partition": "holdout",
+            "rows": 2,
+            "row_positions": [
+              1,
+              0
+            ],
+            "success": false,
+            "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+            "repeatable": true,
+            "output_hash": "b61e8daeebe816b1642edba2eb0c14a4dc64b6964a409a7030f615130a43f907",
+            "log": "",
+            "effect": {
+              "accepted": false,
+              "rules": [
+                {
+                  "rule_name": "non_empty",
+                  "passed": true,
+                  "message": "Candidate contains 2 rows"
+                },
+                {
+                  "rule_name": "row_count",
+                  "passed": true,
+                  "message": "Rows: 2 \u2192 2"
+                },
+                {
+                  "rule_name": "columns",
+                  "passed": true,
+                  "message": "Only explicitly requested columns may be removed"
+                },
+                {
+                  "rule_name": "row_identity",
+                  "passed": true,
+                  "message": "Generated methods must preserve row index and order"
+                },
+                {
+                  "rule_name": "expected:numeric:amount",
+                  "passed": true,
+                  "message": "Declared outcome: amount must satisfy numeric"
+                },
+                {
+                  "rule_name": "expected:numeric_values:amount",
+                  "passed": false,
+                  "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+                  "checked_values": 2,
+                  "mismatches": [
+                    {
+                      "row_position": 0,
+                      "row_index": "1",
+                      "column": "amount",
+                      "before": "2.1k",
+                      "expected": 2100.0,
+                      "actual": "2.1"
+                    },
+                    {
+                      "row_position": 1,
+                      "row_index": "0",
+                      "column": "amount",
+                      "before": "1.5k",
+                      "expected": 1500.0,
+                      "actual": "1.5"
+                    }
+                  ]
+                }
+              ],
+              "before": {
+                "rows": 2,
+                "columns": 1,
+                "missing": {
+                  "amount": 0
+                },
+                "dtypes": {
+                  "amount": "str"
+                },
+                "duplicate_rows": 0
+              },
+              "after": {
+                "rows": 2,
+                "columns": 1,
+                "missing": {
+                  "amount": 0
+                },
+                "dtypes": {
+                  "amount": "float64"
+                },
+                "duplicate_rows": 0
+              },
+              "changed_cells": 2,
+              "rows_removed": 0,
+              "changed_examples": [
+                {
+                  "row_position": 0,
+                  "column": "amount",
+                  "before": "2.1k",
+                  "after": "2.1"
+                },
+                {
+                  "row_position": 1,
+                  "column": "amount",
+                  "before": "1.5k",
+                  "after": "1.5"
+                }
+              ],
+              "lost_values": [],
+              "lost_value_count": 0,
+              "columns_removed": [],
+              "column_metrics": {
+                "amount": {
+                  "before": {
+                    "unique": 2,
+                    "missing": 0,
+                    "numeric_count": 0,
+                    "mean": null,
+                    "median": null,
+                    "min": null,
+                    "max": null
+                  },
+                  "after": {
+                    "unique": 2,
+                    "missing": 0,
+                    "numeric_count": 2,
+                    "mean": 1.8,
+                    "median": 1.8,
+                    "min": 1.5,
+                    "max": 2.1
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "holdout_available": true,
+        "message": "Candidate rejected; working data unchanged. This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review.",
+        "failure_summary": {
+          "reason": "expected:numeric_values:amount: Preserve the numeric meaning of 2 recognized source values; 2 mismatches 1 populated cells would become missing (permitted coercions; see affected values).",
+          "failed_checks": [
+            {
+              "rule_name": "expected:numeric_values:amount",
+              "passed": false,
+              "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+              "checked_values": 2,
+              "mismatches": [
+                {
+                  "row_position": 0,
+                  "row_index": "1",
+                  "column": "amount",
+                  "before": "2.1k",
+                  "expected": 2100.0,
+                  "actual": "2.1"
+                },
+                {
+                  "row_position": 1,
+                  "row_index": "0",
+                  "column": "amount",
+                  "before": "1.5k",
+                  "expected": 1500.0,
+                  "actual": "1.5"
+                }
+              ],
+              "partition": "holdout"
+            },
+            {
+              "rule_name": "expected:numeric_values:amount",
+              "passed": false,
+              "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+              "checked_values": 2,
+              "mismatches": [
+                {
+                  "row_position": 0,
+                  "row_index": "1",
+                  "column": "amount",
+                  "before": "2.1k",
+                  "expected": 2100.0,
+                  "actual": "2.1"
+                },
+                {
+                  "row_position": 1,
+                  "row_index": "0",
+                  "column": "amount",
+                  "before": "1.5k",
+                  "expected": 1500.0,
+                  "actual": "1.5"
+                }
+              ]
+            }
+          ],
+          "lost_value_count": 1,
+          "lost_values": [
+            {
+              "row_position": 0,
+              "row_index": "2",
+              "column": "amount",
+              "before": "banana",
+              "after": null,
+              "partition": "sample"
+            }
+          ],
+          "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+        },
+        "error": "expected:numeric_values:amount: Preserve the numeric meaning of 2 recognized source values; 2 mismatches 1 populated cells would become missing (permitted coercions; see affected values).",
+        "hypothesis": "Live regression: wrong_multiplier",
+        "recovery_prompt": {
+          "case": "validation",
+          "instruction": "The candidate ran but failed independent outcome checks. Compare the expected effect with the exact failed rules and changed examples. Identify a concrete revision while preserving rows, selected scope, unrelated data and valid values. Nonsensical invalid entries may become NaN; new NaNs alone do not reject the candidate. Explicit required outcomes such as no_missing still apply when requested. Test the revision before applying it. Sample success does not override full-data rejection. Do not weaken the remaining mandatory checks.",
+          "context": {
+            "tool": "test_generated",
+            "operation": null,
+            "columns": [
+              "amount"
+            ],
+            "parameters": {},
+            "error": "expected:numeric_values:amount: Preserve the numeric meaning of 2 recognized source values; 2 mismatches 1 populated cells would become missing (permitted coercions; see affected values).",
+            "failed_checks": [
+              {
+                "rule_name": "expected:numeric_values:amount",
+                "passed": false,
+                "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+                "checked_values": 2,
+                "mismatches": [
+                  {
+                    "row_position": 0,
+                    "row_index": "1",
+                    "column": "amount",
+                    "before": "2.1k",
+                    "expected": 2100.0,
+                    "actual": "2.1"
+                  },
+                  {
+                    "row_position": 1,
+                    "row_index": "0",
+                    "column": "amount",
+                    "before": "1.5k",
+                    "expected": 1500.0,
+                    "actual": "1.5"
+                  }
+                ],
+                "partition": "holdout"
+              },
+              {
+                "rule_name": "expected:numeric_values:amount",
+                "passed": false,
+                "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+                "checked_values": 2,
+                "mismatches": [
+                  {
+                    "row_position": 0,
+                    "row_index": "1",
+                    "column": "amount",
+                    "before": "2.1k",
+                    "expected": 2100.0,
+                    "actual": "2.1"
+                  },
+                  {
+                    "row_position": 1,
+                    "row_index": "0",
+                    "column": "amount",
+                    "before": "1.5k",
+                    "expected": 1500.0,
+                    "actual": "1.5"
+                  }
+                ]
+              }
+            ],
+            "failed_trials": [
+              {
+                "partition": "holdout",
+                "error": null,
+                "sandbox_log": "",
+                "failed_checks": [
+                  {
+                    "rule_name": "expected:numeric_values:amount",
+                    "passed": false,
+                    "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+                    "checked_values": 2,
+                    "mismatches": [
+                      {
+                        "row_position": 0,
+                        "row_index": "1",
+                        "column": "amount",
+                        "before": "2.1k",
+                        "expected": 2100.0,
+                        "actual": "2.1"
+                      },
+                      {
+                        "row_position": 1,
+                        "row_index": "0",
+                        "column": "amount",
+                        "before": "1.5k",
+                        "expected": 1500.0,
+                        "actual": "1.5"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "sandbox_logs": [],
+            "working_version": "V1",
+            "candidate_version": "V1",
+            "outstanding": {
+              "version": "V1",
+              "pending_types": {
+                "amount": "float"
+              },
+              "pending_missing": {},
+              "flagged": {}
+            },
+            "changed_examples": [],
+            "candidate_id": "c1",
+            "candidate_status": null,
+            "failure_summary": {
+              "reason": "expected:numeric_values:amount: Preserve the numeric meaning of 2 recognized source values; 2 mismatches 1 populated cells would become missing (permitted coercions; see affected values).",
+              "failed_checks": [
+                {
+                  "rule_name": "expected:numeric_values:amount",
+                  "passed": false,
+                  "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+                  "checked_values": 2,
+                  "mismatches": [
+                    {
+                      "row_position": 0,
+                      "row_index": "1",
+                      "column": "amount",
+                      "before": "2.1k",
+                      "expected": 2100.0,
+                      "actual": "2.1"
+                    },
+                    {
+                      "row_position": 1,
+                      "row_index": "0",
+                      "column": "amount",
+                      "before": "1.5k",
+                      "expected": 1500.0,
+                      "actual": "1.5"
+                    }
+                  ],
+                  "partition": "holdout"
+                },
+                {
+                  "rule_name": "expected:numeric_values:amount",
+                  "passed": false,
+                  "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+                  "checked_values": 2,
+                  "mismatches": [
+                    {
+                      "row_position": 0,
+                      "row_index": "1",
+                      "column": "amount",
+                      "before": "2.1k",
+                      "expected": 2100.0,
+                      "actual": "2.1"
+                    },
+                    {
+                      "row_position": 1,
+                      "row_index": "0",
+                      "column": "amount",
+                      "before": "1.5k",
+                      "expected": 1500.0,
+                      "actual": "1.5"
+                    }
+                  ]
+                }
+              ],
+              "lost_value_count": 1,
+              "lost_values": [
+                {
+                  "row_position": 0,
+                  "row_index": "2",
+                  "column": "amount",
+                  "before": "banana",
+                  "after": null,
+                  "partition": "sample"
+                }
+              ],
+              "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+            },
+            "lost_values": [
+              {
+                "row_position": 0,
+                "row_index": "2",
+                "column": "amount",
+                "before": "banana",
+                "after": null,
+                "partition": "sample"
+              }
+            ],
+            "lost_value_count": 1,
+            "diagnostic": {
+              "stage": "validation",
+              "problem": "expected:numeric_values:amount: Preserve the numeric meaning of 2 recognized source values; 2 mismatches 1 populated cells would become missing (permitted coercions; see affected values).",
+              "location": null,
+              "evidence": {
+                "failed_checks": [
+                  {
+                    "rule_name": "expected:numeric_values:amount",
+                    "passed": false,
+                    "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+                    "checked_values": 2,
+                    "mismatches": [
+                      {
+                        "row_position": 0,
+                        "row_index": "1",
+                        "column": "amount",
+                        "before": "2.1k",
+                        "expected": 2100.0,
+                        "actual": "2.1"
+                      },
+                      {
+                        "row_position": 1,
+                        "row_index": "0",
+                        "column": "amount",
+                        "before": "1.5k",
+                        "expected": 1500.0,
+                        "actual": "1.5"
+                      }
+                    ],
+                    "partition": "holdout"
+                  },
+                  {
+                    "rule_name": "expected:numeric_values:amount",
+                    "passed": false,
+                    "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+                    "checked_values": 2,
+                    "mismatches": [
+                      {
+                        "row_position": 0,
+                        "row_index": "1",
+                        "column": "amount",
+                        "before": "2.1k",
+                        "expected": 2100.0,
+                        "actual": "2.1"
+                      },
+                      {
+                        "row_position": 1,
+                        "row_index": "0",
+                        "column": "amount",
+                        "before": "1.5k",
+                        "expected": 1500.0,
+                        "actual": "1.5"
+                      }
+                    ]
+                  }
+                ],
+                "failed_trials": [
+                  {
+                    "partition": "holdout",
+                    "error": null,
+                    "sandbox_log": "",
+                    "failed_checks": [
+                      {
+                        "rule_name": "expected:numeric_values:amount",
+                        "passed": false,
+                        "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+                        "checked_values": 2,
+                        "mismatches": [
+                          {
+                            "row_position": 0,
+                            "row_index": "1",
+                            "column": "amount",
+                            "before": "2.1k",
+                            "expected": 2100.0,
+                            "actual": "2.1"
+                          },
+                          {
+                            "row_position": 1,
+                            "row_index": "0",
+                            "column": "amount",
+                            "before": "1.5k",
+                            "expected": 1500.0,
+                            "actual": "1.5"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "correction": "Revise the transformation to satisfy the named failed checks while preserving populated information; inspect unsupported values or explain genuine ambiguity. Do not weaken the checks.",
+              "retry": "Submit a corrected request and evaluate its new result before claiming success.",
+              "sandbox_logs": []
+            },
+            "working_columns": {
+              "amount": {
+                "dtype": "str",
+                "missing": 0,
+                "examples": [
+                  "1.5k",
+                  "2.1k",
+                  "banana"
+                ]
+              }
+            }
+          }
+        },
+        "diagnostic": {
+          "stage": "validation",
+          "problem": "expected:numeric_values:amount: Preserve the numeric meaning of 2 recognized source values; 2 mismatches 1 populated cells would become missing (permitted coercions; see affected values).",
+          "location": null,
+          "evidence": {
+            "failed_checks": [
+              {
+                "rule_name": "expected:numeric_values:amount",
+                "passed": false,
+                "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+                "checked_values": 2,
+                "mismatches": [
+                  {
+                    "row_position": 0,
+                    "row_index": "1",
+                    "column": "amount",
+                    "before": "2.1k",
+                    "expected": 2100.0,
+                    "actual": "2.1"
+                  },
+                  {
+                    "row_position": 1,
+                    "row_index": "0",
+                    "column": "amount",
+                    "before": "1.5k",
+                    "expected": 1500.0,
+                    "actual": "1.5"
+                  }
+                ],
+                "partition": "holdout"
+              },
+              {
+                "rule_name": "expected:numeric_values:amount",
+                "passed": false,
+                "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+                "checked_values": 2,
+                "mismatches": [
+                  {
+                    "row_position": 0,
+                    "row_index": "1",
+                    "column": "amount",
+                    "before": "2.1k",
+                    "expected": 2100.0,
+                    "actual": "2.1"
+                  },
+                  {
+                    "row_position": 1,
+                    "row_index": "0",
+                    "column": "amount",
+                    "before": "1.5k",
+                    "expected": 1500.0,
+                    "actual": "1.5"
+                  }
+                ]
+              }
+            ],
+            "failed_trials": [
+              {
+                "partition": "holdout",
+                "error": null,
+                "sandbox_log": "",
+                "failed_checks": [
+                  {
+                    "rule_name": "expected:numeric_values:amount",
+                    "passed": false,
+                    "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+                    "checked_values": 2,
+                    "mismatches": [
+                      {
+                        "row_position": 0,
+                        "row_index": "1",
+                        "column": "amount",
+                        "before": "2.1k",
+                        "expected": 2100.0,
+                        "actual": "2.1"
+                      },
+                      {
+                        "row_position": 1,
+                        "row_index": "0",
+                        "column": "amount",
+                        "before": "1.5k",
+                        "expected": 1500.0,
+                        "actual": "1.5"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "correction": "Revise the transformation to satisfy the named failed checks while preserving populated information; inspect unsupported values or explain genuine ambiguity. Do not weaken the checks.",
+          "retry": "Submit a corrected request and evaluate its new result before claiming success.",
+          "sandbox_logs": []
+        }
+      },
+      "evidence": {},
+      "explanation": "Live regression: wrong_multiplier"
+    }
+  ],
+  "evidence": {
+    "method-51e4ef95b9": {
+      "source": "sandbox experiment",
+      "columns": [
+        "amount"
+      ],
+      "version": "V1",
+      "code_hash": "aab45808e14b2dd378a4a531f912941f79d6ddfae21089598bdaaa47590e4f62",
+      "tested": false,
+      "expected_effect": "Declared checks and selected-column obligations must pass"
+    }
+  },
+  "experiments": {
+    "method-51e4ef95b9": {
+      "candidate_id": "method-51e4ef95b9",
+      "code_hash": "aab45808e14b2dd378a4a531f912941f79d6ddfae21089598bdaaa47590e4f62",
+      "base_version": "V1",
+      "dataset_hash": "b541c73656f33f0897dee10e031163f6ce2df21a027b49091698ed6b6528a9bd",
+      "columns": [
+        "amount"
+      ],
+      "checks": [
+        {
+          "column": "amount",
+          "kind": "numeric"
+        }
+      ],
+      "rationale": "Live regression: wrong_multiplier",
+      "verify_numeric_values": true,
+      "expected_effect": "Declared checks and selected-column obligations must pass",
+      "evidence_ids": [],
+      "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261027T151509Z_semantics_59bfd1b9\\versions\\wrong_multiplier\\experiments\\method-51e4ef95b9\\method.py",
+      "trials": [
+        {
+          "partition": "sample",
+          "rows": 1,
+          "row_positions": [
+            2
+          ],
+          "success": true,
+          "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+          "repeatable": true,
+          "output_hash": "176f3cd387b2c8d8d8a90907f3057e21a4169e6e736ad4312b8ae4f8ad4b8d3b",
+          "log": "",
+          "effect": {
+            "accepted": true,
+            "rules": [
+              {
+                "rule_name": "non_empty",
+                "passed": true,
+                "message": "Candidate contains 1 rows"
+              },
+              {
+                "rule_name": "row_count",
+                "passed": true,
+                "message": "Rows: 1 \u2192 1"
+              },
+              {
+                "rule_name": "columns",
+                "passed": true,
+                "message": "Only explicitly requested columns may be removed"
+              },
+              {
+                "rule_name": "row_identity",
+                "passed": true,
+                "message": "Generated methods must preserve row index and order"
+              },
+              {
+                "rule_name": "expected:numeric:amount",
+                "passed": true,
+                "message": "Declared outcome: amount must satisfy numeric"
+              }
+            ],
+            "before": {
+              "rows": 1,
+              "columns": 1,
+              "missing": {
+                "amount": 0
+              },
+              "dtypes": {
+                "amount": "str"
+              },
+              "duplicate_rows": 0
+            },
+            "after": {
+              "rows": 1,
+              "columns": 1,
+              "missing": {
+                "amount": 1
+              },
+              "dtypes": {
+                "amount": "float64"
+              },
+              "duplicate_rows": 0
+            },
+            "changed_cells": 1,
+            "rows_removed": 0,
+            "changed_examples": [
+              {
+                "row_position": 0,
+                "column": "amount",
+                "before": "banana",
+                "after": null
+              }
+            ],
+            "lost_values": [
+              {
+                "row_position": 0,
+                "row_index": "2",
+                "column": "amount",
+                "before": "banana",
+                "after": null
+              }
+            ],
+            "lost_value_count": 1,
+            "columns_removed": [],
+            "column_metrics": {
+              "amount": {
+                "before": {
+                  "unique": 1,
+                  "missing": 0,
+                  "numeric_count": 0,
+                  "mean": null,
+                  "median": null,
+                  "min": null,
+                  "max": null
+                },
+                "after": {
+                  "unique": 0,
+                  "missing": 1,
+                  "numeric_count": 0,
+                  "mean": null,
+                  "median": null,
+                  "min": null,
+                  "max": null
+                }
+              }
+            }
+          }
+        },
+        {
+          "partition": "holdout",
+          "rows": 2,
+          "row_positions": [
+            1,
+            0
+          ],
+          "success": false,
+          "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+          "repeatable": true,
+          "output_hash": "b61e8daeebe816b1642edba2eb0c14a4dc64b6964a409a7030f615130a43f907",
+          "log": "",
+          "effect": {
+            "accepted": false,
+            "rules": [
+              {
+                "rule_name": "non_empty",
+                "passed": true,
+                "message": "Candidate contains 2 rows"
+              },
+              {
+                "rule_name": "row_count",
+                "passed": true,
+                "message": "Rows: 2 \u2192 2"
+              },
+              {
+                "rule_name": "columns",
+                "passed": true,
+                "message": "Only explicitly requested columns may be removed"
+              },
+              {
+                "rule_name": "row_identity",
+                "passed": true,
+                "message": "Generated methods must preserve row index and order"
+              },
+              {
+                "rule_name": "expected:numeric:amount",
+                "passed": true,
+                "message": "Declared outcome: amount must satisfy numeric"
+              },
+              {
+                "rule_name": "expected:numeric_values:amount",
+                "passed": false,
+                "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+                "checked_values": 2,
+                "mismatches": [
+                  {
+                    "row_position": 0,
+                    "row_index": "1",
+                    "column": "amount",
+                    "before": "2.1k",
+                    "expected": 2100.0,
+                    "actual": "2.1"
+                  },
+                  {
+                    "row_position": 1,
+                    "row_index": "0",
+                    "column": "amount",
+                    "before": "1.5k",
+                    "expected": 1500.0,
+                    "actual": "1.5"
+                  }
+                ]
+              }
+            ],
+            "before": {
+              "rows": 2,
+              "columns": 1,
+              "missing": {
+                "amount": 0
+              },
+              "dtypes": {
+                "amount": "str"
+              },
+              "duplicate_rows": 0
+            },
+            "after": {
+              "rows": 2,
+              "columns": 1,
+              "missing": {
+                "amount": 0
+              },
+              "dtypes": {
+                "amount": "float64"
+              },
+              "duplicate_rows": 0
+            },
+            "changed_cells": 2,
+            "rows_removed": 0,
+            "changed_examples": [
+              {
+                "row_position": 0,
+                "column": "amount",
+                "before": "2.1k",
+                "after": "2.1"
+              },
+              {
+                "row_position": 1,
+                "column": "amount",
+                "before": "1.5k",
+                "after": "1.5"
+              }
+            ],
+            "lost_values": [],
+            "lost_value_count": 0,
+            "columns_removed": [],
+            "column_metrics": {
+              "amount": {
+                "before": {
+                  "unique": 2,
+                  "missing": 0,
+                  "numeric_count": 0,
+                  "mean": null,
+                  "median": null,
+                  "min": null,
+                  "max": null
+                },
+                "after": {
+                  "unique": 2,
+                  "missing": 0,
+                  "numeric_count": 2,
+                  "mean": 1.8,
+                  "median": 1.8,
+                  "min": 1.5,
+                  "max": 2.1
+                }
+              }
+            }
+          }
+        }
+      ],
+      "tested": false,
+      "holdout_available": true,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a"
+    }
+  },
+  "method_candidates": {
+    "c1": {
+      "hypothesis": "Live regression: wrong_multiplier",
+      "columns": [
+        "amount"
+      ],
+      "code": "def transform(df):\n    df['amount'] = pd.to_numeric(df['amount'].str.replace('k', '000'), errors='coerce')\n    return df",
+      "checks": [
+        {
+          "column": "amount",
+          "kind": "numeric"
+        }
+      ],
+      "verify_numeric_values": true,
+      "key": "435128e42423661ac4dd8726acf0d90b3125725f335a7bc5600e7e2e4f352996",
+      "tested": false,
+      "base_version": "V1",
+      "kind": "generated",
+      "experiment_id": "method-51e4ef95b9",
+      "dataset_hash": "b541c73656f33f0897dee10e031163f6ce2df21a027b49091698ed6b6528a9bd",
+      "failure_summary": {
+        "reason": "expected:numeric_values:amount: Preserve the numeric meaning of 2 recognized source values; 2 mismatches 1 populated cells would become missing (permitted coercions; see affected values).",
+        "failed_checks": [
+          {
+            "rule_name": "expected:numeric_values:amount",
+            "passed": false,
+            "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+            "checked_values": 2,
+            "mismatches": [
+              {
+                "row_position": 0,
+                "row_index": "1",
+                "column": "amount",
+                "before": "2.1k",
+                "expected": 2100.0,
+                "actual": "2.1"
+              },
+              {
+                "row_position": 1,
+                "row_index": "0",
+                "column": "amount",
+                "before": "1.5k",
+                "expected": 1500.0,
+                "actual": "1.5"
+              }
+            ],
+            "partition": "holdout"
+          }
+        ],
+        "lost_value_count": 1,
+        "lost_values": [
+          {
+            "row_position": 0,
+            "row_index": "2",
+            "column": "amount",
+            "before": "banana",
+            "after": null,
+            "partition": "sample"
+          }
+        ],
+        "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+      }
+    }
+  },
+  "decisions": [],
+  "repair_history": [
+    {
+      "attempt_id": "repair-1",
+      "version": "V1",
+      "key": "cdd45cf6269948cb6f48c199d33c606d2fa2e39d59c51c632434e66007b08b75",
+      "arguments": {
+        "hypothesis": "Live regression: wrong_multiplier",
+        "columns": [
+          "amount"
+        ],
+        "code": "def transform(df):\n    df['amount'] = pd.to_numeric(df['amount'].str.replace('k', '000'), errors='coerce')\n    return df",
+        "checks": [
+          {
+            "column": "amount",
+            "kind": "numeric"
+          }
+        ]
+      },
+      "success": false,
+      "route": "validation",
+      "error": "expected:numeric_values:amount: Preserve the numeric meaning of 2 recognized source values; 2 mismatches 1 populated cells would become missing (permitted coercions; see affected values).",
+      "candidate_id": "c1",
+      "failure_summary": {
+        "reason": "expected:numeric_values:amount: Preserve the numeric meaning of 2 recognized source values; 2 mismatches 1 populated cells would become missing (permitted coercions; see affected values).",
+        "failed_checks": [
+          {
+            "rule_name": "expected:numeric_values:amount",
+            "passed": false,
+            "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+            "checked_values": 2,
+            "mismatches": [
+              {
+                "row_position": 0,
+                "row_index": "1",
+                "column": "amount",
+                "before": "2.1k",
+                "expected": 2100.0,
+                "actual": "2.1"
+              },
+              {
+                "row_position": 1,
+                "row_index": "0",
+                "column": "amount",
+                "before": "1.5k",
+                "expected": 1500.0,
+                "actual": "1.5"
+              }
+            ],
+            "partition": "holdout"
+          },
+          {
+            "rule_name": "expected:numeric_values:amount",
+            "passed": false,
+            "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+            "checked_values": 2,
+            "mismatches": [
+              {
+                "row_position": 0,
+                "row_index": "1",
+                "column": "amount",
+                "before": "2.1k",
+                "expected": 2100.0,
+                "actual": "2.1"
+              },
+              {
+                "row_position": 1,
+                "row_index": "0",
+                "column": "amount",
+                "before": "1.5k",
+                "expected": 1500.0,
+                "actual": "1.5"
+              }
+            ]
+          }
+        ],
+        "lost_value_count": 1,
+        "lost_values": [
+          {
+            "row_position": 0,
+            "row_index": "2",
+            "column": "amount",
+            "before": "banana",
+            "after": null,
+            "partition": "sample"
+          }
+        ],
+        "next_action": "This candidate failed. Do not apply or repeat it. Inspect the unparsed values or actual failure, revise the method, or flag genuine ambiguity for review."
+      },
+      "diagnostic": {
+        "stage": "validation",
+        "problem": "expected:numeric_values:amount: Preserve the numeric meaning of 2 recognized source values; 2 mismatches 1 populated cells would become missing (permitted coercions; see affected values).",
+        "location": null,
+        "evidence": {
+          "failed_checks": [
+            {
+              "rule_name": "expected:numeric_values:amount",
+              "passed": false,
+              "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+              "checked_values": 2,
+              "mismatches": [
+                {
+                  "row_position": 0,
+                  "row_index": "1",
+                  "column": "amount",
+                  "before": "2.1k",
+                  "expected": 2100.0,
+                  "actual": "2.1"
+                },
+                {
+                  "row_position": 1,
+                  "row_index": "0",
+                  "column": "amount",
+                  "before": "1.5k",
+                  "expected": 1500.0,
+                  "actual": "1.5"
+                }
+              ],
+              "partition": "holdout"
+            },
+            {
+              "rule_name": "expected:numeric_values:amount",
+              "passed": false,
+              "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+              "checked_values": 2,
+              "mismatches": [
+                {
+                  "row_position": 0,
+                  "row_index": "1",
+                  "column": "amount",
+                  "before": "2.1k",
+                  "expected": 2100.0,
+                  "actual": "2.1"
+                },
+                {
+                  "row_position": 1,
+                  "row_index": "0",
+                  "column": "amount",
+                  "before": "1.5k",
+                  "expected": 1500.0,
+                  "actual": "1.5"
+                }
+              ]
+            }
+          ],
+          "failed_trials": [
+            {
+              "partition": "holdout",
+              "error": null,
+              "sandbox_log": "",
+              "failed_checks": [
+                {
+                  "rule_name": "expected:numeric_values:amount",
+                  "passed": false,
+                  "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+                  "checked_values": 2,
+                  "mismatches": [
+                    {
+                      "row_position": 0,
+                      "row_index": "1",
+                      "column": "amount",
+                      "before": "2.1k",
+                      "expected": 2100.0,
+                      "actual": "2.1"
+                    },
+                    {
+                      "row_position": 1,
+                      "row_index": "0",
+                      "column": "amount",
+                      "before": "1.5k",
+                      "expected": 1500.0,
+                      "actual": "1.5"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "correction": "Revise the transformation to satisfy the named failed checks while preserving populated information; inspect unsupported values or explain genuine ambiguity. Do not weaken the checks.",
+        "retry": "Submit a corrected request and evaluate its new result before claiming success.",
+        "sandbox_logs": []
+      },
+      "expert_feedback": null
+    }
+  ],
+  "expert_generations": {},
+  "flagged": {},
+  "failures": {
+    "435128e42423661ac4dd8726acf0d90b3125725f335a7bc5600e7e2e4f352996": 1
+  },
+  "finish_attempts": 0,
+  "step_log": [],
+  "provider_errors": [],
+  "unresolved": [],
+  "model_unresolved": [],
+  "pending_approvals": [],
+  "working_context": {},
+  "cleaning_tasks": []
+}

@@ -1,0 +1,449 @@
+{
+  "candidate_id": "method-102d73aab1",
+  "code_hash": "09371f225f9096b370a2565478a03b3e163a2b0d46e9cf75b09030bb868d803c",
+  "base_version": "V7",
+  "dataset_hash": "652ca666c73051ea0a1810034045581430f7b13d9b75eec65e68253b3c684c95",
+  "columns": [
+    "SignupDate"
+  ],
+  "checks": [
+    {
+      "column": "SignupDate",
+      "kind": "datetime"
+    },
+    {
+      "column": "SignupDate",
+      "kind": "no_missing"
+    }
+  ],
+  "rationale": "The SignupDate column contains missing values that need to be addressed. The current method converts the column to datetime but does not handle missing values, leading to failed validation checks. Filling missing values with pd.NaT ensures no missing values while preserving the original data format. Repair proposal: {\"supported_interpretations\": \"The SignupDate column is interpreted as a datetime format, with missing values filled as pd.NaT to satisfy the no_missing requirement.\", \"preservation\": \"Existing string values will be preserved as datetime, and any invalid values will be converted to pd.NaT.\", \"ambiguities\": \"The interpretation of missing values as pd.NaT is a reasonable assumption, but further business context may be needed to justify this choice.\"}",
+  "verify_numeric_values": true,
+  "expected_effect": "Declared checks and selected-column obligations must pass",
+  "evidence_ids": [],
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\25e02f065320\\dirty_sales_test\\experiments\\method-102d73aab1\\method.py",
+  "trials": [
+    {
+      "partition": "sample",
+      "rows": 15,
+      "row_positions": [
+        11,
+        29,
+        10,
+        20,
+        26,
+        5,
+        24,
+        14,
+        7,
+        15,
+        8,
+        18,
+        9,
+        22,
+        17
+      ],
+      "success": true,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "repeatable": true,
+      "output_hash": "ec7d19e8e46ebe809526ff0f4ed7a00d5262ed4cfc1c629c575a9fba38ef6a93",
+      "log": "",
+      "effect": {
+        "accepted": true,
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "Candidate contains 15 rows"
+          },
+          {
+            "rule_name": "row_count",
+            "passed": true,
+            "message": "Rows: 15 \u2192 15"
+          },
+          {
+            "rule_name": "columns",
+            "passed": true,
+            "message": "Only explicitly requested columns may be removed; only imputation markers may be added"
+          },
+          {
+            "rule_name": "untouched:OrderID",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:CustomerName",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Revenue",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:MonthlyCost",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Quantity",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Region",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:IsActive",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Segment",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Revenue_imputed",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:MonthlyCost_imputed",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Quantity_imputed",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "row_identity",
+            "passed": true,
+            "message": "Generated methods must preserve row index and order"
+          },
+          {
+            "rule_name": "expected:datetime:SignupDate",
+            "passed": true,
+            "message": "Declared outcome: SignupDate must satisfy datetime"
+          },
+          {
+            "rule_name": "expected:no_missing:SignupDate",
+            "passed": true,
+            "message": "Declared outcome: SignupDate must satisfy no_missing"
+          }
+        ],
+        "before": {
+          "rows": 15,
+          "columns": 12,
+          "missing": {
+            "OrderID": 0,
+            "CustomerName": 0,
+            "Revenue": 0,
+            "MonthlyCost": 0,
+            "Quantity": 0,
+            "Region": 0,
+            "SignupDate": 0,
+            "IsActive": 0,
+            "Segment": 0,
+            "Revenue_imputed": 0,
+            "MonthlyCost_imputed": 0,
+            "Quantity_imputed": 0
+          },
+          "dtypes": {
+            "OrderID": "str",
+            "CustomerName": "str",
+            "Revenue": "float64",
+            "MonthlyCost": "float64",
+            "Quantity": "int64",
+            "Region": "str",
+            "SignupDate": "str",
+            "IsActive": "bool",
+            "Segment": "str",
+            "Revenue_imputed": "bool",
+            "MonthlyCost_imputed": "bool",
+            "Quantity_imputed": "bool"
+          },
+          "duplicate_rows": 0
+        },
+        "after": {
+          "rows": 15,
+          "columns": 12,
+          "missing": {
+            "OrderID": 0,
+            "CustomerName": 0,
+            "Revenue": 0,
+            "MonthlyCost": 0,
+            "Quantity": 0,
+            "Region": 0,
+            "SignupDate": 0,
+            "IsActive": 0,
+            "Segment": 0,
+            "Revenue_imputed": 0,
+            "MonthlyCost_imputed": 0,
+            "Quantity_imputed": 0
+          },
+          "dtypes": {
+            "OrderID": "str",
+            "CustomerName": "str",
+            "Revenue": "float64",
+            "MonthlyCost": "float64",
+            "Quantity": "int64",
+            "Region": "str",
+            "SignupDate": "datetime64[ns]",
+            "IsActive": "bool",
+            "Segment": "str",
+            "Revenue_imputed": "bool",
+            "MonthlyCost_imputed": "bool",
+            "Quantity_imputed": "bool"
+          },
+          "duplicate_rows": 0
+        },
+        "changed_cells": 0,
+        "rows_removed": 0,
+        "changed_examples": [],
+        "lost_values": [],
+        "lost_value_count": 0,
+        "columns_removed": [],
+        "column_metrics": {
+          "SignupDate": {
+            "before": {
+              "unique": 15,
+              "missing": 0,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "after": {
+              "unique": 15,
+              "missing": 0,
+              "numeric_count": 15,
+              "mean": 1.71195264e+18,
+              "median": 1.7108928e+18,
+              "min": 1.687392e+18,
+              "max": 1.7342208e+18
+            }
+          }
+        }
+      }
+    },
+    {
+      "partition": "holdout",
+      "rows": 15,
+      "row_positions": [
+        23,
+        19,
+        13,
+        6,
+        4,
+        25,
+        27,
+        28,
+        1,
+        3,
+        16,
+        0,
+        21,
+        2,
+        12
+      ],
+      "success": false,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "repeatable": true,
+      "output_hash": "d8f263e3c11317997be7c441e9ebfa482159261c07a13c33ad92cae6a739e705",
+      "log": "",
+      "effect": {
+        "accepted": false,
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "Candidate contains 15 rows"
+          },
+          {
+            "rule_name": "row_count",
+            "passed": true,
+            "message": "Rows: 15 \u2192 15"
+          },
+          {
+            "rule_name": "columns",
+            "passed": true,
+            "message": "Only explicitly requested columns may be removed; only imputation markers may be added"
+          },
+          {
+            "rule_name": "untouched:OrderID",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:CustomerName",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Revenue",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:MonthlyCost",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Quantity",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Region",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:IsActive",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Segment",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Revenue_imputed",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:MonthlyCost_imputed",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Quantity_imputed",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "row_identity",
+            "passed": true,
+            "message": "Generated methods must preserve row index and order"
+          },
+          {
+            "rule_name": "expected:datetime:SignupDate",
+            "passed": true,
+            "message": "Declared outcome: SignupDate must satisfy datetime"
+          },
+          {
+            "rule_name": "expected:no_missing:SignupDate",
+            "passed": false,
+            "message": "Declared outcome: SignupDate must satisfy no_missing"
+          }
+        ],
+        "before": {
+          "rows": 15,
+          "columns": 12,
+          "missing": {
+            "OrderID": 0,
+            "CustomerName": 0,
+            "Revenue": 0,
+            "MonthlyCost": 0,
+            "Quantity": 0,
+            "Region": 0,
+            "SignupDate": 2,
+            "IsActive": 0,
+            "Segment": 0,
+            "Revenue_imputed": 0,
+            "MonthlyCost_imputed": 0,
+            "Quantity_imputed": 0
+          },
+          "dtypes": {
+            "OrderID": "str",
+            "CustomerName": "str",
+            "Revenue": "float64",
+            "MonthlyCost": "float64",
+            "Quantity": "int64",
+            "Region": "str",
+            "SignupDate": "str",
+            "IsActive": "bool",
+            "Segment": "str",
+            "Revenue_imputed": "bool",
+            "MonthlyCost_imputed": "bool",
+            "Quantity_imputed": "bool"
+          },
+          "duplicate_rows": 0
+        },
+        "after": {
+          "rows": 15,
+          "columns": 12,
+          "missing": {
+            "OrderID": 0,
+            "CustomerName": 0,
+            "Revenue": 0,
+            "MonthlyCost": 0,
+            "Quantity": 0,
+            "Region": 0,
+            "SignupDate": 2,
+            "IsActive": 0,
+            "Segment": 0,
+            "Revenue_imputed": 0,
+            "MonthlyCost_imputed": 0,
+            "Quantity_imputed": 0
+          },
+          "dtypes": {
+            "OrderID": "str",
+            "CustomerName": "str",
+            "Revenue": "float64",
+            "MonthlyCost": "float64",
+            "Quantity": "int64",
+            "Region": "str",
+            "SignupDate": "datetime64[ns]",
+            "IsActive": "bool",
+            "Segment": "str",
+            "Revenue_imputed": "bool",
+            "MonthlyCost_imputed": "bool",
+            "Quantity_imputed": "bool"
+          },
+          "duplicate_rows": 0
+        },
+        "changed_cells": 0,
+        "rows_removed": 0,
+        "changed_examples": [],
+        "lost_values": [],
+        "lost_value_count": 0,
+        "columns_removed": [],
+        "column_metrics": {
+          "SignupDate": {
+            "before": {
+              "unique": 13,
+              "missing": 2,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "after": {
+              "unique": 13,
+              "missing": 2,
+              "numeric_count": 15,
+              "mean": 2.4693130175269654e+17,
+              "median": 1.6906752e+18,
+              "min": -9.223372036854776e+18,
+              "max": 1.7339616e+18
+            }
+          }
+        }
+      }
+    }
+  ],
+  "tested": false,
+  "holdout_available": true,
+  "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a"
+}

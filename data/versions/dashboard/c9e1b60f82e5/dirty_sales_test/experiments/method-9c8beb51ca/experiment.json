@@ -1,0 +1,52 @@
+{
+  "candidate_id": "method-9c8beb51ca",
+  "code_hash": "b2db05131087d3b562d9668cc313dbded21900f02b46fb41538fcb44f79f798a",
+  "base_version": "V1",
+  "dataset_hash": "02d79692411f9aae3888401c0f7ee6ff791da067247632c94dd9d24d8af7bfd3",
+  "columns": [
+    "Revenue"
+  ],
+  "checks": [
+    {
+      "column": "Revenue",
+      "kind": "numeric"
+    },
+    {
+      "column": "Revenue",
+      "kind": "no_missing"
+    }
+  ],
+  "rationale": "The 'Revenue' column contains mixed numeric formats including currency symbols, commas, and shorthand multipliers. A generated method is needed to standardize these formats while preserving valid numeric values.",
+  "expected_effect": "Declared checks and selected-column obligations must pass",
+  "evidence_ids": [],
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\c9e1b60f82e5\\dirty_sales_test\\experiments\\method-9c8beb51ca\\method.py",
+  "trials": [
+    {
+      "partition": "sample",
+      "rows": 15,
+      "row_positions": [
+        11,
+        29,
+        10,
+        20,
+        26,
+        5,
+        24,
+        14,
+        7,
+        15,
+        8,
+        18,
+        9,
+        22,
+        17
+      ],
+      "success": false,
+      "error": "400 Client Error for http+docker://localnpipe/v1.56/containers/765dfe1316e2d98bd082d5d9094c930fc8fa7f091e9c4c76e51ea7fe8e298b08/archive?path=%2Fworkspace: Bad Request (\"container rootfs is marked read-only\")",
+      "error_kind": "sandbox_execution",
+      "setup": "Use an isolated Docker runtime. docker build -t biflow-cleaning-sandbox:latest -f sandbox/Dockerfile sandbox"
+    }
+  ],
+  "tested": false,
+  "holdout_available": true
+}

@@ -1,0 +1,116 @@
+{
+  "results": [
+    {
+      "configuration": "baseline",
+      "case": "syntax_repair",
+      "options": {
+        "temperature": 0.1,
+        "num_ctx": 8192,
+        "num_predict": 1024,
+        "seed": 42
+      },
+      "passed": false,
+      "finish_reason": "stop",
+      "prompt_tokens": 741,
+      "completion_tokens": 107,
+      "schema_valid": true,
+      "code": "def transform(df):\\n    df['value'] = df['value'].str.strip()\\n    return df\\n",
+      "error": "Invalid candidate Python at line 1: unexpected character after line continuation character"
+    },
+    {
+      "configuration": "baseline",
+      "case": "numeric_repair",
+      "options": {
+        "temperature": 0.1,
+        "num_ctx": 8192,
+        "num_predict": 1024,
+        "seed": 42
+      },
+      "passed": false,
+      "finish_reason": "stop",
+      "prompt_tokens": 805,
+      "completion_tokens": 203,
+      "schema_valid": true,
+      "code": "def transform(df):\n    df['value'] = df['value'].apply(lambda x: float(x.replace('$', '').replace(',', '')) if isinstance(x, str) and 'k' not in x and ',' not in x and '$' not in x else x)\n    df['value'] = df['value'].apply(lambda x: float(x.replace('k', '000')) if isinstance(x, str) and 'k' in x else x)\n    df['value'] = df['value'].apply(lambda x: float(x.replace(' ', '')) if isinstance(x, str) and ' ' in x else x)\n    return df",
+      "executable": false,
+      "error": "Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/series.py\", line 5575, in apply\n    ).apply()\n      ^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/apply.py\", line 1749, in apply\n    return self.apply_standard()\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/apply.py\", line 1807, in apply_standard\n    mapped = obj._map_values(mapper=curried)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/base.py\", line 1076, in _map_values\n    return arr.map(mapper, na_action=na_action)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/arrays/base.py\", line 3006, in map\n    result = map_array(self, mapper, na_action=na_action)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/algorithms.py\", line 2007, in map_array\n    return lib.map_infer(values, mapper)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"pandas/_libs/lib.pyx\", line 3390, in pandas._libs.lib.map_infer\n  File \"<cleaning-candidate>\", line 2, in <lambda>\nValueError: could not convert string to float: 'five hundred'\n"
+    },
+    {
+      "configuration": "greedy_more_output",
+      "case": "syntax_repair",
+      "options": {
+        "temperature": 0.0,
+        "num_ctx": 8192,
+        "num_predict": 4096,
+        "seed": 42
+      },
+      "passed": false,
+      "finish_reason": "stop",
+      "prompt_tokens": 741,
+      "completion_tokens": 106,
+      "schema_valid": true,
+      "code": "def transform(df):\\n    df['value'] = df['value'].str.strip()\\n    return df\\n",
+      "error": "Invalid candidate Python at line 1: unexpected character after line continuation character"
+    },
+    {
+      "configuration": "greedy_more_output",
+      "case": "numeric_repair",
+      "options": {
+        "temperature": 0.0,
+        "num_ctx": 8192,
+        "num_predict": 4096,
+        "seed": 42
+      },
+      "passed": false,
+      "finish_reason": "stop",
+      "prompt_tokens": 805,
+      "completion_tokens": 207,
+      "schema_valid": true,
+      "code": "def transform(df):\n    df['value'] = df['value'].apply(lambda x: float(x.replace('$', '').replace(',', '')) if isinstance(x, str) and 'k' not in x and ',' not in x and '$' not in x else x)\n    df['value'] = df['value'].apply(lambda x: float(x.replace('k', '000')) if isinstance(x, str) and 'k' in x else x)\n    df['value'] = df['value'].apply(lambda x: float(x.replace(' ', '')) if isinstance(x, str) and ' ' in x else x)\n    return df",
+      "executable": false,
+      "error": "Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/series.py\", line 5575, in apply\n    ).apply()\n      ^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/apply.py\", line 1749, in apply\n    return self.apply_standard()\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/apply.py\", line 1807, in apply_standard\n    mapped = obj._map_values(mapper=curried)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/base.py\", line 1076, in _map_values\n    return arr.map(mapper, na_action=na_action)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/arrays/base.py\", line 3006, in map\n    result = map_array(self, mapper, na_action=na_action)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/algorithms.py\", line 2007, in map_array\n    return lib.map_infer(values, mapper)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"pandas/_libs/lib.pyx\", line 3390, in pandas._libs.lib.map_infer\n  File \"<cleaning-candidate>\", line 2, in <lambda>\nValueError: could not convert string to float: 'five hundred'\n"
+    },
+    {
+      "configuration": "exploratory",
+      "case": "syntax_repair",
+      "options": {
+        "temperature": 0.6,
+        "num_ctx": 8192,
+        "num_predict": 4096,
+        "seed": 42,
+        "top_p": 0.95,
+        "top_k": 40,
+        "repeat_penalty": 1.0
+      },
+      "passed": false,
+      "finish_reason": "stop",
+      "prompt_tokens": 741,
+      "completion_tokens": 109,
+      "schema_valid": true,
+      "code": "def transform(df):\\n    df['value'] = df['value'].str.strip()\\n    return df",
+      "error": "Invalid candidate Python at line 1: unexpected character after line continuation character"
+    },
+    {
+      "configuration": "exploratory",
+      "case": "numeric_repair",
+      "options": {
+        "temperature": 0.6,
+        "num_ctx": 8192,
+        "num_predict": 4096,
+        "seed": 42,
+        "top_p": 0.95,
+        "top_k": 40,
+        "repeat_penalty": 1.0
+      },
+      "passed": false,
+      "finish_reason": "stop",
+      "prompt_tokens": 805,
+      "completion_tokens": 219,
+      "schema_valid": true,
+      "code": "def transform(df):\n    df['value'] = df['value'].apply(\n        lambda x: float(x.replace('$', '').replace(',', '')) if isinstance(x, str) and 'k' not in x and ',' not in x and '$' not in x else None\n    )\n    df['value'] = df['value'].apply(\n        lambda x: float(x.replace('k', '000')) if isinstance(x, str) and 'k' in x else x\n    )\n    df['value'] = df['value'].apply(\n        lambda x: float(x.replace(' ', '')) if isinstance(x, str) and ' ' in x else x\n    )\n    return df",
+      "executable": false,
+      "error": "Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/series.py\", line 5575, in apply\n    ).apply()\n      ^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/apply.py\", line 1749, in apply\n    return self.apply_standard()\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/apply.py\", line 1807, in apply_standard\n    mapped = obj._map_values(mapper=curried)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/base.py\", line 1076, in _map_values\n    return arr.map(mapper, na_action=na_action)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/arrays/base.py\", line 3006, in map\n    result = map_array(self, mapper, na_action=na_action)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/algorithms.py\", line 2007, in map_array\n    return lib.map_infer(values, mapper)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"pandas/_libs/lib.pyx\", line 3390, in pandas._libs.lib.map_infer\n  File \"<cleaning-candidate>\", line 3, in <lambda>\nValueError: could not convert string to float: 'five hundred'\n"
+    }
+  ],
+  "production_settings_changed": false
+}

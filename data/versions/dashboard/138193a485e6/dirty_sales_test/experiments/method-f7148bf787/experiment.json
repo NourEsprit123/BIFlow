@@ -1,0 +1,287 @@
+{
+  "candidate_id": "method-f7148bf787",
+  "code_hash": "128e2692895584cc8ca08ba80ea1b9fe30283f8b71c473efa454319eec9039b8",
+  "base_version": "V1",
+  "dataset_hash": "02d79692411f9aae3888401c0f7ee6ff791da067247632c94dd9d24d8af7bfd3",
+  "columns": [
+    "Revenue"
+  ],
+  "checks": [
+    {
+      "column": "Revenue",
+      "kind": "numeric"
+    },
+    {
+      "column": "Revenue",
+      "kind": "preserve_missing"
+    }
+  ],
+  "rationale": "The parser incorrectly converts non-numeric strings to NaN, violating no_new_missing. The fix preserves original strings that cannot be converted to float while handling numeric formats. Repair proposal: {\"supported_interpretations\": \"Handles 'k' as 1000 multiplier; preserves non-numeric strings as original text\", \"preservation\": \"Maintains pre-existing string values that cannot be converted to numeric\", \"ambiguities\": \"Uncertainty whether 'k' should always equate to 1000 or if other shorthands exist\"}",
+  "expected_effect": "Declared checks and selected-column obligations must pass",
+  "evidence_ids": [],
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\138193a485e6\\dirty_sales_test\\experiments\\method-f7148bf787\\method.py",
+  "trials": [
+    {
+      "partition": "sample",
+      "rows": 15,
+      "row_positions": [
+        11,
+        29,
+        10,
+        20,
+        26,
+        5,
+        24,
+        14,
+        7,
+        15,
+        8,
+        18,
+        9,
+        22,
+        17
+      ],
+      "success": false,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "repeatable": true,
+      "output_hash": "e5b8b776e06e2047570c509c5c8dde9076ed1ac4f69f55743df55d077d510dce",
+      "log": "",
+      "effect": {
+        "accepted": false,
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "Candidate contains 15 rows"
+          },
+          {
+            "rule_name": "row_count",
+            "passed": true,
+            "message": "Rows: 15 \u2192 15"
+          },
+          {
+            "rule_name": "columns",
+            "passed": true,
+            "message": "Only explicitly requested columns may be removed"
+          },
+          {
+            "rule_name": "no_new_missing:OrderID",
+            "passed": true,
+            "message": "Previously populated values must not become missing"
+          },
+          {
+            "rule_name": "untouched:OrderID",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "no_new_missing:CustomerName",
+            "passed": true,
+            "message": "Previously populated values must not become missing"
+          },
+          {
+            "rule_name": "untouched:CustomerName",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "no_new_missing:Revenue",
+            "passed": true,
+            "message": "Previously populated values must not become missing"
+          },
+          {
+            "rule_name": "no_new_missing:MonthlyCost",
+            "passed": true,
+            "message": "Previously populated values must not become missing"
+          },
+          {
+            "rule_name": "untouched:MonthlyCost",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "no_new_missing:Quantity",
+            "passed": true,
+            "message": "Previously populated values must not become missing"
+          },
+          {
+            "rule_name": "untouched:Quantity",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "no_new_missing:Region",
+            "passed": true,
+            "message": "Previously populated values must not become missing"
+          },
+          {
+            "rule_name": "untouched:Region",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "no_new_missing:SignupDate",
+            "passed": true,
+            "message": "Previously populated values must not become missing"
+          },
+          {
+            "rule_name": "untouched:SignupDate",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "no_new_missing:IsActive",
+            "passed": true,
+            "message": "Previously populated values must not become missing"
+          },
+          {
+            "rule_name": "untouched:IsActive",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "no_new_missing:Segment",
+            "passed": true,
+            "message": "Previously populated values must not become missing"
+          },
+          {
+            "rule_name": "untouched:Segment",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "row_identity",
+            "passed": true,
+            "message": "Generated methods must preserve row index and order"
+          },
+          {
+            "rule_name": "expected:numeric:Revenue",
+            "passed": false,
+            "message": "Declared outcome: Revenue must satisfy numeric"
+          },
+          {
+            "rule_name": "expected:preserve_missing:Revenue",
+            "passed": true,
+            "message": "Declared outcome: Revenue must satisfy preserve_missing"
+          }
+        ],
+        "before": {
+          "rows": 15,
+          "columns": 9,
+          "missing": {
+            "OrderID": 0,
+            "CustomerName": 0,
+            "Revenue": 1,
+            "MonthlyCost": 1,
+            "Quantity": 0,
+            "Region": 0,
+            "SignupDate": 0,
+            "IsActive": 0,
+            "Segment": 0
+          },
+          "dtypes": {
+            "OrderID": "str",
+            "CustomerName": "str",
+            "Revenue": "str",
+            "MonthlyCost": "str",
+            "Quantity": "float64",
+            "Region": "str",
+            "SignupDate": "str",
+            "IsActive": "str",
+            "Segment": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "after": {
+          "rows": 15,
+          "columns": 9,
+          "missing": {
+            "OrderID": 0,
+            "CustomerName": 0,
+            "Revenue": 1,
+            "MonthlyCost": 1,
+            "Quantity": 0,
+            "Region": 0,
+            "SignupDate": 0,
+            "IsActive": 0,
+            "Segment": 0
+          },
+          "dtypes": {
+            "OrderID": "str",
+            "CustomerName": "str",
+            "Revenue": "object",
+            "MonthlyCost": "str",
+            "Quantity": "float64",
+            "Region": "str",
+            "SignupDate": "str",
+            "IsActive": "str",
+            "Segment": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "changed_cells": 11,
+        "rows_removed": 0,
+        "changed_examples": [
+          {
+            "row_position": 1,
+            "column": "Revenue",
+            "before": "$4,500.00",
+            "after": "4500.0"
+          },
+          {
+            "row_position": 2,
+            "column": "Revenue",
+            "before": "$1,850.00",
+            "after": "1850.0"
+          },
+          {
+            "row_position": 3,
+            "column": "Revenue",
+            "before": "$800.00",
+            "after": "800.0"
+          },
+          {
+            "row_position": 4,
+            "column": "Revenue",
+            "before": "$1,300.00",
+            "after": "1300.0"
+          },
+          {
+            "row_position": 6,
+            "column": "Revenue",
+            "before": "$3,100.00",
+            "after": "3100.0"
+          }
+        ],
+        "lost_values": [],
+        "lost_value_count": 0,
+        "columns_removed": [],
+        "column_metrics": {
+          "Revenue": {
+            "before": {
+              "unique": 14,
+              "missing": 1,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "after": {
+              "unique": 14,
+              "missing": 1,
+              "numeric_count": 11,
+              "mean": 1662.2818181818182,
+              "median": 1300.0,
+              "min": 2.1,
+              "max": 4500.0
+            }
+          }
+        }
+      }
+    }
+  ],
+  "tested": false,
+  "holdout_available": true,
+  "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a"
+}

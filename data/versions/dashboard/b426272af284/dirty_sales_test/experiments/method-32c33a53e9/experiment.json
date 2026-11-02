@@ -1,0 +1,456 @@
+{
+  "candidate_id": "method-32c33a53e9",
+  "code_hash": "311bc5885d5747443f8e03bd147746790a7ee5dd465b73684a4103821333b91d",
+  "base_version": "V3",
+  "dataset_hash": "9420b54cfa7e94b062e13476b8d852258496e30e2fee42a9289f54134014563a",
+  "columns": [
+    "IsActive"
+  ],
+  "checks": [
+    {
+      "column": "IsActive",
+      "kind": "boolean"
+    },
+    {
+      "column": "IsActive",
+      "kind": "preserve_missing"
+    }
+  ],
+  "rationale": "Case-insensitive mapping of 'yes' and 'no' to boolean values preserves existing data while satisfying type checks Repair proposal: {\"supported_interpretations\": \"Case-insensitive mapping of 'Yes'/'No' to True/False\", \"preservation\": \"Retains original non-missing values through case-normalization\", \"ambiguities\": \"Original capitalization variations require case-insensitive parsing\"}",
+  "expected_effect": "Declared checks and selected-column obligations must pass",
+  "evidence_ids": [],
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\b426272af284\\dirty_sales_test\\experiments\\method-32c33a53e9\\method.py",
+  "trials": [
+    {
+      "partition": "sample",
+      "rows": 15,
+      "row_positions": [
+        11,
+        29,
+        10,
+        20,
+        26,
+        5,
+        24,
+        14,
+        7,
+        15,
+        8,
+        18,
+        9,
+        22,
+        17
+      ],
+      "success": true,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "repeatable": true,
+      "output_hash": "8834ca2def0313ee18386590898bf2a395d2cdcf8f289c52ab83a9eeed375507",
+      "log": "",
+      "effect": {
+        "accepted": true,
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "Candidate contains 15 rows"
+          },
+          {
+            "rule_name": "row_count",
+            "passed": true,
+            "message": "Rows: 15 \u2192 15"
+          },
+          {
+            "rule_name": "columns",
+            "passed": true,
+            "message": "Only explicitly requested columns may be removed"
+          },
+          {
+            "rule_name": "untouched:OrderID",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:CustomerName",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Revenue",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:MonthlyCost",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Quantity",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Region",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:SignupDate",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Segment",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "row_identity",
+            "passed": true,
+            "message": "Generated methods must preserve row index and order"
+          },
+          {
+            "rule_name": "expected:boolean:IsActive",
+            "passed": true,
+            "message": "Declared outcome: IsActive must satisfy boolean"
+          },
+          {
+            "rule_name": "expected:preserve_missing:IsActive",
+            "passed": true,
+            "message": "Declared outcome: IsActive must satisfy preserve_missing"
+          }
+        ],
+        "before": {
+          "rows": 15,
+          "columns": 9,
+          "missing": {
+            "OrderID": 0,
+            "CustomerName": 0,
+            "Revenue": 4,
+            "MonthlyCost": 15,
+            "Quantity": 0,
+            "Region": 0,
+            "SignupDate": 0,
+            "IsActive": 0,
+            "Segment": 0
+          },
+          "dtypes": {
+            "OrderID": "str",
+            "CustomerName": "str",
+            "Revenue": "float64",
+            "MonthlyCost": "float64",
+            "Quantity": "float64",
+            "Region": "str",
+            "SignupDate": "str",
+            "IsActive": "str",
+            "Segment": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "after": {
+          "rows": 15,
+          "columns": 9,
+          "missing": {
+            "OrderID": 0,
+            "CustomerName": 0,
+            "Revenue": 4,
+            "MonthlyCost": 15,
+            "Quantity": 0,
+            "Region": 0,
+            "SignupDate": 0,
+            "IsActive": 0,
+            "Segment": 0
+          },
+          "dtypes": {
+            "OrderID": "str",
+            "CustomerName": "str",
+            "Revenue": "float64",
+            "MonthlyCost": "float64",
+            "Quantity": "float64",
+            "Region": "str",
+            "SignupDate": "str",
+            "IsActive": "bool",
+            "Segment": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "changed_cells": 15,
+        "rows_removed": 0,
+        "changed_examples": [
+          {
+            "row_position": 0,
+            "column": "IsActive",
+            "before": "No",
+            "after": "False"
+          },
+          {
+            "row_position": 1,
+            "column": "IsActive",
+            "before": "Yes",
+            "after": "True"
+          },
+          {
+            "row_position": 2,
+            "column": "IsActive",
+            "before": "Yes",
+            "after": "True"
+          },
+          {
+            "row_position": 3,
+            "column": "IsActive",
+            "before": "Yes",
+            "after": "True"
+          },
+          {
+            "row_position": 4,
+            "column": "IsActive",
+            "before": "No",
+            "after": "False"
+          }
+        ],
+        "lost_values": [],
+        "lost_value_count": 0,
+        "columns_removed": [],
+        "column_metrics": {
+          "IsActive": {
+            "before": {
+              "unique": 2,
+              "missing": 0,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "after": {
+              "unique": 2,
+              "missing": 0,
+              "numeric_count": 15,
+              "mean": 0.5333333333333333,
+              "median": 1.0,
+              "min": 0.0,
+              "max": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "partition": "holdout",
+      "rows": 15,
+      "row_positions": [
+        23,
+        19,
+        13,
+        6,
+        4,
+        25,
+        27,
+        28,
+        1,
+        3,
+        16,
+        0,
+        21,
+        2,
+        12
+      ],
+      "success": true,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "repeatable": true,
+      "output_hash": "b5785ecf93fb166e3f839d888074914207aac66f43bbfdb7a0a5c5907bd40bda",
+      "log": "",
+      "effect": {
+        "accepted": true,
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "Candidate contains 15 rows"
+          },
+          {
+            "rule_name": "row_count",
+            "passed": true,
+            "message": "Rows: 15 \u2192 15"
+          },
+          {
+            "rule_name": "columns",
+            "passed": true,
+            "message": "Only explicitly requested columns may be removed"
+          },
+          {
+            "rule_name": "untouched:OrderID",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:CustomerName",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Revenue",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:MonthlyCost",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Quantity",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Region",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:SignupDate",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Segment",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "row_identity",
+            "passed": true,
+            "message": "Generated methods must preserve row index and order"
+          },
+          {
+            "rule_name": "expected:boolean:IsActive",
+            "passed": true,
+            "message": "Declared outcome: IsActive must satisfy boolean"
+          },
+          {
+            "rule_name": "expected:preserve_missing:IsActive",
+            "passed": true,
+            "message": "Declared outcome: IsActive must satisfy preserve_missing"
+          }
+        ],
+        "before": {
+          "rows": 15,
+          "columns": 9,
+          "missing": {
+            "OrderID": 0,
+            "CustomerName": 0,
+            "Revenue": 2,
+            "MonthlyCost": 15,
+            "Quantity": 2,
+            "Region": 0,
+            "SignupDate": 2,
+            "IsActive": 0,
+            "Segment": 0
+          },
+          "dtypes": {
+            "OrderID": "str",
+            "CustomerName": "str",
+            "Revenue": "float64",
+            "MonthlyCost": "float64",
+            "Quantity": "float64",
+            "Region": "str",
+            "SignupDate": "str",
+            "IsActive": "str",
+            "Segment": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "after": {
+          "rows": 15,
+          "columns": 9,
+          "missing": {
+            "OrderID": 0,
+            "CustomerName": 0,
+            "Revenue": 2,
+            "MonthlyCost": 15,
+            "Quantity": 2,
+            "Region": 0,
+            "SignupDate": 2,
+            "IsActive": 0,
+            "Segment": 0
+          },
+          "dtypes": {
+            "OrderID": "str",
+            "CustomerName": "str",
+            "Revenue": "float64",
+            "MonthlyCost": "float64",
+            "Quantity": "float64",
+            "Region": "str",
+            "SignupDate": "str",
+            "IsActive": "bool",
+            "Segment": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "changed_cells": 15,
+        "rows_removed": 0,
+        "changed_examples": [
+          {
+            "row_position": 0,
+            "column": "IsActive",
+            "before": "No",
+            "after": "False"
+          },
+          {
+            "row_position": 1,
+            "column": "IsActive",
+            "before": "No",
+            "after": "False"
+          },
+          {
+            "row_position": 2,
+            "column": "IsActive",
+            "before": "No",
+            "after": "False"
+          },
+          {
+            "row_position": 3,
+            "column": "IsActive",
+            "before": "Yes",
+            "after": "True"
+          },
+          {
+            "row_position": 4,
+            "column": "IsActive",
+            "before": "Yes",
+            "after": "True"
+          }
+        ],
+        "lost_values": [],
+        "lost_value_count": 0,
+        "columns_removed": [],
+        "column_metrics": {
+          "IsActive": {
+            "before": {
+              "unique": 2,
+              "missing": 0,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "after": {
+              "unique": 2,
+              "missing": 0,
+              "numeric_count": 15,
+              "mean": 0.5333333333333333,
+              "median": 1.0,
+              "min": 0.0,
+              "max": 1.0
+            }
+          }
+        }
+      }
+    }
+  ],
+  "tested": true,
+  "holdout_available": true,
+  "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a"
+}

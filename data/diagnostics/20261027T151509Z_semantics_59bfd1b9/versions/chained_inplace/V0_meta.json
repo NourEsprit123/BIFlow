@@ -1,0 +1,15 @@
+{
+  "dataset_id": "chained_inplace",
+  "version": "V0",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261027T151509Z_semantics_59bfd1b9\\versions\\chained_inplace\\V0_original.csv",
+  "format": "csv",
+  "row_count": 3,
+  "column_count": 1,
+  "columns": [
+    "amount"
+  ],
+  "created_at": "2026-10-27T15:15:16.799111Z",
+  "parent_version": null,
+  "status": "original",
+  "metadata": {}
+}

@@ -1,0 +1,13 @@
+{
+  "review": {
+    "provider": "nvidia",
+    "model": "deepseek-ai/deepseek-v4.1-flash",
+    "trigger": "diagnostic",
+    "version": "V1",
+    "decision": "unavailable",
+    "request_sent": true,
+    "feedback": "Expert review failed (ReadTimeout)"
+  },
+  "applied": false,
+  "working_version": "V1"
+}

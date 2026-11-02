@@ -1,0 +1,15 @@
+{
+  "dataset_id": "expert_test",
+  "version": "V0",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261027T072939Z_expert_bb29c5fe\\versions\\expert_test\\V0_original.csv",
+  "format": "csv",
+  "row_count": 7,
+  "column_count": 1,
+  "columns": [
+    "amount"
+  ],
+  "created_at": "2026-10-27T07:29:39.499506Z",
+  "parent_version": null,
+  "status": "original",
+  "metadata": {}
+}

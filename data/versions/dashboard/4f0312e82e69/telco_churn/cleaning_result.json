@@ -1,0 +1,893 @@
+{
+  "run_id": "5dcfd05e-f8c3-40ff-856c-5bf647fc2d7f",
+  "source_dataset": {
+    "dataset_id": "telco_churn",
+    "version": "V0",
+    "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\4f0312e82e69\\telco_churn\\V0_original.csv",
+    "format": "csv",
+    "row_count": 7043,
+    "column_count": 21,
+    "columns": [
+      "customerID",
+      "gender",
+      "SeniorCitizen",
+      "Partner",
+      "Dependents",
+      "tenure",
+      "PhoneService",
+      "MultipleLines",
+      "InternetService",
+      "OnlineSecurity",
+      "OnlineBackup",
+      "DeviceProtection",
+      "TechSupport",
+      "StreamingTV",
+      "StreamingMovies",
+      "Contract",
+      "PaperlessBilling",
+      "PaymentMethod",
+      "MonthlyCharges",
+      "TotalCharges",
+      "Churn"
+    ],
+    "created_at": "2026-10-25T23:08:03.757818Z",
+    "parent_version": null,
+    "status": "original",
+    "metadata": {
+      "agent1_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\telco_churn.csv",
+      "user_request": "Improve data quality for BI analysis while preserving the uploaded original. This is an academic experimentation run: propose and test a generated cleaning method with test_method using generated code when it adds value, then apply a passing candidate with apply_candidate with an assessment. If the isolated runtime is unavailable or the method fails, explain that result and test builtin catalog methods where appropriate.",
+      "source_signature": [
+        "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\telco_churn.csv",
+        1792601804891764000,
+        977501
+      ]
+    }
+  },
+  "final_dataset": {
+    "dataset_id": "telco_churn",
+    "version": "V1",
+    "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\4f0312e82e69\\telco_churn\\V1_working.csv",
+    "format": "csv",
+    "row_count": 7043,
+    "column_count": 21,
+    "columns": [
+      "customerID",
+      "gender",
+      "SeniorCitizen",
+      "Partner",
+      "Dependents",
+      "tenure",
+      "PhoneService",
+      "MultipleLines",
+      "InternetService",
+      "OnlineSecurity",
+      "OnlineBackup",
+      "DeviceProtection",
+      "TechSupport",
+      "StreamingTV",
+      "StreamingMovies",
+      "Contract",
+      "PaperlessBilling",
+      "PaymentMethod",
+      "MonthlyCharges",
+      "TotalCharges",
+      "Churn"
+    ],
+    "created_at": "2026-10-25T23:08:03.820595Z",
+    "parent_version": "V0",
+    "status": "failed",
+    "metadata": {
+      "agent1_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\telco_churn.csv",
+      "user_request": "Improve data quality for BI analysis while preserving the uploaded original. This is an academic experimentation run: propose and test a generated cleaning method with test_method using generated code when it adds value, then apply a passing candidate with apply_candidate with an assessment. If the isolated runtime is unavailable or the method fails, explain that result and test builtin catalog methods where appropriate.",
+      "source_signature": [
+        "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\telco_churn.csv",
+        1792601804891764000,
+        977501
+      ]
+    }
+  },
+  "change_log": {
+    "log_id": "64a6e524-b540-478d-a76e-25697f691c07",
+    "dataset_id": "telco_churn",
+    "entries": [],
+    "created_at": "2026-10-25T23:08:03.760803Z"
+  },
+  "validation": {
+    "report_id": "fcb0a747-c55c-4478-8fd5-a268d155e300",
+    "dataset_ref": {
+      "dataset_id": "telco_churn",
+      "version": "V1",
+      "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\4f0312e82e69\\telco_churn\\V1_working.csv",
+      "format": "csv",
+      "row_count": 7043,
+      "column_count": 21,
+      "columns": [
+        "customerID",
+        "gender",
+        "SeniorCitizen",
+        "Partner",
+        "Dependents",
+        "tenure",
+        "PhoneService",
+        "MultipleLines",
+        "InternetService",
+        "OnlineSecurity",
+        "OnlineBackup",
+        "DeviceProtection",
+        "TechSupport",
+        "StreamingTV",
+        "StreamingMovies",
+        "Contract",
+        "PaperlessBilling",
+        "PaymentMethod",
+        "MonthlyCharges",
+        "TotalCharges",
+        "Churn"
+      ],
+      "created_at": "2026-10-25T23:08:03.820595Z",
+      "parent_version": "V0",
+      "status": "failed",
+      "metadata": {
+        "agent1_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\telco_churn.csv",
+        "user_request": "Improve data quality for BI analysis while preserving the uploaded original. This is an academic experimentation run: propose and test a generated cleaning method with test_method using generated code when it adds value, then apply a passing candidate with apply_candidate with an assessment. If the isolated runtime is unavailable or the method fails, explain that result and test builtin catalog methods where appropriate.",
+        "source_signature": [
+          "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\telco_churn.csv",
+          1792601804891764000,
+          977501
+        ]
+      }
+    },
+    "status": "failed",
+    "rules": [
+      {
+        "rule_name": "non_empty",
+        "passed": true,
+        "message": "rows=7043",
+        "details": {}
+      },
+      {
+        "rule_name": "expected_columns",
+        "passed": true,
+        "message": "Required columns must be preserved unless removal was approved",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:customerID",
+        "passed": true,
+        "message": "customerID must match string",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:gender",
+        "passed": true,
+        "message": "gender must match string",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:SeniorCitizen",
+        "passed": false,
+        "message": "SeniorCitizen must match boolean",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:Partner",
+        "passed": false,
+        "message": "Partner must match boolean",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:Dependents",
+        "passed": false,
+        "message": "Dependents must match boolean",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:tenure",
+        "passed": true,
+        "message": "tenure must match int64",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:PhoneService",
+        "passed": false,
+        "message": "PhoneService must match boolean",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:MultipleLines",
+        "passed": true,
+        "message": "MultipleLines must match string",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:InternetService",
+        "passed": true,
+        "message": "InternetService must match string",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:OnlineSecurity",
+        "passed": true,
+        "message": "OnlineSecurity must match string",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:OnlineBackup",
+        "passed": true,
+        "message": "OnlineBackup must match string",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:DeviceProtection",
+        "passed": true,
+        "message": "DeviceProtection must match string",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:TechSupport",
+        "passed": true,
+        "message": "TechSupport must match string",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:StreamingTV",
+        "passed": true,
+        "message": "StreamingTV must match string",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:StreamingMovies",
+        "passed": true,
+        "message": "StreamingMovies must match string",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:Contract",
+        "passed": true,
+        "message": "Contract must match string",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:PaperlessBilling",
+        "passed": false,
+        "message": "PaperlessBilling must match boolean",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:PaymentMethod",
+        "passed": true,
+        "message": "PaymentMethod must match string",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:MonthlyCharges",
+        "passed": true,
+        "message": "MonthlyCharges must match float64",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:TotalCharges",
+        "passed": false,
+        "message": "TotalCharges must match float64",
+        "details": {}
+      },
+      {
+        "rule_name": "target_type:Churn",
+        "passed": false,
+        "message": "Churn must match boolean",
+        "details": {}
+      },
+      {
+        "rule_name": "missing_resolved:TotalCharges",
+        "passed": false,
+        "message": "Reported missing values in TotalCharges must be resolved",
+        "details": {}
+      }
+    ],
+    "schema_ok": true,
+    "quality_ok": false,
+    "unresolved_issues": [
+      "SeniorCitizen must match boolean",
+      "Partner must match boolean",
+      "Dependents must match boolean",
+      "PhoneService must match boolean",
+      "PaperlessBilling must match boolean",
+      "TotalCharges must match float64",
+      "Churn must match boolean",
+      "Reported missing values in TotalCharges must be resolved"
+    ],
+    "exceptions": [
+      "Stopped: repeated test_method on unchanged V1."
+    ],
+    "generated_at": "2026-10-25T23:08:29.647877Z"
+  },
+  "transformation_plan": null,
+  "unresolved_issues": [
+    "Stopped: repeated test_method on unchanged V1.",
+    "SeniorCitizen must match boolean",
+    "Partner must match boolean",
+    "Dependents must match boolean",
+    "PhoneService must match boolean",
+    "PaperlessBilling must match boolean",
+    "TotalCharges must match float64",
+    "Churn must match boolean",
+    "Reported missing values in TotalCharges must be resolved"
+  ],
+  "metadata": {
+    "mode": "llm",
+    "limits": {
+      "max_turns": 12,
+      "max_seconds": 300.0
+    },
+    "elapsed_seconds": 25.844000000040978,
+    "turns_used": 4,
+    "model": "qwen2.5:7b",
+    "provider": "ollama",
+    "stop_reason": "stalled",
+    "provider_errors": [],
+    "result_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\4f0312e82e69\\telco_churn\\cleaning_result.json",
+    "source_signature": [
+      "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\telco_churn.csv",
+      1792601804891764000,
+      977501
+    ],
+    "profiling_report_hash": "8973def1ce49da43c7849a1ea2ea1c4a4646e111658b5f81482b8ebb48f98715",
+    "finish_summary": "Stopped: repeated test_method on unchanged V1.",
+    "step_log": [
+      {
+        "turn": 1,
+        "provider": "ollama",
+        "model": "qwen2.5:7b",
+        "response_finish_reason": "stop",
+        "tool_call_source": "native",
+        "usage": {
+          "prompt_tokens": 3039,
+          "completion_tokens": 28
+        },
+        "timing": {
+          "request_seconds": 11.079000000027008,
+          "load_seconds": 6.4135325,
+          "prompt_seconds": 1.654907,
+          "generation_seconds": 0.580387,
+          "tokens_per_second": 48.24367189478745
+        },
+        "options": {
+          "temperature": 0.1,
+          "num_ctx": 8192,
+          "num_predict": 1024
+        },
+        "response_issue": null
+      },
+      {
+        "turn": 1,
+        "tool": "inspect_data",
+        "args": {
+          "column": "SeniorCitizen",
+          "view": "column"
+        },
+        "result_preview": "{\"column\": \"SeniorCitizen\", \"dtype\": \"int64\", \"null_count\": 0, \"null_pct\": 0.0, \"distinct_count\": 2, \"sample_values\": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], \"top_values\": [{\"value\": \"0\", \"count\": 5901}, {\"value\": \"1\", \"count\": 1142}], \"min\": 0.0, \"max\": 1.0, \"mean\": 0.1621, \"e"
+      },
+      {
+        "turn": 2,
+        "provider": "ollama",
+        "model": "qwen2.5:7b",
+        "response_finish_reason": "stop",
+        "tool_call_source": "native",
+        "usage": {
+          "prompt_tokens": 3259,
+          "completion_tokens": 75
+        },
+        "timing": {
+          "request_seconds": 4.437999999965541,
+          "load_seconds": 0.0348786,
+          "prompt_seconds": 0.397143,
+          "generation_seconds": 1.525719,
+          "tokens_per_second": 49.15715148071172
+        },
+        "options": {
+          "temperature": 0.1,
+          "num_ctx": 8192,
+          "num_predict": 1024
+        },
+        "response_issue": null
+      },
+      {
+        "turn": 2,
+        "tool": "test_method",
+        "args": {
+          "operation": "convert_data_types",
+          "parameters": {
+            "date_format": null,
+            "errors": "coerce",
+            "target_type": "boolean"
+          },
+          "columns": [
+            "SeniorCitizen",
+            "Partner",
+            "Dependents",
+            "PhoneService",
+            "PaperlessBilling",
+            "Churn"
+          ]
+        },
+        "result_preview": "{\"success\": false, \"error_kind\": \"invalid_tool_arguments\", \"error\": \"'hypothesis' is a required property\", \"recovery_prompt\": {\"case\": \"arguments\", \"instruction\": \"This attempt was rejected for invalid arguments before a method could run. Repair the named fields using the tool schema and method cata"
+      },
+      {
+        "turn": 3,
+        "provider": "ollama",
+        "model": "qwen2.5:7b",
+        "response_finish_reason": "stop",
+        "tool_call_source": "native",
+        "usage": {
+          "prompt_tokens": 3863,
+          "completion_tokens": 75
+        },
+        "timing": {
+          "request_seconds": 4.562000000034459,
+          "load_seconds": 0.0112649,
+          "prompt_seconds": 0.461944,
+          "generation_seconds": 1.592362,
+          "tokens_per_second": 47.09984287492417
+        },
+        "options": {
+          "temperature": 0.1,
+          "num_ctx": 8192,
+          "num_predict": 1024
+        },
+        "response_issue": null
+      },
+      {
+        "turn": 3,
+        "tool": "test_method",
+        "args": {
+          "columns": [
+            "SeniorCitizen",
+            "Partner",
+            "Dependents",
+            "PhoneService",
+            "PaperlessBilling",
+            "Churn"
+          ],
+          "operation": "convert_data_types",
+          "parameters": {
+            "date_format": null,
+            "errors": "coerce",
+            "target_type": "boolean"
+          }
+        },
+        "result_preview": "{\"success\": false, \"error_kind\": \"invalid_tool_arguments\", \"error\": \"'hypothesis' is a required property\", \"recovery_prompt\": {\"case\": \"arguments\", \"instruction\": \"This attempt was rejected for invalid arguments before a method could run. Repair the named fields using the tool schema and method cata"
+      },
+      {
+        "turn": 4,
+        "provider": "ollama",
+        "model": "qwen2.5:7b",
+        "response_finish_reason": "stop",
+        "tool_call_source": "native",
+        "usage": {
+          "prompt_tokens": 4472,
+          "completion_tokens": 75
+        },
+        "timing": {
+          "request_seconds": 4.625,
+          "load_seconds": 0.0215239,
+          "prompt_seconds": 0.473715,
+          "generation_seconds": 1.597825,
+          "tokens_per_second": 46.938807441365604
+        },
+        "options": {
+          "temperature": 0.1,
+          "num_ctx": 8192,
+          "num_predict": 1024
+        },
+        "response_issue": null
+      }
+    ],
+    "events": [
+      {
+        "duration_seconds": 0.045999999972991645,
+        "event_id": "event-1",
+        "tool": "inspect_data",
+        "arguments": {
+          "column": "SeniorCitizen",
+          "view": "column"
+        },
+        "source_version": "V1",
+        "version": "V1",
+        "result": {
+          "column": "SeniorCitizen",
+          "dtype": "int64",
+          "null_count": 0,
+          "null_pct": 0.0,
+          "distinct_count": 2,
+          "sample_values": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "top_values": [
+            {
+              "value": "0",
+              "count": 5901
+            },
+            {
+              "value": "1",
+              "count": 1142
+            }
+          ],
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.1621
+        },
+        "evidence": {}
+      },
+      {
+        "duration_seconds": 0.1720000000204891,
+        "event_id": "event-2",
+        "tool": "test_method",
+        "arguments": {
+          "operation": "convert_data_types",
+          "parameters": {
+            "date_format": null,
+            "errors": "coerce",
+            "target_type": "boolean"
+          },
+          "columns": [
+            "SeniorCitizen",
+            "Partner",
+            "Dependents",
+            "PhoneService",
+            "PaperlessBilling",
+            "Churn"
+          ]
+        },
+        "source_version": "V1",
+        "version": "V1",
+        "result": {
+          "success": false,
+          "error_kind": "invalid_tool_arguments",
+          "error": "'hypothesis' is a required property",
+          "recovery_prompt": {
+            "case": "arguments",
+            "instruction": "This attempt was rejected for invalid arguments before a method could run. Repair the named fields using the tool schema and method catalog. Keep the hypothesis unless its method arguments are wrong. Do not invent data corrections or switch to the sandbox to solve formatting. Return a corrected structured call; do not repeat the same invalid arguments.",
+            "context": {
+              "tool": "test_method",
+              "operation": "convert_data_types",
+              "columns": [
+                "SeniorCitizen",
+                "Partner",
+                "Dependents",
+                "PhoneService",
+                "PaperlessBilling",
+                "Churn"
+              ],
+              "parameters": {
+                "date_format": null,
+                "errors": "coerce",
+                "target_type": "boolean"
+              },
+              "error": "'hypothesis' is a required property",
+              "failed_checks": [],
+              "failed_trials": [],
+              "working_version": "V1",
+              "candidate_version": null,
+              "outstanding": {
+                "version": "V1",
+                "pending_types": {
+                  "SeniorCitizen": "boolean",
+                  "Partner": "boolean",
+                  "Dependents": "boolean",
+                  "PhoneService": "boolean",
+                  "PaperlessBilling": "boolean",
+                  "TotalCharges": "float",
+                  "Churn": "boolean"
+                },
+                "pending_missing": {
+                  "TotalCharges": 11
+                },
+                "flagged": {}
+              },
+              "changed_examples": [],
+              "working_columns": {
+                "SeniorCitizen": {
+                  "dtype": "int64",
+                  "missing": 0,
+                  "examples": [
+                    "0",
+                    "0",
+                    "0",
+                    "0",
+                    "0"
+                  ]
+                },
+                "Partner": {
+                  "dtype": "str",
+                  "missing": 0,
+                  "examples": [
+                    "Yes",
+                    "No",
+                    "No",
+                    "No",
+                    "No"
+                  ]
+                },
+                "Dependents": {
+                  "dtype": "str",
+                  "missing": 0,
+                  "examples": [
+                    "No",
+                    "No",
+                    "No",
+                    "No",
+                    "No"
+                  ]
+                },
+                "PhoneService": {
+                  "dtype": "str",
+                  "missing": 0,
+                  "examples": [
+                    "No",
+                    "Yes",
+                    "Yes",
+                    "No",
+                    "Yes"
+                  ]
+                },
+                "PaperlessBilling": {
+                  "dtype": "str",
+                  "missing": 0,
+                  "examples": [
+                    "Yes",
+                    "No",
+                    "Yes",
+                    "No",
+                    "Yes"
+                  ]
+                },
+                "Churn": {
+                  "dtype": "str",
+                  "missing": 0,
+                  "examples": [
+                    "No",
+                    "No",
+                    "Yes",
+                    "No",
+                    "Yes"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "evidence": {}
+      },
+      {
+        "duration_seconds": 0.125,
+        "event_id": "event-3",
+        "tool": "test_method",
+        "arguments": {
+          "columns": [
+            "SeniorCitizen",
+            "Partner",
+            "Dependents",
+            "PhoneService",
+            "PaperlessBilling",
+            "Churn"
+          ],
+          "operation": "convert_data_types",
+          "parameters": {
+            "date_format": null,
+            "errors": "coerce",
+            "target_type": "boolean"
+          }
+        },
+        "source_version": "V1",
+        "version": "V1",
+        "result": {
+          "success": false,
+          "error_kind": "invalid_tool_arguments",
+          "error": "'hypothesis' is a required property",
+          "recovery_prompt": {
+            "case": "arguments",
+            "instruction": "This attempt was rejected for invalid arguments before a method could run. Repair the named fields using the tool schema and method catalog. Keep the hypothesis unless its method arguments are wrong. Do not invent data corrections or switch to the sandbox to solve formatting. Return a corrected structured call; do not repeat the same invalid arguments.",
+            "context": {
+              "tool": "test_method",
+              "operation": "convert_data_types",
+              "columns": [
+                "SeniorCitizen",
+                "Partner",
+                "Dependents",
+                "PhoneService",
+                "PaperlessBilling",
+                "Churn"
+              ],
+              "parameters": {
+                "date_format": null,
+                "errors": "coerce",
+                "target_type": "boolean"
+              },
+              "error": "'hypothesis' is a required property",
+              "failed_checks": [],
+              "failed_trials": [],
+              "working_version": "V1",
+              "candidate_version": null,
+              "outstanding": {
+                "version": "V1",
+                "pending_types": {
+                  "SeniorCitizen": "boolean",
+                  "Partner": "boolean",
+                  "Dependents": "boolean",
+                  "PhoneService": "boolean",
+                  "PaperlessBilling": "boolean",
+                  "TotalCharges": "float",
+                  "Churn": "boolean"
+                },
+                "pending_missing": {
+                  "TotalCharges": 11
+                },
+                "flagged": {}
+              },
+              "changed_examples": [],
+              "working_columns": {
+                "SeniorCitizen": {
+                  "dtype": "int64",
+                  "missing": 0,
+                  "examples": [
+                    "0",
+                    "0",
+                    "0",
+                    "0",
+                    "0"
+                  ]
+                },
+                "Partner": {
+                  "dtype": "str",
+                  "missing": 0,
+                  "examples": [
+                    "Yes",
+                    "No",
+                    "No",
+                    "No",
+                    "No"
+                  ]
+                },
+                "Dependents": {
+                  "dtype": "str",
+                  "missing": 0,
+                  "examples": [
+                    "No",
+                    "No",
+                    "No",
+                    "No",
+                    "No"
+                  ]
+                },
+                "PhoneService": {
+                  "dtype": "str",
+                  "missing": 0,
+                  "examples": [
+                    "No",
+                    "Yes",
+                    "Yes",
+                    "No",
+                    "Yes"
+                  ]
+                },
+                "PaperlessBilling": {
+                  "dtype": "str",
+                  "missing": 0,
+                  "examples": [
+                    "Yes",
+                    "No",
+                    "Yes",
+                    "No",
+                    "Yes"
+                  ]
+                },
+                "Churn": {
+                  "dtype": "str",
+                  "missing": 0,
+                  "examples": [
+                    "No",
+                    "No",
+                    "Yes",
+                    "No",
+                    "Yes"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "evidence": {}
+      }
+    ],
+    "evidence": {
+      "event-1": {
+        "source": "inspection",
+        "tool": "inspect_data",
+        "arguments": {
+          "column": "SeniorCitizen",
+          "view": "column"
+        },
+        "version": "V1",
+        "result": {
+          "column": "SeniorCitizen",
+          "dtype": "int64",
+          "null_count": 0,
+          "null_pct": 0.0,
+          "distinct_count": 2,
+          "sample_values": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "top_values": [
+            {
+              "value": "0",
+              "count": 5901
+            },
+            {
+              "value": "1",
+              "count": 1142
+            }
+          ],
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.1621
+        }
+      }
+    },
+    "experiments": {},
+    "flagged": {},
+    "failures": {},
+    "method_candidates": {},
+    "decisions": [],
+    "sandbox": {
+      "requested": "auto",
+      "selected": "docker",
+      "docker": true,
+      "podman": false,
+      "bwrap": false,
+      "nsjail": false,
+      "timeout": 60.0,
+      "llm_sandbox_importable": true
+    },
+    "user_request": "Improve data quality for BI analysis while preserving the uploaded original. This is an academic experimentation run: propose and test a generated cleaning method with test_method using generated code when it adds value, then apply a passing candidate with apply_candidate with an assessment. If the isolated runtime is unavailable or the method fails, explain that result and test builtin catalog methods where appropriate.",
+    "agent1_summary": "The telco churn dataset is generally high-quality with 85% overall health across 7,043 customer records. The primary ETL requirement is coercing TotalCharges from string to float64 and standardizing binary text flags to native booleans."
+  },
+  "completed_at": "2026-10-25T23:08:31.571603Z"
+}

@@ -1,0 +1,95 @@
+[
+  {
+    "condition": "production",
+    "repeat": 1,
+    "action": "test_method",
+    "arguments": {
+      "operation": "clean_numeric_string",
+      "parameters": {
+        "errors": "coerce"
+      },
+      "value_assessment": {
+        "ambiguities": "The meaning of 'banana' and 'five hundred' is ambiguous and should be treated as missing values.",
+        "evidence": "The column 'value' contains 4 distinct values: $100, 'ERROR_404', 'banana', and 'five hundred'. The dollar sign and spelled-out numbers are the primary formats, while alphanumeric errors are present.",
+        "interpretation": "The dollar sign and spelled-out numbers can be parsed to numeric values, while alphanumeric errors should be treated as missing.",
+        "preservation": "Populated numeric values will be preserved by converting them to their numeric equivalents."
+      },
+      "hypothesis": "The column 'value' contains monetary values represented as strings, some of which are in a non-standard format. The goal is to convert these values to a numeric type while preserving the populated information. The current formats include dollar signs, spelled-out numbers, and alphanumeric errors. The rule is to parse the dollar signs and convert spelled-out numbers to their numeric equivalents, while treating alphanumeric errors as missing values.",
+      "columns": [
+        "value"
+      ]
+    },
+    "issue": null,
+    "passed": false
+  },
+  {
+    "condition": "production",
+    "repeat": 2,
+    "action": "test_method",
+    "arguments": {
+      "hypothesis": "The column 'value' contains monetary values represented as strings, some of which are in a non-standard format. The goal is to convert these values to a numeric type while preserving the populated information. The current formats include dollar signs, words for numbers, and alphanumeric errors. The rule is to parse dollar signs and numeric words, and convert them to numeric values. The remaining alphanumeric errors should be flagged for review.",
+      "columns": [
+        "value"
+      ],
+      "operation": "convert_data_types",
+      "parameters": {
+        "errors": "coerce",
+        "target_type": "numeric"
+      },
+      "value_assessment": {
+        "ambiguities": "The specific meaning of the alphanumeric errors is unresolved.",
+        "evidence": "The column 'value' contains monetary values in various formats, including dollar signs, words for numbers, and alphanumeric errors. The coverage is complete, and the formats are observed.",
+        "interpretation": "The rule is to parse dollar signs and numeric words, and convert them to numeric values. The remaining alphanumeric errors should be flagged for review.",
+        "preservation": "Populated monetary values will be converted to numeric types, and the populated information will be preserved."
+      }
+    },
+    "issue": null,
+    "passed": false
+  },
+  {
+    "condition": "focused",
+    "repeat": 1,
+    "action": "test_method",
+    "arguments": {
+      "hypothesis": "The 'value' column contains mixed string formats that include numeric and non-numeric values, making it impossible to directly convert to numeric. We need to clean the string values to make them numeric.",
+      "operation": "clean_numeric_string",
+      "columns": [
+        "value"
+      ],
+      "value_assessment": {
+        "ambiguities": "The exact method for cleaning non-numeric strings is ambiguous. We need to decide whether to replace them with a numeric value or remove them.",
+        "evidence": "The column contains values like '$100' and 'five hundred' which are not directly convertible to numeric values. 'banana' and 'ERROR_404' are non-numeric strings. The presence of these non-numeric strings suggests that direct conversion will not work.",
+        "interpretation": "The column contains mixed string formats that include numeric and non-numeric values, making it impossible to directly convert to numeric. We need to clean the string values to make them numeric.",
+        "preservation": "The cleaned values should preserve the numeric information while removing or cleaning non-numeric strings."
+      },
+      "code": "value = value.replace('banana', '0').replace('ERROR_404', '0').str.replace(r'[^0-9]', '', regex=True).astype(float)"
+    },
+    "issue": null,
+    "passed": false
+  },
+  {
+    "condition": "focused",
+    "repeat": 2,
+    "action": "test_method",
+    "arguments": {
+      "hypothesis": "The 'value' column contains mixed string formats that include numeric and non-numeric values, making it impossible to directly convert to numeric. We need to clean the string values to make them numeric.",
+      "operation": "clean_numeric_string",
+      "columns": [
+        "value"
+      ],
+      "value_assessment": {
+        "ambiguities": "The exact format for non-numeric strings is ambiguous, and we need to decide how to handle them.",
+        "evidence": "The column contains values like '$100' and 'five hundred', which are not directly convertible to numeric values. 'banana' and 'ERROR_404' are non-numeric strings. The presence of these non-numeric strings suggests that we need to clean the strings to make them numeric.",
+        "interpretation": "The column contains mixed string formats, and direct conversion to numeric is not possible. We need to clean the strings to make them numeric.",
+        "preservation": "We should preserve the numeric information while converting non-numeric strings to NaN or a consistent format."
+      },
+      "code": "value_cleaned = pd.to_numeric(value, errors='coerce')",
+      "parameters": {
+        "errors": "coerce",
+        "target_type": "numeric"
+      }
+    },
+    "issue": null,
+    "passed": false
+  }
+]

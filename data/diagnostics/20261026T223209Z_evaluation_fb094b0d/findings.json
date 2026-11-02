@@ -1,0 +1,31 @@
+{
+  "model": "qwen2.5:7b",
+  "conditions": [
+    "production prompt",
+    "short focused control prompt"
+  ],
+  "repetitions_per_case_per_condition": 2,
+  "inference_calls": 16,
+  "repair_json_valid": 8,
+  "repair_json_total": 8,
+  "syntax_repairs_passed": 0,
+  "syntax_repairs_total": 4,
+  "numeric_repairs_passed": 0,
+  "numeric_repairs_total": 4,
+  "ambiguity_decisions_passed_after_requested_inspection": 0,
+  "ambiguity_decisions_total": 4,
+  "infrastructure_note": "One Docker setup request timed out; its exact saved candidate was replayed without another inference call and failed on five hundred.",
+  "limitations": [
+    "Only qwen2.5:7b was installed; no alternative-model comparison was performed.",
+    "Small fixed diagnostic, not a general model benchmark.",
+    "Repeated low-temperature trials are not statistically independent."
+  ],
+  "production_changes": false,
+  "dataset_changes": false,
+  "findings": [
+    "JSON response structure succeeded in all eight repair calls.",
+    "All four syntax repairs repeated literal newline escapes.",
+    "Numeric repairs either crashed on written numbers or erased populated information; none matched expected outputs.",
+    "After full value inspection, all four ambiguity decisions proposed inappropriate coercion/replacement instead of the required review action."
+  ]
+}

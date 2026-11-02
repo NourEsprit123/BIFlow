@@ -1,0 +1,12 @@
+{
+  "provider": "groq",
+  "reviewer_model": "openai/gpt-oss-120b",
+  "review_received": true,
+  "review_seconds": 1.929160024,
+  "local_revision_expected_values_passed": true,
+  "unseen_values_passed": false,
+  "applied": false,
+  "production_reviewer_enabled_with_user_approval": true,
+  "reviewer_max_calls_per_run": 2,
+  "local_generation_unchanged": true
+}

@@ -1,0 +1,17 @@
+{
+  "model": "qwen2.5:7b",
+  "finish_reason": "stop",
+  "prompt_tokens": 4098,
+  "completion_tokens": 497,
+  "native_tool_calls": 0,
+  "request_message_characters": 30804,
+  "response_issue": "Returned prose and markdown instead of a repair_method call or valid JSON envelope.",
+  "code_review": [
+    "Regex removes letters: 1.5k becomes 1.5, not 1500.",
+    "Written numbers become empty strings and float conversion fails.",
+    "ERROR_404 becomes 404, inventing a numeric interpretation.",
+    "Displayed expected output was claimed by the model, not measured by Docker."
+  ],
+  "sandbox_executed": false,
+  "dataset_applied": false
+}

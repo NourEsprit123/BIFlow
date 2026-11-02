@@ -1,0 +1,12 @@
+{
+  "review": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017:novita",
+    "trigger": "diagnostic",
+    "version": "V1",
+    "decision": "unavailable",
+    "request_sent": true,
+    "feedback": "Hugging Face review returned HTTP 402; check token permissions, model availability and credits"
+  },
+  "applied": false,
+  "working_version": "V1"
+}

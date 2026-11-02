@@ -1,0 +1,15 @@
+{
+  "dataset_id": "wrong_multiplier",
+  "version": "V1",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261101T171900Z_semantics_2f5b1514\\versions\\wrong_multiplier\\V1_working.csv",
+  "format": "csv",
+  "row_count": 3,
+  "column_count": 1,
+  "columns": [
+    "amount"
+  ],
+  "created_at": "2026-11-01T17:19:00.818883Z",
+  "parent_version": "V0",
+  "status": "working",
+  "metadata": {}
+}

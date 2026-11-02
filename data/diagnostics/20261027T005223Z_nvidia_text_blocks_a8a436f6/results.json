@@ -1,0 +1,24 @@
+{
+  "request": {
+    "model": "deepseek-ai/deepseek-v4.1-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Reply with exactly OK."
+          }
+        ]
+      }
+    ],
+    "temperature": 1,
+    "top_p": 0.95,
+    "max_tokens": 128,
+    "stream": true
+  },
+  "events": [],
+  "error_type": "ReadTimeout",
+  "error": "The read operation timed out",
+  "elapsed_seconds": 30.39
+}

@@ -1,0 +1,30 @@
+{
+  "dataset_id": "sales_small",
+  "version": "V8",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\evaluation\\20261102T183351Z\\sales_small_run1\\versions\\4aa8215030cf\\sales_small\\V8_transform.csv",
+  "format": "csv",
+  "row_count": 40,
+  "column_count": 8,
+  "columns": [
+    "order_id",
+    "customer",
+    "region",
+    "revenue",
+    "quantity",
+    "is_active",
+    "signup_date",
+    "revenue_imputed"
+  ],
+  "created_at": "2026-11-02T18:36:57.069503Z",
+  "parent_version": "V7",
+  "status": "working",
+  "metadata": {
+    "agent1_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\evaluation\\20261102T183351Z\\sales_small_run1\\sales_small.csv",
+    "user_request": "Improve data quality for BI analysis while preserving the uploaded original. Prefer builtin operations; write generated code only when no builtin can express the justified rule.",
+    "source_signature": [
+      "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\evaluation\\20261102T183351Z\\sales_small_run1\\sales_small.csv",
+      1793644431933433000,
+      2332
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "endpoint": "https://integrate.api.nvidia.com/v1/chat/completions",
+  "timeout_seconds": 30,
+  "request": {
+    "model": "deepseek-ai/deepseek-v4.1-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly OK."
+      }
+    ],
+    "max_tokens": 32,
+    "stream": true
+  },
+  "events": [],
+  "error_type": "ReadTimeout",
+  "error": "The read operation timed out",
+  "elapsed_seconds": 30.953
+}

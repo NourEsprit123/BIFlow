@@ -1,0 +1,132 @@
+{
+  "candidate_id": "method-61863462c7",
+  "code_hash": "3e100c0359a2222642456ffcb852a985259e05b7b4d624163dcf1d6d78e12849",
+  "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+  "full_data_effect": {
+    "accepted": true,
+    "rules": [
+      {
+        "rule_name": "non_empty",
+        "passed": true,
+        "message": "Candidate contains 9 rows"
+      },
+      {
+        "rule_name": "row_count",
+        "passed": true,
+        "message": "Rows: 9 \u2192 9"
+      },
+      {
+        "rule_name": "columns",
+        "passed": true,
+        "message": "Only explicitly requested columns may be removed"
+      },
+      {
+        "rule_name": "row_identity",
+        "passed": true,
+        "message": "Generated methods must preserve row index and order"
+      },
+      {
+        "rule_name": "expected:numeric:amount",
+        "passed": true,
+        "message": "Declared outcome: amount must satisfy numeric"
+      }
+    ],
+    "before": {
+      "rows": 9,
+      "columns": 1,
+      "missing": {
+        "amount": 1
+      },
+      "dtypes": {
+        "amount": "str"
+      },
+      "duplicate_rows": 0
+    },
+    "after": {
+      "rows": 9,
+      "columns": 1,
+      "missing": {
+        "amount": 3
+      },
+      "dtypes": {
+        "amount": "float64"
+      },
+      "duplicate_rows": 2
+    },
+    "changed_cells": 8,
+    "rows_removed": 0,
+    "changed_examples": [
+      {
+        "row_position": 0,
+        "column": "amount",
+        "before": "1.5k",
+        "after": "1500.0"
+      },
+      {
+        "row_position": 1,
+        "column": "amount",
+        "before": "2k",
+        "after": "2000.0"
+      },
+      {
+        "row_position": 2,
+        "column": "amount",
+        "before": "five hundred",
+        "after": "500.0"
+      },
+      {
+        "row_position": 3,
+        "column": "amount",
+        "before": "one thousand",
+        "after": "1000.0"
+      },
+      {
+        "row_position": 4,
+        "column": "amount",
+        "before": "850",
+        "after": "850.0"
+      }
+    ],
+    "lost_values": [
+      {
+        "row_position": 7,
+        "row_index": "7",
+        "column": "amount",
+        "before": "banana",
+        "after": null
+      },
+      {
+        "row_position": 8,
+        "row_index": "8",
+        "column": "amount",
+        "before": "ERROR_404",
+        "after": null
+      }
+    ],
+    "lost_value_count": 2,
+    "columns_removed": [],
+    "column_metrics": {
+      "amount": {
+        "before": {
+          "unique": 8,
+          "missing": 1,
+          "numeric_count": 1,
+          "mean": 850.0,
+          "median": 850.0,
+          "min": 850.0,
+          "max": 850.0
+        },
+        "after": {
+          "unique": 6,
+          "missing": 3,
+          "numeric_count": 6,
+          "mean": 1175.0833333333333,
+          "median": 1100.25,
+          "min": 500.0,
+          "max": 2000.0
+        }
+      }
+    }
+  },
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261027T145008Z_expert_515b3b3b\\versions\\expert_test\\experiments\\method-61863462c7\\method.py"
+}

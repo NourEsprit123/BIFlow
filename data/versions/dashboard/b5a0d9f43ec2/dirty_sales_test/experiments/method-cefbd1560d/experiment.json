@@ -1,0 +1,274 @@
+{
+  "candidate_id": "method-cefbd1560d",
+  "code_hash": "ae82dcfcaef5bed92014a87e7c44c0ad4acd348ebe16058e0bc221cde95caa24",
+  "base_version": "V1",
+  "dataset_hash": "02d79692411f9aae3888401c0f7ee6ff791da067247632c94dd9d24d8af7bfd3",
+  "columns": [
+    "Revenue"
+  ],
+  "checks": [
+    {
+      "column": "Revenue",
+      "kind": "preserve_missing"
+    },
+    {
+      "column": "Revenue",
+      "kind": "numeric"
+    }
+  ],
+  "rationale": "The failure arises from the inability to convert word-based numeric values like 'five hundred' and 'one thousand' to numeric types. The fix involves explicitly mapping these word forms to their numeric equivalents before conversion. Repair proposal: {\"supported_interpretations\": \"Recognizable word forms like 'five hundred' and 'one thousand' are mapped to their numeric equivalents (500 and 1000, respectively) to ensure correct conversion.\", \"preservation\": \"Existing missing values are preserved during the type conversion process.\", \"ambiguities\": \"Unrecognized or nonsensical entries like 'banana' or 'ERROR_404' will remain as NaN and require further review.\"}",
+  "verify_numeric_values": true,
+  "expected_effect": "Declared checks and selected-column obligations must pass",
+  "evidence_ids": [],
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\b5a0d9f43ec2\\dirty_sales_test\\experiments\\method-cefbd1560d\\method.py",
+  "trials": [
+    {
+      "partition": "sample",
+      "rows": 15,
+      "row_positions": [
+        11,
+        29,
+        10,
+        20,
+        26,
+        5,
+        24,
+        14,
+        7,
+        15,
+        8,
+        18,
+        9,
+        22,
+        17
+      ],
+      "success": false,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "repeatable": true,
+      "output_hash": "280a0b236073767902a9655d132be2fa3a62a3543cf5d1e4ee9337ae6527889b",
+      "log": "",
+      "effect": {
+        "accepted": false,
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "Candidate contains 15 rows"
+          },
+          {
+            "rule_name": "row_count",
+            "passed": true,
+            "message": "Rows: 15 \u2192 15"
+          },
+          {
+            "rule_name": "columns",
+            "passed": true,
+            "message": "Only explicitly requested columns may be removed"
+          },
+          {
+            "rule_name": "untouched:OrderID",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:CustomerName",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:MonthlyCost",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Quantity",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Region",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:SignupDate",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:IsActive",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Segment",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "row_identity",
+            "passed": true,
+            "message": "Generated methods must preserve row index and order"
+          },
+          {
+            "rule_name": "expected:preserve_missing:Revenue",
+            "passed": true,
+            "message": "Declared outcome: Revenue must satisfy preserve_missing"
+          },
+          {
+            "rule_name": "expected:numeric:Revenue",
+            "passed": true,
+            "message": "Declared outcome: Revenue must satisfy numeric"
+          },
+          {
+            "rule_name": "expected:numeric_values:Revenue",
+            "passed": false,
+            "message": "Preserve the numeric meaning of 12 recognized source values; 1 mismatches",
+            "checked_values": 12,
+            "mismatches": [
+              {
+                "row_position": 8,
+                "row_index": "7",
+                "column": "Revenue",
+                "before": "2.1k",
+                "expected": 2100.0,
+                "actual": "2.1"
+              }
+            ]
+          }
+        ],
+        "before": {
+          "rows": 15,
+          "columns": 9,
+          "missing": {
+            "OrderID": 0,
+            "CustomerName": 0,
+            "Revenue": 1,
+            "MonthlyCost": 1,
+            "Quantity": 0,
+            "Region": 0,
+            "SignupDate": 0,
+            "IsActive": 0,
+            "Segment": 0
+          },
+          "dtypes": {
+            "OrderID": "str",
+            "CustomerName": "str",
+            "Revenue": "str",
+            "MonthlyCost": "str",
+            "Quantity": "float64",
+            "Region": "str",
+            "SignupDate": "str",
+            "IsActive": "str",
+            "Segment": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "after": {
+          "rows": 15,
+          "columns": 9,
+          "missing": {
+            "OrderID": 0,
+            "CustomerName": 0,
+            "Revenue": 3,
+            "MonthlyCost": 1,
+            "Quantity": 0,
+            "Region": 0,
+            "SignupDate": 0,
+            "IsActive": 0,
+            "Segment": 0
+          },
+          "dtypes": {
+            "OrderID": "str",
+            "CustomerName": "str",
+            "Revenue": "float64",
+            "MonthlyCost": "str",
+            "Quantity": "float64",
+            "Region": "str",
+            "SignupDate": "str",
+            "IsActive": "str",
+            "Segment": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "changed_cells": 14,
+        "rows_removed": 0,
+        "changed_examples": [
+          {
+            "row_position": 0,
+            "column": "Revenue",
+            "before": "five hundred",
+            "after": "500.0"
+          },
+          {
+            "row_position": 1,
+            "column": "Revenue",
+            "before": "$4,500.00",
+            "after": "4500.0"
+          },
+          {
+            "row_position": 2,
+            "column": "Revenue",
+            "before": "$1,850.00",
+            "after": "1850.0"
+          },
+          {
+            "row_position": 3,
+            "column": "Revenue",
+            "before": "$800.00",
+            "after": "800.0"
+          },
+          {
+            "row_position": 4,
+            "column": "Revenue",
+            "before": "$1,300.00",
+            "after": "1300.0"
+          }
+        ],
+        "lost_values": [
+          {
+            "row_position": 5,
+            "row_index": "5",
+            "column": "Revenue",
+            "before": "banana",
+            "after": null
+          },
+          {
+            "row_position": 12,
+            "row_index": "9",
+            "column": "Revenue",
+            "before": "ERROR_404",
+            "after": null
+          }
+        ],
+        "lost_value_count": 2,
+        "columns_removed": [],
+        "column_metrics": {
+          "Revenue": {
+            "before": {
+              "unique": 14,
+              "missing": 1,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "after": {
+              "unique": 12,
+              "missing": 3,
+              "numeric_count": 12,
+              "mean": 1815.175,
+              "median": 1525.0,
+              "min": 2.1,
+              "max": 4500.0
+            }
+          }
+        }
+      }
+    }
+  ],
+  "tested": false,
+  "holdout_available": true,
+  "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a"
+}

@@ -1,0 +1,262 @@
+{
+  "candidate_id": "method-42eb3ae7d5",
+  "code_hash": "aab45808e14b2dd378a4a531f912941f79d6ddfae21089598bdaaa47590e4f62",
+  "base_version": "V1",
+  "dataset_hash": "b541c73656f33f0897dee10e031163f6ce2df21a027b49091698ed6b6528a9bd",
+  "columns": [
+    "amount"
+  ],
+  "checks": [
+    {
+      "column": "amount",
+      "kind": "numeric"
+    }
+  ],
+  "rationale": "Live regression: wrong_multiplier",
+  "verify_numeric_values": true,
+  "expected_effect": "Declared checks and selected-column obligations must pass",
+  "evidence_ids": [],
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261101T171900Z_semantics_2f5b1514\\versions\\wrong_multiplier\\experiments\\method-42eb3ae7d5\\method.py",
+  "trials": [
+    {
+      "partition": "sample",
+      "rows": 1,
+      "row_positions": [
+        2
+      ],
+      "success": true,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "repeatable": true,
+      "output_hash": "59907cdaf4c499e3c65bf31f2f9c3c7a761ebf541f10f80d31ba1752e18fc2df",
+      "log": "",
+      "effect": {
+        "accepted": true,
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "Candidate contains 1 rows"
+          },
+          {
+            "rule_name": "row_count",
+            "passed": true,
+            "message": "Rows: 1 \u2192 1"
+          },
+          {
+            "rule_name": "columns",
+            "passed": true,
+            "message": "Only explicitly requested columns may be removed"
+          },
+          {
+            "rule_name": "row_identity",
+            "passed": true,
+            "message": "Generated methods must preserve row index and order"
+          },
+          {
+            "rule_name": "expected:numeric:amount",
+            "passed": true,
+            "message": "Declared outcome: amount must satisfy numeric"
+          }
+        ],
+        "before": {
+          "rows": 1,
+          "columns": 1,
+          "missing": {
+            "amount": 0
+          },
+          "dtypes": {
+            "amount": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "after": {
+          "rows": 1,
+          "columns": 1,
+          "missing": {
+            "amount": 1
+          },
+          "dtypes": {
+            "amount": "float64"
+          },
+          "duplicate_rows": 0
+        },
+        "changed_cells": 1,
+        "rows_removed": 0,
+        "changed_examples": [
+          {
+            "row_position": 0,
+            "column": "amount",
+            "before": "banana",
+            "after": null
+          }
+        ],
+        "lost_values": [
+          {
+            "row_position": 0,
+            "row_index": "2",
+            "column": "amount",
+            "before": "banana",
+            "after": null
+          }
+        ],
+        "lost_value_count": 1,
+        "columns_removed": [],
+        "column_metrics": {
+          "amount": {
+            "before": {
+              "unique": 1,
+              "missing": 0,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "after": {
+              "unique": 0,
+              "missing": 1,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "partition": "holdout",
+      "rows": 2,
+      "row_positions": [
+        1,
+        0
+      ],
+      "success": false,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "repeatable": true,
+      "output_hash": "e25ee3f923c048c74f4c9f03a412a04514de49868a67ff150ec305867182980b",
+      "log": "",
+      "effect": {
+        "accepted": false,
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "Candidate contains 2 rows"
+          },
+          {
+            "rule_name": "row_count",
+            "passed": true,
+            "message": "Rows: 2 \u2192 2"
+          },
+          {
+            "rule_name": "columns",
+            "passed": true,
+            "message": "Only explicitly requested columns may be removed"
+          },
+          {
+            "rule_name": "row_identity",
+            "passed": true,
+            "message": "Generated methods must preserve row index and order"
+          },
+          {
+            "rule_name": "expected:numeric:amount",
+            "passed": true,
+            "message": "Declared outcome: amount must satisfy numeric"
+          },
+          {
+            "rule_name": "expected:numeric_values:amount",
+            "passed": false,
+            "message": "Preserve the numeric meaning of 2 recognized source values; 2 mismatches",
+            "checked_values": 2,
+            "mismatches": [
+              {
+                "row_position": 0,
+                "row_index": "1",
+                "column": "amount",
+                "before": "2.1k",
+                "expected": 2100.0,
+                "actual": "2.1"
+              },
+              {
+                "row_position": 1,
+                "row_index": "0",
+                "column": "amount",
+                "before": "1.5k",
+                "expected": 1500.0,
+                "actual": "1.5"
+              }
+            ]
+          }
+        ],
+        "before": {
+          "rows": 2,
+          "columns": 1,
+          "missing": {
+            "amount": 0
+          },
+          "dtypes": {
+            "amount": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "after": {
+          "rows": 2,
+          "columns": 1,
+          "missing": {
+            "amount": 0
+          },
+          "dtypes": {
+            "amount": "float64"
+          },
+          "duplicate_rows": 0
+        },
+        "changed_cells": 2,
+        "rows_removed": 0,
+        "changed_examples": [
+          {
+            "row_position": 0,
+            "column": "amount",
+            "before": "2.1k",
+            "after": "2.1"
+          },
+          {
+            "row_position": 1,
+            "column": "amount",
+            "before": "1.5k",
+            "after": "1.5"
+          }
+        ],
+        "lost_values": [],
+        "lost_value_count": 0,
+        "columns_removed": [],
+        "column_metrics": {
+          "amount": {
+            "before": {
+              "unique": 2,
+              "missing": 0,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "after": {
+              "unique": 2,
+              "missing": 0,
+              "numeric_count": 2,
+              "mean": 1.8,
+              "median": 1.8,
+              "min": 1.5,
+              "max": 2.1
+            }
+          }
+        }
+      }
+    }
+  ],
+  "tested": false,
+  "holdout_available": true,
+  "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a"
+}

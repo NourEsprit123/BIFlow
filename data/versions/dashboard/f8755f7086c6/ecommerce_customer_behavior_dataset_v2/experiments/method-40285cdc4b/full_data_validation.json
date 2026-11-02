@@ -1,0 +1,3602 @@
+{
+  "candidate_id": "method-40285cdc4b",
+  "code_hash": "d3a7ca09b8b86c359f5220c674d54607e718773030e8f09960aaa618b3b03492",
+  "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+  "full_data_effect": {
+    "accepted": true,
+    "rules": [
+      {
+        "rule_name": "non_empty",
+        "passed": true,
+        "message": "Candidate contains 17049 rows"
+      },
+      {
+        "rule_name": "row_count",
+        "passed": true,
+        "message": "Rows: 17049 \u2192 17049"
+      },
+      {
+        "rule_name": "columns",
+        "passed": true,
+        "message": "Only explicitly requested columns may be removed"
+      },
+      {
+        "rule_name": "untouched:Order_ID",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Customer_ID",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Date",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Age",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Gender",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:City",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Product_Category",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Unit_Price",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Quantity",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Discount_Amount",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Total_Amount",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Payment_Method",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Device_Type",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Session_Duration_Minutes",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Pages_Viewed",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Is_Returning_Customer",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "untouched:Customer_Rating",
+        "passed": true,
+        "message": "Unselected column values must stay unchanged"
+      },
+      {
+        "rule_name": "row_identity",
+        "passed": true,
+        "message": "Generated methods must preserve row index and order"
+      },
+      {
+        "rule_name": "expected:preserve_missing:Delivery_Time_Days",
+        "passed": true,
+        "message": "Declared outcome: Delivery_Time_Days must satisfy preserve_missing"
+      },
+      {
+        "rule_name": "expected:integer:Delivery_Time_Days",
+        "passed": true,
+        "message": "Declared outcome: Delivery_Time_Days must satisfy integer"
+      }
+    ],
+    "before": {
+      "rows": 17049,
+      "columns": 18,
+      "missing": {
+        "Order_ID": 0,
+        "Customer_ID": 0,
+        "Date": 0,
+        "Age": 0,
+        "Gender": 0,
+        "City": 0,
+        "Product_Category": 0,
+        "Unit_Price": 0,
+        "Quantity": 0,
+        "Discount_Amount": 0,
+        "Total_Amount": 0,
+        "Payment_Method": 0,
+        "Device_Type": 0,
+        "Session_Duration_Minutes": 0,
+        "Pages_Viewed": 0,
+        "Is_Returning_Customer": 0,
+        "Delivery_Time_Days": 0,
+        "Customer_Rating": 0
+      },
+      "dtypes": {
+        "Order_ID": "str",
+        "Customer_ID": "str",
+        "Date": "str",
+        "Age": "int64",
+        "Gender": "str",
+        "City": "str",
+        "Product_Category": "str",
+        "Unit_Price": "float64",
+        "Quantity": "int64",
+        "Discount_Amount": "float64",
+        "Total_Amount": "float64",
+        "Payment_Method": "str",
+        "Device_Type": "str",
+        "Session_Duration_Minutes": "int64",
+        "Pages_Viewed": "int64",
+        "Is_Returning_Customer": "bool",
+        "Delivery_Time_Days": "int64",
+        "Customer_Rating": "int64"
+      },
+      "duplicate_rows": 0
+    },
+    "after": {
+      "rows": 17049,
+      "columns": 18,
+      "missing": {
+        "Order_ID": 0,
+        "Customer_ID": 0,
+        "Date": 0,
+        "Age": 0,
+        "Gender": 0,
+        "City": 0,
+        "Product_Category": 0,
+        "Unit_Price": 0,
+        "Quantity": 0,
+        "Discount_Amount": 0,
+        "Total_Amount": 0,
+        "Payment_Method": 0,
+        "Device_Type": 0,
+        "Session_Duration_Minutes": 0,
+        "Pages_Viewed": 0,
+        "Is_Returning_Customer": 0,
+        "Delivery_Time_Days": 475,
+        "Customer_Rating": 0
+      },
+      "dtypes": {
+        "Order_ID": "str",
+        "Customer_ID": "str",
+        "Date": "str",
+        "Age": "int64",
+        "Gender": "str",
+        "City": "str",
+        "Product_Category": "str",
+        "Unit_Price": "float64",
+        "Quantity": "int64",
+        "Discount_Amount": "float64",
+        "Total_Amount": "float64",
+        "Payment_Method": "str",
+        "Device_Type": "str",
+        "Session_Duration_Minutes": "int64",
+        "Pages_Viewed": "int64",
+        "Is_Returning_Customer": "bool",
+        "Delivery_Time_Days": "float64",
+        "Customer_Rating": "int64"
+      },
+      "duplicate_rows": 0
+    },
+    "changed_cells": 17049,
+    "rows_removed": 0,
+    "changed_examples": [
+      {
+        "row_position": 0,
+        "column": "Delivery_Time_Days",
+        "before": "13",
+        "after": "13.0"
+      },
+      {
+        "row_position": 1,
+        "column": "Delivery_Time_Days",
+        "before": "6",
+        "after": "6.0"
+      },
+      {
+        "row_position": 2,
+        "column": "Delivery_Time_Days",
+        "before": "9",
+        "after": "9.0"
+      },
+      {
+        "row_position": 3,
+        "column": "Delivery_Time_Days",
+        "before": "4",
+        "after": "4.0"
+      },
+      {
+        "row_position": 4,
+        "column": "Delivery_Time_Days",
+        "before": "6",
+        "after": "6.0"
+      }
+    ],
+    "lost_values": [
+      {
+        "row_position": 105,
+        "row_index": "105",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 135,
+        "row_index": "135",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 229,
+        "row_index": "229",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 235,
+        "row_index": "235",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 257,
+        "row_index": "257",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 270,
+        "row_index": "270",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 276,
+        "row_index": "276",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 297,
+        "row_index": "297",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 353,
+        "row_index": "353",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 367,
+        "row_index": "367",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 453,
+        "row_index": "453",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 456,
+        "row_index": "456",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 461,
+        "row_index": "461",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 464,
+        "row_index": "464",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 493,
+        "row_index": "493",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 520,
+        "row_index": "520",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 591,
+        "row_index": "591",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 595,
+        "row_index": "595",
+        "column": "Delivery_Time_Days",
+        "before": "21",
+        "after": null
+      },
+      {
+        "row_position": 601,
+        "row_index": "601",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 655,
+        "row_index": "655",
+        "column": "Delivery_Time_Days",
+        "before": "24",
+        "after": null
+      },
+      {
+        "row_position": 698,
+        "row_index": "698",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 725,
+        "row_index": "725",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 845,
+        "row_index": "845",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 913,
+        "row_index": "913",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 1005,
+        "row_index": "1005",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 1048,
+        "row_index": "1048",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 1072,
+        "row_index": "1072",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 1084,
+        "row_index": "1084",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 1106,
+        "row_index": "1106",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 1130,
+        "row_index": "1130",
+        "column": "Delivery_Time_Days",
+        "before": "25",
+        "after": null
+      },
+      {
+        "row_position": 1131,
+        "row_index": "1131",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 1194,
+        "row_index": "1194",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 1223,
+        "row_index": "1223",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 1257,
+        "row_index": "1257",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 1386,
+        "row_index": "1386",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 1423,
+        "row_index": "1423",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 1450,
+        "row_index": "1450",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 1460,
+        "row_index": "1460",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 1549,
+        "row_index": "1549",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 1553,
+        "row_index": "1553",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 1556,
+        "row_index": "1556",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 1561,
+        "row_index": "1561",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 1621,
+        "row_index": "1621",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 1628,
+        "row_index": "1628",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 1639,
+        "row_index": "1639",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 1640,
+        "row_index": "1640",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 1667,
+        "row_index": "1667",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 1705,
+        "row_index": "1705",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 1707,
+        "row_index": "1707",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 1720,
+        "row_index": "1720",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 1784,
+        "row_index": "1784",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 1798,
+        "row_index": "1798",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 1799,
+        "row_index": "1799",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 1855,
+        "row_index": "1855",
+        "column": "Delivery_Time_Days",
+        "before": "21",
+        "after": null
+      },
+      {
+        "row_position": 1901,
+        "row_index": "1901",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 1953,
+        "row_index": "1953",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 1968,
+        "row_index": "1968",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 1973,
+        "row_index": "1973",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 2038,
+        "row_index": "2038",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 2091,
+        "row_index": "2091",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 2096,
+        "row_index": "2096",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 2130,
+        "row_index": "2130",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 2192,
+        "row_index": "2192",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 2199,
+        "row_index": "2199",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 2226,
+        "row_index": "2226",
+        "column": "Delivery_Time_Days",
+        "before": "21",
+        "after": null
+      },
+      {
+        "row_position": 2256,
+        "row_index": "2256",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 2268,
+        "row_index": "2268",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 2404,
+        "row_index": "2404",
+        "column": "Delivery_Time_Days",
+        "before": "23",
+        "after": null
+      },
+      {
+        "row_position": 2405,
+        "row_index": "2405",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 2429,
+        "row_index": "2429",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 2434,
+        "row_index": "2434",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 2593,
+        "row_index": "2593",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 2682,
+        "row_index": "2682",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 2735,
+        "row_index": "2735",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 2777,
+        "row_index": "2777",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 2796,
+        "row_index": "2796",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 2842,
+        "row_index": "2842",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 2873,
+        "row_index": "2873",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 2879,
+        "row_index": "2879",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 2951,
+        "row_index": "2951",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 2959,
+        "row_index": "2959",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 2960,
+        "row_index": "2960",
+        "column": "Delivery_Time_Days",
+        "before": "24",
+        "after": null
+      },
+      {
+        "row_position": 2992,
+        "row_index": "2992",
+        "column": "Delivery_Time_Days",
+        "before": "23",
+        "after": null
+      },
+      {
+        "row_position": 3053,
+        "row_index": "3053",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 3057,
+        "row_index": "3057",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 3092,
+        "row_index": "3092",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 3095,
+        "row_index": "3095",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 3103,
+        "row_index": "3103",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 3152,
+        "row_index": "3152",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 3158,
+        "row_index": "3158",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 3167,
+        "row_index": "3167",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 3197,
+        "row_index": "3197",
+        "column": "Delivery_Time_Days",
+        "before": "22",
+        "after": null
+      },
+      {
+        "row_position": 3203,
+        "row_index": "3203",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 3214,
+        "row_index": "3214",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 3247,
+        "row_index": "3247",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 3251,
+        "row_index": "3251",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 3261,
+        "row_index": "3261",
+        "column": "Delivery_Time_Days",
+        "before": "24",
+        "after": null
+      },
+      {
+        "row_position": 3323,
+        "row_index": "3323",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 3363,
+        "row_index": "3363",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 3367,
+        "row_index": "3367",
+        "column": "Delivery_Time_Days",
+        "before": "21",
+        "after": null
+      },
+      {
+        "row_position": 3394,
+        "row_index": "3394",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 3415,
+        "row_index": "3415",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 3498,
+        "row_index": "3498",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 3538,
+        "row_index": "3538",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 3576,
+        "row_index": "3576",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 3594,
+        "row_index": "3594",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 3629,
+        "row_index": "3629",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 3696,
+        "row_index": "3696",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 3706,
+        "row_index": "3706",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 3730,
+        "row_index": "3730",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 3778,
+        "row_index": "3778",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 3786,
+        "row_index": "3786",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 3872,
+        "row_index": "3872",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 3907,
+        "row_index": "3907",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 3912,
+        "row_index": "3912",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 3937,
+        "row_index": "3937",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 4002,
+        "row_index": "4002",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 4005,
+        "row_index": "4005",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 4092,
+        "row_index": "4092",
+        "column": "Delivery_Time_Days",
+        "before": "23",
+        "after": null
+      },
+      {
+        "row_position": 4182,
+        "row_index": "4182",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 4207,
+        "row_index": "4207",
+        "column": "Delivery_Time_Days",
+        "before": "25",
+        "after": null
+      },
+      {
+        "row_position": 4226,
+        "row_index": "4226",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 4227,
+        "row_index": "4227",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 4238,
+        "row_index": "4238",
+        "column": "Delivery_Time_Days",
+        "before": "25",
+        "after": null
+      },
+      {
+        "row_position": 4315,
+        "row_index": "4315",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 4366,
+        "row_index": "4366",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 4389,
+        "row_index": "4389",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 4409,
+        "row_index": "4409",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 4432,
+        "row_index": "4432",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 4559,
+        "row_index": "4559",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 4653,
+        "row_index": "4653",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 4667,
+        "row_index": "4667",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 4676,
+        "row_index": "4676",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 4694,
+        "row_index": "4694",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 4767,
+        "row_index": "4767",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 4833,
+        "row_index": "4833",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 4862,
+        "row_index": "4862",
+        "column": "Delivery_Time_Days",
+        "before": "24",
+        "after": null
+      },
+      {
+        "row_position": 4951,
+        "row_index": "4951",
+        "column": "Delivery_Time_Days",
+        "before": "22",
+        "after": null
+      },
+      {
+        "row_position": 4955,
+        "row_index": "4955",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 4982,
+        "row_index": "4982",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 5009,
+        "row_index": "5009",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 5033,
+        "row_index": "5033",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 5041,
+        "row_index": "5041",
+        "column": "Delivery_Time_Days",
+        "before": "23",
+        "after": null
+      },
+      {
+        "row_position": 5053,
+        "row_index": "5053",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 5078,
+        "row_index": "5078",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 5155,
+        "row_index": "5155",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 5219,
+        "row_index": "5219",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 5295,
+        "row_index": "5295",
+        "column": "Delivery_Time_Days",
+        "before": "24",
+        "after": null
+      },
+      {
+        "row_position": 5393,
+        "row_index": "5393",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 5404,
+        "row_index": "5404",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 5417,
+        "row_index": "5417",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 5427,
+        "row_index": "5427",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 5455,
+        "row_index": "5455",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 5492,
+        "row_index": "5492",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 5496,
+        "row_index": "5496",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 5615,
+        "row_index": "5615",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 5643,
+        "row_index": "5643",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 5711,
+        "row_index": "5711",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 5835,
+        "row_index": "5835",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 5838,
+        "row_index": "5838",
+        "column": "Delivery_Time_Days",
+        "before": "21",
+        "after": null
+      },
+      {
+        "row_position": 5885,
+        "row_index": "5885",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 5906,
+        "row_index": "5906",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 6081,
+        "row_index": "6081",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 6199,
+        "row_index": "6199",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 6255,
+        "row_index": "6255",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 6363,
+        "row_index": "6363",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 6371,
+        "row_index": "6371",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 6384,
+        "row_index": "6384",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 6391,
+        "row_index": "6391",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 6408,
+        "row_index": "6408",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 6434,
+        "row_index": "6434",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 6452,
+        "row_index": "6452",
+        "column": "Delivery_Time_Days",
+        "before": "24",
+        "after": null
+      },
+      {
+        "row_position": 6489,
+        "row_index": "6489",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 6599,
+        "row_index": "6599",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 6641,
+        "row_index": "6641",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 6699,
+        "row_index": "6699",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 6737,
+        "row_index": "6737",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 6775,
+        "row_index": "6775",
+        "column": "Delivery_Time_Days",
+        "before": "23",
+        "after": null
+      },
+      {
+        "row_position": 6797,
+        "row_index": "6797",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 6811,
+        "row_index": "6811",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 6816,
+        "row_index": "6816",
+        "column": "Delivery_Time_Days",
+        "before": "24",
+        "after": null
+      },
+      {
+        "row_position": 6860,
+        "row_index": "6860",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 6887,
+        "row_index": "6887",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 7013,
+        "row_index": "7013",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 7100,
+        "row_index": "7100",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 7193,
+        "row_index": "7193",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 7232,
+        "row_index": "7232",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 7253,
+        "row_index": "7253",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 7266,
+        "row_index": "7266",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 7334,
+        "row_index": "7334",
+        "column": "Delivery_Time_Days",
+        "before": "23",
+        "after": null
+      },
+      {
+        "row_position": 7357,
+        "row_index": "7357",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 7358,
+        "row_index": "7358",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 7448,
+        "row_index": "7448",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 7463,
+        "row_index": "7463",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 7472,
+        "row_index": "7472",
+        "column": "Delivery_Time_Days",
+        "before": "21",
+        "after": null
+      },
+      {
+        "row_position": 7482,
+        "row_index": "7482",
+        "column": "Delivery_Time_Days",
+        "before": "22",
+        "after": null
+      },
+      {
+        "row_position": 7554,
+        "row_index": "7554",
+        "column": "Delivery_Time_Days",
+        "before": "22",
+        "after": null
+      },
+      {
+        "row_position": 7569,
+        "row_index": "7569",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 7579,
+        "row_index": "7579",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 7585,
+        "row_index": "7585",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 7618,
+        "row_index": "7618",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 7634,
+        "row_index": "7634",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 7661,
+        "row_index": "7661",
+        "column": "Delivery_Time_Days",
+        "before": "24",
+        "after": null
+      },
+      {
+        "row_position": 7733,
+        "row_index": "7733",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 7751,
+        "row_index": "7751",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 7766,
+        "row_index": "7766",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 7805,
+        "row_index": "7805",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 7843,
+        "row_index": "7843",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 7918,
+        "row_index": "7918",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 7920,
+        "row_index": "7920",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 7922,
+        "row_index": "7922",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 7962,
+        "row_index": "7962",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 7986,
+        "row_index": "7986",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 7990,
+        "row_index": "7990",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 7997,
+        "row_index": "7997",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 8013,
+        "row_index": "8013",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 8024,
+        "row_index": "8024",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 8050,
+        "row_index": "8050",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 8061,
+        "row_index": "8061",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 8099,
+        "row_index": "8099",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 8149,
+        "row_index": "8149",
+        "column": "Delivery_Time_Days",
+        "before": "25",
+        "after": null
+      },
+      {
+        "row_position": 8183,
+        "row_index": "8183",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 8222,
+        "row_index": "8222",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 8250,
+        "row_index": "8250",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 8306,
+        "row_index": "8306",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 8454,
+        "row_index": "8454",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 8616,
+        "row_index": "8616",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 8650,
+        "row_index": "8650",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 8678,
+        "row_index": "8678",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 8679,
+        "row_index": "8679",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 8714,
+        "row_index": "8714",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 8769,
+        "row_index": "8769",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 8858,
+        "row_index": "8858",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 8907,
+        "row_index": "8907",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 8936,
+        "row_index": "8936",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 8950,
+        "row_index": "8950",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 8978,
+        "row_index": "8978",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 8995,
+        "row_index": "8995",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 9056,
+        "row_index": "9056",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 9118,
+        "row_index": "9118",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 9146,
+        "row_index": "9146",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 9180,
+        "row_index": "9180",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 9244,
+        "row_index": "9244",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 9383,
+        "row_index": "9383",
+        "column": "Delivery_Time_Days",
+        "before": "23",
+        "after": null
+      },
+      {
+        "row_position": 9387,
+        "row_index": "9387",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 9397,
+        "row_index": "9397",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 9410,
+        "row_index": "9410",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 9450,
+        "row_index": "9450",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 9456,
+        "row_index": "9456",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 9538,
+        "row_index": "9538",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 9546,
+        "row_index": "9546",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 9547,
+        "row_index": "9547",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 9568,
+        "row_index": "9568",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 9571,
+        "row_index": "9571",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 9576,
+        "row_index": "9576",
+        "column": "Delivery_Time_Days",
+        "before": "23",
+        "after": null
+      },
+      {
+        "row_position": 9601,
+        "row_index": "9601",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 9611,
+        "row_index": "9611",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 9649,
+        "row_index": "9649",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 9676,
+        "row_index": "9676",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 9701,
+        "row_index": "9701",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 9703,
+        "row_index": "9703",
+        "column": "Delivery_Time_Days",
+        "before": "23",
+        "after": null
+      },
+      {
+        "row_position": 9710,
+        "row_index": "9710",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 9740,
+        "row_index": "9740",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 9832,
+        "row_index": "9832",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 9838,
+        "row_index": "9838",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 9935,
+        "row_index": "9935",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 9965,
+        "row_index": "9965",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 10061,
+        "row_index": "10061",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 10136,
+        "row_index": "10136",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 10174,
+        "row_index": "10174",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 10256,
+        "row_index": "10256",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 10266,
+        "row_index": "10266",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 10423,
+        "row_index": "10423",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 10449,
+        "row_index": "10449",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 10458,
+        "row_index": "10458",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 10507,
+        "row_index": "10507",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 10599,
+        "row_index": "10599",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 10633,
+        "row_index": "10633",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 10642,
+        "row_index": "10642",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 10669,
+        "row_index": "10669",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 10689,
+        "row_index": "10689",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 10695,
+        "row_index": "10695",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 10932,
+        "row_index": "10932",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 10970,
+        "row_index": "10970",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 10980,
+        "row_index": "10980",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 11041,
+        "row_index": "11041",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 11045,
+        "row_index": "11045",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 11056,
+        "row_index": "11056",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 11068,
+        "row_index": "11068",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 11093,
+        "row_index": "11093",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 11094,
+        "row_index": "11094",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 11145,
+        "row_index": "11145",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 11222,
+        "row_index": "11222",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 11264,
+        "row_index": "11264",
+        "column": "Delivery_Time_Days",
+        "before": "25",
+        "after": null
+      },
+      {
+        "row_position": 11391,
+        "row_index": "11391",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 11407,
+        "row_index": "11407",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 11445,
+        "row_index": "11445",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 11479,
+        "row_index": "11479",
+        "column": "Delivery_Time_Days",
+        "before": "23",
+        "after": null
+      },
+      {
+        "row_position": 11519,
+        "row_index": "11519",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 11530,
+        "row_index": "11530",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 11557,
+        "row_index": "11557",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 11561,
+        "row_index": "11561",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 11610,
+        "row_index": "11610",
+        "column": "Delivery_Time_Days",
+        "before": "22",
+        "after": null
+      },
+      {
+        "row_position": 11623,
+        "row_index": "11623",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 11651,
+        "row_index": "11651",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 11750,
+        "row_index": "11750",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 11793,
+        "row_index": "11793",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 11818,
+        "row_index": "11818",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 11821,
+        "row_index": "11821",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 11871,
+        "row_index": "11871",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 11906,
+        "row_index": "11906",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 11910,
+        "row_index": "11910",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 11970,
+        "row_index": "11970",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 11984,
+        "row_index": "11984",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 11991,
+        "row_index": "11991",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 12212,
+        "row_index": "12212",
+        "column": "Delivery_Time_Days",
+        "before": "25",
+        "after": null
+      },
+      {
+        "row_position": 12225,
+        "row_index": "12225",
+        "column": "Delivery_Time_Days",
+        "before": "24",
+        "after": null
+      },
+      {
+        "row_position": 12284,
+        "row_index": "12284",
+        "column": "Delivery_Time_Days",
+        "before": "22",
+        "after": null
+      },
+      {
+        "row_position": 12286,
+        "row_index": "12286",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 12317,
+        "row_index": "12317",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 12329,
+        "row_index": "12329",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 12363,
+        "row_index": "12363",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 12370,
+        "row_index": "12370",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 12405,
+        "row_index": "12405",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 12453,
+        "row_index": "12453",
+        "column": "Delivery_Time_Days",
+        "before": "22",
+        "after": null
+      },
+      {
+        "row_position": 12513,
+        "row_index": "12513",
+        "column": "Delivery_Time_Days",
+        "before": "23",
+        "after": null
+      },
+      {
+        "row_position": 12516,
+        "row_index": "12516",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 12549,
+        "row_index": "12549",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 12552,
+        "row_index": "12552",
+        "column": "Delivery_Time_Days",
+        "before": "21",
+        "after": null
+      },
+      {
+        "row_position": 12629,
+        "row_index": "12629",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 12685,
+        "row_index": "12685",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 12699,
+        "row_index": "12699",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 12744,
+        "row_index": "12744",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 12798,
+        "row_index": "12798",
+        "column": "Delivery_Time_Days",
+        "before": "21",
+        "after": null
+      },
+      {
+        "row_position": 12812,
+        "row_index": "12812",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 12906,
+        "row_index": "12906",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 12915,
+        "row_index": "12915",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 12946,
+        "row_index": "12946",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 12985,
+        "row_index": "12985",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 12986,
+        "row_index": "12986",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 12987,
+        "row_index": "12987",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 13042,
+        "row_index": "13042",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 13046,
+        "row_index": "13046",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 13070,
+        "row_index": "13070",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 13081,
+        "row_index": "13081",
+        "column": "Delivery_Time_Days",
+        "before": "22",
+        "after": null
+      },
+      {
+        "row_position": 13105,
+        "row_index": "13105",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 13150,
+        "row_index": "13150",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 13169,
+        "row_index": "13169",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 13179,
+        "row_index": "13179",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 13247,
+        "row_index": "13247",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 13249,
+        "row_index": "13249",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 13269,
+        "row_index": "13269",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 13304,
+        "row_index": "13304",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 13336,
+        "row_index": "13336",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 13435,
+        "row_index": "13435",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 13448,
+        "row_index": "13448",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 13457,
+        "row_index": "13457",
+        "column": "Delivery_Time_Days",
+        "before": "25",
+        "after": null
+      },
+      {
+        "row_position": 13549,
+        "row_index": "13549",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 13559,
+        "row_index": "13559",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 13573,
+        "row_index": "13573",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 13578,
+        "row_index": "13578",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 13601,
+        "row_index": "13601",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 13626,
+        "row_index": "13626",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 13628,
+        "row_index": "13628",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 13629,
+        "row_index": "13629",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 13638,
+        "row_index": "13638",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 13691,
+        "row_index": "13691",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 13716,
+        "row_index": "13716",
+        "column": "Delivery_Time_Days",
+        "before": "22",
+        "after": null
+      },
+      {
+        "row_position": 13724,
+        "row_index": "13724",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 13730,
+        "row_index": "13730",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 13854,
+        "row_index": "13854",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 13857,
+        "row_index": "13857",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 13951,
+        "row_index": "13951",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 13960,
+        "row_index": "13960",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 13983,
+        "row_index": "13983",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 14003,
+        "row_index": "14003",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 14037,
+        "row_index": "14037",
+        "column": "Delivery_Time_Days",
+        "before": "21",
+        "after": null
+      },
+      {
+        "row_position": 14044,
+        "row_index": "14044",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 14108,
+        "row_index": "14108",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 14199,
+        "row_index": "14199",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 14223,
+        "row_index": "14223",
+        "column": "Delivery_Time_Days",
+        "before": "22",
+        "after": null
+      },
+      {
+        "row_position": 14266,
+        "row_index": "14266",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 14303,
+        "row_index": "14303",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 14309,
+        "row_index": "14309",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 14360,
+        "row_index": "14360",
+        "column": "Delivery_Time_Days",
+        "before": "21",
+        "after": null
+      },
+      {
+        "row_position": 14397,
+        "row_index": "14397",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 14407,
+        "row_index": "14407",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 14443,
+        "row_index": "14443",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 14508,
+        "row_index": "14508",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 14533,
+        "row_index": "14533",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 14544,
+        "row_index": "14544",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 14563,
+        "row_index": "14563",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 14677,
+        "row_index": "14677",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 14717,
+        "row_index": "14717",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 14741,
+        "row_index": "14741",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 14795,
+        "row_index": "14795",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 14816,
+        "row_index": "14816",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 14817,
+        "row_index": "14817",
+        "column": "Delivery_Time_Days",
+        "before": "25",
+        "after": null
+      },
+      {
+        "row_position": 14835,
+        "row_index": "14835",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 14843,
+        "row_index": "14843",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 14849,
+        "row_index": "14849",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 14884,
+        "row_index": "14884",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 14892,
+        "row_index": "14892",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 14908,
+        "row_index": "14908",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 14911,
+        "row_index": "14911",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 14982,
+        "row_index": "14982",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 14988,
+        "row_index": "14988",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 15003,
+        "row_index": "15003",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 15004,
+        "row_index": "15004",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 15030,
+        "row_index": "15030",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 15059,
+        "row_index": "15059",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 15067,
+        "row_index": "15067",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 15076,
+        "row_index": "15076",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 15084,
+        "row_index": "15084",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 15117,
+        "row_index": "15117",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 15142,
+        "row_index": "15142",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 15147,
+        "row_index": "15147",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 15154,
+        "row_index": "15154",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 15160,
+        "row_index": "15160",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 15295,
+        "row_index": "15295",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 15327,
+        "row_index": "15327",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 15354,
+        "row_index": "15354",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 15381,
+        "row_index": "15381",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 15416,
+        "row_index": "15416",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 15437,
+        "row_index": "15437",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 15467,
+        "row_index": "15467",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 15474,
+        "row_index": "15474",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 15530,
+        "row_index": "15530",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 15595,
+        "row_index": "15595",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 15597,
+        "row_index": "15597",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 15599,
+        "row_index": "15599",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 15642,
+        "row_index": "15642",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 15687,
+        "row_index": "15687",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 15693,
+        "row_index": "15693",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 15698,
+        "row_index": "15698",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 15700,
+        "row_index": "15700",
+        "column": "Delivery_Time_Days",
+        "before": "21",
+        "after": null
+      },
+      {
+        "row_position": 15767,
+        "row_index": "15767",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 15772,
+        "row_index": "15772",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 15799,
+        "row_index": "15799",
+        "column": "Delivery_Time_Days",
+        "before": "22",
+        "after": null
+      },
+      {
+        "row_position": 15801,
+        "row_index": "15801",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 15887,
+        "row_index": "15887",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 15893,
+        "row_index": "15893",
+        "column": "Delivery_Time_Days",
+        "before": "22",
+        "after": null
+      },
+      {
+        "row_position": 15935,
+        "row_index": "15935",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 16023,
+        "row_index": "16023",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 16027,
+        "row_index": "16027",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 16028,
+        "row_index": "16028",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 16041,
+        "row_index": "16041",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 16091,
+        "row_index": "16091",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 16142,
+        "row_index": "16142",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 16242,
+        "row_index": "16242",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 16286,
+        "row_index": "16286",
+        "column": "Delivery_Time_Days",
+        "before": "22",
+        "after": null
+      },
+      {
+        "row_position": 16288,
+        "row_index": "16288",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 16301,
+        "row_index": "16301",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 16337,
+        "row_index": "16337",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 16354,
+        "row_index": "16354",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      },
+      {
+        "row_position": 16360,
+        "row_index": "16360",
+        "column": "Delivery_Time_Days",
+        "before": "24",
+        "after": null
+      },
+      {
+        "row_position": 16386,
+        "row_index": "16386",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 16456,
+        "row_index": "16456",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 16466,
+        "row_index": "16466",
+        "column": "Delivery_Time_Days",
+        "before": "21",
+        "after": null
+      },
+      {
+        "row_position": 16481,
+        "row_index": "16481",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 16499,
+        "row_index": "16499",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 16506,
+        "row_index": "16506",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 16522,
+        "row_index": "16522",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 16563,
+        "row_index": "16563",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 16680,
+        "row_index": "16680",
+        "column": "Delivery_Time_Days",
+        "before": "17",
+        "after": null
+      },
+      {
+        "row_position": 16685,
+        "row_index": "16685",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 16703,
+        "row_index": "16703",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 16718,
+        "row_index": "16718",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 16744,
+        "row_index": "16744",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 16762,
+        "row_index": "16762",
+        "column": "Delivery_Time_Days",
+        "before": "20",
+        "after": null
+      },
+      {
+        "row_position": 16850,
+        "row_index": "16850",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 16895,
+        "row_index": "16895",
+        "column": "Delivery_Time_Days",
+        "before": "18",
+        "after": null
+      },
+      {
+        "row_position": 16953,
+        "row_index": "16953",
+        "column": "Delivery_Time_Days",
+        "before": "15",
+        "after": null
+      },
+      {
+        "row_position": 16990,
+        "row_index": "16990",
+        "column": "Delivery_Time_Days",
+        "before": "16",
+        "after": null
+      },
+      {
+        "row_position": 17028,
+        "row_index": "17028",
+        "column": "Delivery_Time_Days",
+        "before": "19",
+        "after": null
+      }
+    ],
+    "lost_value_count": 475,
+    "columns_removed": [],
+    "column_metrics": {
+      "Delivery_Time_Days": {
+        "before": {
+          "unique": 25,
+          "missing": 0,
+          "numeric_count": 17049,
+          "mean": 6.503607249692064,
+          "median": 6.0,
+          "min": 1.0,
+          "max": 25.0
+        },
+        "after": {
+          "unique": 14,
+          "missing": 475,
+          "numeric_count": 16574,
+          "mean": 6.194099191504766,
+          "median": 6.0,
+          "min": 1.0,
+          "max": 14.0
+        }
+      }
+    }
+  },
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\f8755f7086c6\\ecommerce_customer_behavior_dataset_v2\\experiments\\method-40285cdc4b\\method.py",
+  "sandbox_log": ""
+}

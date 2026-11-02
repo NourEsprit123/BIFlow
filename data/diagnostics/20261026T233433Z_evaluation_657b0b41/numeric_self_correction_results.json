@@ -1,0 +1,42 @@
+[
+  {
+    "condition": "production",
+    "model_calls": 1,
+    "trial_passed": true,
+    "semantic_expected_values_passed": false,
+    "output": [
+      15000.0,
+      2000.0,
+      500.0,
+      1000.0,
+      850.0,
+      1200.5,
+      NaN
+    ],
+    "error": null,
+    "repair_error": null,
+    "applied": false,
+    "working_version": "V1",
+    "code": "def transform(df):\n    def parse_value(s):\n        s = str(s)\n        if s is None:\n            return None\n        s = s.replace('$', '').replace(',', '')\n        if 'k' in s:\n            parts = s.split('k')\n            num_part = parts[0].replace('.', '')\n            return float(num_part) * 1000\n        elif 'hundred' in s or 'thousand' in s:\n            words = s.split()\n            total = 0\n            for word in words:\n                if word == 'hundred':\n                    total *= 100\n                elif word == 'thousand':\n                    total *= 1000\n                else:\n                    num_map = {'one':1, 'two':2, 'three':3, 'four':4, 'five':5, 'six':6, 'seven':7, 'eight':8, 'nine':9, 'ten':10}\n                    total += num_map.get(word, 0)\n            return total\n        else:\n            return float(s)\n    df['value'] = df['value'].apply(parse_value)\n    return df"
+  },
+  {
+    "condition": "focused",
+    "model_calls": 1,
+    "trial_passed": true,
+    "semantic_expected_values_passed": false,
+    "output": [
+      1.5,
+      2000.0,
+      500.0,
+      1000.0,
+      850.0,
+      1200.5,
+      NaN
+    ],
+    "error": null,
+    "repair_error": null,
+    "applied": false,
+    "working_version": "V1",
+    "code": "def transform(df):\n    df['value'] = df['value'].str.replace('five hundred', '500', regex=False)\n    df['value'] = df['value'].str.replace('one thousand', '1000', regex=False)\n    df['value'] = df['value'].str.replace('k', '000', regex=False)\n    df['value'] = df['value'].str.replace('$', '', regex=False)\n    df['value'] = df['value'].str.replace(',', '', regex=False)\n    df['value'] = df['value'].astype(float)\n    return df"
+  }
+]

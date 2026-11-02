@@ -1,0 +1,435 @@
+{
+  "candidate_id": "method-403d622447",
+  "code_hash": "5df711dbf84e43fb391d5469fbdc755495d8840f2e0bd479a443af9e7f43cf44",
+  "base_version": "V1",
+  "dataset_hash": "922e05ccb64e4113202056ddb4acf6cbcaf5190b38b1d5ea77ea9cf744e915db",
+  "columns": [
+    "region"
+  ],
+  "checks": [
+    {
+      "column": "region",
+      "kind": "preserve_missing"
+    },
+    {
+      "column": "region",
+      "kind": "whitespace_only"
+    },
+    {
+      "column": "region",
+      "kind": "string"
+    }
+  ],
+  "rationale": "Standardize region values by removing leading/trailing spaces to address whitespace inconsistency.",
+  "verify_numeric_values": false,
+  "expected_effect": "Declared checks and selected-column obligations must pass",
+  "evidence_ids": [],
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\evaluation\\20261102T123925Z\\sales_small_run1\\versions\\05dd9d9219b4\\sales_small\\experiments\\method-403d622447\\method.py",
+  "trials": [
+    {
+      "partition": "sample",
+      "rows": 21,
+      "row_positions": [
+        30,
+        41,
+        8,
+        33,
+        40,
+        7,
+        5,
+        38,
+        27,
+        15,
+        36,
+        4,
+        14,
+        32,
+        10,
+        29,
+        31,
+        2,
+        17,
+        11,
+        19
+      ],
+      "success": true,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "repeatable": true,
+      "output_hash": "72f06ae89319e6bd75729c7737048b56a858254bb4887ac7f62954b32ca5e10e",
+      "log": "",
+      "effect": {
+        "accepted": true,
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "Candidate contains 21 rows"
+          },
+          {
+            "rule_name": "row_count",
+            "passed": true,
+            "message": "Rows: 21 \u2192 21"
+          },
+          {
+            "rule_name": "columns",
+            "passed": true,
+            "message": "Only explicitly requested columns may be removed; only imputation markers may be added"
+          },
+          {
+            "rule_name": "untouched:order_id",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:customer",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:revenue",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:quantity",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:is_active",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:signup_date",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "row_identity",
+            "passed": true,
+            "message": "Generated methods must preserve row index and order"
+          },
+          {
+            "rule_name": "expected:preserve_missing:region",
+            "passed": true,
+            "message": "Declared outcome: region must satisfy preserve_missing"
+          },
+          {
+            "rule_name": "expected:whitespace_only:region",
+            "passed": true,
+            "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+          },
+          {
+            "rule_name": "expected:string:region",
+            "passed": true,
+            "message": "Declared outcome: region must satisfy string"
+          }
+        ],
+        "before": {
+          "rows": 21,
+          "columns": 7,
+          "missing": {
+            "order_id": 0,
+            "customer": 0,
+            "region": 0,
+            "revenue": 3,
+            "quantity": 1,
+            "is_active": 0,
+            "signup_date": 0
+          },
+          "dtypes": {
+            "order_id": "str",
+            "customer": "str",
+            "region": "str",
+            "revenue": "str",
+            "quantity": "str",
+            "is_active": "str",
+            "signup_date": "str"
+          },
+          "duplicate_rows": 2
+        },
+        "after": {
+          "rows": 21,
+          "columns": 7,
+          "missing": {
+            "order_id": 0,
+            "customer": 0,
+            "region": 0,
+            "revenue": 3,
+            "quantity": 1,
+            "is_active": 0,
+            "signup_date": 0
+          },
+          "dtypes": {
+            "order_id": "str",
+            "customer": "str",
+            "region": "str",
+            "revenue": "str",
+            "quantity": "str",
+            "is_active": "str",
+            "signup_date": "str"
+          },
+          "duplicate_rows": 2
+        },
+        "changed_cells": 3,
+        "rows_removed": 0,
+        "changed_examples": [
+          {
+            "row_position": 7,
+            "column": "region",
+            "before": "  South ",
+            "after": "South"
+          },
+          {
+            "row_position": 15,
+            "column": "region",
+            "before": "  West ",
+            "after": "West"
+          },
+          {
+            "row_position": 19,
+            "column": "region",
+            "before": "  North ",
+            "after": "North"
+          }
+        ],
+        "lost_values": [],
+        "lost_value_count": 0,
+        "columns_removed": [],
+        "column_metrics": {
+          "region": {
+            "before": {
+              "unique": 7,
+              "missing": 0,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "after": {
+              "unique": 4,
+              "missing": 0,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "partition": "holdout",
+      "rows": 21,
+      "row_positions": [
+        0,
+        34,
+        3,
+        22,
+        23,
+        26,
+        20,
+        24,
+        12,
+        9,
+        37,
+        16,
+        39,
+        13,
+        1,
+        6,
+        18,
+        28,
+        21,
+        25,
+        35
+      ],
+      "success": true,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "repeatable": true,
+      "output_hash": "57bab730aa2af783226e8d46958675a787604f552d5e30140ec1b5cfc1705ca9",
+      "log": "",
+      "effect": {
+        "accepted": true,
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "Candidate contains 21 rows"
+          },
+          {
+            "rule_name": "row_count",
+            "passed": true,
+            "message": "Rows: 21 \u2192 21"
+          },
+          {
+            "rule_name": "columns",
+            "passed": true,
+            "message": "Only explicitly requested columns may be removed; only imputation markers may be added"
+          },
+          {
+            "rule_name": "untouched:order_id",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:customer",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:revenue",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:quantity",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:is_active",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:signup_date",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "row_identity",
+            "passed": true,
+            "message": "Generated methods must preserve row index and order"
+          },
+          {
+            "rule_name": "expected:preserve_missing:region",
+            "passed": true,
+            "message": "Declared outcome: region must satisfy preserve_missing"
+          },
+          {
+            "rule_name": "expected:whitespace_only:region",
+            "passed": true,
+            "message": "The finding is about spaces only: values may change only by surrounding or repeated spaces, not case or content, in region"
+          },
+          {
+            "rule_name": "expected:string:region",
+            "passed": true,
+            "message": "Declared outcome: region must satisfy string"
+          }
+        ],
+        "before": {
+          "rows": 21,
+          "columns": 7,
+          "missing": {
+            "order_id": 0,
+            "customer": 0,
+            "region": 0,
+            "revenue": 2,
+            "quantity": 1,
+            "is_active": 0,
+            "signup_date": 1
+          },
+          "dtypes": {
+            "order_id": "str",
+            "customer": "str",
+            "region": "str",
+            "revenue": "str",
+            "quantity": "str",
+            "is_active": "str",
+            "signup_date": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "after": {
+          "rows": 21,
+          "columns": 7,
+          "missing": {
+            "order_id": 0,
+            "customer": 0,
+            "region": 0,
+            "revenue": 2,
+            "quantity": 1,
+            "is_active": 0,
+            "signup_date": 1
+          },
+          "dtypes": {
+            "order_id": "str",
+            "customer": "str",
+            "region": "str",
+            "revenue": "str",
+            "quantity": "str",
+            "is_active": "str",
+            "signup_date": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "changed_cells": 6,
+        "rows_removed": 0,
+        "changed_examples": [
+          {
+            "row_position": 4,
+            "column": "region",
+            "before": "  South ",
+            "after": "South"
+          },
+          {
+            "row_position": 9,
+            "column": "region",
+            "before": "  West ",
+            "after": "West"
+          },
+          {
+            "row_position": 13,
+            "column": "region",
+            "before": "  West ",
+            "after": "West"
+          },
+          {
+            "row_position": 15,
+            "column": "region",
+            "before": "  South ",
+            "after": "South"
+          },
+          {
+            "row_position": 18,
+            "column": "region",
+            "before": "  North ",
+            "after": "North"
+          }
+        ],
+        "lost_values": [],
+        "lost_value_count": 0,
+        "columns_removed": [],
+        "column_metrics": {
+          "region": {
+            "before": {
+              "unique": 8,
+              "missing": 0,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "after": {
+              "unique": 4,
+              "missing": 0,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            }
+          }
+        }
+      }
+    }
+  ],
+  "tested": true,
+  "holdout_available": true,
+  "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a"
+}

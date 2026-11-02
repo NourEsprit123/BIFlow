@@ -1,0 +1,19 @@
+def transform(df):
+    import re
+    df['Revenue'] = df['Revenue'].str.replace(',', '')
+    df['Revenue'] = df['Revenue'].str.replace(' ', '')
+    df['Revenue'] = df['Revenue'].str.replace('$', '')
+    df['Revenue'] = df['Revenue'].str.replace('k', '000')
+    df['Revenue'] = df['Revenue'].str.replace('m', '000000')
+    df['Revenue'] = df['Revenue'].str.replace('b', '000000000')
+    df['Revenue'] = df['Revenue'].str.replace('thousand', '000')
+    df['Revenue'] = df['Revenue'].str.replace('million', '000000')
+    df['Revenue'] = df['Revenue'].str.replace('billion', '000000000')
+    df['Revenue'] = df['Revenue'].str.replace('thousands', '000')
+    df['Revenue'] = df['Revenue'].str.replace('millions', '000000')
+    df['Revenue'] = df['Revenue'].str.replace('billions', '000000000')
+    df['Revenue'] = df['Revenue'].str.replace('thousand', '000')
+    df['Revenue'] = df['Revenue'].str.replace('million', '000000')
+    df['Revenue'] = df['Revenue'].str.replace('billion', '000000000')
+    df['Revenue'] = df['Revenue'].astype(float)
+    return df

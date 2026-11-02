@@ -1,0 +1,32 @@
+{
+  "dataset_id": "replay",
+  "version": "V0",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\diagnostics\\20261101T135513Z_memory_scheduler\\versions\\replay\\V0_original.csv",
+  "format": "csv",
+  "row_count": 17049,
+  "column_count": 18,
+  "columns": [
+    "Order_ID",
+    "Customer_ID",
+    "Date",
+    "Age",
+    "Gender",
+    "City",
+    "Product_Category",
+    "Unit_Price",
+    "Quantity",
+    "Discount_Amount",
+    "Total_Amount",
+    "Payment_Method",
+    "Device_Type",
+    "Session_Duration_Minutes",
+    "Pages_Viewed",
+    "Is_Returning_Customer",
+    "Delivery_Time_Days",
+    "Customer_Rating"
+  ],
+  "created_at": "2026-11-01T13:55:14.016144Z",
+  "parent_version": null,
+  "status": "original",
+  "metadata": {}
+}

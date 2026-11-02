@@ -1,0 +1,53 @@
+{
+  "candidate_id": "method-a984d33127",
+  "code_hash": "d41b550d26d059be29fab5bf0abc351c0d74e638ad2b3863f5a9dd71a729da6e",
+  "base_version": "V1",
+  "dataset_hash": "02d79692411f9aae3888401c0f7ee6ff791da067247632c94dd9d24d8af7bfd3",
+  "columns": [
+    "Revenue"
+  ],
+  "checks": [
+    {
+      "column": "Revenue",
+      "kind": "numeric"
+    },
+    {
+      "column": "Revenue",
+      "kind": "preserve_missing"
+    }
+  ],
+  "rationale": "The Revenue column contains monetary values with dollar signs, commas, and shorthand (e.g., $1,200.50, 850.00, 1.5k). These should be parsed to float by removing non-numeric characters, handling 'k' as thousands, and preserving missing values.",
+  "verify_numeric_values": true,
+  "expected_effect": "Declared checks and selected-column obligations must pass",
+  "evidence_ids": [],
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\be020b8a91b4\\dirty_sales_test\\experiments\\method-a984d33127\\method.py",
+  "trials": [
+    {
+      "partition": "sample",
+      "rows": 15,
+      "row_positions": [
+        11,
+        29,
+        10,
+        20,
+        26,
+        5,
+        24,
+        14,
+        7,
+        15,
+        8,
+        18,
+        9,
+        22,
+        17
+      ],
+      "success": false,
+      "error": "Traceback (most recent call last):\n  File \"<string>\", line 31, in <module>\n  File \"<string>\", line 25, in invoke\n  File \"<cleaning-candidate>\", line 2, in transform\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/generic.py\", line 6781, in astype\n    new_data = self._mgr.astype(dtype=dtype, errors=errors)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/internals/managers.py\", line 632, in astype\n    return self.apply(\"astype\", dtype=dtype, errors=errors)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/internals/managers.py\", line 456, in apply\n    applied = getattr(b, f)(**kwargs)\n              ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/internals/blocks.py\", line 623, in astype\n    new_values = astype_array_safe(values, dtype, errors=errors)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/dtypes/astype.py\", line 245, in astype_array_safe\n    new_values = astype_array(values, dtype, copy=copy)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/dtypes/astype.py\", line 187, in astype_array\n    values = values.astype(dtype, copy=copy)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/site-packages/pandas/core/arrays/string_.py\", line 953, in astype\n    values = arr.astype(dtype)\n             ^^^^^^^^^^^^^^^^^\nValueError: could not convert string to float: 'five hundred'\n",
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "error_kind": "sandbox_execution"
+    }
+  ],
+  "tested": false,
+  "holdout_available": true
+}

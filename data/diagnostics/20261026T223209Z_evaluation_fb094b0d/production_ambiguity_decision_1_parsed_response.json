@@ -1,0 +1,38 @@
+{
+  "content": "",
+  "tool_calls": [
+    {
+      "id": "ollama-ab92f2706ca0",
+      "name": "inspect_data",
+      "arguments": {
+        "offset": 0,
+        "limit": 50,
+        "reason": "Inspect the full range of values to identify any unseen formats that may change the repair decision.",
+        "view": "values",
+        "column": "value"
+      }
+    }
+  ],
+  "raw_role": "assistant",
+  "provider": "ollama",
+  "model": "qwen2.5:7b",
+  "finish_reason": "stop",
+  "tool_call_source": "native",
+  "response_issue": null,
+  "usage": {
+    "prompt_tokens": 4369,
+    "completion_tokens": 61
+  },
+  "timing": {
+    "request_seconds": 6.530999999959022,
+    "load_seconds": 0.0699157,
+    "prompt_seconds": 0.869465,
+    "generation_seconds": 1.470739,
+    "tokens_per_second": 41.47574790632464
+  },
+  "options": {
+    "temperature": 0.1,
+    "num_ctx": 8192,
+    "num_predict": 1024
+  }
+}

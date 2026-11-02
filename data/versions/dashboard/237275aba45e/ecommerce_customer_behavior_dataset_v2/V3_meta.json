@@ -1,0 +1,40 @@
+{
+  "dataset_id": "ecommerce_customer_behavior_dataset_v2",
+  "version": "V3",
+  "path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\237275aba45e\\ecommerce_customer_behavior_dataset_v2\\V3_transform.csv",
+  "format": "csv",
+  "row_count": 17049,
+  "column_count": 18,
+  "columns": [
+    "Order_ID",
+    "Customer_ID",
+    "Date",
+    "Age",
+    "Gender",
+    "City",
+    "Product_Category",
+    "Unit_Price",
+    "Quantity",
+    "Discount_Amount",
+    "Total_Amount",
+    "Payment_Method",
+    "Device_Type",
+    "Session_Duration_Minutes",
+    "Pages_Viewed",
+    "Is_Returning_Customer",
+    "Delivery_Time_Days",
+    "Customer_Rating"
+  ],
+  "created_at": "2026-11-01T17:07:19.533245Z",
+  "parent_version": "V2",
+  "status": "failed",
+  "metadata": {
+    "agent1_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\ecommerce_customer_behavior_dataset_v2.csv",
+    "user_request": "Improve data quality for BI analysis while preserving the uploaded original. This is an academic experimentation run: propose and test a generated cleaning method with test_generated using complete transform(df) code when it adds value, then apply a passing candidate with apply_candidate with an assessment. If Docker is unavailable, stop with a clear error. For a failed generated method, use the bounded correction pipeline; do not fall back to builtin methods.",
+    "source_signature": [
+      "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\raw\\ecommerce_customer_behavior_dataset_v2.csv",
+      1792708924558899900,
+      1959560
+    ]
+  }
+}

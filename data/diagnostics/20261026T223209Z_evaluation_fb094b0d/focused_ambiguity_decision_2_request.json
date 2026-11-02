@@ -1,0 +1,275 @@
+{
+  "model": "qwen2.5:7b",
+  "messages": [
+    {
+      "role": "system",
+      "content": "Choose an evidence-based cleaning action using the available tools. Unknown tokens must not be erased or assigned invented numeric meanings. Flag genuine ambiguity."
+    },
+    {
+      "role": "user",
+      "content": "{\"goal\": \"The final value column must be numeric while preserving populated information. Decide the justified next action using the observed values. Do not invent meanings or discard information.\", \"column\": \"value\", \"observed_values\": [\"$100\", \"five hundred\", \"banana\", \"ERROR_404\", null], \"coverage\": \"Every value in the test input is shown.\", \"version\": \"V1\"}"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "inspect_data",
+        "description": "Read working data. Column inspection includes a full-column value overview. Use values with offset/limit to inspect more distinct values; column/patterns/values require column.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S",
+              "description": "Explain which uncertainty this inspection will resolve."
+            },
+            "view": {
+              "type": "string",
+              "enum": [
+                "schema",
+                "column",
+                "patterns",
+                "values",
+                "duplicates"
+              ]
+            },
+            "column": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "reason",
+            "view"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "test_method",
+        "description": "Test a builtin operation/parameters or generated transform(df) on a copy. The agent automatically applies passing trials after full-data checks; read applied and remaining in the result. Builtin operations: convert_data_types: {target_type: 'numeric'|'float'|'integer'|'boolean'|'datetime'|'string', errors?: 'coerce'|'raise'|'ignore', date_format?: str}; handle_missing_values: {strategy: 'fill_median'|'fill_mean'|'fill_mode'|'fill_constant', fill_value?: any}; normalize_values: {mapping?: {old: new}, case?: 'lower'|'upper'|'title'|null, strip_whitespace?: bool}; clean_numeric_string: {errors?: 'coerce'|'raise'|'ignore'}; trim_whitespace: {}.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "hypothesis": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S",
+              "description": "Explain observed evidence, why this method and its parameters are appropriate, expected effect, and assumptions. Justify imputation values; do not merely restate the operation."
+            },
+            "columns": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Target columns, always at the top level alongside hypothesis and operation; never inside parameters."
+            },
+            "operation": {
+              "type": "string",
+              "enum": [
+                "trim_whitespace",
+                "normalize_values",
+                "convert_data_types",
+                "clean_numeric_string",
+                "handle_missing_values"
+              ]
+            },
+            "parameters": {
+              "type": "object",
+              "description": "Method options only; columns belongs at the top level, never here. Parameters for builtin operation: convert_data_types: {target_type: 'numeric'|'float'|'integer'|'boolean'|'datetime'|'string', errors?: 'coerce'|'raise'|'ignore'}; handle_missing_values: {strategy: 'fill_median'|'fill_mean'|'fill_mode'|'fill_constant', fill_value?: any}; normalize_values: {mapping?: {old: new}, case?: 'lower'|'upper'|'title', strip_whitespace?: bool}; clean_numeric_string: {errors?: 'coerce'|'raise'|'ignore'}; trim_whitespace: {}."
+            },
+            "code": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 8000
+            },
+            "checks": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "column": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "\\S"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "no_missing",
+                      "unique",
+                      "non_negative",
+                      "numeric",
+                      "integer",
+                      "boolean",
+                      "datetime",
+                      "string"
+                    ]
+                  }
+                },
+                "required": [
+                  "column",
+                  "kind"
+                ]
+              }
+            },
+            "value_assessment": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "evidence": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S"
+                },
+                "interpretation": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S"
+                },
+                "preservation": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S"
+                },
+                "ambiguities": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S"
+                }
+              },
+              "required": [
+                "evidence",
+                "interpretation",
+                "preservation",
+                "ambiguities"
+              ],
+              "description": "Explain inspected value coverage, rules supported by the observed formats, how populated information is preserved, and remaining ambiguity before proposing the method."
+            }
+          },
+          "required": [
+            "hypothesis",
+            "columns"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "apply_candidate",
+        "description": "Apply a passing candidate after full-data checks. Assessment must refer to measured trial results.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "candidate_id": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "assessment": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          "required": [
+            "candidate_id",
+            "assessment"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "flag_for_review",
+        "description": "Set ambiguous columns aside for human review. They cannot be changed again in this run.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "columns": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            }
+          },
+          "required": [
+            "columns",
+            "reason"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "finish",
+        "description": "Finish; BIFlow validates outstanding obligations and reports exceptions separately.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "summary": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "unresolved": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              }
+            }
+          },
+          "required": [
+            "summary"
+          ],
+          "additionalProperties": false
+        }
+      }
+    }
+  ],
+  "stream": false,
+  "keep_alive": "15m",
+  "options": {
+    "temperature": 0.1,
+    "num_ctx": 8192,
+    "num_predict": 1024
+  }
+}

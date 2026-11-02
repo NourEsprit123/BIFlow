@@ -1,0 +1,18 @@
+{
+  "llm_calls": 0,
+  "dataset_reads_for_context": 1,
+  "active_columns": [
+    "Age"
+  ],
+  "active_category": "outliers",
+  "context_columns": [
+    "Age"
+  ],
+  "current_examples": [
+    "40",
+    "40",
+    "40"
+  ],
+  "pending_tasks": 8,
+  "rows": 17049
+}

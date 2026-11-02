@@ -1,0 +1,409 @@
+{
+  "candidate_id": "method-962c56920b",
+  "code_hash": "27c3e98e0248f4b7593999b740aeb53ba5cdbdc0378833aa87c18c236557b015",
+  "base_version": "V1",
+  "dataset_hash": "02d79692411f9aae3888401c0f7ee6ff791da067247632c94dd9d24d8af7bfd3",
+  "columns": [
+    "Revenue"
+  ],
+  "checks": [
+    {
+      "column": "Revenue",
+      "kind": "preserve_missing"
+    },
+    {
+      "column": "Revenue",
+      "kind": "numeric"
+    }
+  ],
+  "rationale": "Parse the Revenue column by removing currency symbols, commas, and converting values like '1.5k' to numeric. Preserve existing missing values and handle ambiguous or unparseable entries as NaN.",
+  "verify_numeric_values": true,
+  "expected_effect": "Declared checks and selected-column obligations must pass",
+  "evidence_ids": [],
+  "code_path": "C:\\AllMyProjects\\BiFlow\\BIFlow\\data\\versions\\dashboard\\e16d12e9d1af\\dirty_sales_test\\experiments\\method-962c56920b\\method.py",
+  "trials": [
+    {
+      "partition": "sample",
+      "rows": 15,
+      "row_positions": [
+        11,
+        29,
+        10,
+        20,
+        26,
+        5,
+        24,
+        14,
+        7,
+        15,
+        8,
+        18,
+        9,
+        22,
+        17
+      ],
+      "success": false,
+      "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a",
+      "repeatable": true,
+      "output_hash": "6d5b7f597bc7fe5f97f75052ecc2a2c7c8595fa3312cfc6166ac6f192f6ce39b",
+      "log": "",
+      "effect": {
+        "accepted": false,
+        "rules": [
+          {
+            "rule_name": "non_empty",
+            "passed": true,
+            "message": "Candidate contains 15 rows"
+          },
+          {
+            "rule_name": "row_count",
+            "passed": true,
+            "message": "Rows: 15 \u2192 15"
+          },
+          {
+            "rule_name": "columns",
+            "passed": true,
+            "message": "Only explicitly requested columns may be removed"
+          },
+          {
+            "rule_name": "untouched:OrderID",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:CustomerName",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:MonthlyCost",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Quantity",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Region",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:SignupDate",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:IsActive",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "untouched:Segment",
+            "passed": true,
+            "message": "Unselected column values must stay unchanged"
+          },
+          {
+            "rule_name": "row_identity",
+            "passed": true,
+            "message": "Generated methods must preserve row index and order"
+          },
+          {
+            "rule_name": "expected:preserve_missing:Revenue",
+            "passed": true,
+            "message": "Declared outcome: Revenue must satisfy preserve_missing"
+          },
+          {
+            "rule_name": "expected:numeric:Revenue",
+            "passed": true,
+            "message": "Declared outcome: Revenue must satisfy numeric"
+          },
+          {
+            "rule_name": "expected:numeric_values:Revenue",
+            "passed": false,
+            "message": "Preserve the numeric meaning of 12 recognized source values; 10 mismatches",
+            "checked_values": 12,
+            "mismatches": [
+              {
+                "row_position": 1,
+                "row_index": "29",
+                "column": "Revenue",
+                "before": "$4,500.00",
+                "expected": 4500.0,
+                "actual": null
+              },
+              {
+                "row_position": 2,
+                "row_index": "10",
+                "column": "Revenue",
+                "before": "$1,850.00",
+                "expected": 1850.0,
+                "actual": null
+              },
+              {
+                "row_position": 3,
+                "row_index": "20",
+                "column": "Revenue",
+                "before": "$800.00",
+                "expected": 800.0,
+                "actual": null
+              },
+              {
+                "row_position": 4,
+                "row_index": "26",
+                "column": "Revenue",
+                "before": "$1,300.00",
+                "expected": 1300.0,
+                "actual": null
+              },
+              {
+                "row_position": 6,
+                "row_index": "24",
+                "column": "Revenue",
+                "before": "$3,100.00",
+                "expected": 3100.0,
+                "actual": null
+              },
+              {
+                "row_position": 7,
+                "row_index": "14",
+                "column": "Revenue",
+                "before": "$1,100.00",
+                "expected": 1100.0,
+                "actual": null
+              },
+              {
+                "row_position": 8,
+                "row_index": "7",
+                "column": "Revenue",
+                "before": "2.1k",
+                "expected": 2100.0,
+                "actual": "2.1"
+              },
+              {
+                "row_position": 10,
+                "row_index": "8",
+                "column": "Revenue",
+                "before": "$980.00",
+                "expected": 980.0,
+                "actual": null
+              },
+              {
+                "row_position": 11,
+                "row_index": "18",
+                "column": "Revenue",
+                "before": "$2,900.00",
+                "expected": 2900.0,
+                "actual": null
+              },
+              {
+                "row_position": 13,
+                "row_index": "22",
+                "column": "Revenue",
+                "before": "$1,750.00",
+                "expected": 1750.0,
+                "actual": null
+              }
+            ]
+          }
+        ],
+        "before": {
+          "rows": 15,
+          "columns": 9,
+          "missing": {
+            "OrderID": 0,
+            "CustomerName": 0,
+            "Revenue": 1,
+            "MonthlyCost": 1,
+            "Quantity": 0,
+            "Region": 0,
+            "SignupDate": 0,
+            "IsActive": 0,
+            "Segment": 0
+          },
+          "dtypes": {
+            "OrderID": "str",
+            "CustomerName": "str",
+            "Revenue": "str",
+            "MonthlyCost": "str",
+            "Quantity": "float64",
+            "Region": "str",
+            "SignupDate": "str",
+            "IsActive": "str",
+            "Segment": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "after": {
+          "rows": 15,
+          "columns": 9,
+          "missing": {
+            "OrderID": 0,
+            "CustomerName": 0,
+            "Revenue": 12,
+            "MonthlyCost": 1,
+            "Quantity": 0,
+            "Region": 0,
+            "SignupDate": 0,
+            "IsActive": 0,
+            "Segment": 0
+          },
+          "dtypes": {
+            "OrderID": "str",
+            "CustomerName": "str",
+            "Revenue": "float64",
+            "MonthlyCost": "str",
+            "Quantity": "float64",
+            "Region": "str",
+            "SignupDate": "str",
+            "IsActive": "str",
+            "Segment": "str"
+          },
+          "duplicate_rows": 0
+        },
+        "changed_cells": 14,
+        "rows_removed": 0,
+        "changed_examples": [
+          {
+            "row_position": 0,
+            "column": "Revenue",
+            "before": "five hundred",
+            "after": "500.0"
+          },
+          {
+            "row_position": 1,
+            "column": "Revenue",
+            "before": "$4,500.00",
+            "after": null
+          },
+          {
+            "row_position": 2,
+            "column": "Revenue",
+            "before": "$1,850.00",
+            "after": null
+          },
+          {
+            "row_position": 3,
+            "column": "Revenue",
+            "before": "$800.00",
+            "after": null
+          },
+          {
+            "row_position": 4,
+            "column": "Revenue",
+            "before": "$1,300.00",
+            "after": null
+          }
+        ],
+        "lost_values": [
+          {
+            "row_position": 1,
+            "row_index": "29",
+            "column": "Revenue",
+            "before": "$4,500.00",
+            "after": null
+          },
+          {
+            "row_position": 2,
+            "row_index": "10",
+            "column": "Revenue",
+            "before": "$1,850.00",
+            "after": null
+          },
+          {
+            "row_position": 3,
+            "row_index": "20",
+            "column": "Revenue",
+            "before": "$800.00",
+            "after": null
+          },
+          {
+            "row_position": 4,
+            "row_index": "26",
+            "column": "Revenue",
+            "before": "$1,300.00",
+            "after": null
+          },
+          {
+            "row_position": 5,
+            "row_index": "5",
+            "column": "Revenue",
+            "before": "banana",
+            "after": null
+          },
+          {
+            "row_position": 6,
+            "row_index": "24",
+            "column": "Revenue",
+            "before": "$3,100.00",
+            "after": null
+          },
+          {
+            "row_position": 7,
+            "row_index": "14",
+            "column": "Revenue",
+            "before": "$1,100.00",
+            "after": null
+          },
+          {
+            "row_position": 10,
+            "row_index": "8",
+            "column": "Revenue",
+            "before": "$980.00",
+            "after": null
+          },
+          {
+            "row_position": 11,
+            "row_index": "18",
+            "column": "Revenue",
+            "before": "$2,900.00",
+            "after": null
+          },
+          {
+            "row_position": 12,
+            "row_index": "9",
+            "column": "Revenue",
+            "before": "ERROR_404",
+            "after": null
+          },
+          {
+            "row_position": 13,
+            "row_index": "22",
+            "column": "Revenue",
+            "before": "$1,750.00",
+            "after": null
+          }
+        ],
+        "lost_value_count": 11,
+        "columns_removed": [],
+        "column_metrics": {
+          "Revenue": {
+            "before": {
+              "unique": 14,
+              "missing": 1,
+              "numeric_count": 0,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "max": null
+            },
+            "after": {
+              "unique": 3,
+              "missing": 12,
+              "numeric_count": 3,
+              "mean": 1167.3666666666666,
+              "median": 500.0,
+              "min": 2.1,
+              "max": 3000.0
+            }
+          }
+        }
+      }
+    }
+  ],
+  "tested": false,
+  "holdout_available": true,
+  "image_id": "sha256:1da81132a6801d052ab8758e4f91addfd71f9520d1d0f3a449eaf0015ed5d79a"
+}
