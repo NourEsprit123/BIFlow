@@ -1,0 +1,117 @@
+# 📊 BIFlow — Architecture Summary & Implementation Plan
+
+> **Transforming Raw Data into Decisions using Multi-Agent AI**
+
+---
+
+## 📑 1. Project Overview & Multi-Agent Architecture
+
+BIFlow is an intelligent Business Intelligence system designed to work dynamically on **any arbitrary user-uploaded dataset**. The system utilizes a hybrid model combining **LLM Reasoning & Strategy** with **Deterministic Python Execution Engines** (Pandas, NumPy, Scikit-Learn, Plotly, SHAP).
+
+### 🤖 The 4 Primary Agents (+ Orchestrator)
+
+```text
+                           ┌───────────────────────────┐
+                           │    Orchestrator Agent     │
+                           │    Workflow & Routing     │
+                           └─────────────┬─────────────┘
+                                         │
+                                         ▼
+                         ┌───────────────────────────────┐
+                         │    Data Engineering Agent     │
+                         │ Profiling • Quality • Cleaning│
+                         └───────────────┬───────────────┘
+                                         │
+                                         ▼
+                         ┌───────────────────────────────┐
+                         │       BI Analyst Agent        │
+                         │ KPIs • Trends • Anomalies     │
+                         └───────────────┬───────────────┘
+                                         │
+                                         ▼
+                         ┌───────────────────────────────┐
+                         │        Dashboard Agent        │
+                         │ Dynamic Plotly/UI Generation  │
+                         └───────────────┬───────────────┘
+                                         │
+                                         ▼
+                         ┌───────────────────────────────┐
+                         │       XAI / Auditor Agent     │
+                         │ SHAP • Lineage • Governance   │
+                         └───────────────────────────────┘
+```
+
+---
+
+## 🛠️ 2. Architectural Design Principles
+
+1. **Hybrid AI Engine (Tool-Augmented LLMs):**
+   * **LLM Role:** Acts as the *Planner, Semantic Classifier, & Natural Language Synthesizer*. Generates JSON action plans and plain-English narratives.
+   * **Python Engine:** Performs actual math, data manipulation, statistical profiling, and ML model training using C-optimized libraries (Pandas, Scikit-Learn).
+2. **Dynamic Adaptation to Any Dataset:**
+   * Agents inspect raw column types, semantic meanings, and distributions to adapt cleaning, KPI generation, and dashboard layout automatically.
+3. **Unified LLM Backbone with Specialized Personas:**
+   * All agents leverage a shared LLM infrastructure (e.g. Gemini API), differentiated by specialized System Prompts, dedicated Python tools, and contextual workflow state.
+
+---
+
+## ⚙️ 3. Data Engineering Agent Detailed Design
+
+The **Data Engineering Agent** is responsible for turning raw, messy CSV files into clean, validated, and normalized datasets ready for analysis.
+
+### 🔄 The 4-Level "Waterfall" Data Cleaning Pipeline
+
+For handling dirty numeric columns (e.g. `TotalCharges` containing mixed values like `"$1,000"`, `"one thousand"`, `"1.5k"`, `" "`, `"banana"`):
+
+```text
+               RAW DIRTY COLUMN (e.g. profit / TotalCharges)
+                                    │
+                                    ▼
+                      ┌───────────────────────────┐
+                      │  LEVEL 1: Regex & Format  │  Strips $, €, commas, spaces
+                      └─────────────┬─────────────┘
+                                    │ (If unparsed strings remain)
+                                    ▼
+                      ┌───────────────────────────┐
+                      │  LEVEL 2: word2number     │  Converts "one thousand" ──► 1000
+                      └─────────────┬─────────────┘
+                                    │ (If unparsed strings remain)
+                                    ▼
+                      ┌───────────────────────────┐
+                      │  LEVEL 3: Targeted LLM    │  Parses "1.5k", "half a million"
+                      └─────────────┬─────────────┘
+                                    │ (If nonsense remains)
+                                    ▼
+                      ┌───────────────────────────┐
+                      │  LEVEL 4: Safety Drop/NaN │  "banana" ──► NaN (Impute/Drop)
+                      └───────────────────────────┘
+```
+
+---
+
+## 🖥️ 4. UI Alignment: `dashboard/pages/4_Data_Quality.py`
+
+The Data Engineering Agent populates the **Data Quality Dashboard**:
+* 📈 **Health Score:** Overall percentage score across *Completeness, Validity, Uniqueness, Consistency*.
+* ⚠️ **Issue Metrics:** Missing values count, Duplicate row count, Type mismatch count.
+* 📋 **Detected Issues Table:** Column-by-column diagnostic report.
+* 🪄 **AI Recommended Cleaning Banner:** Actionable rule generated by the agent.
+* 🔘 **Action Buttons:** `Preview changes` & `✨ Apply recommended cleaning`.
+
+---
+
+## 🚀 5. Step-by-Step Implementation Plan
+
+### Phase 1: Data Profiling & Quality Engine (Backend)
+- [ ] Update [`analytics/profiler.py`](file:///c:/Users/moham/Desktop/Med/biflow/analytics/profiler.py) to support semantic column tagging (IDs, Categoricals, Numericals, Timestamps, Target candidates).
+- [ ] Enhance [`analytics/data_quality.py`](file:///c:/Users/moham/Desktop/Med/biflow/analytics/data_quality.py) to measure Health Scores across the 4 dimensions (Completeness, Validity, Uniqueness, Consistency) and run Coercion Tests.
+
+### Phase 2: Data Engineering Agent & Cleaning Pipeline
+- [ ] Implement [`analytics/cleaning.py`](file:///c:/Users/moham/Desktop/Med/biflow/analytics/cleaning.py) with the 4-Level Waterfall Pipeline (Regex -> word2number -> LLM fallback -> NaN Guardrail).
+- [ ] Complete [`agents/data_engineering_agent.py`](file:///c:/Users/moham/Desktop/Med/biflow/agents/data_engineering_agent.py) to combine Profiling + Quality Diagnosis + LLM Cleaning Strategy JSON generation.
+
+### Phase 3: Dashboard Integration
+- [ ] Connect [`agents/data_engineering_agent.py`](file:///c:/Users/moham/Desktop/Med/biflow/agents/data_engineering_agent.py) to [`dashboard/pages/4_Data_Quality.py`](file:///c:/Users/moham/Desktop/Med/biflow/dashboard/pages/4_Data_Quality.py) so clicking `✨ Apply recommended cleaning` triggers the cleaning pipeline live.
+
+---
+*Saved in docs/ directory*

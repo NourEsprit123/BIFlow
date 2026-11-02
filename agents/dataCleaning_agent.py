@@ -173,6 +173,11 @@ def _request_context(messages, *, tools=None, reserved_chars=0, chars_per_token=
     return result
 
 
+# The default objective for dashboard and pipeline runs (and the evaluation harness).
+BUILTIN_FIRST_OBJECTIVE = ("Improve data quality for BI analysis while preserving the uploaded original. "
+                           "Prefer builtin operations; write generated code only when no builtin can express the justified rule.")
+
+
 class DataCleaningAgent:
     """LLM agent with tool access for data cleaning."""
 

@@ -1,0 +1,28 @@
+{
+  "evaluator": "Senior Data Architect LLM Judge",
+  "rubrics": {
+    "factual_grounding": {
+      "score_1_to_5": 5,
+      "justification": "The agent strictly grounds its reasoning in the calculated statistics provided by the data profiler. There are no hallucinations or invented metrics detected."
+    },
+    "diagnostic_relevance": {
+      "score_1_to_5": 5,
+      "justification": "The agent properly identifies the business root causes and risks, such as the need for cleaning the monthly_fee column and the potential negative charges in TotalCharges, which are critical for downstream BI and ML processes."
+    },
+    "sandbox_appropriateness": {
+      "score_1_to_5": 5,
+      "justification": "The custom Python check is well-targeted, syntactically clean, and safe. It effectively isolates the problem of negative charges in TotalCharges, ensuring no harm is done and the check is robust."
+    },
+    "severity_calibration": {
+      "score_1_to_5": 5,
+      "justification": "The risk levels are mathematically and operationally justified. The labels HIGH, MEDIUM, and LOW are applied appropriately based on the potential impact on the dataset and downstream processes."
+    },
+    "etl_actionability": {
+      "score_1_to_5": 5,
+      "justification": "The recommended cleaning actions, such as median imputation and casting, are statistically sound and will ensure that the dataset is suitable for downstream BI and ML processes. Drop policies are also well-reasoned for the primary key column."
+    }
+  },
+  "overall_score_pct": 95.0,
+  "verdict": "EXCELLENT",
+  "executive_summary_for_jury": "The Data Engineering Agent's audit work demonstrates excellent adherence to best practices across all evaluated criteria. The agent provides well-grounded, relevant, and actionable insights with a robust custom check and accurate risk assessment. This audit ensures the dataset is of high quality and ready for further analysis without compromising the integrity of the data."
+}

@@ -19,6 +19,9 @@ from auth import (
     reset_password,
     validate_email,
     validate_password,
+    create_session,
+    get_user_from_session,
+    delete_session,
 )
 from components import html
 import style
@@ -219,6 +222,13 @@ def show_login_dialog():
                 st.session_state.pop("login_email_value", None)
                 st.session_state.pop("password_reset_complete", None)
                 st.session_state["authenticated_user"] = user
+                # Create persistent session token and store in cookie
+                token = create_session(user["id"])
+                st.session_state["session_token"] = token
+                st.markdown(
+                    f'<script>document.cookie="bf_session={token};path=/;max-age={7*86400};SameSite=Lax"</script>',
+                    unsafe_allow_html=True,
+                )
                 st.switch_page("pages/1_Overview.py")
 
     if st.checkbox("Forgot your password?", key="show_password_reset"):

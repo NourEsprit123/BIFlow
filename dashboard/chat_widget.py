@@ -5,6 +5,7 @@ Utilisation, à la fin de chaque page :
     from chat_widget import render_chat
     render_chat("Datasets")
 """
+import os
 import re
 from datetime import datetime
 from html import escape
@@ -150,8 +151,8 @@ try {
 """
 
 
-def generate_reply(question: str) -> str:
-    """Answer supported questions from the selected dataset and current agent results."""
+def _measured_reply(question: str) -> str | None:
+    """Measured answers from the selected dataset and the profiling/cleaning results, or None."""
     path, frame = load_selected_dataset()
     if path is None or frame is None:
         return "Upload a CSV, Excel, or Parquet dataset before asking about data."
@@ -204,11 +205,68 @@ def generate_reply(question: str) -> str:
                 f"Summary: {report.get('agent_summary', 'No narrative summary was generated.')}"
             )
         return "No profiling report exists for the selected dataset yet. Run the Data Profiling Agent first."
-    return (
-        f"I can report measured statistics for `{path.name}`, its quality checks, "
-        "profiling report, and completed cleaning run. This assistant uses local deterministic "
-        "answers; it is not connected to an LLM."
-    )
+    return None
+
+
+def generate_reply(question: str, page: str = "", user: dict | None = None) -> str:
+    """Measured answers first, then the LLM with the active BI report, then BI-report excerpts."""
+    measured = _measured_reply(question)
+    if measured:
+        return measured
+    q = question.lower()
+    bi_report = st.session_state.get("current_bi_report", "")
+
+    # Try Groq API if key is present
+    groq_key = os.environ.get("GROQ_API_KEY") or st.session_state.get("groq_api_key")
+    if groq_key:
+        try:
+            from groq import Groq
+            client = Groq(api_key=groq_key)
+            system_prompt = f"""
+            You are the BIFlow AI Copilot on the '{page}' page.
+            Active workspace context / BI Report:
+            {bi_report if bi_report else "No specific report generated yet."}
+            
+            Answer the user's question clearly, concisely and professionally based on the data.
+            """
+            resp = client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": question}
+                ],
+                model="llama-3.3-70b-versatile",
+                temperature=0.3
+            )
+            return resp.choices[0].message.content
+        except Exception as e:
+            pass
+
+    # Try general LLMClient if available
+    try:
+        from agents.llm_client import LLMClient
+        llm = LLMClient()
+        system_prompt = f"You are the BIFlow AI Copilot on '{page}'. Context: {bi_report[:1000] if bi_report else 'N/A'}"
+        ans = llm.generate_text(question, system_prompt=system_prompt)
+        if ans and len(ans.strip()) > 10 and ans.strip() != "{}":
+            return ans
+    except Exception:
+        pass
+
+    # Contextual fallback if BI report is in session
+    if bi_report:
+        if "kpi" in q or "indicateur" in q or "metric" in q:
+            return "Here are the key metrics extracted from your active dataset:\n\n" + "\n".join(
+                [line for line in bi_report.splitlines() if line.startswith("- **")][:4]
+            )
+        if "recommend" in q or "recommandation" in q or "strat" in q:
+            recs = [line for line in bi_report.splitlines() if re.match(r"^\d+\.", line)]
+            if recs:
+                return "Strategic Recommendations from the BI Analyst Agent:\n\n" + "\n".join(recs)
+        if "summary" in q or "résumé" in q or "overview" in q or "explain" in q:
+            return bi_report[:600] + "..."
+
+    return (f"I'm your BIFlow assistant{f' on the **{page}** page' if page else ''}. Ask me about the selected "
+            "dataset, its quality, the profiling report, the cleaning run, KPIs or recommendations.")
 
 
 def _format(text: str) -> str:

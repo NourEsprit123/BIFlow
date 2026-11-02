@@ -1,0 +1,18 @@
+{
+  "metric_name": "Reasoning & Sandbox Audit Score (RSAS)",
+  "score_pct": 100.0,
+  "components": {
+    "grounding_rate": 1.0,
+    "severity_accuracy": 1.0,
+    "sandbox_security_and_pass": 1.0,
+    "actionability": 1.0
+  },
+  "sandbox_benchmarks": {
+    "latency_ms": 1.25,
+    "docker_comparison": {
+      "sandbox_memory_ms": 1.25,
+      "docker_startup_ms": 2800.0,
+      "speedup_factor": "2240x plus rapide"
+    }
+  }
+}

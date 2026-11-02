@@ -1,0 +1,469 @@
+{
+  "schema_version": "2.1",
+  "dataset_ref": {
+    "file_path": "C:\\Users\\hp\\Documents\\BIFlow\\BIFlow\\data\\raw\\dirty_sales_test.csv",
+    "file_name": "dirty_sales_test.csv",
+    "rows": 30,
+    "columns": 9,
+    "size_bytes": 2207
+  },
+  "health_scores": {
+    "overall": 90.2,
+    "completeness": 97.8,
+    "validity": 85.0,
+    "uniqueness": 100.0,
+    "consistency": 70.0
+  },
+  "column_profiles": {
+    "OrderID": {
+      "dtype": "str",
+      "inferred_role": "primary_key",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 30,
+      "unique_pct": 100.0,
+      "sample_values": [
+        "ORD-001",
+        "ORD-002",
+        "ORD-003",
+        "ORD-004",
+        "ORD-005",
+        "ORD-006",
+        "ORD-007",
+        "ORD-008"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Primary key, unique, no missing values; stored as string but semantically an identifier.",
+      "business_interpretation": "Critical for joins and deduplication; any corruption would break referential integrity.",
+      "severity": "HIGH",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "none",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "CustomerName": {
+      "dtype": "str",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 30,
+      "unique_pct": 100.0,
+      "sample_values": [
+        "Alice Martin",
+        "Bob Smith",
+        "Carol White",
+        "David Lee",
+        "Eva Brown",
+        "Frank Green",
+        "Grace Kim",
+        "Henry Davis"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Dimension column with no missing values; stable categorical data.",
+      "business_interpretation": "Used for reporting and segmentation; low risk if corrupted.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "none",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Revenue": {
+      "dtype": "str",
+      "inferred_role": "categorical",
+      "missing_count": 1,
+      "missing_pct": 3.33,
+      "unique_count": 29,
+      "unique_pct": 96.67,
+      "sample_values": [
+        "$1,200.50",
+        "850.00",
+        "1.5k",
+        "one thousand",
+        "$2,300.00",
+        "banana",
+        "$3,750.50",
+        "2.1k"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 1 (3.33%)",
+          "evidence": {
+            "count": 1,
+            "pct": 3.33
+          }
+        },
+        {
+          "issue_id": "sandbox_check_failed",
+          "source": "sandbox",
+          "severity": "MEDIUM",
+          "description": "Custom check failed: Non-numeric characters found in 23 out of 30 values",
+          "evidence": {
+            "check_name": "Count cells containing non-numeric characters or patterns like '$', ',', 'k', 'K', 'M', or other non-digit symbols.",
+            "metric": "23 / 30 violations",
+            "sample_size": 30
+          }
+        }
+      ],
+      "agent_reasoning": "Financial metric stored as text with currency symbols, commas, and shorthand (e.g., '1.5k'); missing 3.33%. Median is appropriate due to skewness from high revenue orders.",
+      "business_interpretation": "Directly feeds revenue KPIs and profitability calculations; inaccurate values distort financial reporting.",
+      "severity": "HIGH",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": false,
+        "metric": "23 / 30 violations",
+        "details": "Non-numeric characters found in 23 out of 30 values",
+        "error": null
+      },
+      "custom_check_code": "def custom_check(series: pd.Series) -> dict:\n    import re\n    total=len(series)\n    pattern=re.compile(r'[\\$\\,kKmM]')\n    violations=sum(bool(pattern.search(str(v))) for v in series)\n    passed=violations==0\n    metric=f'{violations} / {total} violations' if not passed else '0 violations'\n    details='Non-numeric characters found in {} out of {} values'.format(violations,total) if not passed else 'All values conform to quality constraint'\n    return {'passed':passed,'metric':metric,'details':details}"
+    },
+    "MonthlyCost": {
+      "dtype": "str",
+      "inferred_role": "categorical",
+      "missing_count": 1,
+      "missing_pct": 3.33,
+      "unique_count": 29,
+      "unique_pct": 96.67,
+      "sample_values": [
+        "$450.00",
+        "$320.75",
+        "$210.00",
+        "$180.50",
+        "$890.25",
+        "$150.00",
+        "half a million",
+        "$430.00"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Dirty numeric strings (numeric stored as text with symbols/mixed entries)",
+          "evidence": {
+            "detected": "1 unparseable entries out of 29",
+            "recommendation": "Apply 4-level waterfall cleaning \u2192 convert to float/int",
+            "valid_ratio": 96.55
+          },
+          "llm_agreement": "agree"
+        },
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 1 (3.33%)",
+          "evidence": {
+            "count": 1,
+            "pct": 3.33
+          }
+        }
+      ],
+      "agent_reasoning": "Cost metric stored as text with currency symbols; missing 3.33%. Skewness likely due to a few high-cost orders.",
+      "business_interpretation": "Used in margin calculations; errors propagate to gross margin and profitability metrics.",
+      "severity": "HIGH",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": null,
+        "metric": null,
+        "details": null,
+        "error": "SyntaxError: unmatched '}' (<string>, line 11)"
+      },
+      "custom_check_code": "def custom_check(series: pd.Series) -> dict:\n    import re\n    pattern = re.compile(r'^\\d+(\\.\\d+)?$')\n    total = len(series)\n    mask = ~series.astype(str).apply(lambda x: bool(pattern.fullmatch(x.strip())))\n    violations = series[mask]\n    count = len(violations)\n    if count == 0:\n        return {\"passed\": True, \"metric\": \"0 violations\", \"details\": \"All values conform to quality constraint\"}\n    else:\n        sample = ', '.join(map(str, violations.head(5).tolist()))\n        return {\"passed\": False, \"metric\": f\"{count} / {total} violations\", \"details\": f\"Non-conforming values: {sample}\"}}"
+    },
+    "Quantity": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 2,
+      "missing_pct": 6.67,
+      "unique_count": 10,
+      "unique_pct": 33.33,
+      "sample_values": [
+        "3.0",
+        "1.0",
+        "5.0",
+        "2.0",
+        "7.0",
+        "1.0",
+        "4.0",
+        "6.0"
+      ],
+      "numeric_stats": {
+        "mean": 4.25,
+        "median": 4.0,
+        "std": 2.4438,
+        "min": 1.0,
+        "max": 10.0,
+        "q1": 2.0,
+        "q3": 6.0,
+        "skewness": 0.6549,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 2 (6.67%)",
+          "evidence": {
+            "count": 2,
+            "pct": 6.67
+          }
+        }
+      ],
+      "agent_reasoning": "Continuous numeric with 6.67% missing; mean 4.25, median 4.0, skewness 0.6549. Max 10.0 may be an outlier relative to typical range 1\u20135.",
+      "business_interpretation": "Affects sales volume metrics and inventory planning; outliers can inflate average sales figures.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Region": {
+      "dtype": "str",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 4,
+      "unique_pct": 13.33,
+      "sample_values": [
+        "North",
+        "South",
+        "East",
+        "West",
+        "North",
+        "South",
+        "East",
+        "West"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Stable categorical dimension with no missing values.",
+      "business_interpretation": "Used for geographic segmentation; low risk if corrupted.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "none",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "SignupDate": {
+      "dtype": "str",
+      "inferred_role": "timestamp",
+      "missing_count": 2,
+      "missing_pct": 6.67,
+      "unique_count": 28,
+      "unique_pct": 93.33,
+      "sample_values": [
+        "2023-01-15",
+        "2023-02-20",
+        "2023-03-10",
+        "2023-04-05",
+        "2023-05-18",
+        "2023-06-22",
+        "2023-07-30",
+        "2023-08-14"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Date/time values stored as plain text (not parsed as datetime)",
+          "evidence": {
+            "detected": "~100% of sampled values match date patterns",
+            "recommendation": "Parse with pd.to_datetime() to enable time-series operations",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        },
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 2 (6.67%)",
+          "evidence": {
+            "count": 2,
+            "pct": 6.67
+          }
+        }
+      ],
+      "agent_reasoning": "Timestamp stored as plain text; missing 6.67%. Requires parsing to datetime for time-series analysis.",
+      "business_interpretation": "Critical for cohort analysis and churn calculations; incorrect dates misalign time-based KPIs.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": null,
+        "metric": null,
+        "details": null,
+        "error": "SyntaxError: unexpected character after line continuation character (<string>, line 1)"
+      },
+      "custom_check_code": "def custom_check(series: pd.Series) -> dict:\\n    pattern = r'^\\\\d{4}-\\\\d{2}-\\\\d{2}$'\\n    violations = []\\n    for idx, val in series.items():\\n        if not isinstance(val, str) or not re.match(pattern, val):\\n            violations.append(idx)\\n        else:\\n            try:\\n                pd.to_datetime(val, format='%Y-%m-%d', errors='raise')\\n            except Exception:\\n                violations.append(idx)\\n    if violations:\\n        return {\"passed\": False, \"metric\": f\"{len(violations)} / {len(series)} violations\", \"details\": f\"Violations at indices: {violations}\"}\\n    return {\"passed\": True, \"metric\": \"0 violations\", \"details\": \"All values conform to quality constraint\"}"
+    },
+    "IsActive": {
+      "dtype": "str",
+      "inferred_role": "boolean",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 2,
+      "unique_pct": 6.67,
+      "sample_values": [
+        "Yes",
+        "No",
+        "Yes",
+        "No",
+        "Yes",
+        "No",
+        "Yes",
+        "No"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Boolean flag stored as text (Yes/No or True/False as object)",
+          "evidence": {
+            "detected": "Unique values: ['no', 'yes']",
+            "recommendation": "Map to bool dtype: True/False (saves memory, enables logic ops)",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        }
+      ],
+      "agent_reasoning": "Boolean flag stored as text ('Yes'/'No'); missing 0%. Requires conversion to binary for filtering and segmentation.",
+      "business_interpretation": "Used to filter active customers; mislabeling can skew active customer counts and related metrics.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": true,
+        "metric": "0 violations",
+        "details": "All values conform to quality constraint",
+        "error": null
+      },
+      "custom_check_code": "def custom_check(series: pd.Series) -> dict:\n    total = len(series)\n    mask = series.str.lower().isin(['yes','no'])\n    violations = total - mask.sum()\n    if violations:\n        bad = series[~mask].head(5).to_dict()\n        details = f\"Found {violations} non-conforming values: {bad}\"\n        return {\"passed\": False, \"metric\": f\"{violations} / {total} violations\", \"details\": details}\n    return {\"passed\": True, \"metric\": \"0 violations\", \"details\": \"All values conform to quality constraint\"}"
+    },
+    "Segment": {
+      "dtype": "str",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 3,
+      "unique_pct": 10.0,
+      "sample_values": [
+        "Premium",
+        "Standard",
+        "Premium",
+        "Basic",
+        "Premium",
+        "Basic",
+        "Standard",
+        "Premium"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Stable categorical dimension with no missing values.",
+      "business_interpretation": "Used for customer segmentation; low risk if corrupted.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "none",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    }
+  },
+  "cross_column_issues": [],
+  "llm_discovered_issues": [],
+  "uncertainty_flags": [],
+  "recommended_cleaning_order": [
+    "Revenue",
+    "MonthlyCost",
+    "Quantity",
+    "SignupDate",
+    "IsActive"
+  ],
+  "etl_hints": {
+    "type_casting_targets": {},
+    "join_key_candidates": [],
+    "drop_candidates": [],
+    "recommended_output_format": "parquet",
+    "synonym_mappings": {}
+  },
+  "imputation_plan": {},
+  "outlier_columns": [
+    "Quantity"
+  ],
+  "agent_summary": "The dataset is largely healthy but contains high-risk columns for financial metrics (Revenue, MonthlyCost) that are stored as dirty strings and require conversion and imputation. Secondary risks include date parsing and boolean conversion, while most dimension columns are stable.",
+  "recommendation_summary": "",
+  "metadata": {
+    "agent_version": "2.0.0",
+    "profiling_timestamp": "2026-10-31T14:09:43.792378+00:00",
+    "llm_model_used": "gemini-flash-latest",
+    "sandbox_executions": 4,
+    "llm_driven": true
+  }
+}

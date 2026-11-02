@@ -41,7 +41,8 @@ class DataEngineeringAgent:
     """
 
     def __init__(self, llm_client: Optional[JSONLLMClient] = None):
-        self.llm_client = llm_client or LLMClient()
+        # Local stays local: profiling prompts carry dataset evidence, so no silent cloud fallback.
+        self.llm_client = llm_client or LLMClient(cloud_fallback=False)
 
     # ────────────────────────────────────────────────────────────────────────
     # PUBLIC API

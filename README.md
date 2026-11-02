@@ -403,6 +403,13 @@ disponibles sur le dataset actif :
 * **Agent 1 · Data Profiling** : statistiques et contrôles déterministes, interprétation LLM, et rapport remis à l'agent de nettoyage ;
 * **Agent 2 · Data Cleaning** : le LLM sélectionne les outils de nettoyage enregistrés, demande des contrôles personnalisés en sandbox si nécessaire, et conserve une copie versionnée.
 
+Le pipeline enchaîne quatre étapes, affichées dans la barre du haut :
+
+* **Data Profiling** (profiling agent) : profil, qualité et rapport de profiling ;
+* **Data Cleaning** (Data Cleaning Agent) : nettoyage tracé, versions, approbations et décisions ;
+* **BI Analyst** : KPIs et Dashboards ;
+* **XAI Auditor** : XAI.
+
 Les modes de secours déterministes sont indiqués explicitement ; ils ne sont pas
 présentés comme des exécutions LLM. Les contrôles de qualité, KPIs, exports et
 vérifications d'audit des autres pages sont des fonctions de l'application, pas
@@ -613,6 +620,18 @@ Chaque fonctionnalité est développée dans un module indépendant afin de faci
 ### 3. Traçabilité
 
 Les transformations et résultats produits par BIFlow doivent pouvoir être expliqués et retracés.
+
+---
+
+# 📚 Guides Techniques & Documentation des Agents
+
+| Document | Description |
+| :--- | :--- |
+| 🚀 [**Guide d'Exécution BI Analyst (LoRA & API)**](docs/RUN_BI_ANALYST_FINETUNED_AGENT.md) | **Guide pas-à-pas** pour exécuter le BI Analyst Agent, configurer le modèle fine-tuné local Qwen 2.5 3B (LoRA en 4-bit) ou basculer en mode Cloud API (Groq/Gemini). |
+| 📊 [**Guide & Stratégie Fine-Tuning BI Agent**](docs/BI_ANALYST_AGENT_AND_FINETUNING_GUIDE.md) | Justification théorique et technique du fine-tuning QLoRA pour l'Agent 2 et arguments pour la soutenance. |
+| 📓 [**Notebook Colab Fine-Tuning Qwen LoRA**](docs/COLAB_FINETUNING_NOTEBOOK_QWEN_LORA.md) | Procédure complète pour reproduire l'entraînement LoRA sur GPU T4 gratuit (Google Colab). |
+| 🛠️ [**Master Guide Évaluation Data Engineering**](docs/DATA_ENGINEERING_AGENT_MASTER_EVALUATION_GUIDE.md) | Guide d'évaluation empirique, benchmarks de profilage et LLM-as-a-Judge de l'Agent 1. |
+| 🔬 [**Sandbox Deep Dive**](docs/SANDBOX_DEEP_DIVE.md) | Analyse détaillée de la génération de code Python dynamique et exécution sandboxée sécurisée. |
 
 ---
 

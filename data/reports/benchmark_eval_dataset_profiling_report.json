@@ -1,0 +1,391 @@
+{
+  "schema_version": "2.1",
+  "dataset_ref": {
+    "file_path": "D:\\5DS8\\BIFlow\\BIFlow\\data\\raw\\benchmark_eval_dataset.csv",
+    "file_name": "benchmark_eval_dataset.csv",
+    "rows": 200,
+    "columns": 7,
+    "size_bytes": 12236
+  },
+  "health_scores": {
+    "overall": 88.5,
+    "completeness": 97.1,
+    "validity": 80.0,
+    "uniqueness": 100.0,
+    "consistency": 70.0
+  },
+  "column_profiles": {
+    "customer_id": {
+      "dtype": "str",
+      "inferred_role": "primary_key",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 200,
+      "unique_pct": 100.0,
+      "sample_values": [
+        "USR_00001",
+        "USR_00002",
+        "USR_00003",
+        "USR_00004",
+        "USR_00005",
+        "USR_00006",
+        "USR_00007",
+        "USR_00008"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Pseudo-ID column (near-unique string \u2014 likely an identifier or key)",
+          "evidence": {
+            "detected": "200 unique values out of 200 rows (100.0%)",
+            "recommendation": "Exclude from ML features; consider as join key or primary key",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Type issue: Pseudo-ID column (near-unique string \u2014 likely an identifier or key).",
+      "business_interpretation": "Column 'customer_id' (primary_key)",
+      "severity": "MEDIUM",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "monthly_fee": {
+      "dtype": "str",
+      "inferred_role": "categorical",
+      "missing_count": 5,
+      "missing_pct": 2.5,
+      "unique_count": 183,
+      "unique_pct": 91.5,
+      "sample_values": [
+        "$193.52",
+        "$475.85",
+        "$368.68",
+        "$303.34",
+        "$86.45",
+        "$86.44",
+        "$38.46",
+        "$434.43"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Dirty numeric strings (numeric stored as text with symbols/mixed entries)",
+          "evidence": {
+            "detected": "15 unparseable entries out of 195",
+            "recommendation": "Apply 4-level waterfall cleaning \u2192 convert to float/int",
+            "valid_ratio": 92.31
+          },
+          "llm_agreement": "agree"
+        },
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Missing values: 5 (2.5%)",
+          "evidence": {
+            "count": 5,
+            "pct": 2.5
+          }
+        }
+      ],
+      "agent_reasoning": "5 missing values (2.5%); Type issue: Dirty numeric strings (numeric stored as text with symbols/mixed entries); High cardinality (183 unique values).",
+      "business_interpretation": "Column 'monthly_fee' (categorical)",
+      "severity": "MEDIUM",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "signup_date": {
+      "dtype": "str",
+      "inferred_role": "timestamp",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 84,
+      "unique_pct": 42.0,
+      "sample_values": [
+        "2024-01-01",
+        "2024-02-02",
+        "2024-03-03",
+        "2024-04-04",
+        "2024-05-05",
+        "2024-06-06",
+        "2024-07-07",
+        "2024-08-08"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Date/time values stored as plain text (not parsed as datetime)",
+          "evidence": {
+            "detected": "~100% of sampled values match date patterns",
+            "recommendation": "Parse with pd.to_datetime() to enable time-series operations",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Type issue: Date/time values stored as plain text (not parsed as datetime).",
+      "business_interpretation": "Column 'signup_date' (timestamp)",
+      "severity": "MEDIUM",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "auto_renewal": {
+      "dtype": "str",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 4,
+      "unique_pct": 2.0,
+      "sample_values": [
+        "false",
+        "yes",
+        "yes",
+        "no",
+        "true",
+        "true",
+        "no",
+        "no"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "Boolean flag stored as text (Yes/No or True/False as object)",
+          "evidence": {
+            "detected": "Unique values: ['false', 'no', 'true', 'yes']",
+            "recommendation": "Map to bool dtype: True/False (saves memory, enables logic ops)",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        }
+      ],
+      "agent_reasoning": "Complete data with no missing values; Type issue: Boolean flag stored as text (Yes/No or True/False as object); Low cardinality categorical (4 categories).",
+      "business_interpretation": "Column 'auto_renewal' (categorical)",
+      "severity": "MEDIUM",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "feedback_score": {
+      "dtype": "str",
+      "inferred_role": "categorical",
+      "missing_count": 35,
+      "missing_pct": 17.5,
+      "unique_count": 3,
+      "unique_pct": 1.5,
+      "sample_values": [
+        "Valide",
+        "Valide",
+        "Valide",
+        "Valide",
+        "Valide",
+        "Valide",
+        "Valide",
+        "Valide"
+      ],
+      "numeric_stats": {},
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Missing values: 35 (17.5%)",
+          "evidence": {
+            "count": 35,
+            "pct": 17.5
+          }
+        }
+      ],
+      "agent_reasoning": "35 missing values (17.5%); Low cardinality categorical (3 categories).",
+      "business_interpretation": "Column 'feedback_score' (categorical)",
+      "severity": "MEDIUM",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "tenure": {
+      "dtype": "int64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 57,
+      "unique_pct": 28.5,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 28.84,
+        "median": 29.0,
+        "std": 18.5625,
+        "min": 0.0,
+        "max": 58.0,
+        "q1": 12.0,
+        "q3": 45.25,
+        "skewness": -0.0525,
+        "zeros_count": 15,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'tenure' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "TotalCharges": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 186,
+      "unique_pct": 93.0,
+      "sample_values": [
+        "450.0",
+        "450.0",
+        "450.0",
+        "450.0",
+        "450.0",
+        "450.0",
+        "450.0",
+        "450.0"
+      ],
+      "numeric_stats": {
+        "mean": 1563.9833,
+        "median": 1599.9285,
+        "std": 922.4504,
+        "min": 81.9711,
+        "max": 2999.1671,
+        "q1": 597.0797,
+        "q3": 2422.7422,
+        "skewness": -0.046,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Complete numeric data with standard distribution.",
+      "business_interpretation": "Column 'TotalCharges' (continuous_numeric)",
+      "severity": "NONE",
+      "uncertainty": "MEDIUM",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    }
+  },
+  "cross_column_issues": [
+    {
+      "columns": [
+        "tenure",
+        "TotalCharges"
+      ],
+      "issue": "Tenure=0 but TotalCharges>0 \u2014 logical impossibility",
+      "affected_rows": 15,
+      "severity": "HIGH",
+      "recommendation": "Set TotalCharges=0 where tenure=0, or verify source"
+    }
+  ],
+  "llm_discovered_issues": [],
+  "uncertainty_flags": [],
+  "recommended_cleaning_order": [
+    "feedback_score",
+    "monthly_fee",
+    "customer_id",
+    "signup_date",
+    "auto_renewal"
+  ],
+  "etl_hints": {
+    "type_casting_targets": {},
+    "join_key_candidates": [],
+    "drop_candidates": [],
+    "recommended_output_format": "parquet",
+    "synonym_mappings": {}
+  },
+  "imputation_plan": {
+    "monthly_fee": {
+      "strategy": "median"
+    },
+    "feedback_score": {
+      "strategy": "median"
+    }
+  },
+  "outlier_columns": [],
+  "agent_summary": "Dataset has 88.5% health score. LLM reasoning was unavailable \u2014 results are rule-based only.",
+  "recommendation_summary": "Rule-based analysis found 4 type issues and 40 missing values.",
+  "metadata": {
+    "agent_version": "2.0.0",
+    "profiling_timestamp": "2026-10-29T23:31:13.606707+00:00",
+    "llm_model_used": "gemini-flash-latest",
+    "sandbox_executions": 0,
+    "llm_driven": true
+  }
+}

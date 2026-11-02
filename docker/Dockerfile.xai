@@ -1,0 +1,87 @@
+# =============================================================================
+# BIFlow — XAI Auditor Agent Sandbox
+# docker/Dockerfile.xai
+# =============================================================================
+# Image légère Python 3.10 + dépendances système pour SHAP / SciPy.
+# Expose une API FastAPI sur le port 8003.
+# L'agent XAI est exécuté en isolation totale du reste du système.
+# Aucune dépendance Ollama n'est embarquée — le moteur LLM est configuré
+# via les variables d'environnement ENGINE, GROQ_API_KEY, GEMINI_API_KEY.
+# =============================================================================
+
+FROM python:3.10-slim
+
+# ── Métadonnées ────────────────────────────────────────────────────────────────
+LABEL maintainer="BIFlow Team"
+LABEL description="XAI Auditor Agent — SHAP, SHA-256, FastAPI sandbox"
+LABEL version="1.0.0"
+
+# ── Dépendances système pour SHAP / SciPy / scikit-learn ─────────────────────
+# gcc + g++ : compilation des extensions C de shap
+# make      : requis par certains packages scikit lors de la build
+# libgomp1  : OpenMP pour le parallélisme numpy/sklearn
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc \
+        g++ \
+        make \
+        libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Répertoire de travail ──────────────────────────────────────────────────────
+WORKDIR /workspace
+
+# ── Copier uniquement requirements.txt d'abord pour bénéficier du cache Docker ─
+COPY requirements.txt /workspace/requirements.txt
+
+# ── Installer les dépendances Python ──────────────────────────────────────────
+# On installe le minimum requis pour l'agent XAI uniquement.
+# Les packages ML lourds (transformers, torch) ne sont PAS inclus
+# pour garder l'image légère (~800 MB vs ~5 GB).
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+        pandas==2.2.3 \
+        numpy==1.26.4 \
+        scikit-learn==1.5.2 \
+        shap==0.46.0 \
+        requests==2.32.3 \
+        python-dotenv==1.0.1 \
+        fastapi==0.115.4 \
+        uvicorn[standard]==0.32.0 \
+        groq==0.11.0 \
+        google-genai==0.8.0
+
+# ── Copier les modules de l'agent XAI ─────────────────────────────────────────
+# On copie uniquement les modules nécessaires — pas tout le dépôt
+COPY agents/xai_auditor_agent.py  /workspace/agents/xai_auditor_agent.py
+COPY agents/__init__.py           /workspace/agents/__init__.py 2>/dev/null || true
+COPY agents/llm_client.py         /workspace/agents/llm_client.py
+
+# ── Copier le serveur FastAPI du sandbox ──────────────────────────────────────
+COPY docker/xai_sandbox_api.py    /workspace/xai_sandbox_api.py
+
+# ── Créer les dossiers de données partagés ────────────────────────────────────
+RUN mkdir -p /workspace/data/raw /workspace/data/reports
+
+# ── Variables d'environnement par défaut (surchargées par docker-compose) ─────
+# ENGINE contrôle le moteur LLM : "local" | "cloud" | "auto"
+# En mode cloud, aucun appel Ollama n'est effectué.
+ENV ENGINE=auto
+ENV GROQ_API_KEY=""
+ENV GEMINI_API_KEY=""
+ENV GOOGLE_API_KEY=""
+# OLLAMA_HOST n'est défini que si ENGINE=local ou ENGINE=auto
+# En mode cloud strict, cette variable est intentionnellement absente
+ENV PYTHONPATH=/workspace
+ENV PYTHONUNBUFFERED=1
+
+# ── Port exposé ───────────────────────────────────────────────────────────────
+EXPOSE 8003
+
+# ── Healthcheck ───────────────────────────────────────────────────────────────
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8003/health', timeout=5)" \
+    || exit 1
+
+# ── Point d'entrée ────────────────────────────────────────────────────────────
+CMD ["uvicorn", "xai_sandbox_api:app", "--host", "0.0.0.0", "--port", "8003", \
+     "--workers", "1", "--log-level", "info"]

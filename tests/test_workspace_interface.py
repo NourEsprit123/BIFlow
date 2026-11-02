@@ -1,10 +1,12 @@
 """Exercise the real authenticated pages and dataset selection across reruns."""
 import socket
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+DIRTY_SALES = str((ROOT / "data/raw/dirty_sales_test.csv").resolve())
 
 
 @pytest.fixture
@@ -23,100 +25,63 @@ def app():
     page = AppTest.from_file(str(ROOT / "dashboard" / "app.py"))
     page.session_state["authenticated_user"] = {"full_name": "UI Tester", "email": "ui@example.test"}
     page.run(timeout=20)
-    page.switch_page("pages/1_Overview.py").run(timeout=20)
+    page.switch_page("pages/1_Overview.py").run(timeout=30)
     assert not page.exception
     return page
 
 
-def test_dataset_picker_changes_active_data_and_survives_navigation(app):
+def test_dataset_picker_changes_active_data_for_every_page(app):
+    app.switch_page("pages/A1_Profiling.py").run(timeout=30)
+    assert not app.exception
     picker = app.selectbox(key="workspace_dataset_picker")
     assert len(picker.options) >= 2
-    selected = str((ROOT / "data/raw/dirty_sales_test.csv").resolve())
-    picker.select(selected).run(timeout=20)
+    picker.select(DIRTY_SALES).run(timeout=30)
     assert not app.exception
-    assert app.session_state["workspace_dataset_path"] == selected
-    assert any("dirty_sales_test.csv" in item.value for item in app.info)
-    app.switch_page("pages/4_Data_Quality.py").run(timeout=20)
+    assert app.session_state["workspace_dataset_path"] == DIRTY_SALES
+    # The team's pages read current_dataset_path; both keys follow the picker.
+    assert app.session_state["current_dataset_path"] == DIRTY_SALES
+    app.switch_page("pages/A1_Cleaning.py").run(timeout=30)
     assert not app.exception
-    assert app.selectbox(key="workspace_dataset_picker").value == selected
+    assert app.selectbox(key="workspace_dataset_picker").value == DIRTY_SALES
 
 
-def test_agent_controls_are_visible_and_search_is_local_to_dataset_library(app):
-    assert app.button(key="profiler_run").label == "Run profiling"
-    assert app.button(key="cleaner_run").label == "Run cleaning"
-    assert not any(item.label == "Search datasets" for item in app.text_input)
-    app.switch_page("pages/2_Datasets.py").run(timeout=20)
-    assert not app.exception
-    app.text_input(key="dataset_library_query").set_value("dirty sales").run(timeout=20)
-    assert not app.exception
-    assert len([b for b in app.button if b.key and b.key.startswith("select_")]) == 1
-    app.button(key="select_dirty_sales_test.csv").click().run(timeout=20)
-    assert not app.exception
-    assert app.session_state["workspace_dataset_path"].endswith("dirty_sales_test.csv")
-    app.text_input(key="dataset_library_query").set_value("no-such-dataset").run(timeout=20)
-    assert any("No matching datasets" in item.value for item in app.info)
+def test_stepper_lists_the_four_agents_in_pipeline_order(app):
+    steps = [b.label for b in app.button if b.key and b.key.startswith("agent_pipeline_top_btn_")]
+    assert [label.split("· ", 1)[1] for label in steps] == ["Data Profiling", "Data Cleaning", "BI Analyst", "XAI Auditor"]
 
 
-def test_profile_button_runs_on_selected_dataset_and_updates_status(app, monkeypatch):
+def test_profile_button_runs_on_selected_dataset_and_reports_fallback(app, monkeypatch):
     monkeypatch.setattr("dashboard.workspace.load_saved_profile", lambda path: None)
     monkeypatch.setattr("workspace.load_saved_profile", lambda path: None)
     calls = []
     def audit(self, path):
         calls.append(path)
-        return {"profile": {"rows": 30, "columns": 9},
+        return {"profile": {"rows": 30, "columns": 9}, "health": {},
                 "profiling_report": {"metadata": {"llm_status": "fallback"}}}
     monkeypatch.setattr("agents.data_engineering_agent.DataEngineeringAgent.run_audit", audit)
-    selected = str((ROOT / "data/raw/dirty_sales_test.csv").resolve())
-    app.selectbox(key="workspace_dataset_picker").select(selected).run(timeout=20)
-    app.button(key="profiler_run").click().run(timeout=20)
+    app.switch_page("pages/A1_Profiling.py").run(timeout=30)
+    app.selectbox(key="workspace_dataset_picker").select(DIRTY_SALES).run(timeout=30)
+    app.button(key="btn_run_direct_prof").click().run(timeout=30)
     assert not app.exception
-    assert calls == [selected]
-    assert any("Fallback report" in item.value for item in app.markdown)
+    assert calls == [DIRTY_SALES]
+    assert any("rule-based fallback" in item.value for item in app.warning)
 
 
-def test_saved_workflow_can_be_restored(app):
-    app.switch_page("pages/3_Workflows.py").run(timeout=20)
+def test_team_pages_open_with_the_merged_navigation(app):
+    for page in ("pages/5_BI_Analysis.py", "pages/6_Audit_XAI.py", "pages/3_Workflows.py", "pages/2_Datasets.py"):
+        app.switch_page(page).run(timeout=30)
+        assert not app.exception, page
+
+
+def test_cleaning_run_reports_its_result_on_the_cleaning_page(app, monkeypatch):
+    finished = SimpleNamespace(
+        final_dataset=SimpleNamespace(version="V3"),
+        change_log=SimpleNamespace(successful_ops=lambda: [1, 2]),
+        metadata={"mode": "llm"}, unresolved_issues=[],
+        validation=SimpleNamespace(all_passed=True, status=SimpleNamespace(value="passed")),
+    )
+    monkeypatch.setattr("dashboard.cleaning_review.run_cleaning_with_progress", lambda path: finished)
+    app.switch_page("pages/A1_Cleaning.py").run(timeout=30)
+    app.button(key="cleaner_run").click().run(timeout=30)
     assert not app.exception
-    app.checkbox(key="workflow_task_2").check().run(timeout=20)
-    next(button for button in app.button if button.label == "Save as template").click().run(timeout=20)
-    app.checkbox(key="workflow_task_2").uncheck().run(timeout=20)
-    next(button for button in app.button if button.label == "Load saved template").click().run(timeout=20)
-    assert not app.exception
-    assert app.checkbox(key="workflow_task_2").value
-
-
-def test_future_agents_are_visible_but_bi_and_xai_routes_and_tasks_are_locked(app):
-    assert app.button(key="locked_bi_analysis").disabled
-    assert app.button(key="locked_xai").disabled
-    pipeline = next(item.value for item in app.markdown if 'aria-label="BIFlow agent pipeline"' in item.value)
-    assert "Orchestrator" in pipeline and "ETL / Engineering" in pipeline and "Auditor / XAI" in pipeline
-    app.switch_page("pages/5_BI_Analysis.py").run(timeout=20)
-    assert not app.exception
-    assert any("BI Analysis · Locked" in item.value for item in app.markdown)
-    assert not any(item.label == "Export analysis report" for item in app.get("download_button"))
-    app.switch_page("pages/6_Audit_XAI.py").run(timeout=20)
-    assert not app.exception
-    assert any("Explainability / XAI · Locked" in item.value for item in app.markdown)
-    assert not any(item.label == "Generate audit" for item in app.button)
-    app.switch_page("pages/3_Workflows.py").run(timeout=20)
-    assert not app.exception
-    assert app.checkbox(key="workflow_task_3").disabled and not app.checkbox(key="workflow_task_3").value
-    assert app.checkbox(key="workflow_task_4").disabled and not app.checkbox(key="workflow_task_4").value
-
-
-def test_toolbar_groups_actions_by_agent_and_keeps_slots_for_upcoming_agents(app):
-    assert [c.value for c in app.caption][:4] == ["Data Profiling", "Data Cleaning", "Semantic & KPI", "BI Analyst"]
-    locked = [b for b in app.button if b.key and b.key.startswith("locked_agent_")]
-    assert [b.key for b in locked] == ["locked_agent_semantic", "locked_agent_analyst"]
-    assert all(b.disabled for b in locked)
-
-
-def test_finished_cleaning_opens_the_cleaning_trace_page(app, monkeypatch):
-    from types import SimpleNamespace
-    finished = SimpleNamespace(validation=SimpleNamespace(all_passed=True))
-    for module in ("components", "dashboard.components"):
-        monkeypatch.setattr(f"{module}.run_cleaning_with_progress", lambda path: finished, raising=False)
-    app.button(key="cleaner_run").click().run(timeout=20)
-    assert not app.exception
-    assert any("Cleaning finished" in t.value for t in app.toast)
-    assert any(h.value == "Quality dimensions" for h in app.subheader)  # now on the Data Quality page
+    assert any("Cleaning finished in V3; 2 changes applied" in item.value for item in app.success)

@@ -12,7 +12,7 @@ import streamlit as st
 from agents.data_engineering_agent import DataEngineeringAgent
 from analytics.data_quality import calculate_health_scores, detect_cross_column_issues
 from analytics.profiler import load_dataset as _load_dataset, profile_dataset
-from agents.dataCleaning_agent import DataCleaningAgent
+from agents.dataCleaning_agent import BUILTIN_FIRST_OBJECTIVE, DataCleaningAgent
 from dataCleaningTools.models import CleaningResult
 from dataCleaningTools.agent1_adapter import parse_profiling_report
 
@@ -262,8 +262,7 @@ def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = 
         search_roots=[RAW_DATA, ROOT / "data"],
         use_llm=None,
     )
-    objective = ("Improve data quality for BI analysis while preserving the uploaded original. "
-                 "Prefer builtin operations; write generated code only when no builtin can express the justified rule.")
+    objective = BUILTIN_FIRST_OBJECTIVE
     if st.session_state.get("prefer_generated_methods", False):
         objective += (
             " This is also an experimentation run: when a generated transform(df) would add value "

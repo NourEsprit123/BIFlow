@@ -1,13 +1,15 @@
 [theme]
 base = "light"
-primaryColor = "#5146e5"
-backgroundColor = "#f6f8fc"
+primaryColor = "#4f46e5"
+backgroundColor = "#f8fafc"
 secondaryBackgroundColor = "#ffffff"
-textColor = "#142443"
+textColor = "#0f172a"
 font = "sans serif"
 
 [client]
+# Navigation is drawn by components.setup (workspace links and per-agent pages)
 showSidebarNavigation = false
+toolbarMode = "minimal"
 
 [browser]
 gatherUsageStats = false

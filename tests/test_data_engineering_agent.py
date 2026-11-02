@@ -128,20 +128,23 @@ def test_llm_can_request_and_generate_a_sandboxed_check(tmp_path, monkeypatch):
     assert handoff.metadata.llm_driven is True
 
 
-def test_ollama_transport_errors_are_not_returned_as_successful_empty_json(
-    monkeypatch,
-):
+def test_failed_local_call_never_falls_back_to_the_cloud(monkeypatch):
+    # The shared client falls back to Groq/Gemini by default; profiling prompts carry dataset evidence.
     monkeypatch.setenv("LLM_PROVIDER", "ollama")
+    monkeypatch.setenv("GROQ_API_KEY", "test-key")
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-    client = LLMClient()
+    client = DataEngineeringAgent().llm_client
 
     def fail_request(*args, **kwargs):
         raise requests.ConnectionError("Ollama unavailable")
 
+    monkeypatch.setattr("agents.llm_client.requests.get", fail_request)
     monkeypatch.setattr("agents.llm_client.requests.post", fail_request)
+    monkeypatch.setattr(client, "_call_groq", lambda *a, **k: pytest.fail("Groq must not be called"))
+    monkeypatch.setattr(client, "_call_gemini", lambda *a, **k: pytest.fail("Gemini must not be called"))
 
-    with pytest.raises(RuntimeError, match="Ollama request failed"):
-        client.generate_json("profile dataset")
+    # An empty reply makes the agent use its labelled rule-based fallback.
+    assert client.generate_json("profile dataset") == {}
 
 
 def test_gemini_client_uses_configured_genai_sdk_and_model(monkeypatch):
@@ -167,8 +170,5 @@ def test_gemini_client_uses_configured_genai_sdk_and_model(monkeypatch):
     result = client.generate_json("analyze", "system")
 
     assert result == {"column_reasoning": {}}
-    assert calls == {
-        "api_key": "test-key",
-        "model": "test-gemini-model",
-        "contents": "system\n\nanalyze",
-    }
+    assert calls["api_key"] == "test-key" and calls["model"] == "test-gemini-model"
+    assert calls["contents"] == "analyze" and calls["config"].system_instruction == "system"
