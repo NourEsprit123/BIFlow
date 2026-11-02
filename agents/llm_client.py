@@ -23,6 +23,7 @@ class LLMClient:
             self.ollama_host = self.ollama_host.replace("localhost", "127.0.0.1")
         self.model_name = model_name or os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
         self.gemini_api_key = os.getenv("GEMINI_API_KEY", "")
+        self.groq_api_key = os.getenv("GROQ_API_KEY", "")
 
     def generate_json(self, prompt: str, system_prompt: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -33,19 +34,83 @@ class LLMClient:
 
     def generate_text(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         """
-        Generates text output from the configured LLM provider.
+        Generates text output from the configured LLM provider with auto-fallback.
         """
+        if self.provider == "groq" or (not self.gemini_api_key and self.groq_api_key):
+            res = self._call_groq(prompt, system_prompt)
+            if res and res.strip() and res.strip() != "{}":
+                return res
+
+        if self.provider == "gemini":
+            res = self._call_gemini(prompt, system_prompt)
+            if res and res.strip() and res.strip() != "{}":
+                return res
+            # Fallback automatique vers Groq si Gemini échoue (ex: 429 quota)
+            if self.groq_api_key:
+                logger.info("Falling back from Gemini to Groq...")
+                res_groq = self._call_groq(prompt, system_prompt)
+                if res_groq and res_groq.strip() and res_groq.strip() != "{}":
+                    return res_groq
+
         if self.provider == "ollama":
             return self._call_ollama(prompt, system_prompt)
-        elif self.provider == "gemini":
-            return self._call_gemini(prompt, system_prompt)
-        else:
-            return self._call_ollama(prompt, system_prompt)
+
+        return "{}"
+
+    def _call_groq(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+        """
+        Calls Groq API (Llama 3.3 70B / 8B).
+        """
+        if not self.groq_api_key:
+            return "{}"
+        try:
+            from groq import Groq
+            client = Groq(api_key=self.groq_api_key)
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "user", "content": prompt})
+            # Liste de modèles compatibles Groq (priorise les modèles disponibles sur le compte)
+            candidates = [
+                os.getenv("GROQ_MODEL", "").strip(),
+                "openai/gpt-oss-120b",
+                "openai/gpt-oss-20b",
+                "qwen/qwen3.8-27b",
+                "llama-3.3-70b-versatile",
+                "llama-3.1-8b-instant",
+            ]
+            candidates = [c for c in candidates if c]
+
+            for model_name in candidates:
+                try:
+                    response = client.chat.completions.create(
+                        model=model_name,
+                        messages=messages,
+                        temperature=0.2,
+                        response_format={"type": "json_object"},
+                    )
+                    text = response.choices[0].message.content
+                    if text and len(text.strip()) > 2:
+                        return text
+                except Exception as model_err:
+                    logger.debug("Groq model %s failed: %s", model_name, model_err)
+            return "{}"
+        except Exception as e:
+            logger.warning(f"Groq API call failed: {e}")
+            return "{}"
 
     def _call_ollama(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         """
         Calls local Ollama API server (e.g. Qwen 2.5 7B / 3B).
         """
+        # Fast health check to avoid 180s freeze if Ollama is not running
+        try:
+            r = requests.get(f"{self.ollama_host.rstrip('/')}/api/tags", timeout=1.5)
+            if r.status_code != 200:
+                return "{}"
+        except Exception:
+            return "{}"
+
         url = f"{self.ollama_host.rstrip('/')}/api/generate"
         payload = {
             "model": self.model_name,
@@ -57,7 +122,7 @@ class LLMClient:
             payload["system"] = system_prompt
 
         try:
-            response = requests.post(url, json=payload, timeout=180)
+            response = requests.post(url, json=payload, timeout=60)
             response.raise_for_status()
             data = response.json()
             return data.get("response", "")
@@ -67,7 +132,7 @@ class LLMClient:
 
     def _call_gemini(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         """
-        Calls Google Gemini API using the google-genai SDK with retry/backoff.
+        Calls Google Gemini API using the google-genai SDK.
         """
         if not self.gemini_api_key:
             logger.error("GEMINI_API_KEY not set in .env file")
@@ -95,7 +160,7 @@ class LLMClient:
                 max_output_tokens=8192,
             )
 
-            max_retries = 2  # Reduced from 3 for faster failure
+            max_retries = 2
             for attempt in range(1, max_retries + 1):
                 try:
                     logger.info(f"Calling Gemini API (attempt {attempt}/{max_retries})...")
@@ -105,14 +170,17 @@ class LLMClient:
                         contents=prompt,
                         config=config
                     )
-                    logger.info(f"Gemini API call successful")
+                    logger.info("Gemini API call successful")
                     return response.text
                 except Exception as e:
+                    err_str = str(e)
                     logger.error(f"Gemini API call failed: {e}")
+                    # Quota dépassé (429) -> Inutile de retenter en boucle
+                    if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                        logger.warning("Gemini quota exhausted (429). Skipping retries.")
+                        return "{}"
                     if attempt < max_retries:
-                        wait = 2
-                        logger.warning(f"Retrying in {wait}s...")
-                        time.sleep(wait)
+                        time.sleep(2)
                     else:
                         return "{}"
             return "{}"

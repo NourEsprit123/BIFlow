@@ -70,9 +70,21 @@ div[data-testid="stPopover"]>button p{color:#1e293b!important;font-weight:600}
 .bf-cols{display:flex;align-items:flex-end;gap:.6rem}
 .bf-cols div{flex:1;border-radius:6px 6px 0 0;position:relative}
 .bf-cols small{position:absolute;bottom:-1.4rem;left:0;right:0;text-align:center;color:#64748b;font-size:.7rem}
+/* Sleek scrollbars */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#f1f5f9;border-radius:4px}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+/* Streamlit expander light theme */
+[data-testid="stExpander"]{background:#fff!important;border:1px solid #e2e8f0!important;border-radius:14px!important;box-shadow:0 1px 3px rgba(15,23,42,.04)!important}
+[data-testid="stExpander"] details{background:#fff!important;color:#0f172a!important}
+[data-testid="stExpander"] summary{background:#f8fafc!important;color:#1e293b!important;border-radius:14px!important;font-weight:600!important}
+[data-testid="stExpander"] summary:hover{background:#f1f5f9!important;color:#4f46e5!important}
+[data-testid="stExpander"] summary p{color:#1e293b!important;font-weight:600!important}
 table.bf-table{width:100%;border-collapse:collapse;font-size:.88rem}
-.bf-table th{background:#eef2ff;text-align:left;font-size:.7rem;letter-spacing:.06em;color:#475569;padding:.8rem 1rem;font-weight:600}
+.bf-table th{background:#eef2ff;text-align:left;font-size:.7rem;letter-spacing:.06em;color:#475569;padding:.8rem 1rem;font-weight:600;position:sticky;top:0;z-index:2;box-shadow:0 1px 0 #cbd5e1}
 .bf-table td{padding:.9rem 1rem;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+.bf-table tr:hover td{background:#f8faff}
 .bf-table small{display:block;color:#64748b}
 .bf-chip{border-radius:999px;padding:.4rem .9rem;font-size:.85rem;background:#f1f5f9;margin-right:.4rem;display:inline-block}
 .bf-chip.on{background:#4f46e5;color:#fff}

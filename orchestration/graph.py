@@ -346,21 +346,28 @@ def node_data_engineer(state: GraphState) -> GraphState:
         result = agent.run_audit(data_path)
 
         # Nettoyage du dataset sur la base de la stratégie déduite
-        df_cleaned = None
         cleaned_path = data_path  # fallback : même fichier si nettoyage impossible
         try:
-            cleaned_path, df_cleaned = agent.execute_cleaning(
+            clean_res = agent.execute_cleaning(
                 data_path,
                 strategy=result.get("cleaning_strategy"),
             )
+            if isinstance(clean_res, dict) and clean_res.get("cleaned_file_path"):
+                cleaned_path = clean_res["cleaned_file_path"]
+            elif isinstance(clean_res, (list, tuple)):
+                cleaned_path = clean_res[0]
         except Exception as clean_err:
             logger.warning("[A1] Cleaning step failed (non-fatal): %s", clean_err)
 
         reports["data_engineer"] = {
-            "profiling_report": result.get("profiling_report", {}),
-            "health":           result.get("health", {}),
-            "report_path":      result.get("report_path", ""),
-            "cleaned_path":     cleaned_path,
+            "profile":             result.get("profile", {}),
+            "profiling_report":    result.get("profiling_report", {}),
+            "health":              result.get("health", {}),
+            "cleaning_strategy":   result.get("cleaning_strategy", {}),
+            "report_path":         result.get("report_path", ""),
+            "cleaned_path":        cleaned_path,
+            "file_path":           data_path,
+            "transformations_log": clean_res.get("transformations_log", []) if isinstance(clean_res, dict) else [],
         }
 
         log = _log_entry(

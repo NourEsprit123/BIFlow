@@ -1,7 +1,7 @@
 {
   "schema_version": "2.1",
   "dataset_ref": {
-    "file_path": "C:\\Users\\moham\\Desktop\\Med\\biflow\\data\\raw\\dirty_sales_test.csv",
+    "file_path": "data/raw/dirty_sales_test.csv",
     "file_name": "dirty_sales_test.csv",
     "rows": 30,
     "columns": 9,
@@ -36,24 +36,24 @@
       "value_counts": {
         "ORD-001": 1,
         "ORD-002": 1,
-        "ORD-029": 1,
-        "ORD-028": 1,
-        "ORD-027": 1,
-        "ORD-026": 1,
-        "ORD-025": 1,
-        "ORD-024": 1,
-        "ORD-023": 1,
-        "ORD-022": 1
+        "ORD-003": 1,
+        "ORD-004": 1,
+        "ORD-005": 1,
+        "ORD-006": 1,
+        "ORD-007": 1,
+        "ORD-008": 1,
+        "ORD-009": 1,
+        "ORD-010": 1
       },
       "is_constant": false,
       "issues": [],
-      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
-      "business_interpretation": "Column 'OrderID' (primary_key)",
-      "severity": "NONE",
-      "uncertainty": "HIGH",
+      "agent_reasoning": "String identifier used as primary key; uniqueness 100% and no missing values. No type conversion needed but any duplicate would break joins.",
+      "business_interpretation": "Critical for row-level joins across sales, finance, and CRM tables; any corruption will cause orphaned records and reporting gaps.",
+      "severity": "HIGH",
+      "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "none",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
@@ -80,24 +80,24 @@
       "value_counts": {
         "Alice Martin": 1,
         "Bob Smith": 1,
-        "Diana Carter": 1,
-        "Carlos Baker": 1,
-        "Bella Adams": 1,
-        "Aaron Scott": 1,
-        "Yara Lopez": 1,
-        "Xander Wright": 1,
-        "Wendy King": 1,
-        "Victor Hernandez": 1
+        "Carol White": 1,
+        "David Lee": 1,
+        "Eva Brown": 1,
+        "Frank Green": 1,
+        "Grace Kim": 1,
+        "Henry Davis": 1,
+        "Isla Wilson": 1,
+        "Jack Moore": 1
       },
       "is_constant": false,
       "issues": [],
-      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
-      "business_interpretation": "Column 'CustomerName' (primary_key)",
-      "severity": "NONE",
-      "uncertainty": "HIGH",
+      "agent_reasoning": "Composite primary key element; stored as object but uniquely identifies a customer per order. No missing values, but case/whitespace variations could affect dimensional joins.",
+      "business_interpretation": "Used for customer\u2011level aggregation and segmentation; inconsistencies would fragment KPI calculations like LTV.",
+      "severity": "HIGH",
+      "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "none",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
@@ -123,15 +123,15 @@
       "numeric_stats": {},
       "value_counts": {
         "$1,200.50": 1,
-        "3k": 1,
-        "$670.00": 1,
-        "$2,100.00": 1,
-        "$1,300.00": 1,
-        "$920.00": 1,
-        "$3,100.00": 1,
-        "$550.00": 1,
-        "$1,750.00": 1,
-        "quarter million": 1
+        "850.00": 1,
+        "1.5k": 1,
+        "one thousand": 1,
+        "$2,300.00": 1,
+        "banana": 1,
+        "$3,750.50": 1,
+        "2.1k": 1,
+        "$980.00": 1,
+        "ERROR_404": 1
       },
       "is_constant": false,
       "issues": [
@@ -144,19 +144,35 @@
             "count": 1,
             "pct": 3.33
           }
+        },
+        {
+          "issue_id": "sandbox_check_failed",
+          "source": "sandbox",
+          "severity": "MEDIUM",
+          "description": "Custom check failed: 6 values do not match the required pattern",
+          "evidence": {
+            "check_name": "Count rows where Revenue does not match regex ^\\$?\\d{1,3}(,\\d{3})*(\\.\\d+)?[kK]?$ after stripping whitespace.",
+            "metric": "6 / 30 violations",
+            "sample_size": 30
+          }
         }
       ],
-      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
-      "business_interpretation": "Column 'Revenue' (categorical)",
-      "severity": "NONE",
-      "uncertainty": "HIGH",
+      "agent_reasoning": "Numeric metric stored as object with currency symbols, commas, and shorthand (e.g., '1.5k'). One missing value (3.33%). Requires regex cleaning and conversion to float.",
+      "business_interpretation": "Direct driver of revenue KPIs; mis\u2011parsed values will distort total sales, margin, and forecasting models.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
-      "sandbox_triggered": false,
-      "sandbox_result": null,
-      "custom_check_code": null
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": false,
+        "metric": "6 / 30 violations",
+        "details": "6 values do not match the required pattern",
+        "error": null
+      },
+      "custom_check_code": "def custom_check(series: pd.Series) -> dict:\n    import re\n    pattern = re.compile(r'^\\$?\\d{1,3}(,\\d{3})*(\\.\\d+)?[kK]?$')\n    total = len(series)\n    violations = series.apply(lambda x: not bool(pattern.match(str(x).strip()))).sum()\n    if violations == 0:\n        return {\"passed\": True, \"metric\": \"0 violations\", \"details\": \"All values conform to quality constraint\"}\n    return {\"passed\": False, \"metric\": f\"{violations} / {total} violations\", \"details\": f\"{violations} values do not match the required pattern\"}"
     },
     "MonthlyCost": {
       "dtype": "object",
@@ -178,15 +194,15 @@
       "numeric_stats": {},
       "value_counts": {
         "$450.00": 1,
-        "$560.00": 1,
-        "$250.00": 1,
-        "$720.00": 1,
-        "$490.00": 1,
-        "$340.00": 1,
-        "$840.00": 1,
-        "$200.00": 1,
-        "$920.00": 1,
-        "$300.00": 1
+        "$320.75": 1,
+        "$210.00": 1,
+        "$180.50": 1,
+        "$890.25": 1,
+        "$150.00": 1,
+        "half a million": 1,
+        "$430.00": 1,
+        "$375.50": 1,
+        "$290.00": 1
       },
       "is_constant": false,
       "issues": [
@@ -211,19 +227,35 @@
             "count": 1,
             "pct": 3.33
           }
+        },
+        {
+          "issue_id": "sandbox_check_failed",
+          "source": "sandbox",
+          "severity": "MEDIUM",
+          "description": "Custom check failed: 6:half a million, 22:nan",
+          "evidence": {
+            "check_name": "Validate that each MonthlyCost matches pattern ^\\$?\\d{1,3}(,\\d{3})*(\\.\\d{2})?$ after cleaning.",
+            "metric": "2 / 30 violations",
+            "sample_size": 30
+          }
         }
       ],
-      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
-      "business_interpretation": "Column 'MonthlyCost' (categorical)",
+      "agent_reasoning": "Similar to Revenue: object type with leading '$' and commas. One missing (3.33%). Must strip symbols and cast to float.",
+      "business_interpretation": "Feeds profit margin calculations; inaccurate cost values will produce erroneous gross profit percentages.",
       "severity": "MEDIUM",
-      "uncertainty": "HIGH",
+      "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "median",
       "etl_cast_to": "none",
-      "sandbox_triggered": false,
-      "sandbox_result": null,
-      "custom_check_code": null
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": false,
+        "metric": "2 / 30 violations",
+        "details": "6:half a million, 22:nan",
+        "error": null
+      },
+      "custom_check_code": "def custom_check(series: pd.Series) -> dict:\n    import re\n    pattern = re.compile(r'^\\$?\\d{1,3}(,\\d{3})*(\\.\\d{2})?$')\n    violations = []\n    for i, val in enumerate(series):\n        if not isinstance(val, str) or not pattern.fullmatch(val.strip()):\n            violations.append(f'{i}:{val}')\n    passed = len(violations) == 0\n    metric = f'{len(violations)} / {len(series)} violations'\n    details = 'All values conform to quality constraint' if passed else ', '.join(violations)\n    return {'passed': passed, 'metric': metric, 'details': details}"
     },
     "Quantity": {
       "dtype": "float64",
@@ -268,10 +300,10 @@
           }
         }
       ],
-      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
-      "business_interpretation": "Column 'Quantity' (continuous_numeric)",
+      "agent_reasoning": "Float column with 2 missing (6.67%). Skewness 0.6549 indicates right\u2011skewed distribution; max 10 vs median 4 suggests potential outliers.",
+      "business_interpretation": "Quantity drives unit\u2011level revenue and inventory forecasts; outliers can inflate average order size and mislead demand planning.",
       "severity": "MEDIUM",
-      "uncertainty": "HIGH",
+      "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
       "imputation_strategy": "median",
@@ -306,13 +338,13 @@
       },
       "is_constant": false,
       "issues": [],
-      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
-      "business_interpretation": "Column 'Region' (categorical)",
-      "severity": "NONE",
-      "uncertainty": "HIGH",
+      "agent_reasoning": "Categorical dimension with 4 distinct values, no missing data. Stable lookup table.",
+      "business_interpretation": "Used for geographic segmentation and regional performance dashboards; low risk.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "none",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
@@ -339,14 +371,14 @@
       "value_counts": {
         "2023-01-15": 1,
         "2023-02-20": 1,
-        "2024-12-12": 1,
-        "2024-12-10": 1,
-        "2024-12-08": 1,
-        "2024-12-05": 1,
-        "2024-12-01": 1,
-        "2024-10-01": 1,
-        "2024-09-15": 1,
-        "2024-08-30": 1
+        "2023-03-10": 1,
+        "2023-04-05": 1,
+        "2023-05-18": 1,
+        "2023-06-22": 1,
+        "2023-07-30": 1,
+        "2023-08-14": 1,
+        "2023-09-09": 1,
+        "2023-10-01": 1
       },
       "is_constant": false,
       "issues": [
@@ -371,19 +403,35 @@
             "count": 2,
             "pct": 6.67
           }
+        },
+        {
+          "issue_id": "sandbox_check_failed",
+          "source": "sandbox",
+          "severity": "MEDIUM",
+          "description": "Custom check failed: 2 values cannot be parsed as ISO\u20118601 dates",
+          "evidence": {
+            "check_name": "Count rows where SignupDate cannot be parsed with ISO\u20118601 format YYYY-MM-DD.",
+            "metric": "2 / 30 violations",
+            "sample_size": 30
+          }
         }
       ],
-      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
-      "business_interpretation": "Column 'SignupDate' (timestamp)",
+      "agent_reasoning": "Timestamp stored as object string; 2 missing (6.67%). Requires parsing to datetime and handling of inconsistent formats.",
+      "business_interpretation": "Enables cohort analysis and time\u2011based churn calculations; unparsable dates break period aggregations.",
       "severity": "MEDIUM",
-      "uncertainty": "HIGH",
+      "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
       "imputation_strategy": "mode",
       "etl_cast_to": "none",
-      "sandbox_triggered": false,
-      "sandbox_result": null,
-      "custom_check_code": null
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": false,
+        "metric": "2 / 30 violations",
+        "details": "2 values cannot be parsed as ISO\u20118601 dates",
+        "error": null
+      },
+      "custom_check_code": "import pandas as pd\nimport re\ndef custom_check(series: pd.Series) -> dict:\n    total=len(series)\n    violations=0\n    pat=re.compile(r'^\\d{4}-\\d{2}-\\d{2}$')\n    for v in series.astype(str):\n        if not pat.match(v):\n            violations+=1\n            continue\n        try:\n            pd.to_datetime(v,format='%Y-%m-%d',errors='raise')\n        except Exception:\n            violations+=1\n    passed=violations==0\n    metric=f\"{violations} / {total} violations\" if not passed else \"0 violations\"\n    details=\"All values conform to quality constraint\" if passed else f\"{violations} values cannot be parsed as ISO\u20118601 dates\"\n    return {\"passed\":passed,\"metric\":metric,\"details\":details}"
     },
     "IsActive": {
       "dtype": "object",
@@ -412,7 +460,7 @@
         {
           "issue_id": "type_mismatch",
           "source": "python",
-          "severity": "MEDIUM",
+          "severity": "LOW",
           "description": "Boolean flag stored as text (Yes/No or True/False as object)",
           "evidence": {
             "detected": "Unique values: ['no', 'yes']",
@@ -422,17 +470,22 @@
           "llm_agreement": "agree"
         }
       ],
-      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
-      "business_interpretation": "Column 'IsActive' (boolean)",
-      "severity": "MEDIUM",
-      "uncertainty": "HIGH",
+      "agent_reasoning": "Boolean flag stored as text ('Yes'/'No'). No missing values but potential for unexpected literals (e.g., 'Y', 'N', 'True').",
+      "business_interpretation": "Filters active customers for retention metrics; mis\u2011coded values could misclassify churn.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "none",
       "etl_cast_to": "none",
-      "sandbox_triggered": false,
-      "sandbox_result": null,
-      "custom_check_code": null
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": null,
+        "metric": null,
+        "details": null,
+        "error": "Exec error: __import__ not found"
+      },
+      "custom_check_code": "import pandas as pd, numpy as np, re\n\ndef custom_check(series: pd.Series) -> dict:\n    valid = series.apply(lambda x: isinstance(x,str) and x.strip().lower() in ('yes','no'))\n    total = len(series)\n    viol = total - valid.sum()\n    if viol==0:\n        return {\"passed\":true,\"metric\":\"0 violations\",\"details\":\"All values conform to quality constraint\"}\n    else:\n        return {\"passed\":false,\"metric\":f\"{viol} / {total} violations\",\"details\":f\"{viol} out of {total} values are not 'Yes' or 'No' (case\u2011insensitive).\"}"
     },
     "Segment": {
       "dtype": "object",
@@ -459,13 +512,13 @@
       },
       "is_constant": false,
       "issues": [],
-      "agent_reasoning": "Standard rule-based detection (LLM unavailable)",
-      "business_interpretation": "Column 'Segment' (categorical)",
-      "severity": "NONE",
-      "uncertainty": "HIGH",
+      "agent_reasoning": "Stable categorical field with three levels, no missing data.",
+      "business_interpretation": "Supports tiered pricing and CLV segmentation; low impact on data integrity.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
       "python_agreement": "agree",
       "drop_recommended": false,
-      "imputation_strategy": "mode",
+      "imputation_strategy": "none",
       "etl_cast_to": "none",
       "sandbox_triggered": false,
       "sandbox_result": null,
@@ -478,9 +531,9 @@
   "recommended_cleaning_order": [
     "Quantity",
     "SignupDate",
+    "Revenue",
     "MonthlyCost",
-    "IsActive",
-    "Revenue"
+    "IsActive"
   ],
   "etl_hints": {
     "type_casting_targets": {},
@@ -489,28 +542,17 @@
     "recommended_output_format": "parquet",
     "synonym_mappings": {}
   },
-  "imputation_plan": {
-    "Revenue": {
-      "strategy": "median"
-    },
-    "MonthlyCost": {
-      "strategy": "median"
-    },
-    "Quantity": {
-      "strategy": "median"
-    },
-    "SignupDate": {
-      "strategy": "median"
-    }
-  },
-  "outlier_columns": [],
-  "agent_summary": "Dataset has 90.2% health score. LLM reasoning was unavailable \u2014 results are rule-based only.",
-  "recommendation_summary": "Rule-based analysis found 3 type issues and 6 missing values.",
+  "imputation_plan": {},
+  "outlier_columns": [
+    "Quantity"
+  ],
+  "agent_summary": "The dataset is largely healthy (90.2% overall) but primary\u2011key columns are solid while several financial fields contain dirty string representations requiring regex cleaning. Moderate risks stem from numeric outliers in Quantity and parsing issues in dates and boolean flags.",
+  "recommendation_summary": "",
   "metadata": {
     "agent_version": "2.0.0",
-    "profiling_timestamp": "2026-10-21T19:54:53.110445+00:00",
+    "profiling_timestamp": "2026-10-30T20:49:57.669880+00:00",
     "llm_model_used": "gemini-flash-latest",
-    "sandbox_executions": 0,
+    "sandbox_executions": 4,
     "llm_driven": true
   }
 }

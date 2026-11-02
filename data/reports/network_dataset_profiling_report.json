@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "schema_version": "2.1",
   "dataset_ref": {
@@ -784,4 +785,821 @@
     "sandbox_executions": 0,
     "llm_driven": true
   }
+=======
+{
+  "schema_version": "2.1",
+  "dataset_ref": {
+    "file_path": "C:\\Users\\moham\\Desktop\\Med\\biflow integ\\data\\raw\\network_dataset.csv",
+    "file_name": "network_dataset.csv",
+    "rows": 1001,
+    "columns": 15,
+    "size_bytes": 88536
+  },
+  "health_scores": {
+    "overall": 96.3,
+    "completeness": 98.0,
+    "validity": 95.0,
+    "uniqueness": 100.0,
+    "consistency": 90.0
+  },
+  "column_profiles": {
+    "timestamp": {
+      "dtype": "object",
+      "inferred_role": "primary_key",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1001,
+      "unique_pct": 100.0,
+      "sample_values": [
+        "2024-05-11 12:00:15",
+        "2024-05-11 12:00:43",
+        "2024-05-11 12:01:12",
+        "2024-05-11 12:01:40",
+        "2024-05-11 12:02:08",
+        "2024-05-11 12:02:36",
+        "2024-05-11 12:03:05",
+        "2024-05-11 12:03:34"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "2024-05-11 12:00:15": 1,
+        "2024-05-11 12:00:43": 1,
+        "2024-05-11 12:01:12": 1,
+        "2024-05-11 12:01:40": 1,
+        "2024-05-11 12:02:08": 1,
+        "2024-05-11 12:02:36": 1,
+        "2024-05-11 12:03:05": 1,
+        "2024-05-11 12:03:34": 1,
+        "2024-05-11 12:04:01": 1,
+        "2024-05-11 12:04:30": 1
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "type_mismatch",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Pseudo-ID column (near-unique string \u2014 likely an identifier or key)",
+          "evidence": {
+            "detected": "1001 unique values out of 1001 rows (100.0%)",
+            "recommendation": "Exclude from ML features; consider as join key or primary key",
+            "valid_ratio": 100.0
+          },
+          "llm_agreement": "agree"
+        }
+      ],
+      "agent_reasoning": "String column serving as a pseudo\u2011ID; unique for every row (1001 unique values) and acts as the temporal primary key for time\u2011series joins.",
+      "business_interpretation": "Critical join key for any temporal analysis, forecasting, or merging with external logs; any duplication or loss breaks downstream pipelines.",
+      "severity": "HIGH",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "none",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "bandwidth": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.1,
+      "sample_values": [
+        "2",
+        "2",
+        "2",
+        "2",
+        "2",
+        "2",
+        "2",
+        "2"
+      ],
+      "numeric_stats": {
+        "mean": 2.0,
+        "median": 2.0,
+        "std": 0.0,
+        "min": 2.0,
+        "max": 2.0,
+        "q1": 2.0,
+        "q3": 2.0,
+        "skewness": 0.0,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Integer categorical field with a single constant value (2) across the dataset; no variance to model.",
+      "business_interpretation": "Provides no discriminative power for analytics; can be retained for schema completeness but ignored in modeling.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "none",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "throughput": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 303,
+      "unique_pct": 30.27,
+      "sample_values": [
+        "2.15",
+        "2.16",
+        "2.0",
+        "2.07",
+        "2.4",
+        "2.07",
+        "2.05",
+        "1.89"
+      ],
+      "numeric_stats": {
+        "mean": 1.9121,
+        "median": 1.98,
+        "std": 0.9067,
+        "min": 0.05,
+        "max": 7.14,
+        "q1": 1.43,
+        "q3": 2.46,
+        "skewness": 0.479,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "13 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 13,
+            "outlier_pct": 1.3,
+            "bounds": {
+              "low": -0.115,
+              "high": 4.005
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Float continuous metric representing data rate; modest skew (0.48) and 303 distinct values, no type issues.",
+      "business_interpretation": "Key performance indicator for network capacity; used in SLA calculations and trend analysis.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "congestion": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 564,
+      "unique_pct": 56.34,
+      "sample_values": [
+        "0.38",
+        "0.12",
+        "0.08",
+        "0.07",
+        "0.08",
+        "0.12",
+        "0.16",
+        "0.44"
+      ],
+      "numeric_stats": {
+        "mean": 23.8609,
+        "median": 10.74,
+        "std": 32.1489,
+        "min": 0.03,
+        "max": 134.37,
+        "q1": 0.09,
+        "q3": 40.89,
+        "skewness": 1.4255,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "47 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 47,
+            "outlier_pct": 4.7,
+            "bounds": {
+              "low": -61.11,
+              "high": 102.09
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Float metric with high positive skew (1.43) and a max of 134.37, indicating occasional spikes.",
+      "business_interpretation": "Directly impacts QoS alerts; outlier spikes may trigger congestion mitigation workflows.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "packet_loss": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 21,
+      "unique_pct": 2.1,
+      "sample_values": [
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0",
+        "0.0"
+      ],
+      "numeric_stats": {
+        "mean": 5.4371,
+        "median": 0.0,
+        "std": 9.6593,
+        "min": 0.0,
+        "max": 52.5,
+        "q1": 0.0,
+        "q3": 7.5,
+        "skewness": 2.065,
+        "zeros_count": 648,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "90 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 90,
+            "outlier_pct": 8.99,
+            "bounds": {
+              "low": -11.25,
+              "high": 18.75
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Float metric heavily right\u2011skewed (2.07) with many zeros and a max of 52.5, typical of burst loss events.",
+      "business_interpretation": "Critical for SLA breach detection; high outliers can flag network incidents.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "latency": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 476,
+      "unique_pct": 47.55,
+      "sample_values": [
+        "6.58",
+        "5.36",
+        "6.29",
+        "5.91",
+        "5.81",
+        "6.81",
+        "5.82",
+        "5.47"
+      ],
+      "numeric_stats": {
+        "mean": 54.7579,
+        "median": 7.55,
+        "std": 275.6274,
+        "min": 4.48,
+        "max": 3051.58,
+        "q1": 6.0,
+        "q3": 10.29,
+        "skewness": 7.735,
+        "zeros_count": 0,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "37 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 37,
+            "outlier_pct": 3.7,
+            "bounds": {
+              "low": -0.435,
+              "high": 16.725
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Float metric with extreme skew (7.74) and a max of 3051.58 ms, indicating severe latency outliers.",
+      "business_interpretation": "Core QoE KPI; extreme values may distort averages and must be handled before reporting.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "jitter": {
+      "dtype": "float64",
+      "inferred_role": "continuous_numeric",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 195,
+      "unique_pct": 19.48,
+      "sample_values": [
+        "0.52",
+        "0.34",
+        "0.23",
+        "0.51",
+        "0.71",
+        "0.29",
+        "0.34",
+        "0.48"
+      ],
+      "numeric_stats": {
+        "mean": 0.8639,
+        "median": 0.65,
+        "std": 0.9,
+        "min": 0.0,
+        "max": 10.8,
+        "q1": 0.48,
+        "q3": 0.94,
+        "skewness": 5.8176,
+        "zeros_count": 1,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "64 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 64,
+            "outlier_pct": 6.39,
+            "bounds": {
+              "low": -0.21,
+              "high": 1.63
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Float metric with strong right skew (5.82) and max 10.8 ms; outliers reflect bursty timing variations.",
+      "business_interpretation": "Affects video/voice quality assessments; outlier handling is required for stable KPI computation.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Routers": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 2,
+      "unique_pct": 0.2,
+      "sample_values": [
+        "up xrv6",
+        "up xrv6",
+        "up xrv6",
+        "up xrv6",
+        "up xrv6",
+        "up xrv6",
+        "up xrv6",
+        "up xrv6"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "up xrv6": 601,
+        "up xrv1,2,3": 400
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Object categorical field with two distinct values (e.g., \"up xrv6\"); no missing data.",
+      "business_interpretation": "Used for grouping by router status; stable dimension for segmentation.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Planned route": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 2,
+      "unique_pct": 0.2,
+      "sample_values": [
+        "Best effort",
+        "Best effort",
+        "Best effort",
+        "Best effort",
+        "Best effort",
+        "Best effort",
+        "Best effort",
+        "Best effort"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "Best effort": 601,
+        "Redistribution": 400
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Object categorical with two values (\"Best effort\"); clean and complete.",
+      "business_interpretation": "Defines routing policy; useful for stratified analysis but low risk.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Network measure": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 1,
+      "unique_pct": 0.1,
+      "sample_values": [
+        "S1",
+        "S1",
+        "S1",
+        "S1",
+        "S1",
+        "S1",
+        "S1",
+        "S1"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "S1": 1001
+      },
+      "is_constant": true,
+      "issues": [
+        {
+          "issue_id": "zero_variance",
+          "source": "python",
+          "severity": "LOW",
+          "description": "Column has zero variance (constant value) \u2014 no analytical value",
+          "evidence": {}
+        }
+      ],
+      "agent_reasoning": "Constant categorical value \"S1\"; no variability.",
+      "business_interpretation": "Placeholder dimension; does not affect calculations.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "none",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Network target": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 2,
+      "unique_pct": 0.2,
+      "sample_values": [
+        "S2",
+        "S2",
+        "S2",
+        "S2",
+        "S2",
+        "S2",
+        "S2",
+        "S2"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "S3": 701,
+        "S2": 300
+      },
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Object categorical with two values (\"S2\"); clean.",
+      "business_interpretation": "Used for target segmentation; low impact on data quality.",
+      "severity": "LOW",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Video target": {
+      "dtype": "object",
+      "inferred_role": "categorical",
+      "missing_count": 300,
+      "missing_pct": 29.97,
+      "unique_count": 2,
+      "unique_pct": 0.2,
+      "sample_values": [
+        "S2",
+        "S2",
+        "S2",
+        "S2",
+        "S2",
+        "S2",
+        "S2",
+        "S2"
+      ],
+      "numeric_stats": {},
+      "value_counts": {
+        "S3": 501,
+        "S2": 200
+      },
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "missing_values",
+          "source": "python",
+          "severity": "HIGH",
+          "description": "Missing values: 300 (29.97%)",
+          "evidence": {
+            "count": 300,
+            "pct": 29.97
+          }
+        }
+      ],
+      "agent_reasoning": "Object categorical with 29.97% missing entries; missingness likely represents unknown or unassigned video streams.",
+      "business_interpretation": "Essential for linking network metrics to video services; high missing rate can bias service\u2011level analyses.",
+      "severity": "HIGH",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "mode",
+      "etl_cast_to": "none",
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": "False",
+        "metric": "200 / 500 violations",
+        "details": "200 non-conforming rows detected",
+        "error": null
+      },
+      "custom_check_code": "def custom_check(series: pd.Series) -> dict:\n    total=len(series)\n    sentinels={'n/a','na','null','none'}\n    mask_null=series.isna()\n    str_vals=series.astype(str)\n    mask_empty=str_vals.str.strip()==''\n    mask_sentinel=str_vals.str.strip().str.lower().isin(sentinels)\n    mask_dirty=str_vals.str.contains(r'\\$',na=False)\n    violations=(mask_null|mask_empty|mask_sentinel|mask_dirty).sum()\n    passed=violations==0\n    metric=f\"{violations} / {total} violations\" if not passed else \"0 violations\"\n    details=\"All values conform to quality constraint\" if passed else f\"{violations} non-conforming rows detected\"\n    return {\"passed\":passed,\"metric\":metric,\"details\":details}"
+    },
+    "Percentage video occupancy": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 7,
+      "unique_pct": 0.7,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 28.981,
+        "median": 10.0,
+        "std": 37.0751,
+        "min": 0.0,
+        "max": 120.0,
+        "q1": 0.0,
+        "q3": 50.0,
+        "skewness": 1.1493,
+        "zeros_count": 359,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Integer categorical metric with moderate skew (1.15) and max 120%; values exceed 100% indicating possible data entry errors.",
+      "business_interpretation": "Used for capacity planning; values >100% must be flagged before reporting.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": true,
+      "sandbox_result": {
+        "passed": null,
+        "metric": null,
+        "details": null,
+        "error": "SyntaxError: unmatched '}' (<string>, line 8)"
+      },
+      "custom_check_code": "def custom_check(series: pd.Series) -> dict:\n    total = len(series)\n    invalid_idx = series[~series.apply(lambda x: isinstance(x, (int, np.integer)) and x <= 100)].index.tolist()\n    cnt = len(invalid_idx)\n    if cnt == 0:\n        return {\"passed\": true, \"metric\": \"0 violations\", \"details\": \"All values conform to quality constraint\"}\n    else:\n        return {\"passed\": false, \"metric\": f\"{cnt} / {total} violations\", \"details\": f\"Rows with invalid occupancy: {invalid_idx}\"}}"
+    },
+    "Bitrate video": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 7,
+      "unique_pct": 0.7,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 483.983,
+        "median": 167.0,
+        "std": 619.1536,
+        "min": 0.0,
+        "max": 2004.0,
+        "q1": 0.0,
+        "q3": 835.0,
+        "skewness": 1.1493,
+        "zeros_count": 359,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [],
+      "agent_reasoning": "Integer metric with skew (1.15) and wide range (0\u20112004); potential outliers at high bitrate.",
+      "business_interpretation": "Key for video quality assessment; extreme bitrates may indicate mis\u2011recorded sessions.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    },
+    "Number videos": {
+      "dtype": "int64",
+      "inferred_role": "categorical",
+      "missing_count": 0,
+      "missing_pct": 0.0,
+      "unique_count": 7,
+      "unique_pct": 0.7,
+      "sample_values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "numeric_stats": {
+        "mean": 1.1828,
+        "median": 1.0,
+        "std": 1.1133,
+        "min": 0.0,
+        "max": 6.0,
+        "q1": 0.0,
+        "q3": 2.0,
+        "skewness": 1.4776,
+        "zeros_count": 300,
+        "negative_count": 0
+      },
+      "value_counts": {},
+      "is_constant": false,
+      "issues": [
+        {
+          "issue_id": "statistical_outliers",
+          "source": "python",
+          "severity": "MEDIUM",
+          "description": "13 statistical outliers (IQR)",
+          "evidence": {
+            "outlier_count": 13,
+            "outlier_pct": 1.3,
+            "bounds": {
+              "low": -3.0,
+              "high": 5.0
+            }
+          }
+        }
+      ],
+      "agent_reasoning": "Integer count with skew (1.48) and max 6; occasional high counts could be anomalies.",
+      "business_interpretation": "Feeds usage analytics; outlier counts may distort average session load.",
+      "severity": "MEDIUM",
+      "uncertainty": "LOW",
+      "python_agreement": "agree",
+      "drop_recommended": false,
+      "imputation_strategy": "median",
+      "etl_cast_to": "none",
+      "sandbox_triggered": false,
+      "sandbox_result": null,
+      "custom_check_code": null
+    }
+  },
+  "cross_column_issues": [],
+  "llm_discovered_issues": [],
+  "uncertainty_flags": [],
+  "recommended_cleaning_order": [
+    "Video target",
+    "timestamp",
+    "throughput",
+    "congestion",
+    "packet_loss",
+    "latency",
+    "jitter",
+    "Number videos",
+    "bandwidth",
+    "Network measure"
+  ],
+  "etl_hints": {
+    "type_casting_targets": {},
+    "join_key_candidates": [],
+    "drop_candidates": [],
+    "recommended_output_format": "parquet",
+    "synonym_mappings": {}
+  },
+  "imputation_plan": {},
+  "outlier_columns": [
+    "latency",
+    "jitter",
+    "packet_loss",
+    "congestion"
+  ],
+  "agent_summary": "The dataset is largely clean with only the primary key and the Video target column flagged as high\u2011severity issues; most numeric fields exhibit right\u2011skewed distributions requiring median imputation and outlier handling. Primary business risk lies in missing Video target values and extreme latency/jitter outliers that could distort QoS reporting.",
+  "recommendation_summary": "",
+  "metadata": {
+    "agent_version": "2.0.0",
+    "profiling_timestamp": "2026-10-30T22:27:40.235463+00:00",
+    "llm_model_used": "gemini-flash-latest",
+    "sandbox_executions": 2,
+    "llm_driven": true
+  }
+>>>>>>> 46fa842f2cdc582a3ae3ff8b421012d6fc04f6e8
 }

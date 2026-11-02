@@ -25,6 +25,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from dotenv import load_dotenv
+load_dotenv(PROJECT_ROOT / ".env")
+
 # ── BIFlow imports ────────────────────────────────────────────────────────────
 from components import (
     setup, page_header, btn, html, badge, card, grid, kpi, bar,
@@ -352,21 +355,40 @@ if chosen_resource in ("local", "auto"):
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🗄 Jeu de données")
 raw_dir     = PROJECT_ROOT / "data" / "raw"
+clean_dir   = PROJECT_ROOT / "data" / "cleaned"
 all_csvs    = sorted(raw_dir.glob("*.csv")) if raw_dir.exists() else []
-file_names  = [f.name for f in all_csvs]
+clean_csvs  = sorted(clean_dir.glob("*.csv")) if clean_dir.exists() else []
+
+dataset_map = {}
+for f in all_csvs:
+    dataset_map[f.name] = str(f)
+for f in clean_csvs:
+    dataset_map[f"✨ [Nettoyé] {f.name}"] = str(f)
+
+file_names  = list(dataset_map.keys())
 NONE_OPT    = "— Sélectionner —"
 
 if not file_names:
-    st.sidebar.warning("Aucun fichier trouvé dans `data/raw/`.")
+    st.sidebar.warning("Aucun fichier trouvé dans `data/`.")
     file_names = []
+
+default_idx = 0
+current_preset = st.session_state.get("current_dataset_path")
+if current_preset:
+    preset_name = Path(current_preset).name
+    for idx, name in enumerate([NONE_OPT] + file_names):
+        if preset_name in name:
+            default_idx = idx
+            break
 
 selected_name = st.sidebar.selectbox(
     "Dataset source",
     [NONE_OPT] + file_names,
+    index=default_idx,
     key="wf_dataset_select",
     disabled=is_locked,
 )
-selected_path = str(raw_dir / selected_name) if selected_name != NONE_OPT else None
+selected_path = dataset_map.get(selected_name) if selected_name != NONE_OPT else None
 
 # Pour les modes directs — chemin nettoyé optionnel
 direct_cleaned_path = None
@@ -502,11 +524,30 @@ if wf_state == "idle":
         st.session_state.wf_app        = app
         st.session_state.wf_done_steps = []
 
-        with st.spinner("🔗 Initialisation du pipeline LangGraph…"):
+        with st.spinner("⚡ Exécution du pipeline multi-agents (A1 Profiling/ETL ➔ A2 BI Insights ➔ A3 Audit XAI)…"):
             try:
                 result = app.invoke(initial, thread_cfg)
                 st.session_state.wf_graph_state = result
                 st.session_state.wf_state = "running"
+
+                # Synchroniser pipeline_results pour les pages A1, A2, A3
+                res_reps = result.get("reports") or {}
+                if "pipeline_results" not in st.session_state:
+                    st.session_state["pipeline_results"] = {}
+                if "data_engineer" in res_reps:
+                    st.session_state["pipeline_results"]["agent1"] = res_reps["data_engineer"]
+                if "bi_analyst" in res_reps:
+                    st.session_state["pipeline_results"]["agent2"] = res_reps["bi_analyst"]
+                if "xai_auditor" in res_reps:
+                    st.session_state["pipeline_results"]["agent3"] = res_reps["xai_auditor"]
+
+                _cleaned_p = (
+                    result.get("cleaned_data_path")
+                    or res_reps.get("data_engineer", {}).get("cleaned_path")
+                    or selected_path
+                )
+                if _cleaned_p and Path(_cleaned_p).exists():
+                    st.session_state["current_dataset_path"] = str(_cleaned_p)
 
                 # Vérifier si le graphe est déjà suspendu (HITL)
                 snapshot   = app.get_state(thread_cfg)
@@ -514,6 +555,10 @@ if wf_state == "idle":
                 if next_nodes and chosen_mode == "hitl":
                     st.session_state.wf_state       = "hitl_pause"
                     st.session_state.wf_hitl_pending = True
+                elif result.get("current_step") == "done":
+                    st.session_state.wf_state = "done"
+                    st.session_state.sidebar_mode = "agent1"
+                    st.switch_page("pages/A1_Profiling.py")
             except Exception as e:
                 st.session_state.wf_state       = "error"
                 st.session_state.wf_graph_state = {"error_message": str(e)}
@@ -595,7 +640,17 @@ if wf_state == "idle":
 
                     result = app.invoke(initial, thread_cfg)
                     st.session_state.wf_graph_state = result
-                    st.session_state.wf_state = "running"
+                    st.session_state.wf_state = "done"
+
+                    if chosen_mode == "direct_agent_2":
+                        st.session_state.sidebar_mode = "agent2"
+                        st.switch_page("pages/5_BI_Analysis.py")
+                    elif chosen_mode == "direct_agent_3":
+                        st.session_state.sidebar_mode = "agent3"
+                        st.switch_page("pages/6_Audit_XAI.py")
+                    else:
+                        st.session_state.sidebar_mode = "agent1"
+                        st.switch_page("pages/A1_Profiling.py")
 
                 except Exception as e:
                     import re as _re
@@ -616,8 +671,8 @@ if wf_state not in ("idle",):
 
     STEPS = [
         ("data_engineer", "🛠️ Data Engineer"),
-        ("bi_analysis",   "📊 BI Analyst"),
-        ("xai_audit",     "🛡️ XAI Auditor"),
+        ("bi_analyst",    "📊 BI Analyst"),
+        ("xai_auditor",   "🛡️ XAI Auditor"),
     ]
 
     # Déduire les étapes terminées depuis history_logs
@@ -652,7 +707,8 @@ if wf_state == "running":
 
     if cur == "done":
         st.session_state.wf_state = "done"
-        st.rerun()
+        st.session_state.sidebar_mode = "agent1"
+        st.switch_page("pages/A1_Profiling.py")
     elif cur == "error":
         st.session_state.wf_state = "error"
         st.rerun()
@@ -872,6 +928,8 @@ if wf_state == "hitl_pause":
                         st.session_state.wf_state = "hitl_pause"
                     else:
                         st.session_state.wf_state = "done"
+                        st.session_state.sidebar_mode = "agent1"
+                        st.switch_page("pages/A1_Profiling.py")
                 except Exception as e:
                     st.session_state.wf_state       = "error"
                     st.session_state.wf_graph_state = {"error_message": str(e)}
@@ -943,185 +1001,244 @@ if wf_state == "done":
             f'</div>'
         )
 
-    # ── Résultats Agent 1 ─────────────────────────────────────────────────────
+    # ── Sauvegarde automatique dans session_state pour les pages dédiées ────────
+    _wf_cleaned_path = (
+        graph_st.get("cleaned_data_path")
+        or reports.get("data_engineer", {}).get("cleaned_path")
+        or graph_st.get("data_path")
+        or st.session_state.get("wf_file")
+    )
+    if _wf_cleaned_path and Path(_wf_cleaned_path).exists():
+        st.session_state["current_dataset_path"] = str(_wf_cleaned_path)
+
+    # Synchroniser les résultats pour A1_Profiling, A1_Quality, A1_ETL_Cleaning
+    if "pipeline_results" not in st.session_state:
+        st.session_state["pipeline_results"] = {}
     if "data_engineer" in reports:
-        st.markdown("---")
-        st.markdown("#### 🛠️ Résultats — Agent 1 : Data Engineer")
-        a1   = reports["data_engineer"]
-        hlth = a1.get("health", {})
-        score   = hlth.get("overall_health_score", "—")
-        missing = hlth.get("missing_info", {}).get("total_missing_cells", "—")
-        dupes   = hlth.get("duplicate_info", {}).get("count", "—")
-        issues  = len(hlth.get("type_issues", {}))
-
-        d1c1, d1c2, d1c3, d1c4 = st.columns(4)
-        with d1c1: st.metric("🎯 Score qualité",     f"{score}%")
-        with d1c2: st.metric("⚠️ Valeurs manquantes", str(missing))
-        with d1c3: st.metric("📋 Doublons",           str(dupes))
-        with d1c4: st.metric("🔧 Problèmes types",    str(issues))
-
-        with st.expander("🔍 Rapport de profiling complet", expanded=False):
-            prof = a1.get("profiling_report", {})
-            summary_txt = prof.get("agent_summary", "")
-            if summary_txt:
-                st.markdown(f"> {summary_txt}")
-            etl = prof.get("etl_hints", {}).get("type_casting_targets", {})
-            if etl:
-                casts = " · ".join(f"`{c}` → `{t}`" for c, t in etl.items())
-                st.markdown(f"**ETL hints :** {casts}")
-
-    # ── Résultats Agent 2 ─────────────────────────────────────────────────────
+        st.session_state["pipeline_results"]["agent1"] = reports["data_engineer"]
     if "bi_analyst" in reports:
-        st.markdown("---")
-        st.markdown("#### 📊 Résultats — Agent 2 : BI Analyst")
-        a2   = reports["bi_analyst"]
-        cfg  = a2.get("chart_config", {})
-        kpis = cfg.get("kpis", [])
-        md   = a2.get("markdown", "")
+        st.session_state["pipeline_results"]["agent2"] = reports["bi_analyst"]
+    if "xai_auditor" in reports:
+        st.session_state["pipeline_results"]["agent3"] = reports["xai_auditor"]
 
-        if kpis:
-            kpi_cols = st.columns(min(4, len(kpis)))
-            for i, k in enumerate(kpis[:4]):
-                with kpi_cols[i]:
-                    st.metric(k.get("title", "KPI"), str(k.get("value", "—")),
-                              delta=k.get("subtitle", ""))
+    # ── Onglets interactifs des livrables par Agent ────────────────────────────
+    st.markdown("### 📋 Livrables et Détails par Agent")
+    tab_a1, tab_a2, tab_a3 = st.tabs([
+        "🛠️ Agent 1 — Data Quality & Nettoyage",
+        "📊 Agent 2 — Analyse BI & Dashboards",
+        "🛡️ Agent 3 — Audit XAI & Conformité",
+    ])
 
-        # Recuperer les donnees du dataset pour tracer les dashboards
-        _wf_data_path = (
-            graph_st.get("cleaned_data_path")
-            or graph_st.get("data_path")
-            or st.session_state.get("wf_file")
-        )
-        _df_wf = None
-        if _wf_data_path and Path(_wf_data_path).exists():
-            try:
-                _df_wf = pd.read_csv(_wf_data_path)
-            except Exception:
-                _df_wf = None
+    # ── Onglet Agent 1 : Data Engineer ────────────────────────────────────────
+    with tab_a1:
+        if "data_engineer" in reports:
+            a1   = reports["data_engineer"]
+            hlth = a1.get("health", {})
+            score   = hlth.get("overall_health_score", hlth.get("overall_score", "—"))
+            missing = hlth.get("missing_info", {}).get("total_missing_cells", "—")
+            dupes   = hlth.get("duplicate_info", {}).get("count", "—")
+            issues  = len(hlth.get("type_issues", {}))
 
-        tab_wf_rep, tab_wf_viz = st.tabs(["📄 Rapport Executif BI", "📈 Dashboards Interactifs"])
+            d1c1, d1c2, d1c3, d1c4 = st.columns(4)
+            with d1c1: st.metric("🎯 Score santé qualité", f"{score}%")
+            with d1c2: st.metric("⚠️ Valeurs manquantes",  str(missing))
+            with d1c3: st.metric("📋 Doublons détectés",    str(dupes))
+            with d1c4: st.metric("🔧 Problèmes de types",  str(issues))
 
-        with tab_wf_rep:
-            if md:
-                st.markdown(md)
-            else:
-                st.info("Aucun rapport texte disponible.")
-
-        with tab_wf_viz:
-            charts = cfg.get("recommended_charts", [])
-            if _df_wf is not None and charts:
+            cleaned = a1.get("cleaned_path", "")
+            if cleaned and Path(cleaned).exists():
+                st.success(f"✨ **Dataset nettoyé prêt :** `{Path(cleaned).name}`")
                 try:
-                    import plotly.express as px
-                    cols = st.columns(2)
-                    for i, chart in enumerate(charts[:6]):
-                        c_title = chart.get("title", f"Graphique {i+1}")
-                        c_type  = str(chart.get("type", "bar")).lower()
-                        c_x     = chart.get("column_x")
-                        c_y     = chart.get("column_y")
-                        if not c_x or c_x not in _df_wf.columns:
-                            continue
-                        with cols[i % 2]:
-                            with st.container(border=True):
-                                st.caption(f"**{c_title}** · `{c_type.upper()}`")
-                                if c_type == "pie":
-                                    data_pie = _df_wf[c_x].value_counts().reset_index()
-                                    data_pie.columns = [c_x, "Count"]
-                                    fig = px.pie(data_pie.head(10), names=c_x, values="Count", hole=0.4)
-                                    st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
-                                elif c_type == "bar":
-                                    if c_y and c_y in _df_wf.columns and pd.api.types.is_numeric_dtype(_df_wf[c_y]):
-                                        agg = _df_wf.groupby(c_x, observed=False)[c_y].mean().reset_index()
-                                        fig = px.bar(agg.head(15), x=c_x, y=c_y, color_discrete_sequence=["#6366f1"])
-                                    else:
-                                        data_bar = _df_wf[c_x].value_counts().reset_index()
-                                        data_bar.columns = [c_x, "Count"]
-                                        fig = px.bar(data_bar.head(15), x=c_x, y="Count", color_discrete_sequence=["#6366f1"])
-                                    st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
-                                elif c_type == "histogram":
-                                    fig = px.histogram(_df_wf, x=c_x, color_discrete_sequence=["#8b5cf6"])
-                                    st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
-                                elif c_type == "box":
-                                    y_col = c_y if c_y in _df_wf.columns else None
-                                    fig = px.box(_df_wf, x=c_x, y=y_col, color_discrete_sequence=["#c026d3"])
-                                    st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
-                                else:
-                                    fig = px.histogram(_df_wf, x=c_x, color_discrete_sequence=["#6366f1"])
-                                    st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
-                except Exception as chart_err:
-                    st.caption(f"Visualisation : {chart_err}")
-            else:
-                st.info("Aucun graphique configure ou dataset non disponible.")
+                    df_clean_prev = pd.read_csv(cleaned)
+                    st.caption(f"Aperçu des 5 premières lignes nettoyées ({len(df_clean_prev)} lignes × {len(df_clean_prev.columns)} colonnes) :")
+                    st.dataframe(df_clean_prev.head(5), use_container_width=True)
+                except Exception:
+                    pass
 
-        col_b1, col_b2 = st.columns([2, 1])
-        with col_b1:
-            if st.button("→ Ouvrir la page BI Analysis complete (avec Sandbox Monitor)", key="goto_bi"):
+            # Transformations appliquées
+            trans = a1.get("transformations_log", [])
+            if trans:
+                with st.expander(f"⚙️ Transformations de nettoyage exécutées ({len(trans)})", expanded=True):
+                    for t in trans:
+                        col = t.get("column", "")
+                        action = t.get("action", "")
+                        nb = t.get("nulls_before", 0)
+                        na = t.get("nulls_after", 0)
+                        st.markdown(f"- Colonne **`{col}`** : `{action}` (valeurs nulles : {nb} ➔ {na})")
+
+            with st.expander("🔍 Rapport de profiling complet (A1 Profiling)", expanded=False):
+                prof = a1.get("profiling_report", {})
+                summary_txt = prof.get("agent_summary", "")
+                if summary_txt:
+                    st.markdown(f"> {summary_txt}")
+                etl = prof.get("etl_hints", {}).get("type_casting_targets", {})
+                if etl:
+                    casts = " · ".join(f"`{c}` → `{t}`" for c, t in etl.items())
+                    st.markdown(f"**ETL hints :** {casts}")
+
+            st.markdown("---")
+            st.markdown("**Inspecter les sous-pages de l'Agent 1 :**")
+            a1_btn_col1, a1_btn_col2, a1_btn_col3 = st.columns(3)
+            with a1_btn_col1:
+                if st.button("📊 Voir Profiling complet", use_container_width=True, key="tab_btn_goto_prof"):
+                    st.session_state.sidebar_mode = "agent1"
+                    st.switch_page("pages/A1_Profiling.py")
+            with a1_btn_col2:
+                if st.button("✅ Voir Quality Check", use_container_width=True, key="tab_btn_goto_qual"):
+                    st.session_state.sidebar_mode = "agent1"
+                    st.switch_page("pages/A1_Quality.py")
+            with a1_btn_col3:
+                if st.button("🔧 Voir ETL & Nettoyage", use_container_width=True, key="tab_btn_goto_etl"):
+                    st.session_state.sidebar_mode = "agent1"
+                    st.switch_page("pages/A1_ETL_Cleaning.py")
+        else:
+            st.info("Aucun rapport Data Engineer disponible.")
+
+    # ── Onglet Agent 2 : BI Analyst ───────────────────────────────────────────
+    with tab_a2:
+        if "bi_analyst" in reports:
+            a2   = reports["bi_analyst"]
+            cfg  = a2.get("chart_config", {})
+            kpis = cfg.get("kpis", [])
+            md   = a2.get("markdown", "")
+
+            if kpis:
+                kpi_cols = st.columns(min(4, len(kpis)))
+                for i, k in enumerate(kpis[:4]):
+                    with kpi_cols[i]:
+                        st.metric(k.get("title", "KPI"), str(k.get("value", "—")),
+                                  delta=k.get("subtitle", ""))
+
+            # Récupérer les données pour tracer les graphiques
+            _df_wf = None
+            if _wf_cleaned_path and Path(_wf_cleaned_path).exists():
+                try:
+                    _df_wf = pd.read_csv(_wf_cleaned_path)
+                except Exception:
+                    _df_wf = None
+
+            tab_wf_rep, tab_wf_viz = st.tabs(["📄 Rapport Exécutif BI", "📈 Dashboards Interactifs"])
+
+            with tab_wf_rep:
+                if md:
+                    st.markdown(md)
+                else:
+                    st.info("Aucun rapport texte disponible.")
+
+            with tab_wf_viz:
+                charts = cfg.get("recommended_charts", [])
+                if _df_wf is not None and charts:
+                    try:
+                        import plotly.express as px
+                        cols = st.columns(2)
+                        for i, chart in enumerate(charts[:6]):
+                            c_title = chart.get("title", f"Graphique {i+1}")
+                            c_type  = str(chart.get("type", "bar")).lower()
+                            c_x     = chart.get("column_x")
+                            c_y     = chart.get("column_y")
+                            if not c_x or c_x not in _df_wf.columns:
+                                continue
+                            with cols[i % 2]:
+                                with st.container(border=True):
+                                    st.caption(f"**{c_title}** · `{c_type.upper()}`")
+                                    if c_type == "pie":
+                                        data_pie = _df_wf[c_x].value_counts().reset_index()
+                                        data_pie.columns = [c_x, "Count"]
+                                        fig = px.pie(data_pie.head(10), names=c_x, values="Count", hole=0.4)
+                                        st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
+                                    elif c_type == "bar":
+                                        if c_y and c_y in _df_wf.columns and pd.api.types.is_numeric_dtype(_df_wf[c_y]):
+                                            agg = _df_wf.groupby(c_x, observed=False)[c_y].mean().reset_index()
+                                            fig = px.bar(agg.head(15), x=c_x, y=c_y, color_discrete_sequence=["#6366f1"])
+                                        else:
+                                            data_bar = _df_wf[c_x].value_counts().reset_index()
+                                            data_bar.columns = [c_x, "Count"]
+                                            fig = px.bar(data_bar.head(15), x=c_x, y="Count", color_discrete_sequence=["#6366f1"])
+                                        st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
+                                    elif c_type == "histogram":
+                                        fig = px.histogram(_df_wf, x=c_x, color_discrete_sequence=["#8b5cf6"])
+                                        st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
+                                    elif c_type == "box":
+                                        y_col = c_y if c_y in _df_wf.columns else None
+                                        fig = px.box(_df_wf, x=c_x, y=y_col, color_discrete_sequence=["#c026d3"])
+                                        st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
+                                    else:
+                                        fig = px.histogram(_df_wf, x=c_x, color_discrete_sequence=["#6366f1"])
+                                        st.plotly_chart(fig, use_container_width=True, key=f"wf_chart_{i}")
+                    except Exception as chart_err:
+                        st.caption(f"Visualisation : {chart_err}")
+                else:
+                    st.info("Aucun graphique configuré ou dataset non disponible.")
+
+            if st.button("👉 Ouvrir la page BI Analysis complète (avec Sandbox Monitor)", key="tab_btn_goto_bi"):
                 st.session_state["current_bi_report"]    = md
                 st.session_state["current_chart_config"] = cfg
                 st.session_state["current_bi_telemetry"] = a2.get("telemetry", {})
-                if _wf_data_path:
-                    st.session_state["current_dataset_path"] = str(_wf_data_path)
+                if _wf_cleaned_path:
+                    st.session_state["current_dataset_path"] = str(_wf_cleaned_path)
                 st.switch_page("pages/5_BI_Analysis.py")
+        else:
+            st.info("Aucun rapport BI Analyst disponible.")
 
-    # ── Résultats Agent 3 ─────────────────────────────────────────────────────
-    if "xai_auditor" in reports:
-        st.markdown("---")
-        st.markdown("#### 🛡️ Résultats — Agent 3 : XAI Auditor")
-        a3        = reports["xai_auditor"]
-        narrative = a3.get("narrative", "")
-        telemetry = a3.get("telemetry", {})
-        audit_rep = a3.get("audit_report", {})
-        shap_sum  = audit_rep.get("shap", {}).get("summary", {})
-        top_feat  = shap_sum.get("top_features", [])
+    # ── Onglet Agent 3 : XAI Auditor ──────────────────────────────────────────
+    with tab_a3:
+        if "xai_auditor" in reports:
+            a3        = reports["xai_auditor"]
+            narrative = a3.get("narrative", "")
+            telemetry = a3.get("telemetry", {})
+            audit_rep = a3.get("audit_report", {})
+            shap_sum  = audit_rep.get("shap", {}).get("summary", {})
+            top_feat  = shap_sum.get("top_features", [])
 
-        xm1, xm2, xm3, xm4 = st.columns(4)
-        with xm1: st.metric("🔑 Provider LLM",
-                             telemetry.get("provider", "—").split("(")[0].strip())
-        with xm2: st.metric("📐 Features SHAP", str(len(top_feat)))
-        with xm3: st.metric("🌍 Mean |SHAP|",
-                             f'{shap_sum.get("global_mean_abs_shap", 0):.4f}')
-        with xm4: st.metric("⏱ Durée LLM", f'{telemetry.get("duration_s", 0)}s')
+            xm1, xm2, xm3, xm4 = st.columns(4)
+            with xm1: st.metric("🔑 Provider LLM",
+                                 telemetry.get("provider", "—").split("(")[0].strip())
+            with xm2: st.metric("📐 Features SHAP", str(len(top_feat)))
+            with xm3: st.metric("🌍 Mean |SHAP|",
+                                 f'{shap_sum.get("global_mean_abs_shap", 0):.4f}')
+            with xm4: st.metric("⏱ Durée LLM", f'{telemetry.get("duration_s", 0)}s')
 
-        # SHAP top features — graphique simple
-        if top_feat:
-            shap_df = pd.DataFrame(top_feat).rename(columns={
-                "feature": "Feature", "mean_abs_shap": "Mean |SHAP|"
-            })
-            st.bar_chart(
-                shap_df.set_index("Feature")["Mean |SHAP|"].sort_values(ascending=True),
-                color="#a855f7", horizontal=True,
-                height=max(200, len(top_feat) * 28),
-            )
+            if top_feat:
+                shap_df = pd.DataFrame(top_feat).rename(columns={
+                    "feature": "Feature", "mean_abs_shap": "Mean |SHAP|"
+                })
+                st.bar_chart(
+                    shap_df.set_index("Feature")["Mean |SHAP|"].sort_values(ascending=True),
+                    color="#a855f7", horizontal=True,
+                    height=max(200, len(top_feat) * 28),
+                )
 
-        # Narrative dans un conteneur stylisé
-        if narrative:
-            with st.expander("💬 Explication narrative XAI", expanded=True):
-                st.markdown(narrative)
+            if narrative:
+                with st.expander("💬 Explication narrative XAI", expanded=True):
+                    st.markdown(narrative)
 
-        # Hashes dans tiroir (règle sécurité F-05)
-        with st.expander("🔐 Traçabilité & lignée cryptographique (SHA-256)", expanded=False):
-            integrity = audit_rep.get("integrity", {})
-            for lbl, key in [("Data", "data_hash"), ("Prédictions", "predictions_hash"),
-                              ("Audit", "audit_hash")]:
-                h = _safe_truncate_hash(integrity.get(key, ""))
-                st.caption(f"**{lbl} hash :** `{h}`")
-            st.caption("Les valeurs complètes sont disponibles dans l'export JSON signé.")
+            with st.expander("🔐 Traçabilité & lignée cryptographique (SHA-256)", expanded=False):
+                integrity = audit_rep.get("integrity", {})
+                for lbl, key in [("Data", "data_hash"), ("Prédictions", "predictions_hash"),
+                                  ("Audit", "audit_hash")]:
+                    h = _safe_truncate_hash(integrity.get(key, ""))
+                    st.caption(f"**{lbl} hash :** `{h}`")
 
-        if st.button("→ Ouvrir le Cockpit XAI complet", key="goto_xai"):
-            st.switch_page("pages/6_Audit_XAI.py")
+            if st.button("👉 Ouvrir le Cockpit XAI complet", key="tab_btn_goto_xai"):
+                st.switch_page("pages/6_Audit_XAI.py")
+        else:
+            st.info("Aucun rapport XAI Auditor disponible.")
 
     # ── Actions finales ───────────────────────────────────────────────────────
     st.markdown("---")
     act1, act2, act3 = st.columns(3)
     with act1:
-        if st.button("📊 Rapport Qualité complet", use_container_width=True):
-            st.switch_page("pages/4_Data_Quality.py")
+        if st.button("📊 Profiling & Qualité (Agent 1)", use_container_width=True):
+            st.session_state.sidebar_mode = "agent1"
+            st.switch_page("pages/A1_Profiling.py")
     with act2:
-        if st.button("📈 Analyse BI complète", use_container_width=True):
+        if st.button("📈 Analyse BI complète (Agent 2)", use_container_width=True):
+            st.session_state.sidebar_mode = "agent2"
             st.switch_page("pages/5_BI_Analysis.py")
     with act3:
-        if st.button("+ Nouveau pipeline", type="primary", use_container_width=True):
-            _reset_pipeline()
-            st.rerun()
+        if st.button("🛡️ Audit XAI complet (Agent 3)", use_container_width=True):
+            st.session_state.sidebar_mode = "agent3"
+            st.switch_page("pages/6_Audit_XAI.py")
 
 # =============================================================================
 # ÉTAT ERROR

@@ -15,6 +15,8 @@ if "sidebar_mode" not in st.session_state or st.session_state.sidebar_mode == "n
 setup("Quality Check", hub="Agent 1 · Data Engineering")
 
 results  = st.session_state.get("pipeline_results", {}).get("agent1", {})
+if not results:
+    results = (st.session_state.get("wf_graph_state") or {}).get("reports", {}).get("data_engineer", {})
 health   = results.get("health", {})
 report   = results.get("profiling_report", {})
 strategy = results.get("cleaning_strategy", {})
@@ -27,13 +29,34 @@ page_header(
 )
 
 if not health:
-    html(
-        '<div class="bf-card" style="text-align:center;padding:3rem;color:#94a3b8">'
-        '<div style="font-size:2.5rem;margin-bottom:1rem">✅</div>'
-        '<b>No quality data yet</b><br>'
-        '<small>Run a pipeline from the <a href="/Workflows" style="color:#4338ca">Workflows</a> page first.</small>'
-        '</div>'
-    )
+    st.info("💡 Aucun rapport de qualité actif en mémoire pour le moment.")
+    raw_dir = PROJECT_ROOT / "data" / "raw"
+    csv_files = sorted(raw_dir.glob("*.csv")) if raw_dir.exists() else []
+    if csv_files:
+        default_idx = 0
+        cur_p = st.session_state.get("current_dataset_path") or st.session_state.get("wf_file")
+        if cur_p:
+            cur_name = Path(cur_p).name
+            for i, f in enumerate(csv_files):
+                if f.name == cur_name:
+                    default_idx = i
+                    break
+        c_sel, c_btn = st.columns([3, 1])
+        with c_sel:
+            chosen_csv = st.selectbox("Sélectionner un jeu de données à auditer :", [f.name for f in csv_files], index=default_idx, key="qual_ds_sel")
+        with c_btn:
+            st.write("")
+            run_direct_qual = st.button("🚀 Auditer avec l'Agent 1", type="primary", use_container_width=True, key="btn_run_direct_qual")
+        if run_direct_qual and chosen_csv:
+            with st.spinner("🔍 Audit qualité en cours par l'Agent 1..."):
+                from agents.data_engineering_agent import DataEngineeringAgent
+                agent = DataEngineeringAgent()
+                audit_res = agent.run_audit(str(raw_dir / chosen_csv))
+                if "pipeline_results" not in st.session_state:
+                    st.session_state["pipeline_results"] = {}
+                st.session_state["pipeline_results"]["agent1"] = audit_res
+                st.session_state["current_dataset_path"] = str(raw_dir / chosen_csv)
+            st.rerun()
     st.stop()
 
 # ── KPIs ──────────────────────────────────────────────────────────────────────
@@ -144,7 +167,7 @@ for col, cp in col_profiles.items():
 
 if rows:
     html(card(
-        table(["SEVERITY", "COLUMN(S)", "ISSUE", "DETECTED", "RECOMMENDATION"], rows),
+        table(["SEVERITY", "COLUMN(S)", "ISSUE", "DETECTED", "RECOMMENDATION"], rows, max_height=380),
         "Issues Detected",
         f"{len(rows)} issue(s) found",
         badge(str(len(rows)), "red" if any("HIGH" in str(r) for r in rows) else "blue"),
@@ -160,7 +183,7 @@ reasoning_cols = {
 }
 if reasoning_cols:
     trail_html = ""
-    for col, cp in list(reasoning_cols.items())[:10]:
+    for col, cp in list(reasoning_cols.items())[:15]:
         issues = cp.get("issues", [])
         reasoning = cp.get("agent_reasoning", "")
         sev_top = max((i.get("severity", "LOW") for i in issues),
@@ -171,10 +194,11 @@ if reasoning_cols:
             f'<div style="border-left:3px solid var(--bf-{tone_t},#e2e8f0);'
             f'padding:.6rem 1rem;margin-bottom:.8rem;background:#f8fafc;border-radius:0 10px 10px 0">'
             f'<b style="font-size:.9rem">{col}</b> {badge(sev_top, tone_t)}<br>'
-            f'<small style="color:#475569">{reasoning[:200]}{"…" if len(str(reasoning)) > 200 else ""}</small>'
+            f'<small style="color:#475569">{reasoning}</small>'
             f'</div>'
         )
-    html(card(trail_html, "LLM Reasoning Trail", "Agent 1's column-level reasoning", badge("AI", "purple")))
+    scrollable_trail = f'<div style="max-height:380px;overflow-y:auto;padding-right:8px">{trail_html}</div>'
+    html(card(scrollable_trail, "LLM Reasoning Trail", "Agent 1's column-level reasoning", badge("AI", "purple")))
 
 # ── AI strategy summary ───────────────────────────────────────────────────────
 summary = report.get("agent_summary", strategy.get("recommendation_summary", ""))
