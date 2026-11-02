@@ -21,6 +21,9 @@ health   = results.get("health", {})
 report   = results.get("profiling_report", {})
 strategy = results.get("cleaning_strategy", {})
 
+if not health and report and "health_scores" in report:
+    health = report.get("health_scores", {})
+
 page_header(
     "Quality Check",
     "Missing values, type mismatches, duplicates, outliers and cross-column integrity.",
@@ -50,7 +53,11 @@ if not health:
         if run_direct_qual and chosen_csv:
             with st.spinner("🔍 Audit qualité en cours par l'Agent 1..."):
                 from agents.data_engineering_agent import DataEngineeringAgent
-                agent = DataEngineeringAgent()
+                from agents.llm_client import LLMClient
+                _wf_rm = st.session_state.get("wf_resource_mode", "auto")
+                _prov = "groq" if _wf_rm == "cloud" else ("ollama" if _wf_rm == "local" else None)
+                _llm_c = LLMClient(provider=_prov, model_name="qwen2.5:3b" if _prov == "ollama" else None) if _prov else LLMClient()
+                agent = DataEngineeringAgent(llm_client=_llm_c)
                 audit_res = agent.run_audit(str(raw_dir / chosen_csv))
                 if "pipeline_results" not in st.session_state:
                     st.session_state["pipeline_results"] = {}
@@ -60,13 +67,20 @@ if not health:
     st.stop()
 
 # ── KPIs ──────────────────────────────────────────────────────────────────────
-overall      = health.get("overall_health_score", 0)
+overall_raw  = health.get("overall_health_score") if health.get("overall_health_score") is not None else health.get("overall", 0)
+try:
+    overall = round(max(0.0, min(100.0, float(overall_raw))), 1)
+except (ValueError, TypeError):
+    overall = 0.0
+
 missing_info = health.get("missing_info", {})
 dup_info     = health.get("duplicate_info", {})
 type_issues  = health.get("type_issues", {})
 outlier_info = health.get("outlier_info", {})
 
-missing_total = missing_info.get("total_missing_cells", 0)
+missing_total = missing_info.get("total_missing_cells")
+if missing_total is None:
+    missing_total = sum(missing_info.get("columns", {}).values())
 dup_count     = dup_info.get("count", 0)
 type_count    = len(type_issues)
 outlier_count = len(outlier_info) if isinstance(outlier_info, dict) else 0
@@ -81,18 +95,41 @@ html(grid([
 
 # ── Health score donut + dimension bars ───────────────────────────────────────
 dim_scores = health.get("dimension_scores", {})
-if dim_scores:
-    completeness  = dim_scores.get("completeness",  round(100 - (missing_total / max(1, missing_info.get("total_cells", 1)) * 100), 1))
-    validity      = dim_scores.get("validity",      round(100 - type_count * 5, 1))
-    uniqueness    = dim_scores.get("uniqueness",    round(100 - (dup_count / max(1, dup_info.get("total_rows", 1)) * 100), 1))
-    consistency   = dim_scores.get("consistency",  overall)
-else:
-    total_cells   = missing_info.get("total_cells", 1) or 1
-    total_rows    = dup_info.get("total_rows", 1) or 1
-    completeness  = round(100 - missing_total / total_cells * 100, 1)
-    validity      = max(0, round(100 - type_count * 5, 1))
-    uniqueness    = round(100 - dup_count / total_rows * 100, 1)
-    consistency   = overall
+completeness = health.get("completeness")
+if completeness is None:
+    completeness = dim_scores.get("completeness")
+if completeness is None:
+    miss_pct = missing_info.get("missing_percentage")
+    if miss_pct is not None:
+        completeness = max(0.0, 100.0 - float(miss_pct))
+    else:
+        tot_cells = missing_info.get("total_cells", 0)
+        completeness = max(0.0, 100.0 - (missing_total / tot_cells * 100)) if tot_cells > 0 else 100.0
+
+validity = health.get("validity")
+if validity is None:
+    validity = dim_scores.get("validity", max(0.0, 100.0 - (type_count * 5.0)))
+
+uniqueness = health.get("uniqueness")
+if uniqueness is None:
+    uniqueness = dim_scores.get("uniqueness")
+if uniqueness is None:
+    dup_pct = dup_info.get("percentage")
+    if dup_pct is not None:
+        uniqueness = max(0.0, 100.0 - float(dup_pct))
+    else:
+        tot_rows = dup_info.get("total_rows", 0)
+        uniqueness = max(0.0, 100.0 - (dup_count / tot_rows * 100)) if tot_rows > 0 else 100.0
+
+consistency = health.get("consistency")
+if consistency is None:
+    consistency = dim_scores.get("consistency", overall)
+
+# Garantir des valeurs arrondies et strictement bornées entre 0.0 et 100.0%
+completeness = round(max(0.0, min(100.0, float(completeness))), 1)
+validity     = round(max(0.0, min(100.0, float(validity))), 1)
+uniqueness   = round(max(0.0, min(100.0, float(uniqueness))), 1)
+consistency  = round(max(0.0, min(100.0, float(consistency))), 1)
 
 dims_html = "".join(
     f'<div style="margin-bottom:.9rem"><div style="display:flex;justify-content:space-between;'

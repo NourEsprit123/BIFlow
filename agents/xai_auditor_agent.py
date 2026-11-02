@@ -38,8 +38,8 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-OLLAMA_URL     = "http://localhost:11434/api/generate"
-OLLAMA_MODEL   = "qwen2.5:7b"
+OLLAMA_URL     = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434").rstrip("/") + "/api/generate"
+OLLAMA_MODEL   = "qwen2.5:3b"
 OLLAMA_TIMEOUT = 120  # seconds
 
 XAI_SYSTEM_PROMPT = (
@@ -82,7 +82,12 @@ class XAIAuditorAgent:
         groq_api_key: Optional[str] = None,
         groq_model: Optional[str] = None,
     ):
-        self.engine        = engine.lower()
+        engine_str = (engine or "auto").lower()
+        if engine_str in ("cloud", "groq", "gemini", "api"):
+            engine_str = "api"
+        elif engine_str in ("local", "ollama"):
+            engine_str = "local"
+        self.engine        = engine_str
         self.ollama_url    = ollama_url
         self.ollama_model  = ollama_model
         self.ollama_timeout = ollama_timeout
@@ -282,8 +287,10 @@ class XAIAuditorAgent:
         predictions: np.ndarray,
         integrity_hash: str,
         dataset_name: str,
+        a1_report: Optional[Dict[str, Any]] = None,
+        a2_report: Optional[Any] = None,
     ) -> str:
-        """Construit le prompt commun utilisé par tous les moteurs LLM."""
+        """Construit le prompt commun utilisé par tous les moteurs LLM, enrichi du contexte A1 et A2."""
         top_f = shap_summary.get("top_features", [])
         top_lines = "\n".join(
             f"  {f['rank']}. {f['feature']:30s}  mean |SHAP| = {f['mean_abs_shap']:.6f}"
@@ -306,20 +313,69 @@ class XAIAuditorAgent:
                 f"mean={pred_flat.mean():.4f}, median={float(np.median(pred_flat)):.4f}"
             )
 
+        upstream_parts = []
+        if a1_report and isinstance(a1_report, dict):
+            h = a1_report.get("health_scores", {})
+            h_str = f"Score de santé: {h.get('overall', 'N/A')}% (Complétude: {h.get('completeness', 'N/A')}%, Validité: {h.get('validity', 'N/A')}%)" if h else ""
+            cols_info = []
+            for col_n, cp in list(a1_report.get("column_profiles", {}).items())[:6]:
+                for iss in cp.get("issues", [])[:1]:
+                    cols_info.append(f"{col_n} ({iss.get('description', '')})")
+            cols_str = f"Colonnes remarquables: {', '.join(cols_info)}" if cols_info else ""
+            upstream_parts.append(
+                f"- **Agent 1 (Data Engineering & Qualité)** : {h_str}. {cols_str}"
+            )
+        if a2_report:
+            a2_kpis = []
+            if isinstance(a2_report, dict):
+                k_list = a2_report.get("chart_config", {}).get("kpis", [])
+                a2_kpis = [f"{k.get('title', '')} ({k.get('value', '')})" for k in k_list[:4] if k.get("title")]
+                a2_text = a2_report.get("markdown", "")[:800]
+            else:
+                a2_text = str(a2_report)[:800]
+            kpi_str = f"KPIs clés: {', '.join(a2_kpis)}. " if a2_kpis else ""
+            summary_snippet = a2_text.split("\n\n")[0] if "\n\n" in a2_text else a2_text[:200]
+            upstream_parts.append(
+                f"- **Agent 2 (BI Analyst & Insights)** : {kpi_str}Aperçu: {summary_snippet.strip()}"
+            )
+
+        upstream_section = ""
+        if upstream_parts:
+            upstream_section = (
+                "\n--- Contexte Amont & Traçabilité Multi-Agents BIFlow ---\n"
+                + "\n".join(upstream_parts)
+                + "\n"
+            )
+
+        if upstream_parts:
+            prompt_instructions = (
+                "Produis une explication structurée en Markdown :\n"
+                "1. **Synthèse Exécutive & Corroboration Multi-Agents** — analyse ce que le modèle prédit en croisant directement les résultats avec les constats de l'Agent 1 (Qualité des données) et de l'Agent 2 (Insights BI & KPIs).\n"
+                "2. **Analyse des Features Clés (SHAP)** — présente chaque feature dominante sous forme de liste à puces (avec son nom, son score SHAP, sa direction et son interprétation métier). N'utilise PAS de tableau Markdown.\n"
+                "3. **Risques, Biais & Intégrité** — features sensibles, anomalies signalées par l'Agent 1, ou risques de sur-apprentissage / fuite de données (data leakage).\n"
+                "4. **Recommandations de Gouvernance & Audit** — actions concrètes pour garantir la robustesse, l'équité et la conformité aux normes (ex: EU AI Act).\n"
+                "Sois précis, professionnel, cite les noms de features exacts."
+            )
+        else:
+            prompt_instructions = (
+                "Produis une explication structurée en Markdown :\n"
+                "1. **Résumé exécutif** — ce que le modèle prédit et avec quelle confiance.\n"
+                "2. **Analyse des features dominantes** — présente chaque feature sous forme de liste à puces (avec son nom, son score SHAP, sa direction et son interprétation métier). N'utilise PAS de tableau Markdown.\n"
+                "3. **Risques & biais potentiels** — features à surveiller.\n"
+                "4. **Recommandations audit** — actions pour améliorer équité et transparence.\n"
+                "Sois précis, professionnel, cite les noms de features exacts."
+            )
+
         return (
             f"Dataset analysé         : {dataset_name}\n"
             f"Observations            : {len(predictions)}\n"
             f"Distribution prédictions: {pred_dist_str}\n"
             f"Explainer SHAP          : {shap_summary.get('explainer_type', 'N/A')}\n"
-            f"Hash SHA-256 (audit)    : {integrity_hash[:16]}…\n\n"
+            f"Hash SHA-256 (audit)    : {integrity_hash[:16]}…\n"
+            f"{upstream_section}\n"
             f"--- Top {len(top_f)} features SHAP ---\n"
             f"{top_lines}\n\n"
-            "Produis une explication structurée en Markdown :\n"
-            "1. **Résumé exécutif** — ce que le modèle prédit et avec quelle confiance.\n"
-            "2. **Analyse des features dominantes** — ampleur, direction, sens métier.\n"
-            "3. **Risques & biais potentiels** — features à surveiller.\n"
-            "4. **Recommandations audit** — actions pour améliorer équité et transparence.\n"
-            "Sois précis, professionnel, cite les noms de features exacts."
+            f"{prompt_instructions}"
         )
 
     # ── Moteur local : Ollama ─────────────────────────────────────────────────
@@ -555,24 +611,28 @@ class XAIAuditorAgent:
         predictions: np.ndarray,
         integrity_hash: str,
         dataset_name: str = "dataset",
+        a1_report: Optional[Dict[str, Any]] = None,
+        a2_report: Optional[Any] = None,
     ) -> str:
         """
-        Route l'explication vers le bon moteur selon self.engine.
+        Route l'explication vers le bon moteur selon self.engine,
+        en injectant les contextes amont (Agent 1 et Agent 2).
         Ordre auto : Ollama → Groq → Gemini → LLMClient → fallback déterministe.
         """
         prompt = self._build_explanation_prompt(
-            shap_summary, predictions, integrity_hash, dataset_name
+            shap_summary, predictions, integrity_hash, dataset_name,
+            a1_report=a1_report, a2_report=a2_report,
         )
 
         engine = self.engine
 
         # ── Mode 'local' — Ollama seulement ──────────────────────────────────
-        if engine == "local":
+        if engine in ("local", "ollama"):
             result = self._try_ollama(prompt)
             return result if result else self._deterministic_fallback()
 
-        # ── Mode 'api' — Cloud seulement ─────────────────────────────────────
-        if engine == "api":
+        # ── Mode 'api' / 'cloud' — Cloud seulement ───────────────────────────
+        if engine in ("api", "cloud"):
             for route in (self._try_groq, self._try_gemini, self._try_llm_client):
                 result = route(prompt)
                 if result:
@@ -601,17 +661,20 @@ class XAIAuditorAgent:
         feature_names: Optional[List[str]] = None,
         dataset_name: str = "dataset",
         top_n_features: int = 10,
+        a1_report: Optional[Dict[str, Any]] = None,
+        a2_report: Optional[Any] = None,
     ) -> Dict[str, Any]:
         """
         Orchestre l'audit complet en 4 étapes :
         1. Prédictions (calculées si non fournies).
-        2. Hashes SHA-256 (data, prédictions, audit).
+        2. Hashes SHA-256 (data, prédictions, lineage amont, audit).
         3. Attributions SHAP (TreeExplainer → LinearExplainer → KernelExplainer).
-        4. Explication en langage naturel (moteur sélectionné par self.engine).
+        4. Explication en langage naturel multi-agents (moteur sélectionné par self.engine).
 
         Retourne un dict structuré avec les clés :
         timestamp, dataset_name, n_samples, n_features, engine_used,
-        integrity, shap, predictions_distribution, narrative_explanation, telemetry.
+        integrity, shap, predictions_distribution, narrative_explanation,
+        upstream_context, telemetry.
         """
         self._reset_telemetry()
         start = time.time()
@@ -630,8 +693,6 @@ class XAIAuditorAgent:
                     if hasattr(model, "predict_proba")
                     else model.predict(X)
                 )
-                # predict_proba retourne (n, k) — on prend la colonne classe 1
-                # pour binaire, ou on aplatit pour régression/predict
                 if hasattr(raw_preds, "ndim") and raw_preds.ndim == 2:
                     predictions = raw_preds[:, 1]
                 else:
@@ -641,18 +702,28 @@ class XAIAuditorAgent:
                 predictions = np.zeros(len(X))
         predictions = np.array(predictions, dtype=float).flatten()
 
-        # ── Étape 2 : SHA-256 ────────────────────────────────────────────────
+        # ── Étape 2 : SHA-256 & Cryptographic Multi-Agent Lineage ─────────────
         data_hash   = self.compute_sha256(X)
         pred_hash   = self.compute_sha256(predictions)
-        audit_hash  = self.compute_sha256({
-            "data_hash": data_hash,
+        
+        audit_payload = {
+            "data_hash":        data_hash,
             "predictions_hash": pred_hash,
-            "dataset_name": dataset_name,
-        })
+            "dataset_name":     dataset_name,
+        }
+        if a1_report and isinstance(a1_report, dict):
+            audit_payload["a1_health_hash"] = self.compute_sha256(str(a1_report.get("health_scores", "")))
+        if a2_report:
+            a2_sig = str(a2_report.get("markdown", "") if isinstance(a2_report, dict) else a2_report)[:500]
+            audit_payload["a2_insights_hash"] = self.compute_sha256(a2_sig)
+
+        audit_hash  = self.compute_sha256(audit_payload)
         integrity = {
             "data_hash":         data_hash,
             "predictions_hash":  pred_hash,
             "audit_hash":        audit_hash,
+            "has_a1_lineage":    bool(a1_report),
+            "has_a2_lineage":    bool(a2_report),
         }
 
         # ── Étape 3 : SHAP ───────────────────────────────────────────────────
@@ -665,21 +736,20 @@ class XAIAuditorAgent:
         else:
             logger.warning("[XAI] SHAP values unavailable — partial report.")
 
-        # ── Étape 4 : explication LLM ────────────────────────────────────────
+        # ── Étape 4 : explication LLM enrichie ───────────────────────────────
         narrative = self.explain_with_llm(
             shap_summary={**shap_block["summary"], "explainer_type": explainer_type},
             predictions=predictions,
             integrity_hash=audit_hash,
             dataset_name=dataset_name,
+            a1_report=a1_report,
+            a2_report=a2_report,
         )
 
         self.last_duration_s = round(time.time() - start, 2)
 
         # Distribution des prédictions
-        # Garantir un array 1D de float avant toute comparaison booléenne
         pred_flat = np.array(predictions, dtype=float).flatten()
-        # Classifier comme "binaire entier" seulement si TOUTES les valeurs
-        # sont exactement 0 ou 1 — bool() sur un scalaire numpy, pas sur l'array
         _is_binary_int = bool(np.all((pred_flat == 0) | (pred_flat == 1)))
         if _is_binary_int:
             unique_p, counts_p = np.unique(pred_flat, return_counts=True)
@@ -698,6 +768,19 @@ class XAIAuditorAgent:
                 "median": float(round(float(np.median(pred_flat)), 4)),
             }
 
+        upstream_context = {
+            "has_a1": bool(a1_report),
+            "has_a2": bool(a2_report),
+            "a1_health_score": (
+                a1_report.get("health_scores", {}).get("overall")
+                if isinstance(a1_report, dict) else None
+            ),
+            "a2_kpis_count": (
+                len(a2_report.get("chart_config", {}).get("kpis", []))
+                if isinstance(a2_report, dict) else (1 if a2_report else 0)
+            ),
+        }
+
         audit_report = {
             "timestamp":               datetime.now(timezone.utc).isoformat(),
             "dataset_name":            dataset_name,
@@ -708,13 +791,14 @@ class XAIAuditorAgent:
             "shap":                    shap_block,
             "predictions_distribution": pred_dist,
             "narrative_explanation":   narrative,
+            "upstream_context":        upstream_context,
             "telemetry":               self.get_telemetry(),
         }
 
         logger.info(
             f"[XAI] Audit done in {self.last_duration_s}s — "
             f"explainer={explainer_type}, engine={self.last_engine_used}, "
-            f"provider={self.last_provider}"
+            f"upstream_A1={bool(a1_report)}, upstream_A2={bool(a2_report)}"
         )
         return audit_report
 

@@ -13,6 +13,13 @@ load_dotenv(PROJECT_ROOT / ".env")
 
 from components import setup, page_header, html, badge, card, table
 from agents.data_engineering_agent import DataEngineeringAgent
+from agents.llm_client import LLMClient
+
+def _get_agent():
+    _wf_rm = st.session_state.get("wf_resource_mode", "auto")
+    _prov = "groq" if _wf_rm == "cloud" else ("ollama" if _wf_rm == "local" else None)
+    _llm_c = LLMClient(provider=_prov, model_name="qwen2.5:3b" if _prov == "ollama" else None) if _prov else LLMClient()
+    return DataEngineeringAgent(llm_client=_llm_c)
 
 if "sidebar_mode" not in st.session_state or st.session_state.sidebar_mode == "nav":
     st.session_state.sidebar_mode = "agent1"
@@ -57,7 +64,7 @@ if not report:
             run_audit_now = st.button("🚀 Auditer le dataset", type="primary", use_container_width=True, key="btn_clean_audit_now")
         if run_audit_now and chosen_csv:
             with st.spinner("🔍 Analyse et audit par l'Agent 1..."):
-                agent = DataEngineeringAgent()
+                agent = _get_agent()
                 audit_res = agent.run_audit(str(raw_dir / chosen_csv))
                 if "pipeline_results" not in st.session_state:
                     st.session_state["pipeline_results"] = {}
@@ -100,7 +107,7 @@ with st.container(border=True):
     # ── Simulation (Preview) ──────────────────────────────────────────────────
     if btn_preview and file_path and Path(file_path).exists():
         with st.spinner("🔬 Simulation des transformations en cours…"):
-            agent = DataEngineeringAgent()
+            agent = _get_agent()
             prev_res = agent.execute_cleaning(file_path, strategy=strategy, preview_mode=True)
             st.info(
                 f"**Simulation réussie :** {prev_res.get('rows_processed', 0)} lignes et "
@@ -111,7 +118,7 @@ with st.container(border=True):
     # ── Exécution du nettoyage réel ───────────────────────────────────────────
     if btn_clean and file_path and Path(file_path).exists():
         with st.spinner("🧹 Nettoyage ETL en cours (imputations, conversions, normalisation)…"):
-            agent = DataEngineeringAgent()
+            agent = _get_agent()
             clean_res = agent.execute_cleaning(file_path, strategy=strategy, preview_mode=False)
             
             cleaned_csv = clean_res.get("cleaned_file_path", "")

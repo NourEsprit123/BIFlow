@@ -70,7 +70,11 @@ if not profile:
         if run_direct_prof and chosen_csv:
             with st.spinner("🔍 Analyse et profiling en cours par l'Agent 1..."):
                 from agents.data_engineering_agent import DataEngineeringAgent
-                agent = DataEngineeringAgent()
+                from agents.llm_client import LLMClient
+                _wf_rm = st.session_state.get("wf_resource_mode", "auto")
+                _prov = "groq" if _wf_rm == "cloud" else ("ollama" if _wf_rm == "local" else None)
+                _llm_c = LLMClient(provider=_prov, model_name="qwen2.5:3b" if _prov == "ollama" else None) if _prov else LLMClient()
+                agent = DataEngineeringAgent(llm_client=_llm_c)
                 audit_res = agent.run_audit(str(raw_dir / chosen_csv))
                 if "pipeline_results" not in st.session_state:
                     st.session_state["pipeline_results"] = {}

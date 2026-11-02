@@ -342,7 +342,18 @@ def node_data_engineer(state: GraphState) -> GraphState:
     retries   = dict(state.get("retry_count") or {})
 
     try:
-        agent  = DataEngineeringAgent()
+        from agents.data_engineering_agent import DataEngineeringAgent
+        from agents.llm_client import LLMClient
+
+        resource_mode = state.get("resource_mode", "auto")
+        if resource_mode == "local":
+            llm_client = LLMClient(provider="ollama", model_name="qwen2.5:3b")
+        elif resource_mode == "cloud":
+            llm_client = LLMClient(provider="groq")
+        else:
+            llm_client = LLMClient()
+
+        agent  = DataEngineeringAgent(llm_client=llm_client)
         result = agent.run_audit(data_path)
 
         # Nettoyage du dataset sur la base de la stratégie déduite
@@ -415,7 +426,7 @@ def _bi_inprocess(
     from agents.bi_analyst_agent import BIAnalystAgent
 
     # Mapper resource_mode → engine BIAnalystAgent ("local_lora" | "api" | "auto")
-    _engine_map = {"local": "local_lora", "cloud": "api", "auto": "auto"}
+    _engine_map = {"local": "local_lora", "cloud": "api", "auto": "auto", "api": "api"}
     engine = _engine_map.get(resource_mode, "auto")
 
     df    = pd.read_csv(data_path)
@@ -436,7 +447,7 @@ def _bi_docker(data_path: str, dataset_name: str, resource_mode: str = "auto") -
     L'image DOCKER_IMAGE_BI doit exposer un entrypoint CLI :
         python -m agents.bi_analyst_agent --input <path> --output <json_path>
     """
-    _engine_map = {"local": "local_lora", "cloud": "api", "auto": "auto"}
+    _engine_map = {"local": "local_lora", "cloud": "api", "auto": "auto", "api": "api"}
     engine = _engine_map.get(resource_mode, "auto")
 
     output_path = str(PROJECT_ROOT / "data" / "reports" / "bi_docker_output.json")
@@ -536,10 +547,12 @@ def node_bi_analyst(state: GraphState) -> GraphState:
 def _xai_inprocess(
     data_path: str,
     dataset_name: str,
-    bi_report: str,
+    bi_report: str = "",
     engine: str = "auto",
+    a1_report: Optional[Dict[str, Any]] = None,
+    a2_report: Optional[Any] = None,
 ) -> Dict[str, Any]:
-    """Exécution in-process de XAIAuditorAgent."""
+    """Exécution in-process de XAIAuditorAgent avec contexte amont A1 et A2."""
     from agents.xai_auditor_agent import XAIAuditorAgent
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.preprocessing import LabelEncoder
@@ -547,7 +560,6 @@ def _xai_inprocess(
     # Sécurité : en mode cloud, supprimer OLLAMA_HOST pour éviter tout ping Ollama
     if engine == "cloud":
         os.environ.pop("OLLAMA_HOST", None)
-    from sklearn.preprocessing import LabelEncoder
 
     df = pd.read_csv(data_path)
 
@@ -574,15 +586,22 @@ def _xai_inprocess(
     surrogate.fit(X_raw, y)
 
     # En mode cloud : timeout Ollama minimal pour ne pas bloquer sur localhost:11434
-    _ollama_timeout = 3 if engine == "cloud" else 120
+    _ollama_timeout = 3 if engine in ("cloud", "api") else 120
+    xai_engine = "api" if engine in ("cloud", "api") else ("local" if engine in ("local", "ollama") else "auto")
 
-    agent = XAIAuditorAgent(engine=engine, ollama_timeout=_ollama_timeout)
+    agent = XAIAuditorAgent(
+        engine=xai_engine,
+        ollama_model="qwen2.5:3b",
+        ollama_timeout=_ollama_timeout,
+    )
     report = agent.audit(
         model=surrogate,
         X=X_raw,
         feature_names=list(X_raw.columns),
         dataset_name=dataset_name,
         top_n_features=10,
+        a1_report=a1_report,
+        a2_report=a2_report or bi_report,
     )
     return report
 
@@ -591,6 +610,8 @@ def _xai_docker(
     data_path: str,
     dataset_name: str,
     engine: str = "auto",
+    a1_report: Optional[Dict[str, Any]] = None,
+    a2_report: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """
     Exécution de XAIAuditorAgent via le sandbox FastAPI sur http://localhost:8003.
@@ -611,16 +632,13 @@ def _xai_docker(
     timeout_s = int(os.environ.get("BIFLOW_DOCKER_TIMEOUT", "300"))
 
     # Résoudre le chemin du dataset tel que le conteneur le voit
-    # Le volume monté map  ../data  →  /workspace/data
-    # donc  data/raw/foo.csv  →  /workspace/data/raw/foo.csv
     _p = Path(data_path)
     if _p.is_absolute():
-        # Transformer le chemin absolu hôte en chemin conteneur
         try:
             rel = _p.relative_to(PROJECT_ROOT / "data")
             container_path = f"/workspace/data/{rel.as_posix()}"
         except ValueError:
-            container_path = str(_p)   # fallback : chemin brut
+            container_path = str(_p)
     else:
         container_path = f"/workspace/{_p.as_posix()}"
 
@@ -628,7 +646,7 @@ def _xai_docker(
         "data_path":      container_path,
         "dataset_name":   dataset_name,
         "top_n_features": 10,
-        "engine":         engine,    # propagé pour surcharg er ENGINE du conteneur
+        "engine":         engine,
     }
 
     logger.info(
@@ -645,8 +663,10 @@ def _xai_docker(
             "[A3-Docker] Sandbox non joignable sur %s — fallback in-process.",
             sandbox_url,
         )
-        # Fallback transparent vers l'exécution in-process
-        return _xai_inprocess(data_path, dataset_name, bi_report="", engine=engine)
+        return _xai_inprocess(
+            data_path, dataset_name, bi_report="", engine=engine,
+            a1_report=a1_report, a2_report=a2_report,
+        )
     except _requests.exceptions.Timeout:
         raise DockerSandboxError(
             f"XAI sandbox timed out after {timeout_s}s ({audit_endpoint})."
@@ -664,32 +684,40 @@ def node_xai_auditor(state: GraphState) -> GraphState:
         - state["xai_audit_report"]        : rapport d'audit complet
         - state["reports"]["xai_auditor"]  : sous-dict de tracking
     """
-    start       = time.time()
-    sandbox     = state.get("sandbox_mode", "inprocess")
-    resource    = state.get("resource_mode", "auto")
-    data_path   = _resolve_path(state.get("cleaned_data_path") or state.get("data_path", ""))
+    start        = time.time()
+    sandbox      = state.get("sandbox_mode", "inprocess")
+    resource     = state.get("resource_mode", "auto")
+    data_path    = _resolve_path(state.get("cleaned_data_path") or state.get("data_path", ""))
     dataset_name = Path(data_path).name
-    bi_report   = state.get("bi_report_markdown", "")
-    reports     = dict(state.get("reports") or {})
-    # resource_mode → engine XAIAuditorAgent (même valeurs : "local"|"cloud"|"auto")
-    xai_engine  = resource  # propagation directe — XAIAuditorAgent accepte ces valeurs
+    bi_report    = state.get("bi_report_markdown", "")
+    reports      = dict(state.get("reports") or {})
+    a1_report    = state.get("profiling_report") or (reports.get("data_engineer") or {}).get("profiling_report")
+    a2_report    = state.get("bi_report_markdown") or (reports.get("bi_analyst") or {}).get("markdown")
+    if not bi_report and a2_report:
+        bi_report = a2_report if isinstance(a2_report, str) else str(a2_report)
+
+    # resource_mode → engine XAIAuditorAgent ("local" | "api" | "auto")
+    xai_engine = "api" if resource in ("cloud", "api") else ("local" if resource in ("local", "ollama") else "auto")
 
     # ── Sécurité : en mode cloud, supprimer OLLAMA_HOST du process courant ────
-    # Évite tout ping accidentel vers localhost:11434
-    if xai_engine == "cloud":
+    if resource == "cloud":
         os.environ.pop("OLLAMA_HOST", None)
 
-    logger.info("[A3] Starting XAIAuditorAgent — sandbox=%s, engine=%s, path=%s",
-                sandbox, xai_engine, data_path)
+    logger.info("[A3] Starting XAIAuditorAgent — sandbox=%s, engine=%s, path=%s, upstream_A1=%s, upstream_A2=%s",
+                sandbox, xai_engine, data_path, bool(a1_report), bool(a2_report))
 
     try:
         if sandbox == "docker":
-            # Appel HTTP vers le sandbox FastAPI sur port 8003
-            # (fallback in-process automatique si le service n'est pas démarré)
             logger.info("[A3] Using FastAPI Docker sandbox (port 8003).")
-            xai_report = _xai_docker(data_path, dataset_name, engine=xai_engine)
+            xai_report = _xai_docker(
+                data_path, dataset_name, engine=xai_engine,
+                a1_report=a1_report, a2_report=a2_report,
+            )
         else:
-            xai_report = _xai_inprocess(data_path, dataset_name, bi_report, engine=xai_engine)
+            xai_report = _xai_inprocess(
+                data_path, dataset_name, bi_report, engine=xai_engine,
+                a1_report=a1_report, a2_report=a2_report,
+            )
 
         reports["xai_auditor"] = {
             "audit_report":  xai_report,
@@ -793,6 +821,8 @@ def _route_after_a2(state: GraphState) -> str:
     """Décide du nœud suivant après l'Agent 2."""
     if state.get("current_step") == "error":
         return "error_end"
+    if state.get("execution_mode") == "direct_agent_2":
+        return "pipeline_end"
     if state.get("execution_mode") == "hitl":
         return "hitl_gate_a2"
     return "xai_auditor"
@@ -944,6 +974,7 @@ def build_graph(
         "bi_analyst",
         _route_after_a2,
         {
+            "pipeline_end": "pipeline_end",
             "hitl_gate_a2": "hitl_gate_a2",
             "xai_auditor":  "xai_auditor",
             "error_end":    "error_end",

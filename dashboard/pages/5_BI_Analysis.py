@@ -25,82 +25,64 @@ from chat_widget import render_chat
 render_chat("BI Analysis")
 
 # ── Page setup ────────────────────────────────────────────────────────────────
-setup("BI Analysis")
+setup("BI Analysis", hub="Agent 2 · BI Analyst")
 page_header(
     "Business Intelligence Analysis",
     "Turn your data into actionable insights with AI.",
-    btn("⭳ Export report") + btn("✨ Create workflow", True),
-    "Dynamic BI / <b>AI Analysis</b>",
+    badge("Agent 2", "blue"),
+    "Agent 2 · BI Analyst > <b>Analysis & Dashboards</b>",
 )
 
-# ── 1. Dataset upload + Run button ────────────────────────────────────────────
-st.markdown("### 📤 Dataset")
+# ── 1. Sidebar Dataset Selector (synchronisé avec Workflows et session globale) ──
+st.sidebar.markdown("### 💾 Jeu de données")
+raw_dir   = PROJECT_ROOT / "data" / "raw"
+clean_dir = PROJECT_ROOT / "data" / "cleaned"
+all_csvs   = sorted(raw_dir.glob("*.csv"))   if raw_dir.exists()   else []
+clean_csvs = sorted(clean_dir.glob("*.csv")) if clean_dir.exists() else []
 
-# Datasets existants (sidebar, optionnel)
-st.sidebar.markdown("### 🗄 Data Source")
-data_dir = PROJECT_ROOT / "data"
-available_csvs = (
-    [p.relative_to(PROJECT_ROOT) for p in data_dir.glob("**/*.csv")]
-    if data_dir.exists()
-    else []
+dataset_map = {}
+for f in all_csvs:
+    dataset_map[f.name] = str(f)
+for f in clean_csvs:
+    dataset_map[f"✨ [Nettoyé] {f.name}"] = str(f)
+
+file_names = list(dataset_map.keys())
+NONE_OPT   = "— Sélectionner —"
+
+default_idx = 0
+current_preset = st.session_state.get("current_dataset_path") or st.session_state.get("wf_file")
+if current_preset:
+    preset_name = Path(current_preset).name
+    for idx, name in enumerate([NONE_OPT] + file_names):
+        if preset_name in name:
+            default_idx = idx
+            break
+
+selected_name = st.sidebar.selectbox(
+    "Dataset source",
+    [NONE_OPT] + file_names,
+    index=default_idx,
+    key="bi_dataset_select",
 )
-NONE_OPT = "— Aucun —"
-existing_choice = st.sidebar.selectbox(
-    "Ou choisir un dataset existant",
-    [NONE_OPT] + [str(p) for p in available_csvs],
-)
+selected_path = dataset_map.get(selected_name) if selected_name != NONE_OPT else None
+
+if selected_path:
+    st.session_state["current_dataset_path"] = selected_path
+    st.session_state["wf_file"] = selected_path
 
 df = None
 dataset_name = ""
 
-with st.container(border=True):
-    col_up, col_run = st.columns([3, 1], vertical_alignment="bottom")
+if not selected_path or not Path(selected_path).exists():
+    st.info("⬆️ Veuillez sélectionner un dataset dans la barre latérale pour afficher l'analyse BI.")
+    st.stop()
 
-    with col_up:
-        uploaded_file = st.file_uploader(
-            "Glissez votre fichier CSV ici ou cliquez pour parcourir",
-            type=["csv"],
-            key="main_uploader",
-        )
-
-    # Priorité : fichier uploadé > dataset existant > dataset du pipeline
-    try:
-        if uploaded_file is not None:
-            df = pd.read_csv(uploaded_file)
-            dataset_name = uploaded_file.name
-        elif existing_choice != NONE_OPT:
-            df = pd.read_csv(PROJECT_ROOT / existing_choice)
-            dataset_name = Path(existing_choice).name
-        else:
-            # Récupérer automatiquement le dataset du dernier pipeline exécuté
-            wf_st = st.session_state.get("wf_graph_state") or {}
-            wf_path = (
-                st.session_state.get("current_dataset_path")
-                or wf_st.get("cleaned_data_path")
-                or wf_st.get("data_path")
-                or st.session_state.get("wf_file")
-            )
-            if wf_path and Path(wf_path).exists():
-                df = pd.read_csv(wf_path)
-                dataset_name = Path(wf_path).name
-    except Exception as e:
-        st.error(f"Erreur de lecture du fichier : {e}")
-        df = None
-
-    with col_run:
-        run_clicked = st.button(
-            "🚀 Lancer l'analyse",
-            type="primary",
-            width="stretch",
-            disabled=df is None,
-        )
-
-    if df is not None:
-        is_cleaned = "_cleaned" in dataset_name or "cleaned" in str(wf_path or "")
-        clean_tag = " · ✨ [Nettoyé par l'Agent 1]" if is_cleaned else ""
-        st.caption(f"✅ **{dataset_name}**{clean_tag} chargé · {df.shape[0]:,} lignes · {df.shape[1]} colonnes")
-        with st.expander("👀 Aperçu des données"):
-            st.dataframe(df.head(10), width="stretch")
+try:
+    df = pd.read_csv(selected_path)
+    dataset_name = Path(selected_path).name
+except Exception as e:
+    st.error(f"Erreur de lecture du fichier : {e}")
+    st.stop()
 
 # ── Sidebar AI Provider Configuration ─────────────────────────────────────────
 st.sidebar.markdown("---")
@@ -112,8 +94,19 @@ if adapter_exists:
     engine_options.append("⚡ Local Fine-Tuned (Qwen 2.5 3B LoRA)")
 engine_options.append("☁️ Cloud API (Groq / Gemini)")
 
+wf_rm = st.session_state.get("wf_resource_mode", "auto")
+if wf_rm == "cloud" or st.session_state.get("_synced_wf_res") != wf_rm:
+    st.session_state["_synced_wf_res"] = wf_rm
+    if wf_rm == "cloud":
+        st.session_state["bi_engine_choice"] = "☁️ Cloud API (Groq / Gemini)"
+    elif wf_rm == "local" and adapter_exists:
+        st.session_state["bi_engine_choice"] = "⚡ Local Fine-Tuned (Qwen 2.5 3B LoRA)"
+
 if "bi_engine_choice" not in st.session_state:
-    st.session_state["bi_engine_choice"] = engine_options[0]
+    st.session_state["bi_engine_choice"] = (
+        "☁️ Cloud API (Groq / Gemini)" if wf_rm == "cloud" or not adapter_exists
+        else "⚡ Local Fine-Tuned (Qwen 2.5 3B LoRA)"
+    )
 
 selected_engine_label = st.sidebar.radio(
     "Choose Agent Engine",
@@ -131,66 +124,83 @@ custom_groq_key = ""
 if is_local:
     st.sidebar.success("🔒 **100% Offline & Private**\n- **Model**: Qwen 2.5-3B (4-bit NF4)\n- **Adapter**: LoRA Fine-Tuned\n- **Prompt**: Compact Dataset Summary\n- **Hardware**: NVIDIA RTX 4050")
 else:
-    st.sidebar.info("☁️ **Cloud API Engine**\n- **Provider**: Groq Llama-3.3 70B / Gemini\n- **Prompt**: Long Prompt Engineering\n- **Internet**: Required")
-    custom_groq_key = st.sidebar.text_input(
-        "Groq API Key (Optional)",
-        value=os.environ.get("GROQ_API_KEY", "") or st.session_state.get("groq_api_key", ""),
-        type="password",
-        help="Enter your Groq key. If blank, Gemini or smart heuristics are used.",
-    )
-    if custom_groq_key:
-        os.environ["GROQ_API_KEY"] = custom_groq_key
-        st.session_state["groq_api_key"] = custom_groq_key
-
-if df is None:
-    st.info("⬆️ Importez un fichier CSV (ou choisissez-en un dans la sidebar), puis cliquez sur **Lancer l'analyse**.")
-    st.stop()
-
-# ── Main Page Engine Quick-Switcher Tool ──────────────────────────────────────
-st.markdown("### 🔀 BI Agent Engine Switcher")
-col_sw1, col_sw2 = st.columns([1, 1])
-
-with col_sw1:
-    main_engine = st.radio(
-        "Active Engine Mode:",
-        engine_options,
-        index=engine_options.index(st.session_state["bi_engine_choice"]) if st.session_state["bi_engine_choice"] in engine_options else 0,
-        horizontal=True,
-        key="main_page_engine_radio"
-    )
-    if main_engine != st.session_state["bi_engine_choice"]:
-        st.session_state["bi_engine_choice"] = main_engine
-        st.rerun()
-
-with col_sw2:
-    if is_local:
-        st.caption("⚡ **Local LoRA Active**: Zero data leaves your PC. Powered by Qwen 2.5 3B with your fine-tuned LoRA weights on GPU. Uses the specialized **compact dataset summary** prompt.")
+    _env_groq = os.environ.get("GROQ_API_KEY", "")
+    if _env_groq:
+        st.sidebar.caption("🔑 **Groq API** : Configurée via `.env` ✅")
+        with st.sidebar.expander("⚙️ Remplacer la clé API", expanded=False):
+            custom_groq_key = st.text_input(
+                "Nouvelle clé Groq",
+                value="",
+                type="password",
+                placeholder="gsk_…",
+                key="bi_custom_groq_key",
+            )
+            if custom_groq_key:
+                os.environ["GROQ_API_KEY"] = custom_groq_key
+                st.session_state["groq_api_key"] = custom_groq_key
     else:
-        st.caption("☁️ **Cloud API Active**: High-reasoning inference via Groq/Gemini. Uses **comprehensive prompt engineering** with multi-section instructions and JSON schema guidelines.")
+        custom_groq_key = st.sidebar.text_input(
+            "Groq API Key (optionnel)",
+            value="",
+            type="password",
+            placeholder="gsk_…",
+            key="bi_custom_groq_key",
+            help="Entrez votre clé Groq. Si vide, Gemini ou les heuristiques seront utilisées.",
+        )
+        if custom_groq_key:
+            os.environ["GROQ_API_KEY"] = custom_groq_key
+            st.session_state["groq_api_key"] = custom_groq_key
 
-# ── 2. Dataset status banner ──────────────────────────────────────────────────
-active_engine_name = "⚡ Local Qwen 2.5-3B (LoRA RTX 4050)" if is_local else ("☁️ Groq Llama-3" if (custom_groq_key or os.environ.get("GROQ_API_KEY")) else "☁️ Gemini / Smart Fallback")
-badge_color = "purple" if is_local else "blue"
+# ── 2. Dataset status banner + Action button ──────────────────────────────────
+_current_telem = st.session_state.get("current_bi_telemetry", {}) or {}
+if _current_telem.get("provider") and _current_telem.get("provider") != "Unknown":
+    active_engine_name = f"{_current_telem.get('provider')} ({_current_telem.get('model', '-')})"
+    badge_color = "purple" if "Local" in str(_current_telem.get("provider")) else "blue"
+else:
+    active_engine_name = "⚡ Local Qwen 2.5-3B (LoRA RTX 4050)" if is_local else ("☁️ Groq Llama-3" if (custom_groq_key or os.environ.get("GROQ_API_KEY")) else "☁️ Gemini / Smart Fallback")
+    badge_color = "purple" if is_local else "blue"
 
-html(f'''<div class="bf-card" style="background:linear-gradient(135deg,#eef2ff,#f8faff);
-  border:1px solid #c7d2fe;display:flex;gap:1rem;align-items:center;
-  margin-bottom:1.5rem;border-radius:16px;padding:1rem 1.25rem;">🗄
-  <small style="color:#4338ca;font-weight:700;">ACTIVE DATASET</small>
-  <b style="color:#1e1b4b;">{dataset_name}</b>
-  <span style="color:#64748b;">·</span> {df.shape[0]:,} rows
-  <span style="color:#64748b;">·</span> {df.shape[1]} columns
-  <span style="margin-left:auto">{badge(f"● {active_engine_name}", badge_color)}</span>
-</div>''')
-
-# ── 3. AI Agent analysis (déclenchée par le bouton ou importée du workflow) ───
 dataset_sig = f"{dataset_name}_{df.shape[0]}_{df.shape[1]}"
 cache_key   = f"{dataset_sig}_{chosen_engine}_{bool(custom_groq_key)}"
-
-should_run = run_clicked or st.session_state.pop("bi_force_rerun", False)
 
 # Synchroniser automatiquement avec le rapport issu du pipeline si disponible
 wf_st = st.session_state.get("wf_graph_state") or {}
 a2_rep = (wf_st.get("reports") or {}).get("bi_analyst", {})
+if not a2_rep:
+    a2_rep = (st.session_state.get("pipeline_results") or {}).get("agent2", {})
+
+has_report = (
+    (st.session_state.get("bi_dataset_sig") == dataset_sig and bool(st.session_state.get("current_bi_report")))
+    or bool(a2_rep and a2_rep.get("markdown"))
+)
+
+is_cleaned = "_cleaned" in dataset_name or "cleaned" in str(selected_path)
+clean_tag = " · ✨ [Nettoyé]" if is_cleaned else ""
+
+col_card, col_btn = st.columns([3, 1], vertical_alignment="center")
+with col_card:
+    html(f'''<div class="bf-card" style="background:linear-gradient(135deg,#eef2ff,#f8faff);
+      border:1px solid #c7d2fe;display:flex;gap:1rem;align-items:center;
+      border-radius:16px;padding:0.9rem 1.25rem;margin-bottom:0.5rem">🗄
+      <small style="color:#4338ca;font-weight:700;">DATASET SOURCE</small>
+      <b style="color:#1e1b4b;">{dataset_name}</b>{clean_tag}
+      <span style="color:#64748b;">·</span> {df.shape[0]:,} lignes
+      <span style="color:#64748b;">·</span> {df.shape[1]} colonnes
+      <span style="margin-left:auto">{badge(f"● {active_engine_name}", badge_color)}</span>
+    </div>''')
+with col_btn:
+    run_clicked = st.button(
+        "🔄 Relancer l'analyse" if has_report else "🚀 Lancer l'analyse",
+        type="primary",
+        use_container_width=True,
+        key="bi_run_btn"
+    )
+
+with st.expander("👀 Aperçu des données", expanded=False):
+    st.dataframe(df.head(10), use_container_width=True)
+
+should_run = run_clicked or st.session_state.pop("bi_force_rerun", False)
+
 if a2_rep and a2_rep.get("markdown") and not should_run:
     if st.session_state.get("bi_dataset_sig") != dataset_sig or not st.session_state.get("current_bi_report"):
         st.session_state["current_bi_report"]    = a2_rep.get("markdown", "")

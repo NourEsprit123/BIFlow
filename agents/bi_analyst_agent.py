@@ -115,9 +115,14 @@ class BIAnalystAgent:
         self,
         model_name: Optional[str] = None,
         api_key: Optional[str] = None,
-        engine: str = "auto"
+        engine: str = "auto",
     ):
-        self.engine = engine.lower()
+        engine_str = (engine or "auto").lower()
+        if engine_str in ("cloud", "groq", "gemini", "api"):
+            engine_str = "api"
+        elif engine_str in ("local", "ollama", "local_lora"):
+            engine_str = "local_lora"
+        self.engine = engine_str
         self.groq_api_key = api_key or os.environ.get("GROQ_API_KEY")
         self.model_name = model_name or os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
         self.gemini_api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
@@ -217,7 +222,9 @@ class BIAnalystAgent:
         has_local_adapter = (self.adapter_path / "adapter_model.safetensors").exists()
         use_local = False
 
-        if self.engine in ("local_lora", "local"):
+        if self.engine in ("api", "cloud"):
+            use_local = False
+        elif self.engine in ("local_lora", "local"):
             use_local = True
         elif self.engine == "auto" and has_local_adapter:
             try:
@@ -280,16 +287,20 @@ class BIAnalystAgent:
         inputs = tokenizer(prompt_text, return_tensors="pt")
         if hasattr(model, "device"):
             inputs = {k: v.to(model.device) for k, v in inputs.items()}
+        elif torch.cuda.is_available():
+            inputs = {k: v.to("cuda:0") for k, v in inputs.items()}
 
         import torch
         with torch.no_grad():
             outputs = model.generate(
                 **inputs,
-                max_new_tokens=1100,
+                max_new_tokens=750,
                 temperature=0.2,
                 do_sample=True,
                 top_p=0.9,
-                repetition_penalty=1.05  
+                repetition_penalty=1.05,
+                eos_token_id=[tokenizer.eos_token_id, 151645, 151643],
+                pad_token_id=tokenizer.pad_token_id or tokenizer.eos_token_id,
             )
 
         gen_tokens = outputs[0][inputs["input_ids"].shape[1]:]

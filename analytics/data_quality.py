@@ -43,14 +43,15 @@ def detect_missing(df: pd.DataFrame) -> Dict[str, Any]:
         if total > 0:
             missing[column] = total
 
-    total_cells = df.size
+    total_cells = int(df.size)
     total_missing_cells = sum(missing.values())
     missing_pct = (total_missing_cells / total_cells * 100) if total_cells > 0 else 0.0
 
     return {
         "columns": missing,
         "total_missing_cells": total_missing_cells,
-        "missing_percentage": round(missing_pct, 2)
+        "missing_percentage": round(missing_pct, 2),
+        "total_cells": total_cells,
     }
 
 
@@ -63,7 +64,8 @@ def detect_duplicates(df: pd.DataFrame) -> Dict[str, Any]:
     return {
         "count": duplicate_rows,
         "has_duplicates": duplicate_rows > 0,
-        "percentage": round(dup_pct, 2)
+        "percentage": round(dup_pct, 2),
+        "total_rows": int(len(df)),
     }
 
 
@@ -225,12 +227,20 @@ def calculate_health_scores(df: pd.DataFrame) -> Dict[str, Any]:
         1
     )
 
+    dim_scores = {
+        "completeness": round(completeness, 1),
+        "validity": round(validity, 1),
+        "uniqueness": round(uniqueness, 1),
+        "consistency": round(consistency, 1),
+    }
+
     return {
         "overall_health_score": weighted_score,
         "completeness": round(completeness, 1),
         "validity": round(validity, 1),
         "uniqueness": round(uniqueness, 1),
         "consistency": round(consistency, 1),
+        "dimension_scores": dim_scores,
         "missing_info": missing_info,
         "duplicate_info": dup_info,
         "type_issues": mismatches,
