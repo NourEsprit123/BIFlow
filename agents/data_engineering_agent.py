@@ -600,6 +600,8 @@ class DataEngineeringAgent:
                 "llm_provider":        llm_provider if model_used else None,
                 "llm_model_used":      model_used,
                 "llm_status":          llm_status,
+                # Why the profile fell back to rules (provider errors are otherwise swallowed by the client)
+                "llm_error":           None if llm_status == "llm" else getattr(self.llm_client, "last_error", None),
                 "sandbox_executions":  sandbox_count,
                 "llm_driven":          llm_status == "llm",
             },

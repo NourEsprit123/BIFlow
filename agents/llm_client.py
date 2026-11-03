@@ -24,7 +24,11 @@ class LLMClient:
         self.ollama_host = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
         if "localhost" in self.ollama_host:
             self.ollama_host = self.ollama_host.replace("localhost", "127.0.0.1")
-        self.model_name = model_name or os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
+        # Gemini's model comes from GEMINI_MODEL. Its old default here (models/gemini-3.5-flash) answered
+        # 503 "high demand" repeatedly, and the provider was labelled with the Ollama model name.
+        self.gemini_model = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+        self.model_name = model_name or (self.gemini_model if self.provider == "gemini" else os.getenv("OLLAMA_MODEL", "qwen2.5:3b"))
+        self.last_error: Optional[str] = None  # why the last call returned "{}", for callers that report fallbacks
         self.gemini_api_key = os.getenv("GEMINI_API_KEY", "")
         self.groq_api_key = os.getenv("GROQ_API_KEY", "")
 
@@ -39,6 +43,7 @@ class LLMClient:
         """
         Generates text output from the configured LLM provider with auto-fallback.
         """
+        self.last_error = None
         if self.provider in ("groq", "cloud") or (self.cloud_fallback and not self.gemini_api_key and self.groq_api_key):
             res = self._call_groq(prompt, system_prompt)
             if res and res.strip() and res.strip() != "{}":
@@ -124,6 +129,7 @@ class LLMClient:
             return "{}"
         except Exception as e:
             logger.warning(f"Groq API call failed: {e}")
+            self.last_error = f"Groq: {e}"
             return "{}"
 
     def _call_ollama(self, prompt: str, system_prompt: Optional[str] = None) -> str:
@@ -160,6 +166,7 @@ class LLMClient:
             return data.get("response", "")
         except Exception as e:
             logger.warning(f"Ollama call failed ({e}). Returning fallback JSON.")
+            self.last_error = f"Ollama: {e}"
             return "{}"
 
     def _call_gemini(self, prompt: str, system_prompt: Optional[str] = None) -> str:
@@ -168,6 +175,7 @@ class LLMClient:
         """
         if not self.gemini_api_key:
             logger.error("GEMINI_API_KEY not set in .env file")
+            self.last_error = "Gemini: GEMINI_API_KEY is not set"
             return "{}"
 
         try:
@@ -196,7 +204,7 @@ class LLMClient:
             for attempt in range(1, max_retries + 1):
                 try:
                     logger.info(f"Calling Gemini API (attempt {attempt}/{max_retries})...")
-                    model_to_use = os.getenv("GEMINI_MODEL", "models/gemini-3.5-flash")
+                    model_to_use = self.model_name if self.provider == "gemini" else self.gemini_model
                     response = client.models.generate_content(
                         model=model_to_use,
                         contents=prompt,
@@ -207,6 +215,7 @@ class LLMClient:
                 except Exception as e:
                     err_str = str(e)
                     logger.error(f"Gemini API call failed: {e}")
+                    self.last_error = f"Gemini ({model_to_use}): {err_str[:200]}"
                     # Quota dépassé (429) -> Inutile de retenter en boucle
                     if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
                         logger.warning("Gemini quota exhausted (429). Skipping retries.")
@@ -218,6 +227,7 @@ class LLMClient:
             return "{}"
         except Exception as e:
             logger.error(f"Unexpected error in _call_gemini: {e}")
+            self.last_error = f"Gemini: {e}"
             return "{}"
 
     def _extract_json(self, text: str) -> Dict[str, Any]:

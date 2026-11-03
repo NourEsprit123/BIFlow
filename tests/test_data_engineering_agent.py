@@ -172,3 +172,39 @@ def test_gemini_client_uses_configured_genai_sdk_and_model(monkeypatch):
     assert result == {"column_reasoning": {}}
     assert calls["api_key"] == "test-key" and calls["model"] == "test-gemini-model"
     assert calls["contents"] == "analyze" and calls["config"].system_instruction == "system"
+
+
+def test_gemini_defaults_to_its_own_model_and_label(monkeypatch):
+    monkeypatch.delenv("GEMINI_MODEL", raising=False)
+    monkeypatch.setenv("OLLAMA_MODEL", "qwen3:8b")
+    # The shared client used to label Gemini runs with the Ollama model and default to an overloaded model.
+    assert LLMClient(provider="gemini").model_name == "gemini-3.6-flash"
+    assert LLMClient(provider="ollama").model_name == "qwen3:8b"
+
+
+def test_a_failed_gemini_call_is_recorded_for_the_fallback_report(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    monkeypatch.delenv("GEMINI_MODEL", raising=False)
+    monkeypatch.setattr("agents.llm_client.time.sleep", lambda seconds: None)
+
+    class Overloaded:
+        def generate_content(self, **kwargs):
+            raise RuntimeError("503 UNAVAILABLE: high demand")
+
+    from google import genai
+    monkeypatch.setattr(genai, "Client", lambda *, api_key: SimpleNamespace(models=Overloaded()))
+    client = LLMClient(provider="gemini", cloud_fallback=False)
+    assert client.generate_json("analyze") == {}
+    assert "503" in client.last_error and "gemini-3.6-flash" in client.last_error
+
+
+def test_profiling_report_explains_a_fallback(tmp_path, monkeypatch):
+    source_file = Path(TEST_CSV).resolve()
+    monkeypatch.chdir(tmp_path)
+
+    class FailingLLM(FallbackLLM):
+        provider, model_name, last_error = "gemini", "gemini-3.6-flash", "Gemini: 503 UNAVAILABLE"
+
+    report = DataEngineeringAgent(llm_client=FailingLLM()).run_audit(str(source_file))["profiling_report"]
+    assert report["metadata"]["llm_status"] == "fallback"
+    assert report["metadata"]["llm_error"] == "Gemini: 503 UNAVAILABLE"

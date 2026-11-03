@@ -244,3 +244,31 @@ def test_trim_whitespace_ignores_redundant_strip_setting():
     assert 'strip_whitespace' not in builtin_parameters('trim_whitespace',{'strip_whitespace':True},['region'])
     with pytest.raises(ValueError,match='trim_whitespace accepts only'):
         builtin_parameters('trim_whitespace',{'strip_whitespace':False},['region'])
+
+
+def test_type_finding_without_a_target_closes_once_its_column_is_converted(tmp_path,monkeypatch):
+    source=tmp_path/'input.csv'
+    pd.DataFrame({'amount':['$1,200.50','$30.00','$7.25']}).to_csv(source,index=False)
+    payload={'dataset_ref':{'file_path':str(source),'file_name':source.name,'rows':3,'columns':1},
+             'column_profiles':{'amount':{'dtype':'str','issues':[{'issue_id':'type_mismatch','description':'Currency text'}]}}}
+    calls=[]
+    def respond(messages,tools,**kwargs):
+        calls.append(1)
+        if len(calls)==1:
+            return action('test_builtin',hypothesis='Currency amounts',columns=['amount'],operation='clean_numeric_string')
+        assert json.loads(messages[-1]['content'])['cleaning_focus']['task'] is None  # closed, no complete_task needed
+        return action('finish',summary='Amounts converted')
+    monkeypatch.setattr('agents.dataCleaning_agent.chat_with_tools',respond)
+    result=DataCleaningAgent(data_root=tmp_path/'versions',use_llm=True).run(payload)
+    task=next(t for t in result.metadata['cleaning_tasks'] if t['category']=='types')
+    assert task['status']=='done' and task['reason'].startswith('Converted by clean_numeric_string') and len(calls)==2
+
+
+def test_time_limit_grows_with_the_task_queue_when_scaling(tmp_path,monkeypatch):
+    monkeypatch.setenv('BIFLOW_CLEANING_MAX_SECONDS','10')
+    monkeypatch.setenv('BIFLOW_CLEANING_SECONDS_PER_TASK','20')
+    finish=lambda *a,**k:action('finish',summary='done')
+    assert run(tmp_path,monkeypatch,finish).metadata['limits']['max_seconds']==20
+    assert run(tmp_path,monkeypatch,finish,max_seconds=10).metadata['limits']['max_seconds']==10
+    # The dashboard passes its settings as minimums.
+    assert run(tmp_path,monkeypatch,finish,max_seconds=10,max_turns=1,scale_limits=True).metadata['limits']['max_seconds']==20

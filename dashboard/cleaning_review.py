@@ -478,11 +478,13 @@ def render_cleaning_limits():
     from dataCleaningTools.llm_client import default_model, positive_setting
     settings = st.session_state.get("cleaning_run_settings", {})
     with st.expander("Local model speed and run limits"):
-        turns = st.number_input("Maximum model turns", min_value=1, max_value=100,
+        turns = st.number_input("Minimum model turns", min_value=1, max_value=100,
                                value=int(settings.get("max_turns", positive_setting("BIFLOW_CLEANING_MAX_TURNS", 12, True))), key="cleaning_turn_limit")
-        minutes = st.number_input("Run time budget (minutes)", min_value=0.1, max_value=120.0, step=0.5,
+        minutes = st.number_input("Minimum run time (minutes)", min_value=0.1, max_value=120.0, step=0.5,
                                  value=float(settings.get("max_seconds", positive_setting("BIFLOW_CLEANING_MAX_SECONDS", 300))) / 60, key="cleaning_minutes")
         st.session_state["cleaning_run_settings"] = {"max_turns": int(turns), "max_seconds": int(minutes * 60)}
+        st.caption(f"Both grow with the number of cleaning tasks: {positive_setting('BIFLOW_CLEANING_TURNS_PER_TASK', 3, True)} turns "
+                   f"and {positive_setting('BIFLOW_CLEANING_SECONDS_PER_TASK', 30):.0f} s per task.")
         st.caption(f"Ollama only · {default_model()} · Request timeout: {positive_setting('BIFLOW_OLLAMA_TIMEOUT', 90):.0f}s · Context: {positive_setting('BIFLOW_OLLAMA_NUM_CTX', 8192, True):,} tokens · Maximum output: {positive_setting('BIFLOW_OLLAMA_NUM_PREDICT', 1024, True):,} tokens")
         st.write("A smaller turn limit bounds exploration; it does not make one model request faster. Leave sandbox experimentation unchecked for the quicker builtin-first behaviour.")
         st.code("ollama ps", language="powershell")

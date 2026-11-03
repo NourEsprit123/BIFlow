@@ -71,6 +71,19 @@ def _changed_since(state, columns, version):
                for a in state.working_context.get("completed_actions", []))
 
 
+TEXT_DTYPES = ("object", "str", "string")
+
+
+def _conversion(state, task):
+    """The applied repair that settles a type finding without a target: its columns now hold a non-text type."""
+    columns = state.working_context.get("columns", {})
+    dtypes = [columns.get(c, {}).get("current_dtype", "absent") for c in task["columns"]]
+    if not task["columns"] or any(d == "absent" or d.startswith(TEXT_DTYPES) for d in dtypes):
+        return None
+    return next((a for a in reversed(state.working_context.get("completed_actions", []))
+                 if a.get("operation") != "remove_duplicates" and set(task["columns"]) <= set(a["columns"])), None)
+
+
 def _removal(state, task):
     """The applied duplicate removal that settles this task: any for a dataset-level finding, else the same key."""
     return next((a for a in state.working_context.get("completed_actions", []) if a.get("operation") == "remove_duplicates"
@@ -134,6 +147,11 @@ def refresh(state):
         elif task["category"] == "duplicates" and task["status"] == "pending" and _removal(state, task):
             # The removal's own check verified no duplicates remain; waiting for complete_task only wasted turns.
             task.update(status="done", reason=f"Duplicate rows removed in {_removal(state, task)['version']}")
+        elif task["category"] == "types" and task["status"] == "pending" and _conversion(state, task):
+            # A type finding with no target waited for complete_task; the model kept repairing an already
+            # converted column until the task was dropped at its turn cap.
+            action = _conversion(state, task)
+            task.update(status="done", reason=f"Converted by {action['operation']} in {action['version']}")
         elif task["columns"] and any(c in state.flagged for c in task["columns"]):
             task.update(status="needs_review", reason="; ".join(state.flagged[c] for c in task["columns"] if c in state.flagged))
         elif task["status"] == "reviewed" and _changed_since(state, task["columns"], task.get("assessed_version", "V0")):

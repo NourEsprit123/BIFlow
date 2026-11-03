@@ -204,6 +204,7 @@ class DataCleaningAgent:
         model: Optional[str] = None,
         report_root: Optional[Union[str, Path]] = None,
         publish_root: Optional[Union[str, Path]] = None,
+        scale_limits: Optional[bool] = None,
     ):
         self.data_root = Path(data_root)
         self.report_root = Path(report_root) if report_root is not None else self.data_root.parent / "reports" / "cleaningReports"
@@ -217,10 +218,15 @@ class DataCleaningAgent:
             _ROOT / "data",
         ]
         self.max_turns = max_turns if max_turns is not None else positive_setting("BIFLOW_CLEANING_MAX_TURNS", 24, integer=True)
-        # A configured limit is a floor that grows with the task queue; an explicit max_turns is exact.
-        self.turns_per_task = 0 if max_turns is not None else positive_setting("BIFLOW_CLEANING_TURNS_PER_TASK", 3, integer=True)
-        self.turn_limit = self.max_turns
         self.max_seconds = max_seconds if max_seconds is not None else positive_setting("BIFLOW_CLEANING_MAX_SECONDS", 300)
+        # Configured limits are floors that grow with the task queue; explicit ones are exact unless the
+        # caller asks for scaling (the dashboard's run settings are minimums).
+        scale_turns = scale_limits if scale_limits is not None else max_turns is None
+        scale_time = scale_limits if scale_limits is not None else max_seconds is None
+        self.turns_per_task = positive_setting("BIFLOW_CLEANING_TURNS_PER_TASK", 3, integer=True) if scale_turns else 0
+        self.seconds_per_task = positive_setting("BIFLOW_CLEANING_SECONDS_PER_TASK", 30) if scale_time else 0
+        self.turn_limit = self.max_turns
+        self.time_limit = self.max_seconds
         if (isinstance(self.max_turns, bool) or not isinstance(self.max_turns, int) or self.max_turns < 1
                 or isinstance(self.max_seconds, bool) or not isinstance(self.max_seconds, (int, float))
                 or self.max_seconds <= 0 or not math.isfinite(self.max_seconds)):
@@ -261,11 +267,12 @@ class DataCleaningAgent:
 
         run_started = time.monotonic()
         self.turn_limit = self.max_turns
+        self.time_limit = self.max_seconds
         def emit(event):
             if on_event:
                 try:
                     on_event({**event, "turn": state.current_turn, "max_turns": self.turn_limit,
-                              "elapsed_seconds": time.monotonic() - run_started, "max_seconds": self.max_seconds})
+                              "elapsed_seconds": time.monotonic() - run_started, "max_seconds": self.time_limit})
                 except Exception:
                     logger.warning("Progress callback failed", exc_info=True)
 
@@ -325,7 +332,9 @@ class DataCleaningAgent:
         cleaning_tasks.initialize(state)
         # One or two hard tasks must not starve the rest of the queue; the time budget still bounds the run.
         self.turn_limit = max(self.max_turns, self.turns_per_task * len(state.cleaning_tasks))
-        logger.info("Turn limit %d for %d task(s)", self.turn_limit, len(state.cleaning_tasks))
+        self.time_limit = max(self.max_seconds, self.seconds_per_task * len(state.cleaning_tasks))
+        state.deadline = state.run_started + self.time_limit
+        logger.info("Turn limit %d and time limit %.0fs for %d task(s)", self.turn_limit, self.time_limit, len(state.cleaning_tasks))
         state.persist_trace()
         request_guide = PROMPT_PATH.with_name("request_guide.md").read_text(encoding="utf-8")
         messages = [{"role":"system","content":_load_system_prompt()},
@@ -336,7 +345,7 @@ class DataCleaningAgent:
         for turn in range(1,self.turn_limit+1):
             if state.finished: break
             if time.monotonic() >= state.deadline:
-                state.stop("time_budget", f"reached the {self.max_seconds:.0f}s run budget")
+                state.stop("time_budget", f"reached the {self.time_limit:.0f}s run budget")
                 break
             state.current_turn = turn
             try:
@@ -571,7 +580,7 @@ class DataCleaningAgent:
                 + validation.unresolved_issues + validation.exceptions)),
             metadata={
                 "mode": "llm" if self.use_llm else "deterministic",
-                "limits": {"max_turns": self.turn_limit, "max_seconds": self.max_seconds,
+                "limits": {"max_turns": self.turn_limit, "max_seconds": self.time_limit,
                            "max_task_turns": state.max_task_turns, "max_task_failures": state.max_task_failures},
                 "elapsed_seconds": time.monotonic() - state.run_started,
                 "turns_used": state.current_turn,

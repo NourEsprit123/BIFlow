@@ -150,10 +150,15 @@ def profiling_execution_status(result: dict[str, Any]) -> tuple[bool, str]:
         model_suffix = f" ({model})" if model else ""
         return True, f"LLM reasoning used{model_suffix}."
     if status == "mixed":
-        return False, "Some profiling batches used rule-based fallback instead of the LLM."
+        return False, "Some profiling batches used rule-based fallback instead of the LLM." + _llm_error(metadata)
     if status == "fallback":
-        return False, "The LLM did not produce usable reasoning; rule-based fallback was used."
+        return False, "The LLM did not produce usable reasoning; rule-based fallback was used." + _llm_error(metadata)
     return False, "Profiling LLM execution status is not recorded."
+
+
+def _llm_error(metadata: dict[str, Any]) -> str:
+    error = metadata.get("llm_error")
+    return f" Provider error: {error}" if error else ""
 
 
 def dataset_signature(path: Path) -> tuple[str, int, int]:
@@ -258,6 +263,7 @@ def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = 
     agent = DataCleaningAgent(
         max_turns=settings.get("max_turns"),
         max_seconds=settings.get("max_seconds"),
+        scale_limits=True,  # the run settings are minimums; both limits grow with the task queue
         data_root=ROOT / "data" / "versions" / "dashboard",
         report_root=ROOT / "data" / "reports" / "cleaningReports",
         publish_root=CLEANED_DATA,
