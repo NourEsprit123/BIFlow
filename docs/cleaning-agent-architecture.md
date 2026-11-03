@@ -237,6 +237,10 @@ Column statistics perform one numeric conversion and exclude infinities from fin
 
 Successful read-only inspection events no longer refresh the unchanged dataset. A fresh inspection reads once; an exact repeated query can return saved evidence with zero reads. Deferrals still refresh measured review flags, and changed dataset versions invalidate cached evidence. Investigation uses the existing event history instead of a separate cache or task ledger. Three consecutive stalled requests still defer a focused task for review, or stop an unscoped run; useful evidence and valid cross-task evidence reuse reset that counter. No inspection marks a repair as committed or bypasses independent dataset checks.
 
+## Host-settled columns
+
+Accepting a column as it is (a waiver, rule `accepted_by_host:<column>`) or filling it settles it: unresolved notes that name that column, such as the model's finish note `Order_ID`, are removed (`decisions._settle_notes`). A run whose only remaining items were settled this way validates as passed; the run view shows the accepted columns next to the status ("passed · 1 column accepted as is by you"). Notes about anything else still make the run partial. Before this, accepting `Order_ID` left the model's note in the exceptions and the run stayed partial.
+
 ## Handing the cleaned dataset to the BI Analyst
 
 With `publish_root` set (the dashboard and the pipeline use `data/cleaned`), every result the agent builds, including after host approvals and decisions, copies its final version to `data/cleaned/<dataset>_cleaned.csv` (`publish_cleaned`, recorded as `metadata.published_path`). That folder is what the team's Datasets, Overview and BI Analysis pages list as cleaned data. The pipeline passes this file to the BI Analyst and XAI nodes, and the BI page follows the active dataset to its cleaned version unless a dataset is chosen on the BI page itself. The versioned run under `data/versions` keeps the full history; the published file is only its latest state.

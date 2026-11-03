@@ -259,7 +259,11 @@ def render_run_overview(summary) -> None:
     count = summary["needs_you"]
     needs = (f" · {count} decision{'s' if count != 1 else ''} need{'' if count != 1 else 's'} you: "
              + "; ".join(summary["needs_you_names"]) if count else "")
-    banner(f"Final validation: {status}{needs}. {summary['stop']}.")
+    accepted = summary.get("accepted") or []
+    # A column the host accepted as it is stays visible next to the status instead of making the run partial.
+    waived = (f" · {len(accepted)} column{'s' if len(accepted) != 1 else ''} accepted as is by you: "
+              + ", ".join(accepted) if accepted else "")
+    banner(f"Final validation: {status}{waived}{needs}. {summary['stop']}.")
     minutes, seconds = divmod(round(summary["seconds"]), 60)
     st.caption(f"Final version {summary['final_version']} · {summary['turns']} of {summary['max_turns']} model turns · "
                f"{minutes} min {seconds:02d} s · {summary['model'] or 'deterministic'}")

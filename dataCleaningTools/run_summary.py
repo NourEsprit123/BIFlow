@@ -98,11 +98,12 @@ def summarize(result) -> dict:
 
     stop = STOP_REASONS.get(meta.get("stop_reason", ""), meta.get("stop_reason", "unknown"))
     if meta.get("host_decisions") and not waiting:
-        stop = "Finished; your approval decisions were applied"
+        stop = "Finished; your decisions were applied"
     return {
         "status": status,
         "needs_you": needs_you, "needs_you_names": needs_you_names,
         "stop": stop,
+        "accepted": list(meta.get("waived") or {}),  # columns the host accepted as they are
         "final_version": result.final_dataset.version,
         "turns": meta.get("turns_used", 0), "max_turns": limits.get("max_turns"),
         "seconds": meta.get("elapsed_seconds", 0), "model": meta.get("model"),

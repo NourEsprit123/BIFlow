@@ -68,3 +68,36 @@ def test_a_fill_value_that_does_not_match_the_column_is_refused(tmp_path, monkey
     resolved = agent.resolve_decisions(result, {"signup": {"action": "fill", "value": "not a number"}})
     assert not resolved.metadata["host_decisions"][-1]["applied"]
     assert len(open_decisions(resolved)) == 1 and resolved.validation.status.value == "partial"
+
+
+def run_with_unresolved_notes(tmp_path, monkeypatch, notes):
+    """Like finished_run, but the model's finish lists unresolved notes (as qwen does)."""
+    source = tmp_path / "customers.csv"
+    pd.DataFrame({"signup": ["2024-01-05", None, "2024-02-11"]}).to_csv(source, index=False)
+    report = {"dataset_ref": {"file_path": str(source), "file_name": source.name, "rows": 3, "columns": 1},
+              "column_profiles": {"signup": {"dtype": "str", "missing_count": 1}}}
+    def respond(messages, tools, **kwargs):
+        task = json.loads(messages[-1]["content"])["cleaning_focus"]["task"]
+        if not task:
+            return {"content": None, "tool_calls": [{"id": "f", "name": "finish",
+                                                     "arguments": {"summary": "Done", "unresolved": notes}}]}
+        return {"content": "No business rule for blank dates", "tool_calls": []}
+    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
+    agent = DataCleaningAgent(data_root=tmp_path / "versions", use_llm=True)
+    return agent, agent.run(report)
+
+
+def test_accepting_a_column_settles_the_models_note_about_it(tmp_path, monkeypatch):
+    agent, result = run_with_unresolved_notes(tmp_path, monkeypatch, ["signup"])
+    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", no_model)
+    resolved = agent.resolve_decisions(result, {"signup": {"action": "accept"}})
+    assert resolved.validation.status.value == "passed" and not resolved.validation.exceptions
+    assert summarize(resolved)["accepted"] == ["signup"]
+
+
+def test_a_note_about_something_else_still_keeps_the_run_partial(tmp_path, monkeypatch):
+    agent, result = run_with_unresolved_notes(tmp_path, monkeypatch, ["signup", "region spelling varies"])
+    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", no_model)
+    resolved = agent.resolve_decisions(result, {"signup": {"action": "accept"}})
+    assert resolved.validation.status.value == "partial"
+    assert resolved.validation.exceptions == ["region spelling varies"]

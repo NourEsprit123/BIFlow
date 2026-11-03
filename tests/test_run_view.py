@@ -24,7 +24,7 @@ def test_summary_after_approval_shows_the_new_version_and_changed_values(tmp_pat
     [item] = approvals.pending(result)
     summary = summarize(agent.resolve_approvals(result, {item["step_id"]: "approve"}))
     assert summary["status"] == "passed" and summary["needs_you"] == 0
-    assert summary["stop"] == "Finished; your approval decisions were applied"
+    assert summary["stop"] == "Finished; your decisions were applied"
     assert [step["version"] for step in summary["trail"]] == ["V0", "V1", "V2"] and summary["trail"][-1]["approved"]
     assert summary["health"] == [{"column": "amount", "rows_before": 5, "rows_after": 5, "missing_before": 0,
                                   "missing_after": 0, "dtype_before": "float64", "dtype_after": "float64",

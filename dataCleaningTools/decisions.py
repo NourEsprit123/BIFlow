@@ -69,6 +69,15 @@ def _fill_value(frame, column, text):
     return text
 
 
+def _settle_notes(state, columns):
+    """Unresolved notes that name a column the host just settled are no longer open. The model's finish
+    note "Order_ID" kept a run partial after the host had accepted Order_ID as it is."""
+    names = [re.compile(rf"^{re.escape(c)}(?=$|[\s:,(.\-])") for c in columns]
+    keep = lambda note: not any(name.match(str(note)) for name in names)
+    state.model_unresolved = [note for note in state.model_unresolved if keep(note)]
+    state.unresolved = [note for note in state.unresolved if keep(note)]
+
+
 def apply(state, choices):
     """choices maps a decision key to {"action": "accept", "note": ...} or {"action": "fill", "value": ...}."""
     executor = ToolExecutor(state)
@@ -88,6 +97,7 @@ def apply(state, choices):
             if action == "accept":
                 note = (choice.get("note") or "").strip() or "accepted as is"
                 state.waived.update({c: note for c in columns})
+                _settle_notes(state, columns)
                 for task in tasks:
                     task.update(status="reviewed", reason=f"Accepted by host: {note}",
                                 assessed_version=state.current_ref.version)
@@ -115,6 +125,7 @@ def apply(state, choices):
                         task.update(status="reviewed", assessed_version=state.current_ref.version,
                                     reason=f"Filled by host with {value!r} as {state.current_ref.version}")
                     entry.update(applied=True, value=value, version=state.current_ref.version)
+                    _settle_notes(state, columns)
                 else:
                     state.flagged.update(previous_flags)
                     entry.update(applied=False, value=value, error=str(applied.get("error") or "Fill did not pass its checks"))
