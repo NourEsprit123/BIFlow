@@ -161,7 +161,11 @@ else:
     active_engine_name = "⚡ Local Qwen 2.5-3B (LoRA RTX 4050)" if is_local else ("☁️ Groq Llama-3" if (custom_groq_key or os.environ.get("GROQ_API_KEY")) else "☁️ Gemini / Smart Fallback")
     badge_color = "purple" if is_local else "blue"
 
-dataset_sig = f"{dataset_name}_{df.shape[0]}_{df.shape[1]}"
+# The file version is part of the signature: approvals and decisions on the Data Cleaning page rewrite the
+# cleaned file in place (same name and shape), and the previous analysis must not be shown for it.
+_stat = Path(selected_path).stat()
+dataset_version = [_stat.st_mtime_ns, _stat.st_size]
+dataset_sig = f"{dataset_name}_{df.shape[0]}_{df.shape[1]}_{_stat.st_mtime_ns}_{_stat.st_size}"
 cache_key   = f"{dataset_sig}_{chosen_engine}_{bool(custom_groq_key)}"
 
 # Synchroniser automatiquement avec le rapport issu du pipeline si disponible
@@ -169,6 +173,10 @@ wf_st = st.session_state.get("wf_graph_state") or {}
 a2_rep = (wf_st.get("reports") or {}).get("bi_analyst", {})
 if not a2_rep:
     a2_rep = (st.session_state.get("pipeline_results") or {}).get("agent2", {})
+# A pipeline report belongs to the file version it analysed, not to whichever dataset is selected now.
+if a2_rep and a2_rep.get("data_file") and (a2_rep["data_file"] != str(Path(selected_path).resolve())
+                                           or a2_rep.get("data_version") != dataset_version):
+    a2_rep = {}
 
 has_report = (
     (st.session_state.get("bi_dataset_sig") == dataset_sig and bool(st.session_state.get("current_bi_report")))

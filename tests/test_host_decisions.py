@@ -101,3 +101,44 @@ def test_a_note_about_something_else_still_keeps_the_run_partial(tmp_path, monke
     resolved = agent.resolve_decisions(result, {"signup": {"action": "accept"}})
     assert resolved.validation.status.value == "partial"
     assert resolved.validation.exceptions == ["region spelling varies"]
+
+
+def numeric_run(tmp_path, monkeypatch, strategy="mean"):
+    """A whole-number column with blanks; the profiling model chose an imputation strategy."""
+    source = tmp_path / "costs.csv"
+    pd.DataFrame({"cost": [10, None, 20, 31, None]}).to_csv(source, index=False)
+    report = {"dataset_ref": {"file_path": str(source), "file_name": source.name, "rows": 5, "columns": 1},
+              "column_profiles": {"cost": {"dtype": "float64", "missing_count": 2, "imputation_strategy": strategy,
+                                           "agent_reasoning": "Monthly cost; the average is representative."}}}
+    def respond(messages, tools, **kwargs):
+        task = json.loads(messages[-1]["content"])["cleaning_focus"]["task"]
+        if not task:
+            return {"content": None, "tool_calls": [{"id": "f", "name": "finish", "arguments": {"summary": "Done"}}]}
+        return {"content": "Not sure how to fill costs", "tool_calls": []}
+    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
+    agent = DataCleaningAgent(data_root=tmp_path / "versions", use_llm=True)
+    return agent, agent.run(report)
+
+
+def test_fill_suggestions_lead_with_the_profiling_models_choice(tmp_path, monkeypatch):
+    _, result = numeric_run(tmp_path, monkeypatch)
+    [item] = open_decisions(result)
+    first, *others = item["suggestions"]
+    assert first == {"strategy": "fill_mean", "label": "Mean", "value": 20, "recommended": True,
+                     "source": "profiling", "reason": "Monthly cost; the average is representative."}
+    assert {(s["strategy"], s["value"]) for s in others} == {("fill_median", 20), ("fill_mode", 10)}
+
+
+def test_applying_a_suggested_strategy_fills_and_marks_the_blanks(tmp_path, monkeypatch):
+    agent, result = numeric_run(tmp_path, monkeypatch, strategy="median")
+    monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", no_model)
+    resolved = agent.resolve_decisions(result, {"cost": {"action": "fill", "strategy": "fill_median"}})
+    final = pd.read_csv(resolved.final_dataset.path)
+    assert resolved.validation.all_passed and final["cost"].tolist() == [10, 20, 20, 31, 20]
+    assert final["cost_imputed"].tolist() == [False, True, False, False, True]
+
+
+def test_without_a_profiling_choice_the_column_type_decides(tmp_path, monkeypatch):
+    _, result = numeric_run(tmp_path, monkeypatch, strategy=None)
+    [item] = open_decisions(result)
+    assert item["suggestions"][0]["strategy"] == "fill_median" and item["suggestions"][0]["source"] == "rule"

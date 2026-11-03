@@ -103,3 +103,29 @@ def test_bi_analyst_follows_the_active_dataset_to_its_cleaned_version(app):
     finally:
         if created:
             twin.unlink()
+
+
+def test_bi_analysis_is_not_reused_for_another_file_or_an_older_version(app):
+    twin = ROOT / "data" / "cleaned" / "dirty_sales_test_cleaned.csv"
+    created = not twin.exists()
+    if created:
+        twin.parent.mkdir(parents=True, exist_ok=True)
+        twin.write_bytes(Path(DIRTY_SALES).read_bytes())
+    try:
+        # A pipeline report for another dataset must not be shown for this one.
+        app.session_state["pipeline_results"] = {"agent2": {"markdown": "STALE REPORT", "data_file": "elsewhere.csv",
+                                                            "data_version": [1, 1]}}
+        app.switch_page("pages/A1_Profiling.py").run(timeout=30)
+        app.selectbox(key="workspace_dataset_picker").select(DIRTY_SALES).run(timeout=30)
+        app.switch_page("pages/5_BI_Analysis.py").run(timeout=30)
+        assert not app.exception
+        assert not any("STALE REPORT" in item.value for item in app.markdown)
+        assert any("Lancer l'analyse" in item.value for item in app.info)
+        # An analysis of an older version of the same file is not reused either.
+        app.session_state["bi_dataset_sig"] = "dirty_sales_test_cleaned.csv_30_9_0_0"
+        app.session_state["current_bi_report"] = "STALE REPORT"
+        app.run(timeout=30)
+        assert not any("STALE REPORT" in item.value for item in app.markdown)
+    finally:
+        if created:
+            twin.unlink()

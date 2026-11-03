@@ -519,10 +519,15 @@ def node_bi_analyst(state: GraphState) -> GraphState:
                 logger.warning("[A2] Docker unavailable — falling back to in-process.")
             bi_result = _bi_inprocess(data_path, dataset_name, resource_mode=resource)
 
+        stat = Path(data_path).stat()
         reports["bi_analyst"] = {
             "markdown":    bi_result.get("markdown", ""),
             "chart_config": bi_result.get("chart_config", {}),
             "telemetry":   bi_result.get("telemetry", {}),
+            # The exact file version analysed: the BI page reuses this report only for that version, since
+            # approvals and decisions after the run rewrite data/cleaned/<name>_cleaned.csv in place.
+            "data_file":   str(Path(data_path).resolve()),
+            "data_version": [stat.st_mtime_ns, stat.st_size],
         }
 
         log = _log_entry(

@@ -2,7 +2,8 @@
 
 They are grouped into one decision per column (a dropped task also blocks or freezes the other tasks on
 its columns). A decision is applied to the saved run without model calls: "accept" records a host waiver
-for the column, "fill" fills its missing values with a value the person chose through the checked builtin.
+for the column, "fill" fills its missing values through the checked builtin, with a suggested strategy
+(led by the profiling model's imputation choice, see fill_suggestions) or a value the person typed.
 """
 from __future__ import annotations
 
@@ -58,7 +59,57 @@ def open_decisions(result) -> list[dict]:
         group["summary"] = (DROP_TEXT.get(lead["drop_reason"]) or lead["reason"]
                             or f"{lead['category'].title()} task {lead['status'].replace('_', ' ')}")
         group["detail"] = lead["reason"] if lead["drop_reason"] in DROP_TEXT else ""
+        group["suggestions"] = fill_suggestions(result, group["columns"][0]) if group["can_fill"] else []
     return list(groups.values())
+
+
+# Profiling strategies (Agent 1's imputation_strategy / imputation_plan) and the builtin that performs them.
+FILL_STRATEGIES = {"median": "fill_median", "mean": "fill_mean", "mode": "fill_mode", "most_frequent": "fill_mode"}
+FILL_LABELS = {"fill_median": "Median", "fill_mean": "Mean", "fill_mode": "Most frequent value"}
+
+
+def _profiling_hint(result, column):
+    """The profiling model's imputation choice for this column and its reasoning, if it gave one."""
+    try:
+        from pathlib import Path
+        context = json.loads((Path(result.metadata["result_path"]).parent / "cleaning_context.json").read_text(encoding="utf-8"))
+        report = context["profiling_report_copy"]
+    except (KeyError, OSError, ValueError):
+        return None, ""
+    profile = report.get("column_profiles", {}).get(column, {})
+    plan = (report.get("imputation_plan") or {}).get(column) or {}
+    strategy = str(plan.get("strategy") or profile.get("imputation_strategy") or "").strip().lower()
+    reason = str(profile.get("agent_reasoning") or profile.get("business_interpretation") or "").strip()
+    return FILL_STRATEGIES.get(strategy), reason[:240]
+
+
+def fill_suggestions(result, column):
+    """Fill options for a column with blanks, led by the profiling model's choice: each names the builtin
+    strategy and the value it would write, measured on the current final version."""
+    from .cleaning import _whole_numbers
+    try:
+        series = pd.read_csv(result.final_dataset.path, usecols=[column])[column]
+    except (OSError, ValueError, KeyError):
+        return []
+    present = series.dropna()
+    if present.empty:
+        return []
+    numeric = pd.api.types.is_numeric_dtype(series) and not pd.api.types.is_bool_dtype(series)
+    whole = _whole_numbers(series)
+    def shown(value):
+        return int(round(value)) if whole else round(float(value), 4)
+    measured = {"fill_mode": present.mode().iloc[0]}
+    if numeric:
+        measured = {"fill_median": shown(present.median()), "fill_mean": shown(present.mean()), **measured}
+        if whole:
+            measured["fill_mode"] = int(measured["fill_mode"])
+    hinted, reason = _profiling_hint(result, column)
+    if hinted not in measured:
+        hinted, reason = ("fill_median" if numeric else "fill_mode"), ""
+    order = [hinted] + [k for k in measured if k != hinted]
+    return [{"strategy": k, "label": FILL_LABELS[k], "value": measured[k], "recommended": k == hinted,
+             "source": ("profiling" if reason else "rule") if k == hinted else "measured",
+             "reason": reason if k == hinted else ""} for k in order]
 
 
 def _fill_value(frame, column, text):
@@ -104,18 +155,23 @@ def apply(state, choices):
                 entry.update(applied=True, note=note)
             else:
                 column = columns[0]
-                try:
-                    value = _fill_value(state.manager.load(state.current_ref), column, str(choice.get("value", "")).strip())
-                except ValueError:
-                    value = None
-                if value in (None, ""):
-                    state.flagged.update(previous_flags)
-                    entry.update(applied=False, error="Enter a fill value that matches the column")
-                    log.append(entry)
-                    continue
+                strategy = choice.get("strategy")
+                if strategy in FILL_LABELS:
+                    value, parameters = FILL_LABELS[strategy].lower(), {"strategy": strategy}
+                else:
+                    try:
+                        value = _fill_value(state.manager.load(state.current_ref), column, str(choice.get("value", "")).strip())
+                    except ValueError:
+                        value = None
+                    if value in (None, ""):
+                        state.flagged.update(previous_flags)
+                        entry.update(applied=False, error="Enter a fill value that matches the column")
+                        log.append(entry)
+                        continue
+                    parameters = {"strategy": "fill_constant", "fill_value": value}
                 trial = json.loads(executor.execute("test_builtin", {
                     "hypothesis": f"Host decision: fill missing {column} with {value!r}", "columns": [column],
-                    "operation": "handle_missing_values", "parameters": {"strategy": "fill_constant", "fill_value": value}},
+                    "operation": "handle_missing_values", "parameters": parameters},
                     origin="host_decision"))
                 applied = (json.loads(executor.execute("apply_candidate", {"candidate_id": trial["candidate_id"],
                            "assessment": f"Fill value chosen by host for {column}"}, origin="host_decision"))

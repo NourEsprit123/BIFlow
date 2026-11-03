@@ -216,8 +216,8 @@ def render_pending_decisions(cleaning, *, key: str) -> None:
         return
     st.subheader(f"Needs your decision ({len(items)})", anchor="decisions")
     st.caption("The agent stopped on these instead of guessing. Accepting keeps the data as it is and records your "
-               "reason in the report; filling uses the same checked builtin and marks the cells in <column>_imputed. "
-               "No model is called.")
+               "reason in the report. Filling suggests values measured on the data, led by the profiling model's "
+               "choice; it uses the same checked builtin and marks the cells in <column>_imputed. No model is called.")
     choices = {}
     for item in items:
         with st.container(border=True):
@@ -233,13 +233,23 @@ def render_pending_decisions(cleaning, *, key: str) -> None:
                                      placeholder="These blanks are acceptable for this analysis")
                 choices[item["key"]] = {"action": "accept", "note": note}
             elif choice == "Fill with a value":
-                value = st.text_input("Fill value", key=f"{key}_decision_value_{item['key']}", placeholder="Value to put in the blank cells")
-                choices[item["key"]] = {"action": "fill", "value": value}
+                suggestions = item.get("suggestions") or []
+                labels = [f"{s['label']} · {s['value']}" + (" (recommended)" if s["recommended"] else "") for s in suggestions]
+                picked = st.radio("Fill with", labels + ["Custom value"], key=f"{key}_decision_fill_{item['key']}")
+                if picked == "Custom value":
+                    value = st.text_input("Fill value", key=f"{key}_decision_value_{item['key']}", placeholder="Value to put in the blank cells")
+                    choices[item["key"]] = {"action": "fill", "value": value}
+                else:
+                    suggestion = suggestions[labels.index(picked)]
+                    if suggestion["recommended"]:
+                        st.caption(("Recommended by the profiling model: " + suggestion["reason"]) if suggestion["source"] == "profiling"
+                                   else "Recommended by default for this column type; the profiling report gave no strategy.")
+                    choices[item["key"]] = {"action": "fill", "strategy": suggestion["strategy"]}
     if st.button("Apply decisions", type="primary", key=f"{key}_apply_decisions"):
         if not choices:
             st.info("Choose Accept or Fill for at least one item first.")
             return
-        if any(c["action"] == "fill" and not c["value"].strip() for c in choices.values()):
+        if any(c["action"] == "fill" and "strategy" not in c and not c["value"].strip() for c in choices.values()):
             st.warning("Enter a fill value for each item you chose to fill.")
             return
         with st.spinner("Applying your decisions and revalidating the dataset..."):
