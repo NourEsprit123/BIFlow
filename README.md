@@ -1,864 +1,271 @@
-# 📊 BIFlow — Intelligent Business Intelligence - Multi-Agent AI System
+# 📊 BIFlow — Intelligent Business Intelligence, Multi-Agent AI System
 
 > **Transform Data into Decisions**
 
-BIFlow est une plateforme de **Business Intelligence intelligente basée sur une architecture multi-agents**.
-Son objectif est de transformer des données brutes en **informations fiables, analyses pertinentes et insights exploitables pour la prise de décision**.
-
-Le système automatise différentes étapes du processus BI : **profilage des données, contrôle de qualité, nettoyage, transformation, analyse, détection des tendances et anomalies, génération d'insights et explicabilité des résultats**.
-
----
-
-## 🎯 Objectifs du projet
-
-BIFlow vise à :
-
-* 📥 Importer des données business provenant de différentes sources.
-* 🔎 Profiler automatiquement les données.
-* 🧹 Détecter et traiter les problèmes de qualité.
-* 🔄 Nettoyer et transformer les données.
-* 📊 Calculer automatiquement les KPI.
-* 📈 Identifier les tendances importantes.
-* ⚠️ Détecter les anomalies.
-* 🧠 Générer des insights business.
-* 🔍 Expliquer les résultats produits par le système.
-* 📝 Assurer la traçabilité des transformations et des analyses.
-* 🤖 Coordonner plusieurs agents spécialisés dans un workflow BI.
-
----
-
-# 🏗️ Architecture
-
-BIFlow sépare le profilage et le nettoyage dans **4 agents spécialisés**,
-coordonnés par l'orchestrateur :
+BIFlow transforme un fichier de données brut en analyses BI expliquées, grâce à **quatre agents spécialisés** enchaînés dans un pipeline LangGraph et pilotés depuis une interface Streamlit.
 
 ```text
-                    ┌─────────────────────────────┐
-                    │   Data Profiling Agent    │
-                    │ LLM reasoning • checks    │
-                    └─────────────┬───────────────┘
-                                  │ ProfilingReport 2.1
-                                  ▼
-                    ┌─────────────────────────────┐
-                    │    Data Cleaning Agent     │
-                    │ LLM tools • versions       │
-                    └─────────────────────────────┘
+  Dataset brut (data/raw)
+        │
+        ▼
+ ┌────────────────────┐   rapport de profilage    ┌────────────────────┐
+ │ 1. Data Profiling  │ ────────────────────────▶ │ 2. Data Cleaning   │
+ │ profil, qualité,   │                           │ nettoyage versionné│
+ │ plan d'imputation  │                           │ validé et tracé    │
+ └────────────────────┘                           └─────────┬──────────┘
+                                                            │ data/cleaned/<dataset>_cleaned.csv
+                                                            ▼
+                         ┌────────────────────┐   ┌────────────────────┐
+                         │ 4. XAI Auditor     │ ◀─│ 3. BI Analyst      │
+                         │ SHAP, audit,       │   │ KPIs, graphiques,  │
+                         │ explications       │   │ recommandations    │
+                         └────────────────────┘   └────────────────────┘
 ```
 
-### 🤖 Agents
+| Agent | Rôle | Moteur LLM | Code principal |
+| --- | --- | --- | --- |
+| 1 · Data Profiling | Statistiques déterministes, contrôles qualité, interprétation LLM, rapport de profilage (types cibles, valeurs manquantes, anomalies, plan d'imputation) | Ollama local ou Gemini (`LLM_PROVIDER`) | `agents/data_engineering_agent.py` |
+| 2 · Data Cleaning | Nettoyage piloté par le rapport : une tâche à la fois, outils contrôlés, code généré exécuté seulement dans Docker, chaque changement testé puis versionné | Ollama local (expert Groq optionnel) | `agents/dataCleaning_agent.py`, `dataCleaningTools/` |
+| 3 · BI Analyst | KPIs, graphiques et recommandations sur le dataset **nettoyé** | Qwen 2.5 3B fine-tuné (LoRA, GPU) ou API cloud Groq/Gemini | `agents/bi_analyst_agent.py` |
+| 4 · XAI Auditor | Explicabilité SHAP, empreintes SHA-256, rapport d'audit | Ollama local ou Groq/Gemini | `agents/xai_auditor_agent.py` |
 
-| Agent | Responsabilité |
-| --- | --- |
-| 🔎 **Data Profiling Agent** | Profilage déterministe, interprétation LLM et rapport de profil validé |
-| 🧹 **Data Cleaning Agent** | Interprétation du rapport, choix d'outils LLM, nettoyage versionné et validation |
-
-The two agents keep separate LLM clients and control loops. Agent 1 hands Agent
-2 a validated `ProfilingReport` (schema 2.1); Agent 1 uses an Ollama or Gemini
-JSON client, while Agent 2 uses local Ollama function calling and registered tools.
-Both can request custom, read-only checks whose generated Python runs only
-through the isolated sandbox runner.
+L'orchestration est dans `orchestration/graph.py` ; l'interface dans `dashboard/`.
 
 ---
 
-# 📁 Structure du projet
+## ✅ Prérequis
 
-```text
-BIFlow/
-│
-├── data/
-│   ├── raw/
-│   │   └── telco_churn.csv
-│   ├── cleaned/
-│   └── processed/
-│
-├── agents/
-│   ├── data_engineering_agent.py
-│   ├── bi_analyst_agent.py
-│   └── xai_auditor_agent.py
-│
-├── analytics/
-│   ├── profiler.py
-│   ├── data_quality.py
-│   ├── cleaning.py
-│   ├── transformation.py
-│   ├── etl.py
-│   ├── kpi.py
-│   ├── trend_detection.py
-│   ├── anomaly_detection.py
-│   ├── segmentation.py
-│   └── churn_model.py
-│
-├── auth/
-│   ├── __init__.py
-│   └── service.py
-│
-├── explainability/
-│   ├── shap_explainer.py
-│   ├── lineage.py
-│   └── audit.py
-│
-├── orchestration/
-│   └── graph.py
-│
-├── api/
-│   └── main.py
-│
-├── dashboard/
-│   └── app.py
-│
-├── models/
-│
-├── tests/
-│   ├── test_profiling.py
-│   ├── test_cleaning.py
-│   └── test_kpi.py
-│
-├── requirements.txt
-├── .gitignore
-└── README.md
-```
+| Outil | Obligatoire ? | Utilisé par |
+| --- | --- | --- |
+| **Python 3.11+** (testé avec 3.12) | Oui | Tout le projet |
+| **Git** | Oui | Récupérer le projet |
+| **[Ollama](https://ollama.com/download)** | Oui | Agent 2 (nettoyage) ; agent 1 et 4 en mode local |
+| **Docker Desktop** (conteneurs Linux) | Fortement recommandé | Bac à sable du code généré par l'agent 2 |
+| Clé **Gemini** | Optionnel | Agent 1 avec `LLM_PROVIDER=gemini` |
+| Clé **Groq** | Recommandé | Agents 3 et 4 en mode cloud ; expert de l'agent 2 |
+| GPU NVIDIA + poids LoRA | Optionnel | Agent 3 en mode local |
+
+Sans Docker, le nettoyage fonctionne avec les opérations intégrées, mais le code généré par le modèle n'est jamais exécuté (pas de repli sur la machine hôte).
 
 ---
 
-# 🛠️ Technologies utilisées
+## 🚀 Installation et lancement (pas à pas)
 
-BIFlow est développé principalement avec :
+Toutes les commandes se lancent **depuis la racine du projet** (le dossier qui contient `README.md`). Exemples pour Windows PowerShell.
 
-* **Python 3.11+**
-* **Pandas** — manipulation et analyse des données
-* **NumPy** — calcul numérique
-* **Scikit-learn** — Machine Learning et détection d'anomalies
-* **Matplotlib** — visualisation
-* **Seaborn** — visualisation statistique
-* **Streamlit** — interface utilisateur
-* **OpenPyXL** — traitement des fichiers Excel
-
-D'autres technologies pourront être ajoutées progressivement selon l'évolution du projet.
-
----
-
-# 🚀 Installation du projet
-
-## 1. Prérequis
-
-Avant de commencer, vérifier que les éléments suivants sont installés :
-
-* Python
-* Git
-* VS Code — recommandé
-
-Vérifier Python :
-
-```powershell
-python --version
-```
-
-Vérifier Git :
-
-```powershell
-git --version
-```
-
----
-
-# 📥 2. Cloner le projet
-
-Ouvrir PowerShell ou le terminal VS Code.
-
-Cloner le dépôt GitHub :
+### 1. Cloner le projet
 
 ```powershell
 git clone https://github.com/NourEsprit123/BIFlow.git
-
-Entrer dans le projet :
-
-```powershell
 cd BIFlow
 ```
 
----
-
-# 🐍 3. Créer l'environnement virtuel
-
-Créer un environnement virtuel Python :
+### 2. Créer l'environnement Python et installer les dépendances
 
 ```powershell
 python -m venv .venv
-```
-
-L'environnement `.venv` permet d'isoler les dépendances du projet des autres projets Python présents sur la machine.
-
----
-
-# ▶️ 4. Activer l'environnement virtuel
-
-Sous **Windows PowerShell** :
-
-```powershell
 .venv\Scripts\Activate.ps1
-```
-
-Si l'activation fonctionne, le terminal devrait afficher quelque chose comme :
-
-```text
-(.venv) PS D:\BIFlow>
-```
-
-### En cas de problème PowerShell
-
-Si PowerShell bloque l'exécution des scripts, utiliser :
-
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-Puis réactiver :
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
----
-
-# 📦 5. Installer les dépendances
-
-Une fois l'environnement virtuel activé :
-
-```powershell
 pip install -r requirements.txt
 ```
 
-Cette commande installe automatiquement toutes les bibliothèques nécessaires au projet.
+Si PowerShell bloque l'activation : `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`, puis réactiver.
 
----
-
-# ✅ 6. Vérifier l'installation
-
-Vous pouvez également vérifier les packages installés avec :
+### 3. Configurer `.env`
 
 ```powershell
-pip list
+Copy-Item .env.example .env
 ```
 
----
+Ouvrez `.env` et renseignez au minimum :
 
-# 📊 7. Vérifier les données
+* `OLLAMA_MODEL` et `BIFLOW_CLEANING_OLLAMA_MODEL` : les modèles Ollama installés à l'étape 4 ;
+* `GROQ_API_KEY` : pour le BI Analyst et le XAI Auditor en mode cloud ;
+* `GEMINI_API_KEY` et `LLM_PROVIDER=gemini` si vous voulez le profilage via Gemini.
 
-Le dataset utilisé par BIFlow doit être placé dans :
+Ne commitez jamais `.env` (il est ignoré par Git). Si vous avez déjà un `.env`, ne l'écrasez pas : ajoutez seulement les nouvelles variables de `.env.example`.
 
-```text
-data/raw/
-```
+### 4. Installer les modèles Ollama
 
-Par exemple :
-
-```text
-data/
-└── raw/
-    └── telco_churn.csv
-```
-
-Le dossier `data/raw/` contient les **données originales**.
-
-Les données nettoyées seront ensuite placées dans :
-
-```text
-data/cleaned/
-```
-
-et les données transformées dans :
-
-```text
-data/processed/
-```
-
----
-
-# 🖥️ 8. Lancer l'application BIFlow
-
-L'interface utilisateur est développée avec **Streamlit**.
-
-Depuis la racine du projet :
+Démarrez Ollama, puis téléchargez les modèles indiqués dans `.env` :
 
 ```powershell
-streamlit run dashboard/app.py
+ollama pull qwen2.5:7b
 ```
 
-Streamlit démarre alors l'application BIFlow.
+L'agent de nettoyage a été évalué avec `qwen3:8b` (`ollama pull qwen3:8b`, puis `BIFLOW_CLEANING_OLLAMA_MODEL=qwen3:8b`). Vérifiez avec `ollama list`.
 
-L'interface est accessible depuis le navigateur à l'adresse indiquée par Streamlit, généralement :
+### 5. Construire le bac à sable Docker du nettoyage
 
-```text
-http://localhost:8501
-```
-
-## Tests
-
-Depuis le dossier `BIFlow`, lancez les tests hors ligne avec :
-
-```powershell
-python -m pytest -q
-```
-
-Le script manuel `python test_smoke.py` vérifie également la connexion à Ollama ;
-il nécessite un serveur Ollama actif et le modèle configuré dans `.env`.
-
-## Comptes BIFlow
-
-Les boutons **Sign up** et **Sign in** utilisent une base SQLite locale.
-Les nouveaux comptes sont enregistrés dans `data/biflow_auth.sqlite3` ; les
-mot de passe sont stockés sous forme de hachages et non en clair. Le mot de
-passe doit contenir au moins 8 caractères, une lettre majuscule et un caractère
-spécial. Cette règle s'applique à l'inscription et à la réinitialisation.
-
-Par défaut, la base reste sur cette machine et n'est pas suivie par Git. Pour
-choisir un autre emplacement, définissez la variable d'environnement
-`BIFLOW_AUTH_DB` avant de démarrer Streamlit. **Forgot password?** envoie un
-code à usage unique par e-mail ; ce code expire après 30 minutes. Configurez
-SMTP dans `.env` à partir du modèle `.env.example` :
-
-* `BIFLOW_SMTP_HOST` et `BIFLOW_SMTP_FROM` sont obligatoires ;
-* `BIFLOW_SMTP_PORT` vaut `587` par défaut (STARTTLS) ;
-* `BIFLOW_SMTP_USE_SSL=true` active TLS direct, habituellement avec le port `465` ;
-* `BIFLOW_SMTP_USER` et `BIFLOW_SMTP_PASSWORD` sont facultatifs ensemble, selon
-  le fournisseur.
-
-Copiez `.env.example` vers `.env`, puis remplacez les valeurs par celles de votre
-fournisseur SMTP. Ne partagez pas et ne commitez jamais le fichier `.env`.
-Les pages internes nécessitent une session connectée et le bouton **Sign out**
-ferme la session.
-
----
-
-# 🧭 9. Interface BIFlow
-
-L'application contient plusieurs espaces :
-
-### 🏠 Overview
-
-Vue générale du dataset actif : dimensions, score de qualité et activité des
-agents. **Run Data Profiling Agent** lance le profilage et les contrôles de
-qualité ; **Create analysis** ouvre l'analyse correspondante.
-
-### 📁 Data
-
-La page **Datasets** importe les fichiers CSV, Excel ou Parquet vers
-`data/raw/`, affiche leurs dimensions et permet de filtrer la liste. Le dataset
-actif se choisit dans la barre latérale et est utilisé par les autres pages.
-Les connecteurs de bases de données et de services cloud ne sont pas configurés
-dans cette version.
-
-### ⛓ Workflows
-
-Sélectionnez les tâches à lancer : profilage, audit qualité, nettoyage
-versionné, analyse KPI et vérification du rapport. **Run BIFlow Pipeline**
-exécute les tâches choisies sur le dataset actif. **Save as template** conserve
-la configuration dans la session Streamlit en cours.
-
-Le nettoyage écrit une copie versionnée sous `data/versions/dashboard/` et ne
-modifie pas le fichier source. La page permet de télécharger le rapport de
-profilage et, après nettoyage, le CSV résultant.
-
-Profiling reuses a matching saved report from `data/reports/profilingReports/` before invoking
-the profiling model, including after a session restart and when cleaning needs
-a report. New reports record a SHA-256 fingerprint of the source. Legacy reports
-without a fingerprint require a matching source path, filename, size, dimensions
-and columns, with a report newer than the source; these checks do not provide
-the same content guarantee as a hash. Missing, invalid or stale reports trigger
-fresh profiling. To deliberately rerun the model, select **Regenerate profiling
-report** on the Profiling page, then run the agent. Reused reports are identified
-in the UI; deterministic statistics are recomputed locally without an LLM call.
-
-Cleaning exports JSON reports to `data/reports/cleaningReports/` in the dashboard.
-`<dataset>_cleaning_report.json` is the latest report; a file including the run ID
-preserves each exported run. Reports contain measured before/after statistics,
-source and final dataset references, model explanations, applied and rejected
-transformations, validation, exceptions and the execution trace. Export uses the
-saved results and deterministic measurements, without an additional LLM request.
-The Data Quality and Workflows pages provide a cleaning-report JSON download.
-Per-run `cleaning_result.json` files remain in the version directories for recovery.
-The CLI defaults to a reports/cleaningReports directory beside its versions folder;
-Python callers can set report_root explicitly. Profiling reports are read only
-from data/reports/profilingReports; the former location is no longer used.
-
-### 🧹 Data Quality
-
-Les métriques et problèmes sont calculés sur le fichier actif. **Run quality
-audit** génère le rapport du Data Profiling Agent ; **Run safe cleaning**
-exécute les transformations permises par la politique de nettoyage et garde
-l'original intact.
-
-### 📊 Analytics
-
-L'analyse affiche les statistiques descriptives et distributions calculées à
-partir des données actives. Un taux de churn est calculé uniquement si le
-dataset contient une colonne `Churn` ou `Is_Churn`. Les résultats peuvent être
-téléchargés en JSON.
-
-### 🤖 AI Agents
-
-Les boutons d'agent dans la barre supérieure lancent réellement les fonctions
-disponibles sur le dataset actif :
-
-* **Agent 1 · Data Profiling** : statistiques et contrôles déterministes, interprétation LLM, et rapport remis à l'agent de nettoyage ;
-* **Agent 2 · Data Cleaning** : le LLM sélectionne les outils de nettoyage enregistrés, demande des contrôles personnalisés en sandbox si nécessaire, et conserve une copie versionnée.
-
-Le pipeline enchaîne quatre étapes, affichées dans la barre du haut :
-
-* **Data Profiling** (profiling agent) : profil, qualité et rapport de profiling ;
-* **Data Cleaning** (Data Cleaning Agent) : nettoyage tracé, versions, approbations et décisions ;
-* **BI Analyst** : KPIs et Dashboards ;
-* **XAI Auditor** : XAI.
-
-Les modes de secours déterministes sont indiqués explicitement ; ils ne sont pas
-présentés comme des exécutions LLM. Les contrôles de qualité, KPIs, exports et
-vérifications d'audit des autres pages sont des fonctions de l'application, pas
-des agents supplémentaires. **Agent Ops** montre l'activité de la session
-courante ; aucun pool d'agents persistant ni connecteur de télémétrie n'est configuré.
-
-### 🔍 Audit
-
-Espace dédié à :
-
-* l'explicabilité ;
-* la traçabilité ;
-* la justification des résultats ;
-* l'audit des transformations.
-
----
-
-# 🔄 Workflow BIFlow
-
-Le fonctionnement global de BIFlow peut être résumé comme suit :
-
-```text
-       DATASET
-          │
-          ▼
-   ┌──────────────┐
-   │   PROFILING  │
-   └──────┬───────┘
-          │
-          ▼
-   ┌──────────────┐
-   │ DATA QUALITY │
-   └──────┬───────┘
-          │
-          ▼
-   ┌──────────────┐
-   │    CLEAN     │
-   └──────┬───────┘
-          │
-          ▼
-   ┌──────────────┐
-   │     ETL      │
-   └──────┬───────┘
-          │
-          ▼
-   ┌──────────────┐
-   │   ANALYSIS   │
-   └──────┬───────┘
-          │
-          ▼
-   ┌──────────────┐
-   │ KPI / TRENDS │
-   │ / ANOMALIES  │
-   └──────┬───────┘
-          │
-          ▼
-   ┌──────────────┐
-   │    XAI       │
-   └──────┬───────┘
-          │
-          ▼
-   ┌──────────────┐
-   │   INSIGHTS   │
-   └──────────────┘
-```
-
----
-
-# 👥 Organisation du travail avec Git
-
-Chaque membre de l'équipe travaille sur sa propre branche.
-
-Exemple :
-
-```text
-main
-│
-├── feature/orchestrator
-├── feature/data-engineering
-├── feature/bi-analyst
-├── feature/xai-auditor
-└── feature/streamlit-dashboard
-```
-
-## Créer une branche
-
-Exemple :
-
-```powershell
-git checkout -b feature/data-engineering
-```
-
-Après avoir travaillé :
-
-```powershell
-git add .
-```
-
-Puis :
-
-```powershell
-git commit -m "Implement data profiling"
-```
-
-Envoyer la branche vers GitHub :
-
-```powershell
-git push origin feature/data-engineering
-```
-
-Ensuite, une **Pull Request** peut être créée sur GitHub afin de fusionner le travail dans `main`.
-
----
-
-# 🔐 Variables d'environnement
-
-Les clés API et informations sensibles ne doivent **jamais être directement écrites dans le code source**.
-
-Utiliser un fichier `.env` local :
-
-```text
-LLM_PROVIDER=ollama
-OLLAMA_HOST=http://localhost:11434
-OLLAMA_MODEL=qwen2.5:7b
-GEMINI_MODEL=gemini-3.6-flash
-GEMINI_API_KEY=your_api_key
-BIFLOW_CLEANING_OLLAMA_MODEL=qwen2.5:7b
-BIFLOW_OLLAMA_NUM_CTX=8192
-BIFLOW_OLLAMA_NUM_PREDICT=1024
-```
-
-Le fichier `.env` est ignoré par Git grâce au `.gitignore`.
-L'agent de profilage utilise `LLM_PROVIDER=ollama` ou `LLM_PROVIDER=gemini`;
-Ollama est le choix par défaut. Les erreurs du fournisseur de profilage sont
-remontées au lieu d'être transformées en réponses JSON vides. L'agent de nettoyage utilise uniquement Ollama local. Aucune clé API cloud n'est nécessaire pour cet agent; le profilage conserve sa configuration indépendante.
-
-Pour partager la structure des variables nécessaires avec l'équipe, utiliser plutôt :
-
-```text
-.env.example
-```
-
-Exemple :
-
-```text
-GEMINI_API_KEY=
-```
-
----
-
-# 🧪 Tests
-
-Les tests automatisés sont regroupés dans :
-
-```text
-tests/
-```
-
-Exemples :
-
-```text
-tests/
-├── test_profiling.py
-├── test_cleaning.py
-└── test_kpi.py
-```
-
-Les tests peuvent être exécutés avec :
-
-```powershell
-pytest
-```
-
----
-
-# 📌 Principes de développement
-
-BIFlow suit quelques principes importants :
-
-### 1. Séparer le calcul de l'interprétation
-
-Les calculs déterministes sont réalisés avec Python :
-
-```text
-Pandas
-NumPy
-Scikit-learn
-```
-
-Le modèle de langage est utilisé principalement pour :
-
-```text
-Interprétation
-Génération d'insights
-Explications
-Recommandations
-```
-
-### 2. Modularité
-
-Chaque fonctionnalité est développée dans un module indépendant afin de faciliter :
-
-* le travail en équipe ;
-* les tests ;
-* la maintenance ;
-* l'évolution du système.
-
-### 3. Traçabilité
-
-Les transformations et résultats produits par BIFlow doivent pouvoir être expliqués et retracés.
-
----
-
-# 📚 Guides Techniques & Documentation des Agents
-
-| Document | Description |
-| :--- | :--- |
-| 🚀 [**Guide d'Exécution BI Analyst (LoRA & API)**](docs/RUN_BI_ANALYST_FINETUNED_AGENT.md) | **Guide pas-à-pas** pour exécuter le BI Analyst Agent, configurer le modèle fine-tuné local Qwen 2.5 3B (LoRA en 4-bit) ou basculer en mode Cloud API (Groq/Gemini). |
-| 📊 [**Guide & Stratégie Fine-Tuning BI Agent**](docs/BI_ANALYST_AGENT_AND_FINETUNING_GUIDE.md) | Justification théorique et technique du fine-tuning QLoRA pour l'Agent 2 et arguments pour la soutenance. |
-| 📓 [**Notebook Colab Fine-Tuning Qwen LoRA**](docs/COLAB_FINETUNING_NOTEBOOK_QWEN_LORA.md) | Procédure complète pour reproduire l'entraînement LoRA sur GPU T4 gratuit (Google Colab). |
-| 🛠️ [**Master Guide Évaluation Data Engineering**](docs/DATA_ENGINEERING_AGENT_MASTER_EVALUATION_GUIDE.md) | Guide d'évaluation empirique, benchmarks de profilage et LLM-as-a-Judge de l'Agent 1. |
-| 🔬 [**Sandbox Deep Dive**](docs/SANDBOX_DEEP_DIVE.md) | Analyse détaillée de la génération de code Python dynamique et exécution sandboxée sécurisée. |
-
----
-
-# 🔮 Évolutions prévues
-
-Les fonctionnalités suivantes pourront être intégrées progressivement :
-
-* 🤖 intégration complète des agents IA ;
-* 🧠 intégration d'un LLM ;
-* 🔍 système d'explicabilité avancé ;
-* 📚 RAG pour enrichir les analyses ;
-* 📝 versionnement des prompts ;
-* 📊 évaluation des performances ;
-* 🔄 orchestration complète du workflow ;
-* 📈 dashboards BI avancés ;
-* 🧪 tests automatisés plus complets.
-
----
-
-# 👨‍💻 Équipe
-
-**Projet académique — BIFlow**
-
-> Intelligent Business Intelligence
-> *Transform Data into Decisions.*
-
-
-## Cleaning acceptance and execution trace
-
-Agent 2 evaluates each transformation on a candidate DataFrame before committing
-it. Checks reject unexpected row/column changes and changes to unselected columns.
-Invalid nonsensical entries may be converted to NaN; there is no blanket
-no_new_missing rejection. Conversion targets,
-requested imputation, and duplicate removal have additional operation-specific
-checks. A rejected attempt is logged against the unchanged working version.
-The model must explain which entries are invalid and parse recognizable numeric
-representations instead of discarding them. Every populated-to-missing conversion
-is audited, and committed new NaNs become later missing-value tasks even if the
-profiling report did not originally identify missing values.
-
-Numeric conversion/imputation also checks the meaning of supported numeric
-representations independently of the model's code: `1.5k` must remain `1500`,
-and recognizable currency amounts cannot disappear as NaN. Common English
-number phrases are included; unknown tokens can still become NaN. Every
-input/expected/actual mismatch is reported, and full-data application reruns
-the checks. Captured Docker warnings reach local correction and Groq context,
-including guidance for chained inplace assignments that did not update a column.
-
-Each accepted change records its rationale, supporting profiling/inspection
-references, before/after shape, missing counts, dtypes, duplicate counts, acceptance
-checks, and up to five changed-value examples. These checks establish the stated
-technical conditions; they do not establish that an imputation is appropriate for
-the business question. Custom checks remain sampled and read-only.
-
-Final validation is enforced independently of the LLM's `finish` message. It
-checks required columns, reported cast targets, reported missing values, and
-unresolved/rejected actions. Mutations invalidate earlier validation. Failed
-validation produces a FAILED dataset reference, and workflow KPI analysis is
-skipped. Dry runs remain NOT_RUN. Each run has its own version directory under
-`data/versions/dashboard/<run>/<dataset>/`, preserving earlier experiments.
-
-The Data Quality, Workflows, and Agent Ops pages show the full execution trace,
-with expandable inspection results, action parameters, evidence, measured effects,
-rejected candidates, and final validation rules. Runs also stream tool events as
-they complete. Download the JSON trace to retain the full run and evidence catalog.
-Older session results do not contain this trace and must be rerun to capture it.
-
-
-## Workspace controls
-
-The authenticated workspace uses a light theme and a dataset selector above the
-agent cards. The selector is searchable and its choice persists across pages.
-Dataset search lives in the Datasets library, where every readable file has a
-preview and a Use dataset action. Uploading selects the imported file immediately.
-The two available agents have circular badges, live status, run actions, and links
-to their reports. Workflow templates can be saved and restored in the session.
-
-
-## Cleaning loop completion and diagnostics
-
-LLM turns require a registered tool call. Narrative-only responses are retried up
-to three consecutive times, and premature `finish` calls receive failed validation
-rules before a bounded opportunity to continue. Every action still passes the
-same acceptance checks. Remaining ambiguity or approval requirements can be
-reported explicitly as unresolved; they are never bypassed to force a pass.
-
-Model feedback summarizes transformation effects instead of repeating every
-passed rule. At most four recent complete exchanges remain in context, with older
-actions summarized. Local malformed tool calls receive one bounded regeneration
-attempt. Rejected generations are never executed or silently renamed. Requests
-and runs have explicit time limits and repeated identical calls on unchanged data
-stop as stalled. Multiple independent tool calls may share a model turn.
-
-Each run saves `execution_trace.json` after every tool event and provider error,
-and `cleaning_result.json` on normal finalization. These contain full local audit
-evidence, stop reason, provider error type/status, response finish reason and token
-usage when available. The UI displays the provider error and remaining rules.
-Saved results can be recovered after session loss when the source file signature
-and, if present, the current profiling report match. Older runs without these
-files cannot retrospectively recover provider errors.
-
-
-## Sandbox-based cleaning method experiments
-
-Agent 2 exposes seven tools: `inspect_data`, `test_builtin`, `test_generated`, `apply_candidate`,
-`flag_for_review`, `complete_task`, and `finish`. The shared prompt (`dataCleaningTools/prompts/cleaning.md`)
-and category guidance (`dataCleaningTools/prompts/categories.json`) drive one small
-repair at a time. A queue derived from Agent 1's existing report covers understanding,
-formatting, types/invalid values, duplicates, missing values, outliers, domain rules,
-and final validation. Only the active task's columns and detailed evidence are sent;
-earlier conversations stay in the audit. Type conversion preserves existing nulls
-for the later missing-value task. Measured tasks advance after dataset checks;
-advisory findings require a recorded assessment. There are no model-supplied issue IDs.
-After four unsuccessful local corrections, Groq can author one replacement method, tested by the same Docker and full-data checks. Docker unavailability stops the run; there is no builtin fallback after selecting generated execution. Builtin
-trials run once on a full-data copy. Generated code retains isolated trials.
-It can generate a Python `transform(df)` function, test it on random disjoint
-sample/holdout copies, inspect the measured effects, revise a failed method, and
-promote a passing candidate. The candidate records source-version and file hashes,
-code SHA-256, outcome checks, and the exact Docker image ID.
-Application takes a candidate ID and an assessment of the trial, then reruns the unchanged code on the full
-current dataset in that pinned image, and commits only after independent checks
-pass. Changed code, a changed version, or changed source bytes require a new trial.
-
-Each sandbox invocation executes the method twice with fresh namespaces and fixed
-random seeds, rejecting nonrepeatable output. This checks repeatability on the
-provided data, not universal determinism or business correctness. Samples and
-holdouts are limited to 500 rows each (200 by default); one-row datasets explicitly
-report that no independent holdout is available. Full-data checks always run.
-
-Generated transformations currently preserve rows, index/order, columns, and
-unselected values. They may parse, normalize, impute, or implement statistical/ML
-methods using pandas, NumPy and scikit-learn. Existing policy-controlled tools
-handle structural changes. Each method declares at least one independently
-checked outcome (numeric, integer, boolean, datetime, string, no_missing,
-non_negative, or unique). Structural/scope checks and final run validation
-also apply; invalid-value coercions to NaN are allowed and audited. Trials report distributions, missing counts, types, changed-value
-examples, and every acceptance rule; semantic correctness remains an evaluation
-question for the team.
-
-Start Docker Desktop with Linux containers and, from the project root, build:
+Démarrez Docker Desktop, puis :
 
 ```powershell
 docker build -t biflow-cleaning-sandbox:latest -f sandbox/Dockerfile sandbox
 ```
 
-Optionally set `BIFLOW_EXPERIMENT_IMAGE` to another compatible local image. The
-runner never pulls images or installs packages during experiments. It runs as a
-nonroot user with a read-only root filesystem, no host mounts, no network, dropped
-capabilities, no privilege escalation, 768 MB memory, one CPU, 64 processes, bounded
-temporary storage, and a 60-second execution watchdog. Input JSON is streamed
-through stdin and bounded JSON results return through stdout. Generated Python
-is never executed on the host, including when Docker is unavailable. This route
-is independent of the development-only host fallback in the older sandbox helper.
+À faire une seule fois par machine. L'image doit correspondre à `BIFLOW_EXPERIMENT_IMAGE` dans `.env`.
 
-The Data Quality page includes a runtime check and setup command. The execution
-trace shows generated source, sample/holdout results, effects, and full-data
-promotion/rejection. Candidate code and reports are saved under each run's
-`experiments/<candidate_id>/` directory, and linked from the applied change log.
-A sample passing is never displayed as an applied change.
-
-
-## Local cleaning: setup and performance
-
-Cleaning code generation uses Ollama, with `qwen2.5:7b` by default. An optional
-[Groq code generator](docs/expert-generation.md) authors a complete replacement only after four failed local corrections. Its code must pass Docker and full-data checks before application. Profiling's `LLM_PROVIDER`
-configuration remains independent. Old cleaning provider/fallback variables are
-ignored. The native message adapter follows the
-[Ollama tool-calling API](https://github.com/ollama/ollama/blob/main/docs/api.md).
-
-For a fresh checkout on another computer:
+### 6. Lancer l'application
 
 ```powershell
-python -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements.txt
-Copy-Item .env.example .env
-ollama run qwen2.5:7b
+streamlit run dashboard/app.py
 ```
 
-Do not overwrite an existing `.env`; update its cleaning settings from the new
-example. In particular, older `BIFLOW_OLLAMA_TIMEOUT=180` values override the new
-90-second default until updated. Neither `.env` nor `.venv` is transferred in Git.
-The sandbox image must also be built on that computer to run generated methods.
+Ouvrez <http://localhost:8501>. Lancez toujours Streamlit depuis la racine du projet : sinon le thème et la configuration de `.streamlit/` ne sont pas chargés.
 
-Cleaning defaults are now:
+### 7. Premier passage complet
 
-| Setting | Default | Meaning |
+1. **Créez un compte** (Sign up), puis connectez-vous. Les comptes sont stockés localement dans `data/biflow_auth.sqlite3`.
+2. **Choisissez un dataset** : 15 jeux d'exemple sont fournis dans `data/raw/`, ou importez un CSV, Excel ou Parquet depuis la page **Datasets**.
+3. Ouvrez **Workflows**, choisissez **qui prend les décisions de nettoyage** (voir plus bas), puis lancez le pipeline.
+4. Suivez les quatre étapes dans la barre du haut : Data Profiling → Data Cleaning → BI Analyst → XAI Auditor.
+5. Si le nettoyage attend votre avis, validez les changements et décisions dans le panneau du nettoyage ; le dataset nettoyé est republié et le BI Analyst l'utilise automatiquement.
+
+Chaque agent peut aussi être lancé seul depuis sa page.
+
+---
+
+## 🧭 L'interface
+
+| Page | Contenu |
+| --- | --- |
+| Overview | Vue d'ensemble du dataset actif et activité des agents |
+| Datasets | Import, aperçu et choix du dataset actif ; liste des datasets bruts et nettoyés |
+| Workflows | Lancement du pipeline complet, choix du mode de décision |
+| Profiling / Quality | Agent 1 : profil, problèmes de qualité, rapport (régénérable) |
+| Cleaning | Agent 2 : progression en direct, résultat validé, approbations, décisions, rapports |
+| BI Analysis | Agent 3 : KPIs et graphiques sur le dataset nettoyé, choix local LoRA / cloud |
+| Audit XAI | Agent 4 : explications SHAP et audit |
+
+### Modes de décision du nettoyage
+
+Près du bouton de lancement (Workflows et Cleaning) :
+
+* **Rester dans la boucle** (par défaut) : les changements sensibles (valeurs aberrantes, suppression de doublons par clé métier) attendent votre approbation ; les points que l'agent ne peut pas trancher arrivent dans « Needs your decision », avec des suggestions de remplissage issues du profilage.
+* **Laisser le modèle décider** : ces changements sont appliqués dès que leurs tests passent, puis le modèle règle les points restants (doublons exacts supprimés, valeurs manquantes remplies et marquées, le reste conservé avec la raison). Le résultat vise un dataset entièrement validé sans intervention.
+
+Dans les deux modes, chaque valeur estimée est signalée dans une colonne `<colonne>_imputed`, et le fichier source n'est jamais modifié.
+
+---
+
+## 📂 Où sont les données
+
+| Dossier | Contenu | Dans Git ? |
 | --- | --- | --- |
-| `BIFLOW_CLEANING_MAX_TURNS` | 12 | Maximum model decisions, not a target action count |
-| `BIFLOW_CLEANING_MAX_SECONDS` | 300 | Cleaning time budget, checked before requests, tools and commits |
-| `BIFLOW_OLLAMA_TIMEOUT` | 90 | Per-model-request wall limit, also bounded by remaining run time |
-| `BIFLOW_OLLAMA_NUM_CTX` | 8192 | Local model context allocation |
-| `BIFLOW_OLLAMA_NUM_PREDICT` | 1024 | Maximum generated tokens per response |
+| `data/raw/` | Datasets sources (exemples fournis + imports) | Oui (exemples) |
+| `data/cleaned/` | `<dataset>_cleaned.csv`, dernière version validée, lue par les agents 3 et 4 | Non |
+| `data/reports/` | Rapports de profilage et de nettoyage (JSON) | Non |
+| `data/versions/` | Historique complet de chaque nettoyage : versions V0, V1…, journal, trace, code généré | Non |
+| `data/evaluation/` | Résultats du benchmark de nettoyage | Non |
+| `data/biflow_auth.sqlite3` | Comptes utilisateurs (mots de passe hachés) | Non |
 
-The previous 25-turn default was a manually chosen safety cap. The agent can
-finish much earlier, and one turn can execute multiple tools. Lowering that cap
-bounds exploration; it does not speed up one inference request. Context and output
-budgets, compact evidence, short explanations, avoiding repeated inspections and
-batching independent operations address inference cost. The model is kept warm
-for 15 minutes between requests.
+Les dossiers générés sont créés automatiquement au premier usage.
 
-The Data Quality page has a **Local model speed and run limits** panel. It exposes
-the model-turn and run-time budgets, shows local inference settings, and explains
-`ollama ps`. Its PROCESSOR column reveals whether the model is using GPU, CPU, or
-both. With limited VRAM, increasing context may cause memory pressure/offloading;
-see the [official Ollama FAQ](https://github.com/ollama/ollama/blob/main/docs/faq.mdx).
-No actual speedup on a particular computer is guaranteed by changing defaults.
+---
 
-While waiting for a model response, the UI updates elapsed time every second.
-The saved trace separates request time, model loading, prompt evaluation,
-generation, tokens per second, and tool execution. A request that exceeds its wall
-budget is abandoned and cannot trigger a later tool execution; its HTTP worker
-also has a matching socket timeout. An already-running sandbox invocation can take
-up to its own 60-second limit to return, but an expired cleaning budget prevents
-promotion/commit and starting further trials. Initial profiling, when needed, is
-a separate step with its own provider settings.
+## ⚙️ Configuration (`.env`)
 
-Builtin operations are preferred by default; generated code is used only when no
-builtin can express the rule. Check **Encourage sandbox method experimentation**
-when evaluating generated methods; validation and isolation checks apply in both modes.
+| Variable | Défaut (`.env.example`) | Rôle |
+| --- | --- | --- |
+| `LLM_PROVIDER` | `ollama` | Agent 1 : `ollama` ou `gemini` |
+| `OLLAMA_HOST`, `OLLAMA_MODEL` | `http://127.0.0.1:11434`, `qwen2.5:7b` | Ollama pour les agents 1 et 4 |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | vide, `gemini-3.6-flash` | Profilage via Gemini |
+| `GROQ_API_KEY`, `GROQ_MODEL` | vide, `llama-3.3-70b-versatile` | Agents 3 et 4 en mode cloud |
+| `BIFLOW_CLEANING_OLLAMA_MODEL` | `qwen2.5:7b` | Modèle de l'agent de nettoyage |
+| `BIFLOW_EXPERIMENT_IMAGE` | `biflow-cleaning-sandbox:latest` | Image Docker du code généré |
+| `BIFLOW_DOCKER_TIMEOUT` | `30` | Attente maximale des réponses Docker (s) |
+| `BIFLOW_CLEANING_MAX_TURNS` / `_TURNS_PER_TASK` | `24` / `3` | Tours minimum du nettoyage ; la limite grandit avec le nombre de tâches |
+| `BIFLOW_CLEANING_MAX_SECONDS` / `_SECONDS_PER_TASK` | `300` / `30` | Durée minimum (s) ; grandit avec le nombre de tâches |
+| `BIFLOW_CLEANING_EXPERT_ENABLED` | `false` | Expert Groq après 4 corrections locales échouées (envoie des échantillons à Groq) |
+| `BIFLOW_SMTP_*` | vide | E-mail de réinitialisation du mot de passe (facultatif) |
+| `BIFLOW_AUTH_DB` | `data/biflow_auth.sqlite3` | Emplacement de la base des comptes |
 
-## Agent roadmap and feature availability
+La liste complète, commentée, est dans `.env.example`.
 
-The top bar now shows all eight planned agents connected along one pipeline.
-Progress is calculated for the active dataset: profiling, cleaning, review needed,
-or validated cleaning awaiting ETL integration. Only profiling and cleaning are
-integrated. Orchestrator, ETL, Semantic/KPI, BI Analyst, Dashboard Generator and
-Auditor/XAI remain visibly locked. The sidebar has a dedicated workbench and
-locked-feature section. BI Analysis and Explainability pages stop at a locked
-notice even when opened directly, and their workflow tasks cannot be enabled or
-restored from an old template.
+---
+
+## 🧩 Options avancées
+
+### BI Analyst en local (modèle fine-tuné)
+
+Par défaut, le BI Analyst utilise l'API cloud (Groq/Gemini). Pour le modèle local Qwen 2.5 3B + LoRA, il faut un GPU NVIDIA, les paquets `torch`, `transformers`, `peft`, `bitsandbytes`, `accelerate`, et le fichier de poids `adapter/adapter_model.safetensors` (≈120 Mo, non versionné). Voir [le guide d'exécution du BI Analyst](docs/RUN_BI_ANALYST_FINETUNED_AGENT.md).
+
+### XAI Auditor dans un conteneur
+
+L'agent 4 tente d'abord un service sur `http://localhost:8003` (`XAI_SANDBOX_URL`) et, s'il n'est pas joignable, s'exécute directement dans l'application. Le conteneur est donc facultatif. Dans l'état actuel, `docker-compose.yml` (à la racine, avec `context: ..`) et `docker/Dockerfile.xai` doivent être corrigés avant de pouvoir construire ce service. Voir [le guide du XAI Auditor](docs/XAI_AUDITOR_AGENT_GUIDE.md).
+
+---
+
+## 🧪 Tests et évaluation
+
+```powershell
+python -m pytest tests -q
+```
+
+La plupart des tests simulent les réponses des modèles et ne nécessitent ni Ollama ni clé API ; certains utilisent Docker s'il est disponible. Le benchmark du nettoyage lance le vrai agent sur des données synthétiques et mesure la qualité et la sécurité du résultat :
+
+```powershell
+python -m evaluation.run --cases sales_small
+```
+
+Détails dans [docs/evaluation.md](docs/evaluation.md).
+
+---
+
+## 🗂️ Structure du projet
+
+```text
+BIFlow/
+├── agents/              Agents 1 à 4 et client LLM partagé
+├── dataCleaningTools/   Outils, contrôles, versions, prompts de l'agent de nettoyage
+├── orchestration/       Pipeline LangGraph (graph.py)
+├── dashboard/           Application Streamlit (app.py, pages/)
+├── auth/                Comptes et sessions (SQLite)
+├── analytics/           Fonctions d'analyse partagées
+├── evaluation/          Benchmark de l'agent de nettoyage
+├── sandbox/             Image Docker du code généré (nettoyage)
+├── docker/              Service XAI (FastAPI) et son Dockerfile
+├── adapter/             Configuration LoRA du BI Analyst (poids non versionnés)
+├── scripts/             Scripts de test manuels (Ollama, Docker, modèle fine-tuné)
+├── tests/               Tests automatisés
+├── docs/                Documentation technique
+├── data/raw/            Datasets d'exemple
+├── .env.example         Modèle de configuration
+└── requirements.txt
+```
+
+---
+
+## 📚 Documentation
+
+| Document | Sujet |
+| --- | --- |
+| [Architecture de l'agent de nettoyage](docs/cleaning-agent-architecture.md) | Boucle, outils, contrôles, modes de décision, publication vers le BI |
+| [Évaluation de l'agent de nettoyage](docs/evaluation.md) | Benchmark, métriques, résultats |
+| [Génération experte (Groq)](docs/expert-generation.md) | Repli Groq de l'agent de nettoyage |
+| [Évaluation du profilage](docs/DATA_ENGINEERING_AGENT_MASTER_EVALUATION_GUIDE.md) | Benchmarks et LLM-as-a-Judge de l'agent 1 |
+| [Exécution du BI Analyst](docs/RUN_BI_ANALYST_FINETUNED_AGENT.md) | Modèle LoRA local ou API cloud |
+| [Fine-tuning du BI Analyst](docs/BI_ANALYST_AGENT_AND_FINETUNING_GUIDE.md) | Stratégie QLoRA |
+| [Notebook Colab](docs/COLAB_FINETUNING_NOTEBOOK_QWEN_LORA.md) | Reproduire l'entraînement LoRA |
+| [XAI Auditor](docs/XAI_AUDITOR_AGENT_GUIDE.md) | SHAP, audit, service FastAPI |
+| [Architecture globale](docs/biflow_architecture_and_plan.md) | Vue d'ensemble du projet |
+
+---
+
+## 🛠️ Dépannage
+
+| Symptôme | Cause probable | Solution |
+| --- | --- | --- |
+| Le nettoyage s'arrête avec une erreur Ollama | Ollama arrêté ou modèle absent | Lancer Ollama, `ollama pull <modèle>`, vérifier `BIFLOW_CLEANING_OLLAMA_MODEL` |
+| « Docker was not available to test generated code » | Docker Desktop arrêté ou image absente | Démarrer Docker, refaire l'étape 5 |
+| Le profilage indique un rapport de repli (« fallback ») | Gemini surchargé (503) ou clé absente | Réessayer plus tard, ou `LLM_PROVIDER=ollama` |
+| BI Analyst : `adapter_model.safetensors` introuvable | Poids LoRA non installés | Utiliser le mode Cloud API ou ajouter les poids (voir le guide) |
+| Thème sombre ou pages manquantes | Streamlit lancé hors de la racine | Relancer `streamlit run dashboard/app.py` depuis la racine |
+| Mot de passe refusé à l'inscription | Règle de sécurité | 8 caractères minimum, une majuscule et un caractère spécial |
+
+---
+
+## 👥 Travail en équipe
+
+Chaque membre travaille sur sa branche (`feature/...`) puis ouvre une Pull Request vers `main`. Ne commitez ni `.env`, ni `.venv/`, ni les dossiers générés de `data/`.
+
+**Projet académique — BIFlow** · *Transform Data into Decisions.*
