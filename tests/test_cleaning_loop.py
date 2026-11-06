@@ -272,3 +272,13 @@ def test_time_limit_grows_with_the_task_queue_when_scaling(tmp_path,monkeypatch)
     assert run(tmp_path,monkeypatch,finish,max_seconds=10).metadata['limits']['max_seconds']==10
     # The dashboard passes its settings as minimums.
     assert run(tmp_path,monkeypatch,finish,max_seconds=10,max_turns=1,scale_limits=True).metadata['limits']['max_seconds']==20
+
+
+def test_cells_filled_by_generated_code_are_marked_like_builtin_fills():
+    from dataCleaningTools.tool_registry import mark_filled_cells
+    before = pd.DataFrame({'when': ['2024-01-05', None, '', '2024-02-01'], 'other': [None, 1, 2, 3]})
+    after = before.copy()
+    after['when'] = ['2024-01-05', '2024-01-05', '2024-01-05', '2024-02-01']  # e.g. fillna in transform(df)
+    mark_filled_cells(before, after, ['when'])
+    assert after['when_imputed'].tolist() == [False, True, True, False]
+    assert 'other_imputed' not in after  # only columns the method targeted and filled

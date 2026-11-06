@@ -3,7 +3,8 @@
 They are grouped into one decision per column (a dropped task also blocks or freezes the other tasks on
 its columns). A decision is applied to the saved run without model calls: "accept" records a host waiver
 for the column, "fill" fills its missing values through the checked builtin, with a suggested strategy
-(led by the profiling model's imputation choice, see fill_suggestions) or a value the person typed.
+(led by the profiling model's imputation choice, see fill_suggestions) or a value the person typed, and
+"remove_duplicates" removes exact duplicate rows (every column equal) through the checked builtin.
 """
 from __future__ import annotations
 
@@ -60,7 +61,18 @@ def open_decisions(result) -> list[dict]:
                             or f"{lead['category'].title()} task {lead['status'].replace('_', ' ')}")
         group["detail"] = lead["reason"] if lead["drop_reason"] in DROP_TEXT else ""
         group["suggestions"] = fill_suggestions(result, group["columns"][0]) if group["can_fill"] else []
+        group["duplicate_rows"] = (exact_duplicate_rows(result)
+                                   if any(t["category"] == "duplicates" for t in group["tasks"]) else 0)
+        group["can_remove_duplicates"] = group["duplicate_rows"] > 0
     return list(groups.values())
+
+
+def exact_duplicate_rows(result):
+    """Rows of the current final version that repeat an earlier row in every column."""
+    try:
+        return int(pd.read_csv(result.final_dataset.path).duplicated().sum())
+    except (OSError, ValueError):
+        return 0
 
 
 # Profiling strategies (Agent 1's imputation_strategy / imputation_plan) and the builtin that performs them.
@@ -130,7 +142,8 @@ def _settle_notes(state, columns):
 
 
 def apply(state, choices):
-    """choices maps a decision key to {"action": "accept", "note": ...} or {"action": "fill", "value": ...}."""
+    """choices maps a decision key to {"action": "accept", "note": ...}, {"action": "fill", "value": ...}
+    (or "strategy") or {"action": "remove_duplicates"}; an optional "by" names who decided (default host)."""
     executor = ToolExecutor(state)
     focused, state.focused_cleaning = state.focused_cleaning, False  # the tasks are closed; no task scoping applies
     log = []
@@ -138,11 +151,11 @@ def apply(state, choices):
         for key, choice in choices.items():
             tasks = [t for t in state.cleaning_tasks if t["status"] in OPEN and decision_key(t) == key]
             action = (choice or {}).get("action")
-            if not tasks or action not in {"accept", "fill"}:
+            if not tasks or action not in {"accept", "fill", "remove_duplicates"}:
                 continue
             columns = tasks[0]["columns"]
             entry = {"decision": key, "action": action, "at": datetime.now(timezone.utc).isoformat(),
-                     "base_version": state.current_ref.version}
+                     "base_version": state.current_ref.version, "by": choice.get("by", "host")}
             # These columns were frozen by the tasks being settled here.
             previous_flags = {c: state.flagged.pop(c) for c in columns if c in state.flagged}
             if action == "accept":
@@ -150,9 +163,28 @@ def apply(state, choices):
                 state.waived.update({c: note for c in columns})
                 _settle_notes(state, columns)
                 for task in tasks:
-                    task.update(status="reviewed", reason=f"Accepted by host: {note}",
+                    task.update(status="reviewed", reason=f"Accepted by {choice.get('by', 'host')}: {note}",
                                 assessed_version=state.current_ref.version)
                 entry.update(applied=True, note=note)
+            elif action == "remove_duplicates":
+                frame = state.manager.load(state.current_ref)
+                rows = int(frame.duplicated().sum())
+                trial = json.loads(executor.execute("test_builtin", {
+                    "hypothesis": f"Decision: remove {rows} exact duplicate row(s); every column repeats an earlier row",
+                    "columns": list(frame.columns), "operation": "remove_duplicates", "parameters": {}},
+                    origin="host_decision")) if rows else {"success": False, "error": "No exact duplicate rows are left"}
+                applied = (json.loads(executor.execute("apply_candidate", {"candidate_id": trial["candidate_id"],
+                           "assessment": f"Exact duplicate rows removed by {entry['by']}"}, origin="host_decision"))
+                           if trial.get("success") else trial)
+                if applied.get("success"):
+                    for task in tasks:
+                        task.update(status="reviewed", assessed_version=state.current_ref.version,
+                                    reason=f"{rows} exact duplicate row(s) removed by {entry['by']} as {state.current_ref.version}")
+                    entry.update(applied=True, rows=rows, version=state.current_ref.version)
+                    _settle_notes(state, columns)
+                else:
+                    state.flagged.update(previous_flags)
+                    entry.update(applied=False, error=str(applied.get("error") or "Duplicate removal did not pass its checks"))
             else:
                 column = columns[0]
                 strategy = choice.get("strategy")
@@ -179,7 +211,7 @@ def apply(state, choices):
                 if applied.get("success"):
                     for task in tasks:
                         task.update(status="reviewed", assessed_version=state.current_ref.version,
-                                    reason=f"Filled by host with {value!r} as {state.current_ref.version}")
+                                    reason=f"Filled by {choice.get('by', 'host')} with {value!r} as {state.current_ref.version}")
                     entry.update(applied=True, value=value, version=state.current_ref.version)
                     _settle_notes(state, columns)
                 else:

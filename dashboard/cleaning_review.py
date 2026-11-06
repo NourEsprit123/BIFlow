@@ -226,9 +226,14 @@ def render_pending_decisions(cleaning, *, key: str) -> None:
             st.write(item["summary"])
             tasks = " · ".join(f"{t['category'].title()} task {t['status'].replace('_', ' ')}" for t in item["tasks"])
             st.caption(tasks + (f" · Detail: {item['detail']}" if item["detail"] else ""))
-            options = ["Leave for later", "Accept as is"] + (["Fill with a value"] if item["can_fill"] else [])
+            removal = f"Remove {item.get('duplicate_rows', 0):,} exact duplicate row(s)"
+            options = (["Leave for later", "Accept as is"] + (["Fill with a value"] if item["can_fill"] else [])
+                       + ([removal] if item.get("can_remove_duplicates") else []))
             choice = st.radio("Decision", options, key=f"{key}_decision_{item['key']}", horizontal=True)
-            if choice == "Accept as is":
+            if choice == removal:
+                st.caption("Only rows identical to an earlier row in every column are removed; the first copy is kept.")
+                choices[item["key"]] = {"action": "remove_duplicates"}
+            elif choice == "Accept as is":
                 note = st.text_input("Reason (optional, saved in the report)", key=f"{key}_decision_note_{item['key']}",
                                      placeholder="These blanks are acceptable for this analysis")
                 choices[item["key"]] = {"action": "accept", "note": note}
@@ -273,6 +278,9 @@ def render_run_overview(summary) -> None:
     # A column the host accepted as it is stays visible next to the status instead of making the run partial.
     waived = (f" · {len(accepted)} column{'s' if len(accepted) != 1 else ''} accepted as is by you: "
               + ", ".join(accepted) if accepted else "")
+    kept = summary.get("accepted_by_model") or []
+    waived += (f" · {len(kept)} column{'s' if len(kept) != 1 else ''} kept as is by the model: " + ", ".join(kept)
+               if kept else "")
     banner(f"Final validation: {status}{waived}{needs}. {summary['stop']}.")
     minutes, seconds = divmod(round(summary["seconds"]), 60)
     st.caption(f"Final version {summary['final_version']} · {summary['turns']} of {summary['max_turns']} model turns · "
@@ -486,6 +494,31 @@ def render_experiment_runtime():
             else:
                 st.warning(result["setup"])
                 st.caption(result["error"])
+
+
+DECISION_MODES = {"in_the_loop": "Stay in the loop", "autonomous": "Let the model decide"}
+DECISION_HELP = {
+    "in_the_loop": "Changes that need approval, such as capping outliers, wait for you, and anything the agent "
+                   "cannot settle comes to you as a decision on the Data Cleaning page.",
+    "autonomous": "The model applies changes that normally need your approval once their trial passes, then settles "
+                  "what is left: blanks get the recommended fill, anything else is kept as it is with its reason. "
+                  "Every decision is listed in the report as the model's.",
+}
+
+
+def render_decision_mode(key: str) -> str:
+    """Who takes the cleaning decisions; one choice shared by the Workflows and Data Cleaning pages."""
+    current = st.session_state.get("cleaning_decision_mode", "in_the_loop")
+
+    def remember():
+        st.session_state["cleaning_decision_mode"] = st.session_state[key]
+
+    with st.container(border=True):
+        choice = st.radio("Cleaning decisions", list(DECISION_MODES), index=list(DECISION_MODES).index(current),
+                          format_func=DECISION_MODES.get, key=key, horizontal=True, on_change=remember)
+        st.caption(DECISION_HELP[choice])
+    st.session_state["cleaning_decision_mode"] = choice
+    return choice
 
 
 def render_cleaning_limits():

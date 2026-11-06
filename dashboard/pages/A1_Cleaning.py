@@ -7,7 +7,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from dashboard.cleaning_review import render_cleaning_result, run_cleaning_with_progress, render_experiment_runtime, render_cleaning_limits
+from dashboard.cleaning_review import render_cleaning_result, run_cleaning_with_progress, render_experiment_runtime, render_cleaning_limits, render_decision_mode
 from components import setup, page_header, badge, dataset_picker
 from agents.dataCleaning_agent import publish_cleaned
 from workspace import CLEANED_DATA, CLEANING_STATE_KEY, get_workspace_result
@@ -32,6 +32,7 @@ path = dataset_picker()
 if path is None:
     st.stop()
 
+render_decision_mode("cleaning_page_decision_mode")
 run_col, note_col = st.columns([1, 2], vertical_alignment="center")
 with run_col:
     run_clicked = st.button("🧹 Run Data Cleaning Agent", type="primary", width="stretch", key="cleaner_run")

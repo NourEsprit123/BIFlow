@@ -111,6 +111,22 @@ class AgentSessionState:
                 if attempt == 3: raise
                 time.sleep(0.05)
 
+def mark_filled_cells(before, after, columns):
+    """Mark cells a generated method filled in <column>_imputed, as the builtin fill does. Generated code that
+    called fillna left estimated values indistinguishable from real ones (a benchmark run filled blank dates)."""
+    if not before.index.equals(after.index):
+        return
+    for column in columns:
+        if column not in before or column not in after:
+            continue
+        filled = ~present(before[column]) & present(after[column])
+        if not filled.any():
+            continue
+        marker = f"{column}_imputed"
+        earlier = after[marker] if marker in after else before[marker] if marker in before else False
+        after[marker] = pd.Series(earlier, index=after.index).fillna(False).astype(bool) | filled
+
+
 class ToolExecutor:
     def __init__(self, state):
         self.state = state
@@ -387,6 +403,8 @@ class ToolExecutor:
                 self.state.pending_approvals.append(message)
                 return {"success": False, "approval_required": True, "step_id": step_id,
                         "message": message, "impact": impact}
+            if name == "apply_experimental_method":
+                mark_filled_cells(before, result.df, selected)
             new_ref, record = self.state.manager.commit_transformation(
                 self.state.current_ref, result.df, operation=name, columns=selected,
                 parameters=function_arguments, rationale=rationale, step_id=step_id,
@@ -453,7 +471,7 @@ class ToolExecutor:
         if self.state.expected_columns is not None:
             check("expected_columns",list(frame.columns)==self.state.expected_columns,"Required columns must be preserved unless removal was approved")
         for c, note in self.state.waived.items():
-            check(f"accepted_by_host:{c}", True, f"{c} accepted as is by the host: {note}")
+            check(f"accepted_by_host:{c}", True, f"{c} accepted as is: {note}")
         for c,target in self.state.required_targets.items():
             if c not in self.state.flagged and c not in self.state.waived:
                 check(f"target_type:{c}",c in frame and target_matches(frame[c],target),f"{c} must match {target}")

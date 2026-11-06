@@ -97,13 +97,19 @@ def summarize(result) -> dict:
                            "values_changed": changed.get(column, 0)})
 
     stop = STOP_REASONS.get(meta.get("stop_reason", ""), meta.get("stop_reason", "unknown"))
-    if meta.get("host_decisions") and not waiting:
-        stop = "Finished; your decisions were applied"
+    decided = meta.get("host_decisions") or []
+    by_model = [d for d in decided if d.get("by") == "model"]
+    if decided and not waiting:
+        stop = ("Finished; the model settled the remaining items (autonomous mode)" if len(by_model) == len(decided)
+                else "Finished; your decisions were applied")
+    accepted_by_model = [d["decision"] for d in by_model if d.get("action") == "accept" and d.get("applied")]
     return {
         "status": status,
         "needs_you": needs_you, "needs_you_names": needs_you_names,
         "stop": stop,
-        "accepted": list(meta.get("waived") or {}),  # columns the host accepted as they are
+        "accepted": [c for c in (meta.get("waived") or {}) if c not in accepted_by_model],  # accepted by the host
+        "accepted_by_model": accepted_by_model,  # kept as they are by the model in autonomous mode
+        "autonomous": meta.get("decision_mode") == "autonomous" or bool(by_model),
         "final_version": result.final_dataset.version,
         "turns": meta.get("turns_used", 0), "max_turns": limits.get("max_turns"),
         "seconds": meta.get("elapsed_seconds", 0), "model": meta.get("model"),

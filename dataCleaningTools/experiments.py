@@ -215,8 +215,14 @@ def run_isolated_transform(frame: pd.DataFrame, code: str, *, image_id: str | No
                     "error_kind": "sandbox_execution"}
         data = bytes(output)
         phase = "sandbox_output_transfer"
-        envelope = json.loads(data.decode())
-        result = restore_floats(pd.read_json(io.StringIO(envelope["data"]), orient="table"), envelope["floats"])
+        try:
+            envelope = json.loads(data.decode())
+            result = restore_floats(pd.read_json(io.StringIO(envelope["data"]), orient="table"), envelope["floats"])
+        except ValueError as exc:
+            # The method ran and exited cleanly but returned values pandas cannot hold (e.g. a 9999-12-31
+            # sentinel date). That is the method's failure for correction to fix, not missing infrastructure.
+            return {"success": False, "image_id": pinned_image, "error_kind": "sandbox_execution",
+                    "error": f"The method's output could not be read back: {exc}"}
         return {"success": True, "df": result, "image_id": pinned_image,
                 "repeatable": True, "output_hash": digest(data), "log": logs}
     except Exception as exc:

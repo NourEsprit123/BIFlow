@@ -496,6 +496,10 @@ if wf_state == "idle":
     st.markdown("---")
 
     can_launch = bool(selected_path)
+    if chosen_mode != "direct_agent_2":
+        # The pipeline runs the Data Cleaning Agent: who takes its decisions is chosen before launching.
+        from dashboard.cleaning_review import render_decision_mode
+        render_decision_mode("wf_cleaning_decision_mode")
     if chosen_mode == "direct_agent_2":
         launch_clicked = st.button(
             "🚀 Lancer l'analyse BI (Agent 3)",
@@ -542,6 +546,7 @@ if wf_state == "idle":
             execution_mode=chosen_mode,
             sandbox_mode=chosen_sandbox,
             resource_mode=chosen_resource,
+            cleaning_mode=st.session_state.get("cleaning_decision_mode", "in_the_loop"),
         )
 
         thread_id  = f"biflow_{int(time.time())}"

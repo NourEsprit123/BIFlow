@@ -264,6 +264,7 @@ def clean_profiled_dataset(path: Path, *, approved_step_ids: list[str] | None = 
         max_turns=settings.get("max_turns"),
         max_seconds=settings.get("max_seconds"),
         scale_limits=True,  # the run settings are minimums; both limits grow with the task queue
+        autonomous=st.session_state.get("cleaning_decision_mode") == "autonomous",
         data_root=ROOT / "data" / "versions" / "dashboard",
         report_root=ROOT / "data" / "reports" / "cleaningReports",
         publish_root=CLEANED_DATA,

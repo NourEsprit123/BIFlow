@@ -14,7 +14,7 @@ def offline(monkeypatch):
     monkeypatch.setattr("agents.dataCleaning_agent.sandbox_status", lambda: {})
 
 
-def finished_run(tmp_path, monkeypatch, outlier_action="cap"):
+def finished_run(tmp_path, monkeypatch, outlier_action="cap", autonomous=False):
     """One outlier task whose IQR change passes its trial and stops at approval."""
     source = tmp_path / "orders.csv"
     pd.DataFrame({"amount": [10.0, 11.0, 12.0, 13.0, 1000.0]}).to_csv(source, index=False)
@@ -27,7 +27,7 @@ def finished_run(tmp_path, monkeypatch, outlier_action="cap"):
         return action("test_builtin", hypothesis="Cap the extreme amount", columns=["amount"],
                       operation="handle_outliers", parameters={"action": outlier_action, "method": "iqr"})
     monkeypatch.setattr("agents.dataCleaning_agent.chat_with_tools", respond)
-    agent = DataCleaningAgent(data_root=tmp_path / "versions", use_llm=True)
+    agent = DataCleaningAgent(data_root=tmp_path / "versions", use_llm=True, autonomous=autonomous)
     return agent, agent.run(report)
 
 
@@ -134,3 +134,10 @@ def test_the_final_version_is_published_for_the_bi_analyst_and_again_after_appro
     assert resolved.metadata["published_path"] == str(published)
     assert pd.read_csv(published).equals(pd.read_csv(resolved.final_dataset.path))
     assert pd.read_csv(published)["amount"].max() < 1000  # the approved cap is in the published file
+
+
+
+def test_autonomous_mode_applies_the_change_without_waiting_for_approval(tmp_path, monkeypatch):
+    _, result = finished_run(tmp_path, monkeypatch, autonomous=True)
+    assert not approvals.pending(result) and result.validation.all_passed
+    assert pd.read_csv(result.final_dataset.path)["amount"].max() < 1000

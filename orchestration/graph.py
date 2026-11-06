@@ -157,6 +157,13 @@ class GraphState(TypedDict, total=False):
     Propagé à BIAnalystAgent(engine=...) et XAIAuditorAgent(engine=...).
     """
 
+    cleaning_mode: Literal["in_the_loop", "autonomous"]
+    """
+    Décisions de nettoyage (Data Cleaning Agent).
+    "in_the_loop" — les approbations et les points ouverts restent à la personne.
+    "autonomous"  — l'agent applique les changements approuvables et règle lui-même les points ouverts.
+    """
+
 
 # ---------------------------------------------------------------------------
 # Helpers internes
@@ -370,6 +377,7 @@ def node_data_engineer(state: GraphState) -> GraphState:
                 report_root=root / "data" / "reports" / "cleaningReports",
                 search_roots=[root / "data" / "raw", root / "data"],
                 publish_root=root / "data" / "cleaned",
+                autonomous=state.get("cleaning_mode") == "autonomous",
             ).run(result["profiling_report"], user_request=BUILTIN_FIRST_OBJECTIVE)
             # data/cleaned/<dataset>_cleaned.csv: the file the BI page lists for this dataset
             cleaned_path = cleaning.metadata.get("published_path") or cleaning.final_dataset.path
@@ -380,6 +388,7 @@ def node_data_engineer(state: GraphState) -> GraphState:
                 "final_version": cleaning.final_dataset.version,
                 "result_path": cleaning.metadata.get("result_path"),
                 "pending_approvals": len(cleaning.metadata.get("pending_approvals") or []),
+                "mode": state.get("cleaning_mode", "in_the_loop"),
                 "unresolved": len(cleaning.unresolved_issues),
             }
         except Exception as clean_err:
@@ -1053,6 +1062,7 @@ def make_initial_state(
     execution_mode: str = "auto",
     sandbox_mode: str = "inprocess",
     resource_mode: str = "auto",
+    cleaning_mode: str = "in_the_loop",
 ) -> GraphState:
     """
     Crée un état initial propre pour un nouveau run du pipeline.
@@ -1071,6 +1081,7 @@ def make_initial_state(
         execution_mode  = execution_mode,   # type: ignore[arg-type]
         sandbox_mode    = sandbox_mode,     # type: ignore[arg-type]
         resource_mode   = resource_mode,    # type: ignore[arg-type]
+        cleaning_mode   = cleaning_mode,    # type: ignore[arg-type]
         current_step    = "start",
         user_approval   = "approved",
         retry_count     = {},

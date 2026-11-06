@@ -129,3 +129,14 @@ def test_bi_analysis_is_not_reused_for_another_file_or_an_older_version(app):
     finally:
         if created:
             twin.unlink()
+
+
+
+def test_cleaning_decision_mode_is_chosen_before_launch_and_shared(app):
+    app.switch_page("pages/3_Workflows.py").run(timeout=30)
+    assert not app.exception
+    app.radio(key="wf_cleaning_decision_mode").set_value("autonomous").run(timeout=30)
+    assert app.session_state["cleaning_decision_mode"] == "autonomous"
+    app.switch_page("pages/A1_Cleaning.py").run(timeout=30)
+    assert not app.exception
+    assert app.radio(key="cleaning_page_decision_mode").value == "autonomous"

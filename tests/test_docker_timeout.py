@@ -1,6 +1,9 @@
 """A slow Docker reply is retried, and at worst drops one task; it never disables Docker for the run."""
 from types import SimpleNamespace
 
+import pandas as pd
+import pytest
+
 from dataCleaningTools import experiments
 from tests.test_cleaning_loop import action
 from tests.test_explicit_execution import request, sandbox
@@ -69,3 +72,19 @@ def test_timeout_drops_one_task_and_later_tasks_still_use_docker(tmp_path, monke
     assert [d["reason"] for d in result.metadata["task_drops"]] == ["sandbox_timeout"]
     assert ("types", True) in offered  # generated code is still offered after the timeout
     assert result.final_dataset.version == "V2"  # the flag conversion ran in the sandbox and was applied
+
+
+def test_unreadable_method_output_is_a_method_failure_not_missing_docker():
+    from dataCleaningTools.experiments import run_isolated_transform, runtime_status
+    if not runtime_status().get("available"):
+        pytest.skip("Docker sandbox not running")
+    frame = pd.DataFrame({"signup": ["2024-01-05", None]})
+    # A sentinel date the container's pandas can hold at second resolution but the host cannot read back.
+    code = ("def transform(df):\n"
+            "    out = df.copy()\n"
+            "    out['signup'] = pd.to_datetime(out['signup']).astype('datetime64[s]')\n"
+            "    out['signup'] = out['signup'].fillna(pd.Timestamp('9999-12-31').as_unit('s'))\n"
+            "    return out\n")
+    result = run_isolated_transform(frame, code)
+    assert not result["success"] and result["error_kind"] == "sandbox_execution"
+    assert result["error"].startswith("The method's output could not be read back") and result["image_id"]
