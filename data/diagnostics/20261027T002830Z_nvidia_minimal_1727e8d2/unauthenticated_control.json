@@ -1,7 +1,0 @@
-{
-  "test": "no_authorization_header",
-  "timeout_seconds": 10,
-  "http_status": 401,
-  "body": "Header of type `authorization` was missing",
-  "elapsed_seconds": 0.406
-}

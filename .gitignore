@@ -97,3 +97,8 @@ dist/
 build/
 *.egg-info/
 .eggs/
+
+# Generated run outputs (kept out of main)
+data/versions/
+data/diagnostics/
+data/evaluation/
